@@ -9,7 +9,7 @@ import { isProviderId, providerColor, providerInfo, providerName } from "@/lib/p
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace, isTraceKind, providerTrace, replayOps, traces } from "@/lib/traces";
 import type { ReplayOp, ReplayTrace, TraceKind } from "@/lib/traces";
-import { isTrackId, trackInfo } from "@/lib/tracks";
+import { isTrackId, landingTrack, trackInfo } from "@/lib/tracks";
 import type { TrackId } from "@/lib/tracks";
 
 /*
@@ -37,7 +37,7 @@ function target(el: EventTarget | null): (Open & { trigger: HTMLElement }) | nul
   if (!(el instanceof Element)) return null;
   const trigger = el.closest<HTMLElement>("[data-trace]");
   const [kind = "", provider = ""] = trigger?.dataset.trace?.split(":") ?? [];
-  const track = trigger?.closest<HTMLElement>("[data-track-view]")?.dataset.trackView ?? "default";
+  const track = trigger?.closest<HTMLElement>("[data-track-view]")?.dataset.trackView ?? landingTrack;
   if (!trigger || !isTraceKind(kind) || !isProviderId(provider) || !isTrackId(track)) return null;
   return { trigger, kind, provider, track };
 }
