@@ -5,7 +5,15 @@ import type { ReactNode } from "react";
 
 import { useScrollFade } from "@/components/tabs";
 
-type Sections = readonly (readonly [id: string, label: string])[];
+/** id, label, and optionally the tab a click opens (`#id/tab`). */
+type Sections = readonly (readonly [id: string, label: string, tab?: string])[];
+
+const hrefOf = ([id, , tab]: Sections[number]) => (tab ? `#${id}/${tab}` : `#${id}`);
+
+/** The same hash again fires no hashchange, so scroll to the section by hand. */
+const rescroll = (entry: Sections[number]) => {
+  if (window.location.hash === hrefOf(entry)) document.getElementById(entry[0])?.scrollIntoView();
+};
 
 /** The section whose top has passed a line a third of the way down the screen, or the last one at the bottom of the page. */
 function useCurrentSection(sections: Sections) {
@@ -42,23 +50,25 @@ export function SectionLinks({ sections }: { sections: Sections }) {
   const current = useCurrentSection(sections);
   const scroller = useScrollFade<HTMLElement>();
   return (
-    <nav ref={scroller} aria-label="Sections" className="scroll-fade -mx-3 min-w-0 overflow-x-auto [scrollbar-width:none]">
-      <ul className="flex w-max">
-        {sections.map(([id, label]) => {
+    <nav ref={scroller} aria-label="Sections" className="scroll-fade min-w-0 overflow-x-auto [scrollbar-width:none]">
+      <ul className="flex h-full w-max">
+        {sections.map((entry) => {
+          const [id, label] = entry;
           const active = id === current;
           return (
             <li key={id}>
               <a
-                href={`#${id}`}
+                href={hrefOf(entry)}
+                onClick={() => rescroll(entry)}
                 aria-current={active ? "location" : undefined}
-                className={`relative flex h-10 items-center px-3 text-[13px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:text-[var(--foreground)] focus-visible:underline motion-reduce:transition-none ${
+                className={`relative flex h-full items-center px-2.5 text-[13px] whitespace-nowrap transition-colors duration-150 outline-none focus-visible:text-[var(--foreground)] focus-visible:underline motion-reduce:transition-none ${
                   active ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {label}
                 <span
                   aria-hidden
-                  className={`absolute inset-x-3 -bottom-px h-0.5 origin-left bg-[var(--brand)] transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none ${
+                  className={`absolute inset-x-2.5 -bottom-px h-0.5 origin-left bg-[var(--brand)] transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none ${
                     active ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
                   }`}
                 />
@@ -130,11 +140,16 @@ export function SectionMenu({
           {menuTop ? <div className="mb-3">{menuTop}</div> : null}
           <nav aria-label="Sections">
             <ul className="grid grid-cols-2 gap-1">
-              {sections.map(([id, label]) => (
+              {sections.map((entry) => {
+                const [id, label] = entry;
+                return (
                 <li key={id}>
                   <a
-                    href={`#${id}`}
-                    onClick={() => setOpen(false)}
+                    href={hrefOf(entry)}
+                    onClick={() => {
+                      setOpen(false);
+                      rescroll(entry);
+                    }}
                     aria-current={id === current ? "location" : undefined}
                     className={`flex h-11 items-center gap-2 rounded-lg px-3 text-[14.5px] ${
                       id === current ? "bg-[var(--chip)] font-medium" : "text-[var(--muted)] active:bg-[var(--band)]"
@@ -144,7 +159,8 @@ export function SectionMenu({
                     {label}
                   </a>
                 </li>
-              ))}
+                );
+              })}
               {extra ? (
                 <li>
                   <a href={extra.href} onClick={() => setOpen(false)} className="flex h-11 items-center rounded-lg px-3 text-[14.5px] text-[var(--muted)] active:bg-[var(--band)]">

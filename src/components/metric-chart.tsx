@@ -26,17 +26,24 @@ export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
   );
 }
 
+/** A chart's notes, folded into one "Notes (n)" disclosure so the chart stays the first thing read. Marks keep their numbers. */
 export function Footnotes({ items }: { items: readonly { mark?: number; text: ReactNode }[] }) {
   if (items.length === 0) return null;
   return (
-    <ul className="mt-5 flex flex-col gap-1.5 border-t border-[var(--line)] pt-4 text-[12px] leading-snug text-[var(--muted)]">
-      {items.map((item, i) => (
-        <li key={i} className="flex gap-2">
-          {item.mark === undefined ? null : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
-          <span className="max-w-[90ch]">{item.text}</span>
-        </li>
-      ))}
-    </ul>
+    <details className="group/notes mt-4 border-t border-[var(--line)] pt-3 text-[12px] leading-snug text-[var(--muted)]">
+      <summary className="flex h-8 w-fit cursor-pointer list-none items-center gap-1.5 rounded-md text-[12.5px] transition-colors duration-150 outline-none select-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+        <span aria-hidden className="inline-block text-[11px] transition-transform duration-150 group-open/notes:rotate-90 motion-reduce:transition-none">▶</span>
+        Notes ({items.length})
+      </summary>
+      <ul className="mt-2 flex flex-col gap-1.5">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-2">
+            {item.mark === undefined ? null : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
+            <span className="max-w-[90ch]">{item.text}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -180,7 +187,7 @@ export function MetricChart({
 export function CompactNotes({ items }: { items: readonly { mark: number | undefined; id: ProviderId; note: string }[] }) {
   if (items.length === 0) return null;
   return (
-    <ul className="mt-3 flex flex-col gap-1 text-[11.5px] leading-snug text-[var(--muted)]">
+    <ul className="mt-3 flex flex-col gap-1 text-[11px] leading-snug text-[var(--muted)]">
       {items.map(({ mark, id, note }) => (
         <li key={id} className="flex gap-1.5">
           <span className="w-2.5 shrink-0 font-mono">{mark}</span>

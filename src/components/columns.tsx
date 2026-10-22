@@ -130,10 +130,10 @@ const Card = ({ column, className, style }: { column: Column; className: string;
  * Analysis draws them: value on top, name underneath. Each column is a
  * dithered fade that is densest at its top edge.
  */
-function Vertical({ columns, max }: { columns: readonly Column[]; max: number }) {
+function Vertical({ columns, max, still = false }: { columns: readonly Column[]; max: number; still?: boolean }) {
   return (
     <>
-      <div className="relative flex h-[260px] items-end border-b border-[var(--axis)] pt-6">
+      <div role={still ? "list" : undefined} className={`relative flex items-end border-b border-[var(--axis)] ${still ? "h-[200px] pt-5" : "h-[260px] pt-6"}`}>
         {columns.map((column, index) => {
           const bar = layout(column, max);
           const color = providerColor(column.provider);
@@ -143,12 +143,11 @@ function Vertical({ columns, max }: { columns: readonly Column[]; max: number })
           return (
             <div
               key={column.provider}
-              tabIndex={0}
-              aria-label={describe(column, bar)}
-              {...opener(column)}
+              aria-label={describe(column, bar, still)}
+              {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
               className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace ? "cursor-pointer" : ""}`}
             >
-              <span className="mb-1.5 shrink-0 font-mono text-[12px] whitespace-nowrap text-[var(--foreground)] tabular-nums">
+              <span className="mb-1.5 shrink-0 font-mono text-[11px] whitespace-nowrap sm:text-[12px] text-[var(--foreground)] tabular-nums">
                 {column.label}
               </span>
               <div
@@ -169,7 +168,7 @@ function Vertical({ columns, max }: { columns: readonly Column[]; max: number })
                   <div aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: color }} />
                 ) : null}
               </div>
-              <Card column={column} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />
+              {still ? null : <Card column={column} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />}
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-1 -bottom-px h-px opacity-0 group-focus-visible:opacity-100"
@@ -183,7 +182,7 @@ function Vertical({ columns, max }: { columns: readonly Column[]; max: number })
         {columns.map((column) => (
           <span
             key={column.provider}
-            className="block min-w-0 flex-1 px-0.5 text-center text-[12px] leading-tight font-medium"
+            className={`block min-w-0 flex-1 px-0.5 text-center leading-tight font-medium ${still ? "text-[11px]" : "text-[12px]"}`}
             style={{ color: providerColor(column.provider) }}
           >
             {providerName(column.provider)}
@@ -255,8 +254,8 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
 
 /**
  * One value per provider in the order given. Wide screens get columns;
- * compact charts and phones get horizontal bars, so names never rotate.
- * Compact charts are read-only: no focus stops, hover cards or breakdowns.
+ * phones (and compact charts below lg) get horizontal bars, so names never
+ * rotate. Compact charts are short read-only columns: no focus stops, hover cards or breakdowns.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
 export function Columns({
@@ -273,8 +272,16 @@ export function Columns({
   return (
     <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative">
       {compact ? (
-        // Compact charts sit inside a headline card that is itself a link, so their rows are not controls.
-        <Horizontal columns={columns} max={max} still />
+        // Compact charts sit inside a headline card that is itself a link, so their columns are not controls.
+        // Below lg a card is too narrow for seven names under columns, so it gets bars.
+        <>
+          <div className="lg:hidden">
+            <Horizontal columns={columns} max={max} still />
+          </div>
+          <div className="hidden lg:block">
+            <Vertical columns={columns} max={max} still />
+          </div>
+        </>
       ) : (
         <>
           <div className="sm:hidden">

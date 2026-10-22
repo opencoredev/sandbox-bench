@@ -6,7 +6,7 @@ import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { CostPerTaskChart, NoCostResults, costColumns, taskDefinition } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
-import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, metricSubtitle, sentence, trackFootnotes } from "@/components/metric-chart";
+import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
 import { Reliability } from "@/components/reliability";
@@ -17,12 +17,14 @@ import { SdkReadyChart, hasSdkReady } from "@/components/sdk-ready";
 import { JumpLink } from "@/components/jump";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
+import { StatStrip } from "@/components/stat-strip";
 import { Card, TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
+import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costKinds, hasTaskCosts, pricedKinds, pricedTasks } from "@/lib/cost";
+import { TASKS_PER_PRICE, hasTaskCosts, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
 import { formatGiB, formatMoney } from "@/lib/format";
@@ -49,15 +51,16 @@ import { advertised } from "@/lib/sizes";
 // opens its section on the matching tab.
 // Avoiding: poster-sized hero, intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
 
+// Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 const sections = [
-  ["startup", "Start-up"],
-  ["agent", "Agent work"],
-  ["everyday", "Everyday calls"],
-  ["state", "Pause & snapshots"],
-  ["scale", "Bursts"],
+  ["startup", "Start-up", "cold"],
+  ["agent", "Agent work", "tool-replay"],
+  ["everyday", "Everyday"],
+  ["state", "Pause & snapshots", "create-from-snapshot"],
+  ["scale", "Bursts", "burst-10"],
   ["machines", "Machines"],
   ["reliability", "Reliability"],
-  ["cost", "Cost"],
+  ["cost", "Cost", "task"],
   ["method", "Method"],
 ] as const;
 
@@ -81,12 +84,12 @@ const ranOn = (p: Provider | undefined) => {
 
 function Section({ id, title, lede, children }: { id: string; title: string; lede: ReactNode; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 pt-16 sm:pt-24 lg:scroll-mt-28">
-      <h2 id={`${id}-title`} className="flex items-center gap-3 font-pixel text-[28px] leading-none tracking-tight sm:text-[34px]">
-        <span aria-hidden className="size-3.5 shrink-0 bg-[var(--foreground)]" />
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 pt-14 sm:pt-20 lg:scroll-mt-28">
+      <h2 id={`${id}-title`} className="flex items-center gap-2.5 text-[22px] leading-none font-semibold tracking-tight sm:text-[24px]">
+        <span aria-hidden className="size-2.5 shrink-0 bg-[var(--foreground)]" />
         {title}
       </h2>
-      <p className="mt-3 mb-6 max-w-[72ch] text-[14px] leading-relaxed text-[var(--muted)]">{lede}</p>
+      <p className="mt-2.5 mb-5 max-w-[72ch] text-[13.5px] leading-relaxed text-pretty text-[var(--muted)]">{lede}</p>
       {children}
     </section>
   );
@@ -267,7 +270,6 @@ function Headline({
   sub,
   section,
   tab,
-  more,
   children,
 }: {
   marker: string;
@@ -275,28 +277,23 @@ function Headline({
   sub: string;
   section: string;
   tab: string;
-  /** Names where the card leads, e.g. "All start-up charts". */
-  more: string;
   children: ReactNode;
 }) {
   return (
     <JumpLink
       section={section}
       tab={tab}
-      className="group flex min-w-0 flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 transition-colors duration-150 outline-none hover:border-[var(--axis)] hover:bg-[var(--band)] focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60 motion-reduce:transition-none"
+      className="group flex min-w-0 flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 transition-[border-color,background-color] duration-150 outline-none hover:border-[var(--axis)] hover:bg-[var(--band)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none sm:p-5"
     >
-      <h2 className="flex items-center gap-2.5 font-pixel text-[20px] leading-none tracking-tight">
-        <span aria-hidden className="size-3 shrink-0" style={{ backgroundColor: marker }} />
-        {title}
-      </h2>
-      <p className="mt-2 mb-4 text-[12px] leading-snug text-[var(--muted)]">{sub}</p>
-      {children}
-      <span className="mt-auto flex items-center justify-between gap-2 pt-4 text-[12px] text-[var(--muted)] transition-colors duration-150 group-hover:text-[var(--foreground)] motion-reduce:transition-none">
-        {more}
-        <span aria-hidden className="transition-transform duration-150 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none">
+      <h2 className="flex items-center gap-2 text-[15px] leading-tight font-medium tracking-tight">
+        <span aria-hidden className="size-2.5 shrink-0" style={{ backgroundColor: marker }} />
+        <span className="min-w-0 truncate">{title}</span>
+        <span aria-hidden className="ml-auto text-[var(--muted)] transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-[var(--brand)] motion-reduce:transition-none">
           →
         </span>
-      </span>
+      </h2>
+      <p className="mt-1 mb-3 truncate text-[12px] text-[var(--muted)]">{sub}</p>
+      {children}
     </JumpLink>
   );
 }
@@ -307,41 +304,27 @@ function Headlines({ track }: { track: Track }) {
   const restore = track.metric("create-from-snapshot");
   const { columns, marks } = costColumns(track);
   const machine = allocationNotes(track);
-  const kinds = pricedKinds.filter((k) => pricedTasks(track).some((t) => t.cost.kind === k)).map((k) => costKinds[k].label.toLowerCase());
+  const short = "Median s · lower is better";
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Headline marker="var(--dither-color-blue)" title="Cold start" sub={metricSubtitle(cold, "create() to first command, the provider's own time")} section="startup" tab="cold" more="All start-up charts">
+    <div className="grid gap-3 md:grid-cols-2">
+      <Headline marker="var(--dither-color-blue)" title="Cold start" sub={short} section="startup" tab="cold">
         <MetricChart track={track} metric={cold} what="" compact />
       </Headline>
-      <Headline marker="var(--dither-color-orange)" title="Agent work" sub={metricSubtitle(replay, "Tool replay, 100 calls")} section="agent" tab="tool-replay" more="All agent tasks">
+      <Headline marker="var(--dither-color-orange)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
-      <Headline
-        marker="var(--dither-color-green)"
-        title="Cost per 1,000 tasks"
-        sub={`Create, 100-call tool replay, delete${kinds.length ? ` · ${kinds.join(", ")}` : ""} · US dollars · Lower is better`}
-        section="cost"
-        tab="task"
-        more="How each was priced"
-      >
+      <Headline marker="var(--dither-color-green)" title="Cost per 1,000 tasks" sub="USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
-            <p className="mt-3 text-[11.5px] leading-snug text-[var(--muted)]">Plain bar: billed. Hatched: metered. Dotted: list-price estimate.</p>
+            <p className="mt-2 text-[11px] leading-snug text-[var(--muted)]">Plain: billed. Hatched: metered. Dotted: list-price estimate.</p>
           </>
         ) : (
           <NoCostResults compact />
         )}
       </Headline>
-      <Headline
-        marker="var(--dither-color-purple)"
-        title="Start from snapshot"
-        sub={metricSubtitle(restore, "New sandbox from a snapshot, then a command")}
-        section="state"
-        tab="create-from-snapshot"
-        more="Pause and snapshot charts"
-      >
+      <Headline marker="var(--dither-color-purple)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
         <MetricChart track={track} metric={restore} what="" compact notes={blockedNotes(track, "create-from-snapshot")} />
       </Headline>
     </div>
@@ -352,24 +335,9 @@ function Headlines({ track }: { track: Track }) {
 function Facts({ track }: { track: Track }) {
   const next = track.absent.map((id) => providerInfo[id].name);
   const facts = hasResults(track)
-    ? [
-        dayRange(track.window),
-        "Florida, US",
-        `${track.providers.length} providers tested${next.length ? `, ${next.join(" and ")} next` : ""}`,
-        "100 runs per quick test, 30 per agent task",
-      ]
+    ? [dayRange(track.window), `${track.providers.length} providers${next.length ? ` (${next.join(" and ")} next)` : ""}`, "Florida, US", "100 runs per test, 30 per agent task"]
     : ["Coming in the next update", "Florida, US"];
-  return (
-    <p className="mt-4 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[12px] text-[var(--muted)]">
-      {facts.map((fact, i, all) => (
-        // The separator rides at the end of each fact, so a wrapped line never starts with one.
-        <span key={fact} className="whitespace-nowrap">
-          {fact}
-          {i < all.length - 1 ? <span aria-hidden className="ml-2">·</span> : null}
-        </span>
-      ))}
-    </p>
-  );
+  return <p className="text-[14px] text-pretty text-[var(--muted)]">{facts.join(" · ")}</p>;
 }
 
 /** Failures set aside in each track, for the Method section. */
@@ -454,32 +422,25 @@ const showSwitch = tracks["same-spec"].providers.length > 0;
 export default function Page() {
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--background)_88%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-4 px-4 sm:px-6">
+      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--background)_85%,transparent)] backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-5 px-4 sm:px-6">
           <a href="#top" className="-my-2 shrink-0 py-2.5" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <div className="ml-auto hidden items-center gap-3 lg:flex">
-            {showSwitch ? (
-              <>
-                <span className="text-[12px] text-[var(--muted)]">Machines</span>
-                <TrackSwitch size="small" />
-              </>
-            ) : null}
+          <div className="hidden min-w-0 flex-1 self-stretch lg:flex">
+            <SectionLinks sections={sections} />
+          </div>
+          <div className="ml-auto hidden shrink-0 items-center gap-2.5 lg:flex">
+            {showSwitch ? <TrackSwitch size="small" /> : null}
             <a
               href="llms.txt"
-              className="flex h-8 items-center rounded-full border border-[var(--line)] px-3.5 text-[13px] text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground)] motion-reduce:transition-none"
+              className="flex h-8 items-center rounded-md px-2.5 text-[13px] whitespace-nowrap text-[var(--muted)] transition-colors duration-150 outline-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none"
             >
               For agents ↗
             </a>
           </div>
           <div className="ml-auto lg:hidden">
             <SectionMenu sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
-          </div>
-        </div>
-        <div className="hidden border-t border-[var(--line)]/60 lg:block">
-          <div className="mx-auto max-w-[1200px] px-6">
-            <SectionLinks sections={sections} />
           </div>
         </div>
       </header>
@@ -490,28 +451,25 @@ export default function Page() {
         </p>
       ) : null}
 
-      <main id="top" className="mx-auto max-w-[1200px] px-4 sm:px-6">
-        <div className="pt-10 pb-6 sm:pt-14 sm:pb-8">
-          <h1 className="font-pixel text-[38px] leading-[0.95] tracking-tight sm:text-[56px]">Cloud sandboxes, measured</h1>
-          <p className="mt-4 max-w-[62ch] text-[15px] leading-snug sm:text-[16px]">
-            Cloud sandbox providers for AI agents, timed on the same tests from one server. Medians below; each card opens its full chart.
-          </p>
+      <main id="top" className="mx-auto max-w-[1280px] px-4 sm:px-6">
+        <div className="flex flex-col gap-2 pt-8 pb-5 sm:pt-10">
+          <h1 className="font-pixel text-[32px] leading-none tracking-tight text-balance sm:text-[44px]">Cloud sandboxes, measured</h1>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
           {showSwitch ? (
-            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+            // Wide screens carry the switch in the header; phones get it here as well as in the menu.
+            <div className="mt-2 lg:hidden">
               <TrackSwitch />
-              <p className="text-[12.5px] leading-snug text-[var(--muted)]">
-                <Tracked>{(track) => trackInfo[track.id].description}</Tracked> Every chart below follows this switch.
-              </p>
             </div>
-          ) : (
-            <p className="mt-6 max-w-[70ch] text-[12.5px] leading-snug text-[var(--muted)]">
-              Each provider ran its default sandbox, so machine sizes differ; the Machines section shows each one. A same-machine comparison at 4 vCPU and 8 GB is being collected now.
-            </p>
-          )}
+          ) : null}
+        </div>
+
+        <div className="pb-3">
+          <PerTrack>{(track) => <StatStrip track={track} />}</PerTrack>
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
+
+        <TraceWaterfall />
 
         <Section
           id="startup"
