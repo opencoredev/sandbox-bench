@@ -1,3 +1,4 @@
+// The art lives in src/assets/og-art.jpg; editing this file changes the cache-busting query on the card URL.
 import { ogAlt, ogSize, renderOgImage } from "@/lib/og-image";
 
 export const dynamic = "force-static";
