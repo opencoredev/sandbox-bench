@@ -38,8 +38,8 @@ export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<Provi
     },
   },
   "same-spec": {
-    snapshot: { boxd: stopped, upstash: stopped, daytona: daytonaSnapshotQuota },
-    "create-from-snapshot": { boxd: stopped, upstash: stopped, daytona: daytonaSnapshotQuota },
+    snapshot: { daytona: daytonaSnapshotQuota },
+    "create-from-snapshot": { daytona: daytonaSnapshotQuota },
     "burst-10": {
       freestyle: stopped,
       boxd: stopped,

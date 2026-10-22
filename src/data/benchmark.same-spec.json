@@ -172,9 +172,9 @@
  "generatedFrom": "m-same",
  "window": {
   "start": "2026-10-22T12:41:17.842Z",
-  "end": "2026-10-22T15:05:26.030Z"
+  "end": "2026-10-22T15:58:23.746Z"
  },
- "observations": 14072,
+ "observations": 14674,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r5",
@@ -192,9 +192,9 @@
    "samples": 990
   },
   {
-   "id": "sbx53-same-spec-burst-r5",
-   "suite": "burst",
-   "samples": 123
+   "id": "sbx53-same-spec-snapshot-r6",
+   "suite": "snapshot",
+   "samples": 602
   }
  ],
  "excluded": [
@@ -260,8 +260,8 @@
    "reliability": {
     "successes": 2686,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
@@ -366,8 +366,8 @@
    "reliability": {
     "successes": 2133,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
@@ -481,10 +481,10 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2204,
+    "successes": 2531,
     "failures": 1,
-    "raw": 0.999546485260771,
-    "adjusted": 0.999546485260771,
+    "raw": 0.9996050552922591,
+    "adjusted": 0.9996050552922591,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 1
@@ -533,6 +533,11 @@
     {
      "reason": "Our ownership check could not confirm the sandbox before deleting it, so we can't tell whose side failed",
      "count": 5,
+     "runs": 3
+    },
+    {
+     "reason": "Our ownership check failed on 4 snapshot cleanup steps; none is counted",
+     "count": 4,
      "runs": 3
     }
    ],
@@ -613,10 +618,10 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2230,
+    "successes": 2505,
     "failures": 2,
-    "raw": 0.9991039426523297,
-    "adjusted": 0.9991039426523297,
+    "raw": 0.9992022337455125,
+    "adjusted": 0.9992022337455125,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 2
@@ -675,7 +680,13 @@
      ]
     }
    ],
-   "ourFailures": [],
+   "ourFailures": [
+    {
+     "reason": "Our ownership check failed on 4 snapshot attempts, and our 30-second cleanup deadline ran out 8 times; none is counted",
+     "count": 12,
+     "runs": 12
+    }
+   ],
    "pauseSplit": {
     "pause": 0.12380898099998013,
     "resume": 0.4039313779999502,
@@ -1566,6 +1577,34 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 2.105953199999989,
+     "p95": 10.27501376100001,
+     "min": 2.0845663169999606,
+     "ciLow": 2.0944023720000406,
+     "ciHigh": 4.139856447999831,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 26,
+     "p50": 4.008689795999905,
+     "p95": 4.766904462999897,
+     "min": 3.5589217149999457,
+     "ciLow": 3.651571738000028,
+     "ciHigh": 4.021842798999977,
+     "successes": 26,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0,
+     "blocked": 4,
+     "blockedNote": "26 of 30: four attempts failed in our own ownership check, so they are set aside, not counted."
+    },
+    {
      "provider": "freestyle",
      "n": 30,
      "p50": 0.25825402799999575,
@@ -1615,6 +1654,34 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.642782705000136,
+     "p95": 27.134479923999987,
+     "min": 2.5849242359999334,
+     "ciLow": 2.7456923950000203,
+     "ciHigh": 4.660174173000007,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 26,
+     "p50": 1.4056154330000281,
+     "p95": 1.4634473780000117,
+     "min": 1.3032070259999018,
+     "ciLow": 1.3887642859999323,
+     "ciHigh": 1.4271099230000983,
+     "successes": 26,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0,
+     "blocked": 4,
+     "blockedNote": "26 of 30: four attempts failed in our own ownership check, so they are set aside, not counted."
     },
     {
      "provider": "freestyle",
