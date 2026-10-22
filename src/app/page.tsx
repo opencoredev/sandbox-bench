@@ -373,6 +373,10 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
     "Every run started from one server in Florida, US. Distance to each provider's region affects every call; the Hardware tab under Machines shows where each sandbox ran.",
   ],
   [
+    "Plans and limits",
+    "We used each provider's self-serve account. Where a plan or account limit changed what we could test, the chart says so: Superserve's plan caps templates at 2 vCPU, so it is not in the 4 vCPU track; Boat's plan allows 200 creates a day; Daytona's account quota of 10 vCPU kept its 4 vCPU snapshot and burst tests from running. A paid plan or a quota increase may lift these, and we will add the results when it does.",
+  ],
+  [
     "Attempts",
     "100 runs per quick test and 30 per agent task. When snapshots and bursts arrive: 30 per snapshot test and 3 bursts of each size.",
   ],
