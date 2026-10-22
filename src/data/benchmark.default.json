@@ -220,12 +220,12 @@
   {
    "id": "e2b",
    "costPerTask": {
-    "usd": null,
+    "usd": 0.000493317,
     "kind": "metered",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
-    "settled": false
+    "source": "https://api.e2b.app/events/sandboxes/{id}",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true
    },
    "track": "default",
    "requestedAllocation": {
@@ -324,11 +324,11 @@
   {
    "id": "daytona",
    "costPerTask": {
-    "usd": null,
-    "kind": "billed",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
+    "usd": 0.00026718859173,
+    "kind": "estimate",
+    "source": "List price 1 vCPU, 1 GiB at $0.0666/h x measured sandbox lifetime (boxd's own meter settles within ~25 min; Daytona's bill within 48 h)",
+    "confidence": "low",
+    "n": 10,
     "settled": false
    },
    "track": "default",
@@ -429,12 +429,12 @@
   {
    "id": "upstash",
    "costPerTask": {
-    "usd": null,
+    "usd": 0.00023178356944444445,
     "kind": "billed",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
-    "settled": false
+    "source": "https://us-east-1.box.upstash.com/v2/box/{id}",
+    "confidence": "high",
+    "n": 10,
+    "settled": true
    },
    "track": "default",
    "requestedAllocation": {
@@ -573,11 +573,11 @@
   {
    "id": "boxd",
    "costPerTask": {
-    "usd": null,
-    "kind": "metered",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
+    "usd": 0.0019564123537203506,
+    "kind": "estimate",
+    "source": "List price 2 vCPU, 8 GiB at $0.1955/h x measured sandbox lifetime (boxd's own meter settles within ~25 min; Daytona's bill within 48 h)",
+    "confidence": "low",
+    "n": 10,
     "settled": false
    },
    "track": "default",
@@ -705,11 +705,11 @@
   {
    "id": "freestyle",
    "costPerTask": {
-    "usd": null,
+    "usd": 0.0016737204556860675,
     "kind": "estimate",
-    "source": "https://www.freestyle.sh/pricing",
-    "confidence": "none",
-    "n": 0,
+    "source": "List price 4 vCPU, 8 GiB at $0.2645/h x measured sandbox lifetime (no per-sandbox billing API)",
+    "confidence": "low",
+    "n": 10,
     "settled": false
    },
    "track": "default",
@@ -811,11 +811,11 @@
   {
    "id": "tenki",
    "costPerTask": {
-    "usd": null,
+    "usd": 0.0008261066782599504,
     "kind": "estimate",
-    "source": "https://tenki.cloud/pricing",
-    "confidence": "none",
-    "n": 0,
+    "source": "List price 2 vCPU, 3.8 GiB at $0.1623/h x measured sandbox lifetime (no per-sandbox billing API)",
+    "confidence": "low",
+    "n": 10,
     "settled": false
    },
    "track": "default",
@@ -909,11 +909,11 @@
   {
    "id": "superserve",
    "costPerTask": {
-    "usd": null,
-    "kind": "metered",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
+    "usd": 0.00024844425744775003,
+    "kind": "estimate",
+    "source": "List price 1 vCPU, 1 GiB at $0.0666/h x measured sandbox lifetime (billing is account-level only)",
+    "confidence": "low",
+    "n": 10,
     "settled": false
    },
    "track": "default",

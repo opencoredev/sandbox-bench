@@ -215,7 +215,7 @@ export function agentData() {
     howToRead,
     task: "A task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox.",
     commonSize: commonSize.label,
-    comingNextUpdate: ["Boat", "Snapshot and restore", "Bursts of 10 and 25", "Cost per task", "The same-machine (4 vCPU, 8 GB) track"],
+    comingNextUpdate: ["Boat", "Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
   };
 }
@@ -328,7 +328,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, snapshot and restore, bursts of 10 and 25, cost per task, and the same-machine (4 vCPU, 8 GB) track. This release is one run on one harness commit, default machines only.
+Boat, snapshot and restore, bursts of 10 and 25, and the same-machine (4 vCPU, 8 GB) track. This release is one run on one harness commit, default machines only, plus a separate cost run for cost per task.
 
 ## Data
 

@@ -152,8 +152,9 @@ export function Scatter({
             // Two points at nearly the same price print their labels on one line, and on a
             // narrow plot they collide whatever the gap: the dearer label moves above, the cheaper below,
             // so neither runs over the other's dot. At exactly one price the further-right one moves below.
+            // Only a neighbour close enough across to share the label's line counts.
             const twin = points
-              .filter((q) => q !== p && Math.abs(fy(q.y) - fy(p.y)) < 0.08)
+              .filter((q) => q !== p && Math.abs(fy(q.y) - fy(p.y)) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
               .sort((a, b) => Math.abs(fy(a.y) - fy(p.y)) - Math.abs(fy(b.y) - fy(p.y)))[0];
             const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
             const nudge = twin ? (above ? -15 : 15) : 0;
