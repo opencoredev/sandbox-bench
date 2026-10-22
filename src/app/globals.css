@@ -111,10 +111,10 @@ body {
   }
 }
 
-/* Both tracks ship in the static page; the default shows unless trackStyle is in <head> (components/track.tsx). */
+/* Both tracks ship in the static page; same machine shows unless trackStyle is in <head> (lib/tracks.ts). */
 [data-track-view] {
   display: contents;
 }
-[data-track-view="same-spec"] {
+[data-track-view="default"] {
   display: none;
 }

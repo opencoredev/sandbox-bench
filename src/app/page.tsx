@@ -367,7 +367,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Two tracks",
-    line: "Default machines compares each provider's default sandbox; Same machine asks every provider for 4 vCPU and 8 GB.",
+    line: "Same machine asks every provider for 4 vCPU and 8 GB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
     more: (
       <>
         Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
@@ -416,8 +416,8 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
 ];
 
-// The same-machine switch appears only once that track has results; until then it would lead to empty sections.
-const showSwitch = tracks["same-spec"].providers.length > 0;
+// The switch appears only once both tracks have results; until then one side would be empty sections.
+const showSwitch = trackIds.every((id) => tracks[id].providers.length > 0);
 
 export default function Page() {
   return (
