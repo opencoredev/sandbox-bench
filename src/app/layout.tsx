@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   description,
   openGraph: { title, description, type: "website", siteName: "Sandbox bench", url: "https://aisandboxbench.com" },
-  twitter: { card: "summary", title, description },
+  twitter: { card: "summary_large_image", title, description },
   metadataBase: new URL("https://aisandboxbench.com"),
   alternates: { canonical: "/", types: { "text/markdown": "/results.md", "application/json": "/results.json" } },
   robots: { index: true, follow: true },
