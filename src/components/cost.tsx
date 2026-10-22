@@ -2,7 +2,7 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, ComingNext, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import { Marker } from "@/components/scatter";
-import { costBasis, costKinds, formatTaskCost, hasTaskCosts, pricedKinds, pricedTasks, unpricedTasks } from "@/lib/cost";
+import { costBasis, costKinds, formatPerThousand, formatTaskCost, hasTaskCosts, perPriceLabel, pricedKinds, pricedTasks, unpricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { fillStyle } from "@/lib/dither";
 import { allocationNotes } from "@/lib/notes";
@@ -44,17 +44,17 @@ export function costColumns(track: Track) {
   const marks = new Map(pricedTasks(track).flatMap(({ id }) => (machine[id] ? [[id, ++next] as const] : [])));
   const columns: Column[] = pricedTasks(track).map(({ id, cost }) => ({
     provider: id,
-    label: formatTaskCost(cost.usd),
+    label: formatPerThousand(cost.usd),
     mark: marks.get(id),
     segments: [{ value: cost.usd, color: providerColor(id), variant: costKinds[cost.kind].fill }],
-    detail: [`${costKinds[cost.kind].label} ${formatTaskCost(cost.usd)} per task`, costBasis(cost)],
+    detail: [`${costKinds[cost.kind].label} ${formatPerThousand(cost.usd)} ${perPriceLabel}`, `${formatTaskCost(cost.usd)} for one task`, costBasis(cost)],
   }));
   return { columns, marks };
 }
 
 /** Cost per task from the cost run, never mixing billed, metered and estimated silently. */
 export function CostPerTaskChart({ track }: { track: Track }) {
-  const head = <ChartHead title="Cost per task" sub="Create a sandbox, run the 100-call tool replay, delete it · US dollars · Lower is better" />;
+  const head = <ChartHead title="Cost per 1,000 tasks" sub="Create a sandbox, run the 100-call tool replay, delete it · US dollars per 1,000 tasks · Lower is better" />;
   if (!hasTaskCosts(track))
     return (
       <>

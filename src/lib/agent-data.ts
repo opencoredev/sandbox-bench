@@ -1,4 +1,4 @@
-import { costBasis, costKinds, formatTaskCost, isPriced } from "@/lib/cost";
+import { TASKS_PER_PRICE, costBasis, costKinds, formatPerThousand, formatTaskCost, isPriced } from "@/lib/cost";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Metric, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
@@ -114,7 +114,7 @@ export function quickPicks(track: Track) {
     timed("tool-replay", "Fastest agent work (tool replay)"),
     timed("burst-25", "Fastest 25-sandbox fan-out"),
     timed("reconnect", "Fastest reconnect"),
-    { need: "Cheapest task", ...pair(cheapest, (x) => `${name(x.p.id)} ${formatTaskCost(x.c.usd)} (${costKinds[x.c.kind].label.toLowerCase()})`) },
+    { need: "Cheapest task", ...pair(cheapest, (x) => `${name(x.p.id)} ${formatTaskCost(x.c.usd)} per task, ${formatPerThousand(x.c.usd)} per 1,000 (${costKinds[x.c.kind].label.toLowerCase()})`) },
     {
       need: "Most reliable",
       // Several providers can share the top rate; name every one of them.
@@ -143,7 +143,7 @@ function costOf(track: Track, id: ProviderId) {
     case "billed":
     case "metered":
     case "estimate":
-      return { kind: c.kind, perTaskUsd: roundCost(c.usd), confidence: c.confidence, tasks: c.n, source: c.source, basis: costBasis(c) };
+      return { kind: c.kind, perTaskUsd: roundCost(c.usd), per1000TasksUsd: roundCost(c.usd * TASKS_PER_PRICE), confidence: c.confidence, tasks: c.n, source: c.source, basis: costBasis(c) };
     case "none":
       return { kind: c.kind, perTaskUsd: null, note: c.why };
     default: {
@@ -240,11 +240,11 @@ function trackMarkdown(id: TrackId) {
     "",
     "## Machines and cost",
     "",
-    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GB? | Ran in | Cost per task | Cost kind | Price per hour | Success rate |",
-    "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GB? | Ran in | Cost per task | Per 1,000 tasks | Cost kind | Price per hour | Success rate |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${p.costPerTask.perTaskUsd === null ? "n/a" : formatTaskCost(p.costPerTask.perTaskUsd)} | ${p.costPerTask.kind} | ${p.price.perHourUsd === null ? "n/a" : `$${p.price.perHourUsd}${p.price.currency === "EUR" ? ` (EUR ${p.price.perHour})` : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${p.costPerTask.perTaskUsd === null ? "n/a" : formatTaskCost(p.costPerTask.perTaskUsd)} | ${p.costPerTask.perTaskUsd === null ? "n/a" : formatPerThousand(p.costPerTask.perTaskUsd)} | ${p.costPerTask.kind} | ${p.price.perHourUsd === null ? "n/a" : `$${p.price.perHourUsd}${p.price.currency === "EUR" ? ` (EUR ${p.price.perHour})` : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
     ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),

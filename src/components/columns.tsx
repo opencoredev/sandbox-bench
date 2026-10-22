@@ -199,21 +199,20 @@ function Vertical({ columns, max }: { columns: readonly Column[]; max: number })
  * The same data as horizontal bars, one row per provider, so every name
  * reads level however narrow the card. Used for compact charts and phones.
  */
-function Horizontal({ columns, max }: { columns: readonly Column[]; max: number }) {
+function Horizontal({ columns, max, still = false }: { columns: readonly Column[]; max: number; still?: boolean }) {
   // Values sit in one right-aligned column wide enough for the longest label.
   const valueWidth = `${Math.max(...columns.map((c) => c.label.length), 3) + 0.5}ch`;
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1" role={still ? "list" : undefined}>
       {columns.map((column) => {
         const bar = layout(column, max);
         const color = providerColor(column.provider);
         return (
           <div
             key={column.provider}
-            tabIndex={0}
             aria-label={describe(column, bar)}
-            {...opener(column)}
-            className="group relative grid data-trace:cursor-pointer h-8 grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto]"
+            {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
+            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "h-6" : "h-8"}`}
           >
             <span aria-hidden className="truncate text-[13px] leading-none font-medium sm:text-[12px]" style={{ color }}>
               {providerName(column.provider)}
@@ -246,7 +245,7 @@ function Horizontal({ columns, max }: { columns: readonly Column[]; max: number 
             >
               {column.label}
             </span>
-            <Card column={column} className="top-full right-0 mt-1" />
+            {still ? null : <Card column={column} className="top-full right-0 mt-1" />}
           </div>
         );
       })}
@@ -257,6 +256,7 @@ function Horizontal({ columns, max }: { columns: readonly Column[]; max: number 
 /**
  * One value per provider in the order given. Wide screens get columns;
  * compact charts and phones get horizontal bars, so names never rotate.
+ * Compact charts are read-only: no focus stops, hover cards or breakdowns.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
 export function Columns({
@@ -273,7 +273,8 @@ export function Columns({
   return (
     <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative">
       {compact ? (
-        <Horizontal columns={columns} max={max} />
+        // Compact charts sit inside a headline card that is itself a link, so their rows are not controls.
+        <Horizontal columns={columns} max={max} still />
       ) : (
         <>
           <div className="sm:hidden">

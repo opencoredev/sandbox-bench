@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { TAB_EVENT, tabRequest } from "@/components/jump";
+
 export interface Tab {
   id: string;
   label: string;
@@ -40,8 +42,17 @@ export function useScrollFade<T extends HTMLElement>() {
  * A bordered card with a band of tabs along its top, as on Artificial
  * Analysis. Panels are pre-rendered; arrow keys, Home and End move between tabs.
  */
-export function TabCard({ tabs, label }: { tabs: readonly Tab[]; label: string }) {
+export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label: string; /** The section id a JumpLink names to open one of these tabs. */ section?: string }) {
   const [active, setActive] = useState(tabs[0]?.id);
+  useEffect(() => {
+    if (!section) return;
+    const open = (event: Event) => {
+      const request = tabRequest(event);
+      if (request?.section === section && tabs.some((t) => t.id === request.tab)) setActive(request.tab);
+    };
+    window.addEventListener(TAB_EVENT, open);
+    return () => window.removeEventListener(TAB_EVENT, open);
+  }, [section, tabs]);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
   const scroller = useScrollFade<HTMLDivElement>();

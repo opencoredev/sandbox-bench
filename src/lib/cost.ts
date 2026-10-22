@@ -29,6 +29,19 @@ export function formatTaskCost(usd: number) {
   return `$${usd.toPrecision(2)}`;
 }
 
+/** Tasks cost fractions of a cent, so the site shows them per this many tasks. Agent files keep the raw per-task value too. */
+export const TASKS_PER_PRICE = 1000;
+export const perPriceLabel = "per 1,000 tasks";
+
+/** "$0.23": what 1,000 tasks cost, from the cost of one. */
+export function formatPerThousand(usd: number) {
+  const v = usd * TASKS_PER_PRICE;
+  if (v === 0) return "$0";
+  if (v >= 100) return `$${v.toFixed(0)}`;
+  if (v >= 0.1) return `$${v.toFixed(2)}`;
+  return `$${v.toPrecision(2)}`;
+}
+
 /** Whether a track has any cost-suite result, so charts can say "no results yet" instead of drawing nothing. */
 export const hasTaskCosts = (track: Track) => pricedTasks(track).length > 0;
 

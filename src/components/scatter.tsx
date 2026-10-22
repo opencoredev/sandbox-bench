@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-import { costKinds, formatTaskCost, pricedKinds } from "@/lib/cost";
+import { costKinds, formatPerThousand, perPriceLabel, pricedKinds } from "@/lib/cost";
 import type { PricedKind } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
@@ -90,7 +90,7 @@ export function Scatter({
   const mx = fx(median(points.map((p) => p.x)));
   const my = fy(median(points.map((p) => p.y)));
   const summary = points
-    .map((p) => `${providerName(p.provider)}${p.tag ? ` (${p.tag})` : ""}: ${formatValue(p.x, "s")}, ${costKinds[p.kind].label.toLowerCase()} ${formatTaskCost(p.y)} per task`)
+    .map((p) => `${providerName(p.provider)}${p.tag ? ` (${p.tag})` : ""}: ${formatValue(p.x, "s")}, ${costKinds[p.kind].label.toLowerCase()} ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
 
   return (
@@ -130,7 +130,7 @@ export function Scatter({
           {yTicks.map((t) => (
             <div key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-dotted border-[var(--grid)]" style={{ top: along(fy(t), "y") }}>
               <span className="absolute -left-2 -translate-x-full -translate-y-1/2 font-mono text-[11px] text-[var(--muted)] tabular-nums">
-                {formatTaskCost(t)}
+                {formatPerThousand(t)}
               </span>
             </div>
           ))}
@@ -171,7 +171,7 @@ export function Scatter({
                   {providerName(p.provider)}
                   <span className="ml-1.5 hidden font-mono text-[11px] font-normal text-[var(--muted)] sm:inline">
                     {p.tag ? `${p.tag} · ` : ""}
-                    {formatValue(p.x, "s")} · {formatTaskCost(p.y)}
+                    {formatValue(p.x, "s")} · {formatPerThousand(p.y)}
                   </span>
                 </span>
               </div>

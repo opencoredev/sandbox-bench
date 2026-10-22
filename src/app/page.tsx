@@ -14,14 +14,15 @@ import { Ridgelines } from "@/components/ridgelines";
 import { Scatter, linearTicks, logTicks } from "@/components/scatter";
 import type { ScatterPoint } from "@/components/scatter";
 import { SdkReadyChart, hasSdkReady } from "@/components/sdk-ready";
-import { SectionNav } from "@/components/section-nav";
+import { JumpLink } from "@/components/jump";
+import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
 import { Card, TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { excludedFor, notRun } from "@/lib/agent-data";
-import { costKinds, hasTaskCosts, pricedKinds, pricedTasks } from "@/lib/cost";
+import { TASKS_PER_PRICE, costKinds, hasTaskCosts, pricedKinds, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
 import { formatGiB, formatMoney } from "@/lib/format";
@@ -32,18 +33,21 @@ import { providerColor, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
 
-// Reference: Artificial Analysis for structure (short header, three headline
-// charts, then one bordered card per topic with a tab band, every chart titled
-// with what it measures and which way is better, an attractive-quadrant
-// scatter). scrapingbench and dithercn for the look (black page, one hue per
-// provider, dithered fills with a solid cap).
+// Reference: Artificial Analysis for structure (a compact two-row header that
+// marks the section you are in, a short hero that leads with clickable
+// highlight cards, then one bordered card per topic with a tab band, every
+// chart titled with what it measures and which way is better, an
+// attractive-quadrant scatter). scrapingbench and dithercn for the look
+// (black page, one hue per provider, dithered fills with a solid cap).
 // Palette: page oklch(0.13 0 0), cards oklch(0.16 0 0), ink oklch(0.96 0 0),
-// muted oklch(0.7 0 0), one fixed colour per provider, red only for failures.
+// muted oklch(0.7 0 0), Sandbox SDK amber only for "you are here", one fixed
+// colour per provider, red only for failures.
 // Type: Geist Pixel for page and section titles, Geist Sans for labels, Geist Mono for numbers.
 // Signature: vertical dithered columns, densest at the top, value printed above.
-// Layout move: one global machine switch under the title; every chart below
-// follows it, and a machine that differs from the track's carries a mark.
-// Avoiding: intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
+// Layout move: one global machine switch; every chart follows it, and a
+// machine that differs from the track's carries a mark. Each headline card
+// opens its section on the matching tab.
+// Avoiding: poster-sized hero, intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
 
 const sections = [
   ["startup", "Start-up"],
@@ -77,7 +81,7 @@ const ranOn = (p: Provider | undefined) => {
 
 function Section({ id, title, lede, children }: { id: string; title: string; lede: ReactNode; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 pt-16 sm:pt-24">
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 pt-16 sm:pt-24 lg:scroll-mt-28">
       <h2 id={`${id}-title`} className="flex items-center gap-3 font-pixel text-[28px] leading-none tracking-tight sm:text-[34px]">
         <span aria-hidden className="size-3.5 shrink-0 bg-[var(--foreground)]" />
         {title}
@@ -175,6 +179,9 @@ function CommonPriceChart({ track }: { track: Track }) {
   );
 }
 
+/** Ticks counted per 1,000 tasks, back on the per-task scale the points use. */
+const perTask = ([first, ...rest]: readonly [number, ...number[]]): readonly [number, ...number[]] => [first / TASKS_PER_PRICE, ...rest.map((t) => t / TASKS_PER_PRICE)];
+
 /** The quadrant: agent work time across, cost per task up, each point shaped by where its cost came from. */
 function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
@@ -185,7 +192,7 @@ function CostQuadrant({ track }: { track: Track }) {
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
-  const head = <ChartHead title="Agent work vs cost per task" sub="Median tool replay time against what one tool replay task cost · Both lower is better" />;
+  const head = <ChartHead title="Agent work vs cost" sub="Median tool replay time against what 1,000 tool replay tasks cost · Both lower is better" />;
   if (!hasTaskCosts(track))
     return (
       <>
@@ -199,9 +206,10 @@ function CostQuadrant({ track }: { track: Track }) {
       <Scatter
         points={points}
         xTicks={logTicks(Math.min(...xs, 10), Math.max(...xs, 20))}
-        yTicks={linearTicks(Math.max(...points.map((p) => p.y), 0))}
+        // Ticks fall on round amounts per 1,000 tasks, the unit the axis prints.
+        yTicks={perTask(linearTicks(Math.max(...points.map((p) => p.y), 0) * TASKS_PER_PRICE))}
         xTitle="Median tool replay, seconds (log scale)"
-        yTitle="Cost per task (USD)"
+        yTitle="Cost per 1,000 tasks (USD)"
       />
       <Footnotes
         items={[
@@ -252,49 +260,89 @@ function probeNotes(track: Track): Notes {
   return track.providers.some((p) => p.id === "superserve") && (!v || v.n === 0) ? { superserve: probeNote } : {};
 }
 
-function Headline({ marker, title, sub, children }: { marker: string; title: string; sub: string; children: ReactNode }) {
+/** A headline card. The whole card is a link that opens its section on the matching tab. */
+function Headline({
+  marker,
+  title,
+  sub,
+  section,
+  tab,
+  more,
+  children,
+}: {
+  marker: string;
+  title: string;
+  sub: string;
+  section: string;
+  tab: string;
+  /** Names where the card leads, e.g. "All start-up charts". */
+  more: string;
+  children: ReactNode;
+}) {
   return (
-    <Card className="min-w-0 !p-5">
-      <h2 className="flex items-center gap-2.5 font-pixel text-[21px] leading-none tracking-tight">
+    <JumpLink
+      section={section}
+      tab={tab}
+      className="group flex min-w-0 flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 transition-colors duration-150 outline-none hover:border-[var(--axis)] hover:bg-[var(--band)] focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60 motion-reduce:transition-none"
+    >
+      <h2 className="flex items-center gap-2.5 font-pixel text-[20px] leading-none tracking-tight">
         <span aria-hidden className="size-3 shrink-0" style={{ backgroundColor: marker }} />
         {title}
       </h2>
-      <p className="mt-2 mb-3 text-[12px] text-[var(--muted)]">{sub}</p>
+      <p className="mt-2 mb-4 text-[12px] leading-snug text-[var(--muted)]">{sub}</p>
       {children}
-    </Card>
+      <span className="mt-auto flex items-center justify-between gap-2 pt-4 text-[12px] text-[var(--muted)] transition-colors duration-150 group-hover:text-[var(--foreground)] motion-reduce:transition-none">
+        {more}
+        <span aria-hidden className="transition-transform duration-150 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none">
+          →
+        </span>
+      </span>
+    </JumpLink>
   );
 }
 
 function Headlines({ track }: { track: Track }) {
   const cold = track.metric("cold");
   const replay = track.metric("tool-replay");
+  const restore = track.metric("create-from-snapshot");
   const { columns, marks } = costColumns(track);
   const machine = allocationNotes(track);
   const kinds = pricedKinds.filter((k) => pricedTasks(track).some((t) => t.cost.kind === k)).map((k) => costKinds[k].label.toLowerCase());
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Headline marker="var(--dither-color-blue)" title="Cold start" sub={metricSubtitle(cold, "create() to first command, the provider's own time")}>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <Headline marker="var(--dither-color-blue)" title="Cold start" sub={metricSubtitle(cold, "create() to first command, the provider's own time")} section="startup" tab="cold" more="All start-up charts">
         <MetricChart track={track} metric={cold} what="" compact />
       </Headline>
-      <Headline marker="var(--dither-color-orange)" title="Agent work" sub={metricSubtitle(replay, "Tool replay, 100 calls")}>
+      <Headline marker="var(--dither-color-orange)" title="Agent work" sub={metricSubtitle(replay, "Tool replay, 100 calls")} section="agent" tab="tool-replay" more="All agent tasks">
         <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
       <Headline
         marker="var(--dither-color-green)"
-        title="Cost per task"
+        title="Cost per 1,000 tasks"
         sub={`Create, 100-call tool replay, delete${kinds.length ? ` · ${kinds.join(", ")}` : ""} · US dollars · Lower is better`}
+        section="cost"
+        tab="task"
+        more="How each was priced"
       >
         {hasTaskCosts(track) ? (
           <>
-            <Columns columns={columns} label="Cost per task by provider" compact />
+            <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
-            <p className="mt-3 text-[11.5px] leading-snug text-[var(--muted)]">
-              A plain bar is billed, hatched is metered, dotted is a list-price estimate. <a href="#cost" className="-my-2 inline-block py-2 underline decoration-dotted underline-offset-4 hover:text-[var(--foreground)]">How each was priced</a>
-            </p>
+            <p className="mt-3 text-[11.5px] leading-snug text-[var(--muted)]">Plain bar: billed. Hatched: metered. Dotted: list-price estimate.</p>
           </>
         ) : (
           <NoCostResults compact />
         )}
+      </Headline>
+      <Headline
+        marker="var(--dither-color-purple)"
+        title="Start from snapshot"
+        sub={metricSubtitle(restore, "New sandbox from a snapshot, then a command")}
+        section="state"
+        tab="create-from-snapshot"
+        more="Pause and snapshot charts"
+      >
+        <MetricChart track={track} metric={restore} what="" compact notes={blockedNotes(track, "create-from-snapshot")} />
       </Headline>
     </div>
   );
@@ -366,7 +414,7 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
   [
     "Billing",
-    "Cost per task comes from a separate cost run: 10 sandboxes per provider, each created, running the 100-call tool replay once and deleted, so one sandbox's charge is the cost of one task. The main benchmark sandboxes are not priced, because providers ran different mixes of tests in them. Billed is the provider's own per-sandbox charge (Upstash Box; Daytona, whose bill can still change for up to 48 hours). Metered is the provider's own recorded usage times its published rates (E2B and boxd usage meters; Tenki's server-recorded session start and end). Estimates use the provider's published per-second rates and billing rules on our measured create-to-delete time, because there is no per-sandbox billing data (Freestyle has no billing API; Superserve reports usage only per account). Credits, tax and plan minimums are left out.",
+    "Cost per task comes from a separate cost run: 10 sandboxes per provider, each created, running the 100-call tool replay once and deleted, so one sandbox's charge is the cost of one task. The main benchmark sandboxes are not priced, because providers ran different mixes of tests in them. Billed is the provider's own per-sandbox charge (Upstash Box; Daytona, whose bill can still change for up to 48 hours). Metered is the provider's own recorded usage times its published rates (E2B and boxd usage meters; Tenki's server-recorded session start and end). Estimates use the provider's published per-second rates and billing rules on our measured create-to-delete time, because there is no per-sandbox billing data (Freestyle has no billing API; Superserve reports usage only per account). Credits, tax and plan minimums are left out. One task costs a fraction of a cent, so charts show the cost of 1,000 tasks; results.json and results.md keep the per-task amount too.",
   ],
   [
     "One location",
@@ -407,22 +455,32 @@ export default function Page() {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--background)_88%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1200px] items-center gap-4 px-4 py-3 sm:px-6 xl:gap-3">
+        <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-4 px-4 sm:px-6">
           <a href="#top" className="-my-2 shrink-0 py-2.5" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <SectionNav sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
-          {showSwitch ? (
-            <div className="hidden shrink-0 xl:block">
-              <TrackSwitch size="small" />
-            </div>
-          ) : null}
-          <a
-            href="llms.txt"
-            className="hidden shrink-0 rounded-full border border-[var(--line)] px-3.5 py-1.5 text-[13px] text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground)] motion-reduce:transition-none lg:block"
-          >
-            For agents ↗
-          </a>
+          <div className="ml-auto hidden items-center gap-3 lg:flex">
+            {showSwitch ? (
+              <>
+                <span className="text-[12px] text-[var(--muted)]">Machines</span>
+                <TrackSwitch size="small" />
+              </>
+            ) : null}
+            <a
+              href="llms.txt"
+              className="flex h-8 items-center rounded-full border border-[var(--line)] px-3.5 text-[13px] text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground)] motion-reduce:transition-none"
+            >
+              For agents ↗
+            </a>
+          </div>
+          <div className="ml-auto lg:hidden">
+            <SectionMenu sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
+          </div>
+        </div>
+        <div className="hidden border-t border-[var(--line)]/60 lg:block">
+          <div className="mx-auto max-w-[1200px] px-6">
+            <SectionLinks sections={sections} />
+          </div>
         </div>
       </header>
 
@@ -433,18 +491,14 @@ export default function Page() {
       ) : null}
 
       <main id="top" className="mx-auto max-w-[1200px] px-4 sm:px-6">
-        <div className="pt-14 pb-8 sm:pt-20">
-          <h1 className="font-pixel text-[44px] leading-[0.95] tracking-tight sm:text-[72px]">
-            Cloud sandboxes,
-            <br />
-            measured
-          </h1>
-          <p className="mt-5 max-w-[52ch] text-[16px] leading-snug">
-            Cloud sandbox providers for AI agents, timed on the same tests from one server.
+        <div className="pt-10 pb-6 sm:pt-14 sm:pb-8">
+          <h1 className="font-pixel text-[38px] leading-[0.95] tracking-tight sm:text-[56px]">Cloud sandboxes, measured</h1>
+          <p className="mt-4 max-w-[62ch] text-[15px] leading-snug sm:text-[16px]">
+            Cloud sandbox providers for AI agents, timed on the same tests from one server. Medians below; each card opens its full chart.
           </p>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
           {showSwitch ? (
-            <div className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+            <div className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
               <TrackSwitch />
               <p className="text-[12.5px] leading-snug text-[var(--muted)]">
                 <Tracked>{(track) => trackInfo[track.id].description}</Tracked> Every chart below follows this switch.
@@ -467,7 +521,7 @@ export default function Page() {
           <PerTrack>
             {(track) => (
               <TabCard
-                label="Start-up"
+                label="Start-up" section="startup"
                 tabs={[
                   ...metricTabs(track, [{ id: "cold", what: "create() to first command, without our SDK's setup", tab: "Cold start", notes: machineNotes(track) }]),
                   ...(hasSdkReady(track) ? [{ id: "sdk-ready", label: "Ready through Sandbox SDK", content: <SdkReadyChart track={track} /> }] : []),
@@ -491,7 +545,7 @@ export default function Page() {
           <PerTrack>
             {(track) => (
               <TabCard
-                label="Agent work"
+                label="Agent work" section="agent"
                 tabs={metricTabs(track, [
                   { id: "tool-replay", tab: "Tool replay", what: "100 tool calls in a row: write, read, edit, list, grep, run a test", notes: mergeNotes(farNotes, execNotes) },
                   { id: "npm-install", what: "npm ci for a small Vite and React app", notes: mergeNotes(farNotes, machineNotes(track), blockedNotes(track, "npm-install")) },
@@ -540,7 +594,7 @@ export default function Page() {
           <PerTrack>
             {(track) => (
               <TabCard
-                label="Pause & snapshots"
+                label="Pause & snapshots" section="state"
                 tabs={[
                   ...(hasPauseSplit(track)
                     ? [
@@ -655,7 +709,7 @@ export default function Page() {
             {(track) => (
               <>
                 <TabCard
-                  label="Cost"
+                  label="Cost" section="cost"
                   tabs={[
                     { id: "task", label: "Cost per task", content: <CostPerTaskChart track={track} /> },
                     { id: "common", label: `Price, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
