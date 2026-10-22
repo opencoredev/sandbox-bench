@@ -1,8 +1,40 @@
 {
   "headers": [
     {
-      "source": "/(opengraph-image|twitter-image)/?",
-      "headers": [{ "key": "Content-Type", "value": "image/png" }]
+      "source": "/opengraph-image",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        }
+      ]
+    },
+    {
+      "source": "/opengraph-image/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        }
+      ]
+    },
+    {
+      "source": "/twitter-image",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        }
+      ]
+    },
+    {
+      "source": "/twitter-image/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/png"
+        }
+      ]
     }
   ]
 }
