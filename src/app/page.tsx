@@ -396,6 +396,9 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
 ];
 
+// The same-machine switch appears only once that track has results; until then it would lead to empty sections.
+const showSwitch = tracks["same-spec"].providers.length > 0;
+
 export default function Page() {
   return (
     <>
@@ -404,10 +407,12 @@ export default function Page() {
           <a href="#top" className="-my-2 shrink-0 py-2.5" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <SectionNav sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={<TrackSwitch />} />
-          <div className="hidden shrink-0 xl:block">
-            <TrackSwitch size="small" />
-          </div>
+          <SectionNav sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
+          {showSwitch ? (
+            <div className="hidden shrink-0 xl:block">
+              <TrackSwitch size="small" />
+            </div>
+          ) : null}
           <a
             href="llms.txt"
             className="hidden shrink-0 rounded-full border border-[var(--line)] px-3.5 py-1.5 text-[13px] text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground)] motion-reduce:transition-none lg:block"
@@ -434,12 +439,18 @@ export default function Page() {
             Cloud sandbox providers for AI agents, timed on the same tests from one server.
           </p>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
-          <div className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
-            <TrackSwitch />
-            <p className="text-[12.5px] leading-snug text-[var(--muted)]">
-              <Tracked>{(track) => trackInfo[track.id].description}</Tracked> Every chart below follows this switch.
+          {showSwitch ? (
+            <div className="mt-8 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-4">
+              <TrackSwitch />
+              <p className="text-[12.5px] leading-snug text-[var(--muted)]">
+                <Tracked>{(track) => trackInfo[track.id].description}</Tracked> Every chart below follows this switch.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-6 max-w-[70ch] text-[12.5px] leading-snug text-[var(--muted)]">
+              Each provider ran its default sandbox, so machine sizes differ; the Machines section shows each one. A same-machine comparison at 4 vCPU and 8 GB is being collected now.
             </p>
-          </div>
+          )}
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
