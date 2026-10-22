@@ -1,3 +1,4 @@
+import { sdkSetupFor } from "@/lib/sdk-setup";
 import { providerTrace, replayOps } from "@/lib/traces";
 import type { ReplayOp, TraceKind } from "@/lib/traces";
 import type { ProviderId } from "@/lib/providers";
@@ -68,6 +69,7 @@ const opInfo = {
 } as const satisfies Record<ReplayOp, { name: string; sub: string }>;
 
 export function buildTrace({ track, provider, kind }: { track: TrackId; provider: ProviderId; kind: TraceKind }): Trace | null {
+  const sdkMs = sdkSetupFor(track, provider);
   const t = providerTrace(track, provider);
   if (!t) return null;
   switch (kind) {
@@ -77,13 +79,14 @@ export function buildTrace({ track, provider, kind }: { track: TrackId; provider
       // Our ownership check and journal write sit between create and the first
       // command in the raw run. No published number includes them, so the trace
       // leaves them out and the view says so in a footnote.
-      // Our SDK's setup is left out until it is remeasured on the faster SDK.
-      const [create, first] = chain(0, [
+      // Our SDK's setup comes from a separate run on the faster SDK (lib/sdk-setup); it is never cold start.
+      const [create, first, sdk] = chain(0, [
         { id: "create", name: "create()", sub: "provider API", icon: "create", owner: "provider", ms: m.create },
         { id: "first", name: "First command", sub: "echo ok", icon: "command", owner: "provider", ms: m.firstCommand },
+        ...(sdkMs === undefined ? [] : [{ id: "sdk", name: "SDK setup", sub: "new SDK, separate run", icon: "sdk" as const, owner: "ours" as const, ms: sdkMs }]),
       ]);
       if (!create || !first) return null;
-      const children = [create, first];
+      const children = sdk ? [create, first, sdk] : [create, first];
       const total = sumMs(children);
       return {
         kind,

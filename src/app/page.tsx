@@ -377,7 +377,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cold start",
     line: "Timed from create() until a first command runs: the provider's own time.",
-    more: "The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. Our SDK's setup after create has since been cut to about zero. It's being remeasured and returns in the next update.",
+    more: "The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. On the faster SDK it takes about 0.2 ms; the waterfall shows it beside each provider's time, from a separate run of 20 creates per provider.",
   },
   {
     term: "Runs",

@@ -1,0 +1,15 @@
+{
+  "sdkCommit": "1185278",
+  "date": "Oct 22, 2026",
+  "createsPerProvider": 20,
+  "source": "bench/scripts/sdk-overhead.ts: createSandbox() minus provider.create() on the same sandbox",
+  "medianMs": {
+    "e2b": 0.2,
+    "daytona": 0.2,
+    "upstash": 0.3,
+    "boxd": 0.2,
+    "freestyle": 0.2,
+    "tenki": 0.1,
+    "superserve": 0.2
+  }
+}

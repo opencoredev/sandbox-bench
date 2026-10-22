@@ -10,6 +10,7 @@ import { formatTaskCost } from "@/lib/cost";
 import { fillStyle } from "@/lib/dither";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { sdkSetup } from "@/lib/sdk-setup";
 import { buildTrace, compareTrace, leaves, spanExtent } from "@/lib/spans";
 import type { CompareRow, Span, SpanIcon, Trace } from "@/lib/spans";
 import { hasTrace, traceKinds } from "@/lib/traces";
@@ -291,18 +292,23 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
           <Legend style={barStyle({ ...trace.root, owner: "provider" }, color, false)}>{providerName(provider.id)}&apos;s time</Legend>
           {ours > 0 ? <Legend style={barStyle({ ...trace.root, owner: "ours" }, color, false)} hatched>Ours: Sandbox SDK</Legend> : null}
-          <span className="sm:ml-auto">{footnote[trace.kind]}</span>
+          <span className="sm:ml-auto">{trace.kind === "cold" ? coldNote(track) : footnote[trace.kind]}</span>
         </div>
       </div>
     </div>
   );
 }
 
+/** Where the cold-start trace's SDK step comes from, or why it is missing. */
+const coldNote = (track: TrackId) =>
+  track === "default"
+    ? `SDK setup is our new SDK, measured separately: ${sdkSetup.creates} creates per provider on ${sdkSetup.date}. It used to take 0.8 to 7.3 s. Cold start never includes it.`
+    : "Our SDK's setup after create was measured on default machines only. Cold start never includes it.";
+
 const footnote = {
-  cold: "Our SDK's setup after create has since been cut to about zero. It's being remeasured and returns in the next update.",
   pause: "Medians of each step.",
   replay: "Time per kind of call, added up over the median run, longest first.",
-} as const satisfies Record<TraceKind, string>;
+} as const satisfies Record<Exclude<TraceKind, "cold">, string>;
 
 /** Every provider's trace as one stacked bar on a shared axis; a row opens that provider's tree. */
 function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; track: TrackId; providers: readonly WaterfallProvider[]; onPick: (id: ProviderId) => void }) {
@@ -370,7 +376,7 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
             </Legend>
           ))}
         {hasOurs ? <Legend style={barStyle({ id: "", name: "", sub: "", icon: "sdk", owner: "ours", start: 0, ms: 0, usd: null, children: [] }, "", false)} hatched>Ours: Sandbox SDK</Legend> : null}
-        <span className="sm:ml-auto">{kind === "cold" ? `${footnote.cold} ` : ""}Ranked by provider time · pick a provider for its full trace.</span>
+        <span className="sm:ml-auto">{kind === "cold" ? `${coldNote(track)} ` : ""}Ranked by provider time · pick a provider for its full trace.</span>
       </div>
     </div>
   );
