@@ -1,13 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sandbox SDK">
-  <style>
-    .tile { fill: #0B0B0C; }
-    .mark { fill: #E8A33C; }
-    @media (prefers-color-scheme: dark) {
-      .tile { fill: #E8A33C; }
-      .mark { fill: #0B0B0C; }
-    }
-  </style>
-  <rect class="tile" width="32" height="32" rx="7"/>
-  <path class="mark" d="M4 4h8v4H8v4H4zM28 4v8h-4V8h-4V4zM4 28v-8h4v4h4v4zM28 28h-8v-4h4v-4h4z"/>
-  <path class="mark" d="M12 12h8v8h-8z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sandbox bench">
+  <rect width="32" height="32" rx="5" fill="#0B0B0C"/>
+  <path fill="#E8A33C" d="M2 2h10v4H6v6H2zM30 2v10h-4V6h-6V2zM2 30V20h4v6h6v4zM30 30H20v-4h6v-6h4zM12 12h8v8h-8z"/>
 </svg>

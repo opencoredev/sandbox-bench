@@ -17,9 +17,10 @@ export const metadata: Metadata = {
   title,
   icons: {
     icon: [
-      { url: "/favicon-light.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
-      { url: "/favicon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
+    apple: "/apple-icon.png",
   },
   description,
   openGraph: { title, description, type: "website", siteName: "Sandbox bench", url: "https://aisandboxbench.com" },
