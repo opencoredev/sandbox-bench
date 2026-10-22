@@ -402,7 +402,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Daytona's 10 vCPU quota stopped its 4 vCPU snapshot and burst tests. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Daytona raised our quota on Oct 22; its remaining burst tests come in the next update. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",

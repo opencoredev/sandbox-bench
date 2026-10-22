@@ -201,9 +201,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-10-22T20:27:09.732Z"
+  "end": "2026-10-22T21:00:54.521Z"
  },
- "observations": 19543,
+ "observations": 19861,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r8b3",
@@ -269,6 +269,11 @@
    "id": "sbx53-same-spec-cost-r8u",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbx53-same-spec-snapshot-r8d-daytona",
+   "suite": "snapshot",
+   "samples": 318
   },
   {
    "id": "sbx53-same-spec-burst25-r8u",
@@ -442,7 +447,7 @@
    "pricingSource": "https://www.daytona.io/pricing",
    "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
    "reliability": {
-    "successes": 2133,
+    "successes": 2451,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -451,7 +456,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      48,
@@ -464,19 +469,19 @@
     "cpuModels": [
      {
       "value": "AMD EPYC 9254 24-Core Processor",
-      "count": 43
+      "count": 58
      },
      {
       "value": "AMD EPYC 9354P 32-Core Processor",
-      "count": 34
+      "count": 45
      },
      {
       "value": "AMD EPYC 9354 32-Core Processor",
-      "count": 14
+      "count": 15
      },
      {
       "value": "AMD EPYC 9275F 24-Core Processor",
-      "count": 9
+      "count": 12
      }
     ],
     "vendor": "AMD",
@@ -1804,6 +1809,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 6.880106373999967,
+     "p95": 28.835922729999876,
+     "min": 5.323834718000027,
+     "ciLow": 6.569332611999998,
+     "ciHigh": 7.478289136000007,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "freestyle",
      "n": 30,
      "p50": 0.42942798500000207,
@@ -1888,6 +1906,19 @@
      "min": 0.5066693049999959,
      "ciLow": 0.8213993729999993,
      "ciHigh": 1.5613566460000001,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 2.250127074000018,
+     "p95": 3.76694274199997,
+     "min": 1.8819233280000045,
+     "ciLow": 2.114544865999953,
+     "ciHigh": 2.5070340670002627,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
