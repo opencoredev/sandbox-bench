@@ -301,12 +301,13 @@
   {
    "id": "daytona",
    "costPerTask": {
-    "usd": 0.0011886394,
+    "usd": 0.001188639,
     "kind": "billed",
-    "source": "https://analytics.app.daytona.io/organization/{org}/usage/sandbox",
-    "confidence": "low",
+    "source": "https://www.daytona.io/pricing",
+    "confidence": "medium",
     "n": 10,
-    "settled": false
+    "settled": false,
+    "method": "Median of Daytona Analytics API per-sandbox totalPrice for the 10 same-spec (daytona-large) cost-run sandboxes, same window and caveats."
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -679,12 +680,13 @@
   {
    "id": "freestyle",
    "costPerTask": {
-    "usd": 0.0017815466666666671,
+    "usd": 0.0017815,
     "kind": "estimate",
     "source": "https://www.freestyle.sh/pricing",
     "confidence": "low",
     "n": 10,
-    "settled": true
+    "settled": true,
+    "method": "Same machine as default (freestyle/ubuntu 4 vCPU / 8 GiB / 32 GiB); same rule applied to the same-spec run's 10 sandbox lifetimes, median."
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -795,12 +797,13 @@
   {
    "id": "tenki",
    "costPerTask": {
-    "usd": 0.001794,
-    "kind": "estimate",
+    "usd": 0.001886,
+    "kind": "metered",
     "source": "https://tenki.cloud/pricing",
-    "confidence": "low",
+    "confidence": "medium",
     "n": 10,
-    "settled": true
+    "settled": true,
+    "method": "Same as default: server-recorded created_at to terminated_at, started seconds rounded up, x configured 4 vCPU / 8192 MB / 5 GiB as reported by GetSession; median of 10."
    },
    "track": "same-spec",
    "requestedAllocation": {

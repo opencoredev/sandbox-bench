@@ -324,12 +324,13 @@
   {
    "id": "daytona",
    "costPerTask": {
-    "usd": 0.00026718859173,
-    "kind": "estimate",
-    "source": "List price 1 vCPU, 1 GiB at $0.0666/h x measured sandbox lifetime (boxd's own meter settles within ~25 min; Daytona's bill within 48 h)",
-    "confidence": "low",
+    "usd": 0.000242813,
+    "kind": "billed",
+    "source": "https://www.daytona.io/pricing",
+    "confidence": "medium",
     "n": 10,
-    "settled": false
+    "settled": false,
+    "method": "Median of Daytona Analytics API per-sandbox totalPrice for the 10 default cost-run sandboxes (window 2026-10-22 12:00-13:00Z, read 14:08Z; pre-credit/tax, not yet past Daytona's 48 h settlement)."
    },
    "track": "default",
    "requestedAllocation": {
@@ -705,12 +706,13 @@
   {
    "id": "freestyle",
    "costPerTask": {
-    "usd": 0.0016737204556860675,
+    "usd": 0.0017073,
     "kind": "estimate",
-    "source": "List price 4 vCPU, 8 GiB at $0.2645/h x measured sandbox lifetime (no per-sandbox billing API)",
+    "source": "https://www.freestyle.sh/pricing",
     "confidence": "low",
     "n": 10,
-    "settled": false
+    "settled": true,
+    "method": "Per sandbox: sandbox-lifetime (create request start to delete return) rounded up to whole seconds x allocated 4 vCPU + 8 GiB RAM + 32 GiB storage at list rates ($0.267232/h), median of 10; marginal list price, ignoring the monthly free allowance."
    },
    "track": "default",
    "requestedAllocation": {
@@ -811,12 +813,13 @@
   {
    "id": "tenki",
    "costPerTask": {
-    "usd": 0.0008261066782599504,
-    "kind": "estimate",
-    "source": "List price 2 vCPU, 3.8 GiB at $0.1623/h x measured sandbox lifetime (no per-sandbox billing API)",
-    "confidence": "low",
+    "usd": 0.000897,
+    "kind": "metered",
+    "source": "https://tenki.cloud/pricing",
+    "confidence": "medium",
     "n": 10,
-    "settled": false
+    "settled": true,
+    "method": "Per sandbox: Tenki's own server-recorded lifetime (SandboxSession created_at to terminated_at, read via GetSession), each started second rounded up, x the configured allocation Tenki reports for the session (2 vCPU / 4096 MB / 5 GiB disk, disk inside the 5 GiB free tier); median of 10."
    },
    "track": "default",
    "requestedAllocation": {
@@ -909,12 +912,13 @@
   {
    "id": "superserve",
    "costPerTask": {
-    "usd": 0.00024844425744775003,
+    "usd": 0.000248444,
     "kind": "estimate",
-    "source": "List price 1 vCPU, 1 GiB at $0.0666/h x measured sandbox lifetime (billing is account-level only)",
+    "source": "https://www.superserve.ai/pricing",
     "confidence": "low",
     "n": 10,
-    "settled": false
+    "settled": true,
+    "method": "Per sandbox: measured create-request-to-delete-return lifetime (median 13.43 s) x published per-second rates for allocated 1 vCPU + 1 GiB, no rounding (Superserve meters fractional seconds), storage excluded because it is tracked but not billable; median of 10. Lower bound (create API returned to delete request sent) is $0.000239. Per-sandbox billing is not available: /billing/usage-series is account-wide with 1-hour minimum buckets, and the 12:00-13:00 UTC bucket holds 1393 vCPU-s against our ~134 vCPU-s, so other suites running at the same time contaminate it."
    },
    "track": "default",
    "requestedAllocation": {
