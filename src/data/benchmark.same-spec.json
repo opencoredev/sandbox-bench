@@ -198,12 +198,12 @@
    }
   }
  ],
- "generatedFrom": "m-same-spec",
+ "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-10-22T19:40:25.923Z"
+  "end": "2026-10-22T20:12:53.641Z"
  },
- "observations": 14780,
+ "observations": 19240,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r8b3",
@@ -221,24 +221,54 @@
    "samples": 2083
   },
   {
-   "id": "sbx53-same-spec-cost-r5",
-   "suite": "cost",
-   "samples": 298
-  },
-  {
-   "id": "sbx53-same-spec-snapshot-r5",
+   "id": "sbx53-same-spec-snapshot-r8b2",
    "suite": "snapshot",
    "samples": 990
   },
   {
-   "id": "sbx53-same-spec-burst-r6",
-   "suite": "burst",
-   "samples": 1704
+   "id": "sbx53-same-spec-snapshot-r8c2",
+   "suite": "snapshot",
+   "samples": 660
   },
   {
-   "id": "sbx53-same-spec-snapshot-r6",
+   "id": "sbx53-same-spec-snapshot-r8u",
    "suite": "snapshot",
-   "samples": 602
+   "samples": 330
+  },
+  {
+   "id": "sbx53-same-spec-burst-r8b2",
+   "suite": "burst",
+   "samples": 1155
+  },
+  {
+   "id": "sbx53-same-spec-burst-r8c2",
+   "suite": "burst",
+   "samples": 852
+  },
+  {
+   "id": "sbx53-same-spec-burst-r8u",
+   "suite": "burst",
+   "samples": 123
+  },
+  {
+   "id": "sbx53-same-spec-cost-r8b2",
+   "suite": "cost",
+   "samples": 200
+  },
+  {
+   "id": "sbx53-same-spec-cost-r8c2",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx53-same-spec-cost-r8c-superserve",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx53-same-spec-cost-r8u",
+   "suite": "cost",
+   "samples": 50
   }
  ],
  "excluded": [
@@ -251,7 +281,7 @@
   {
    "id": "e2b",
    "costPerTask": {
-    "usd": 0.0015523160000000002,
+    "usd": 0.001564828,
     "kind": "metered",
     "source": "https://api.e2b.app/events/sandboxes/{id}",
     "confidence": "medium",
@@ -302,7 +332,7 @@
    "pricingSource": "https://e2b.dev/pricing",
    "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
    "reliability": {
-    "successes": 2083,
+    "successes": 2766,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -311,7 +341,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -322,7 +352,7 @@
     "cpuModels": [
      {
       "value": "Intel Xeon Processor @ 2.60GHz",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "Intel",
@@ -334,13 +364,13 @@
     "location": [
      {
       "value": "The Dalles, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS396982 Google LLC",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -355,13 +385,12 @@
   {
    "id": "daytona",
    "costPerTask": {
-    "usd": 0.001188639,
+    "usd": 0.00164437065,
     "kind": "billed",
-    "source": "https://www.daytona.io/pricing",
-    "confidence": "medium",
+    "source": "https://analytics.app.daytona.io/organization/{org}/usage/sandbox",
+    "confidence": "low",
     "n": 10,
-    "settled": false,
-    "method": "Median of Daytona Analytics API per-sandbox totalPrice for the 10 same-spec (daytona-large) cost-run sandboxes, same window and caveats."
+    "settled": false
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -408,7 +437,7 @@
    "pricingSource": "https://www.daytona.io/pricing",
    "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
    "reliability": {
-    "successes": 2083,
+    "successes": 2133,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -461,13 +490,12 @@
   {
    "id": "freestyle",
    "costPerTask": {
-    "usd": 0.0017815,
+    "usd": 0.001967124444444445,
     "kind": "estimate",
     "source": "https://www.freestyle.sh/pricing",
     "confidence": "low",
     "n": 10,
-    "settled": true,
-    "method": "Same machine as default (freestyle/ubuntu 4 vCPU / 8 GiB / 32 GiB); same rule applied to the same-spec run's 10 sandbox lifetimes, median."
+    "settled": true
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -514,16 +542,16 @@
    "pricingSource": "https://www.freestyle.sh/pricing",
    "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
    "reliability": {
-    "successes": 2077,
+    "successes": 2883,
     "failures": 6,
-    "raw": 0.9971195391262602,
-    "adjusted": 0.9971195391262602,
+    "raw": 0.9979231568016614,
+    "adjusted": 0.9979231568016614,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 6
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -568,13 +596,12 @@
   {
    "id": "tenki",
    "costPerTask": {
-    "usd": 0.001886,
-    "kind": "metered",
+    "usd": 0.001794,
+    "kind": "estimate",
     "source": "https://tenki.cloud/pricing",
-    "confidence": "medium",
+    "confidence": "low",
     "n": 10,
-    "settled": true,
-    "method": "Same as default: server-recorded created_at to terminated_at, started seconds rounded up, x configured 4 vCPU / 8192 MB / 5 GiB as reported by GetSession; median of 10."
+    "settled": true
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -620,7 +647,7 @@
    "pricingSource": "https://tenki.cloud/pricing",
    "pricingNotes": "Per-second, no minimum. Separate persistent storage $0.000000076/GiB-second excluded. Credits excluded.",
    "reliability": {
-    "successes": 2083,
+    "successes": 2889,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -629,7 +656,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -640,7 +667,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC 7B13 64-Core Processor",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "AMD",
@@ -653,13 +680,7 @@
     "network": []
    },
    "failureReasons": [],
-   "ourFailures": [
-    {
-     "reason": "The run was stopped during this attempt, so it is not counted",
-     "count": 1,
-     "runs": 1
-    }
-   ],
+   "ourFailures": [],
    "pauseSplit": {
     "pause": 60.53191615900025,
     "resume": 2.449111862000078,
@@ -669,11 +690,11 @@
   {
    "id": "upstash",
    "costPerTask": {
-    "usd": 0.0004738445,
+    "usd": 0.0003370702777777778,
     "kind": "billed",
     "source": "https://us-east-1.box.upstash.com/v2/box/{id}",
     "confidence": "high",
-    "n": 8,
+    "n": 10,
     "settled": true
    },
    "track": "same-spec",
@@ -733,7 +754,7 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2083,
+    "successes": 2586,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -742,7 +763,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      64
@@ -760,29 +781,18 @@
     "location": [
      {
       "value": "Ashburn, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS14618 Amazon.com, Inc.",
-      "count": 100
+      "count": 130
      }
     ]
    },
    "failureReasons": [],
-   "ourFailures": [
-    {
-     "reason": "Our ownership check failed on 4 snapshot cleanup steps; none is counted",
-     "count": 4,
-     "runs": 3
-    },
-    {
-     "reason": "Our ownership check failed on 3 burst deletes; none is counted",
-     "count": 3,
-     "runs": 3
-    }
-   ],
+   "ourFailures": [],
    "pauseSplit": {
     "pause": 0.8366179980000016,
     "resume": 0.5705873199999333,
@@ -792,7 +802,7 @@
   {
    "id": "boxd",
    "costPerTask": {
-    "usd": 0.0019985000000000003,
+    "usd": 0.001999,
     "kind": "metered",
     "source": "boxd orgs.usage / orgs.billingActivityPage",
     "confidence": "medium",
@@ -860,16 +870,16 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2161,
+    "successes": 2967,
     "failures": 5,
-    "raw": 0.9976915974145891,
-    "adjusted": 0.9976915974145891,
+    "raw": 0.9983176312247645,
+    "adjusted": 0.9983176312247645,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 5
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -880,7 +890,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "AMD",
@@ -892,13 +902,13 @@
     "location": [
      {
       "value": "Frankfurt am Main, DE",
-      "count": 100
+      "count": 129
      }
     ],
     "network": [
      {
       "value": "AS396356 Latitude.sh",
-      "count": 100
+      "count": 129
      }
     ]
    },
@@ -922,18 +932,7 @@
      ]
     }
    ],
-   "ourFailures": [
-    {
-     "reason": "Our ownership check failed on 4 snapshot attempts, and our 30-second cleanup deadline ran out 8 times; none is counted",
-     "count": 12,
-     "runs": 12
-    },
-    {
-     "reason": "Our ownership check failed on 1 burst create and 13 burst deletes; none is counted",
-     "count": 14,
-     "runs": 4
-    }
-   ],
+   "ourFailures": [],
    "pauseSplit": {
     "pause": 0.12380898099998013,
     "resume": 0.4039313779999502,
@@ -943,12 +942,12 @@
   {
    "id": "superserve",
    "costPerTask": {
-    "usd": null,
-    "kind": "metered",
-    "source": "billing.json: per-sandbox evidence required",
-    "confidence": "none",
-    "n": 0,
-    "settled": false
+    "usd": 0.0013249703380000001,
+    "kind": "billed",
+    "source": "https://api.superserve.ai/billing/usage-series (millisecond range) + /activity",
+    "confidence": "high",
+    "n": 10,
+    "settled": true
    },
    "track": "same-spec",
    "requestedAllocation": {
@@ -995,7 +994,7 @@
    "pricingSource": "https://www.superserve.ai/pricing",
    "pricingNotes": "Published vCPU and GiB-hour rates converted to seconds. Credits excluded. One-second rounding assumed; snapshot storage, disk, transfer and any minimum charge excluded. Adapter default superserve/node-22 is 1 vCPU, 1 GiB RAM, 4 GiB disk; resources are template-owned. SDK runtime preparation is included in cold timing.",
    "reliability": {
-    "successes": 2183,
+    "successes": 2989,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -1004,7 +1003,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -1015,7 +1014,7 @@
     "cpuModels": [
      {
       "value": "Intel Xeon Processor",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "Intel",
@@ -1789,52 +1788,24 @@
     {
      "provider": "e2b",
      "n": 30,
-     "p50": 1.4851626820000001,
-     "p95": 2.22887181099999,
-     "min": 0.5749842320000171,
-     "ciLow": 0.972717850999994,
-     "ciHigh": 1.7674787129999896,
+     "p50": 1.8330479090000154,
+     "p95": 2.1915332750000087,
+     "min": 0.6144456349999964,
+     "ciLow": 1.0917869199999988,
+     "ciHigh": 2.019878676999986,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
-    },
-    {
-     "provider": "upstash",
-     "n": 30,
-     "p50": 2.105953199999989,
-     "p95": 10.27501376100001,
-     "min": 2.0845663169999606,
-     "ciLow": 2.0944023720000406,
-     "ciHigh": 4.139856447999831,
-     "successes": 30,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "boxd",
-     "n": 26,
-     "p50": 4.008689795999905,
-     "p95": 4.766904462999897,
-     "min": 3.5589217149999457,
-     "ciLow": 3.651571738000028,
-     "ciHigh": 4.021842798999977,
-     "successes": 26,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 4,
-     "blockedNote": "26 of 30: four attempts failed in our own ownership check, so they are set aside, not counted."
     },
     {
      "provider": "freestyle",
      "n": 30,
-     "p50": 0.25825402799999575,
-     "p95": 0.7659358150000044,
-     "min": 0.2116442249999818,
-     "ciLow": 0.2422499329999846,
-     "ciHigh": 0.34116636699999797,
+     "p50": 0.42942798500000207,
+     "p95": 1.1079755850000075,
+     "min": 0.256145904,
+     "ciLow": 0.373599123,
+     "ciHigh": 0.5399147019999946,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -1843,11 +1814,50 @@
     {
      "provider": "tenki",
      "n": 30,
-     "p50": 6.776221587999986,
-     "p95": 6.978754061,
-     "min": 4.8256082279999974,
-     "ciLow": 6.765127307000017,
-     "ciHigh": 6.821416355000008,
+     "p50": 6.873292901000008,
+     "p95": 8.801840132000041,
+     "min": 6.681471491999982,
+     "ciLow": 6.738822557999986,
+     "ciHigh": 6.888368841999997,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 2.138795560999999,
+     "p95": 8.372812720000045,
+     "min": 2.124632651000051,
+     "ciLow": 2.1322166290000024,
+     "ciHigh": 4.19742232500005,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 3.8172246510000116,
+     "p95": 4.265959688999996,
+     "min": 3.528888706000056,
+     "ciLow": 3.812520426000003,
+     "ciHigh": 3.8497925579999572,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 30,
+     "p50": 0.38477281100000255,
+     "p95": 0.4078921460000129,
+     "min": 0.3449964420000033,
+     "ciLow": 0.3789559040000022,
+     "ciHigh": 0.3896679580000055,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -1868,52 +1878,24 @@
     {
      "provider": "e2b",
      "n": 30,
-     "p50": 1.3126471790000214,
-     "p95": 2.6115227060000032,
-     "min": 0.7865270499999751,
-     "ciLow": 0.9761919109999871,
-     "ciHigh": 1.6089662919999974,
+     "p50": 1.1218918850000046,
+     "p95": 3.1853708699999914,
+     "min": 0.5066693049999959,
+     "ciLow": 0.8213993729999993,
+     "ciHigh": 1.5613566460000001,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
-    },
-    {
-     "provider": "upstash",
-     "n": 30,
-     "p50": 4.642782705000136,
-     "p95": 27.134479923999987,
-     "min": 2.5849242359999334,
-     "ciLow": 2.7456923950000203,
-     "ciHigh": 4.660174173000007,
-     "successes": 30,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "boxd",
-     "n": 26,
-     "p50": 1.4056154330000281,
-     "p95": 1.4634473780000117,
-     "min": 1.3032070259999018,
-     "ciLow": 1.3887642859999323,
-     "ciHigh": 1.4271099230000983,
-     "successes": 26,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 4,
-     "blockedNote": "26 of 30: four attempts failed in our own ownership check, so they are set aside, not counted."
     },
     {
      "provider": "freestyle",
      "n": 30,
-     "p50": 0.6482796580000141,
-     "p95": 0.9185432140000048,
-     "min": 0.5763777560000163,
-     "ciLow": 0.6173322859999971,
-     "ciHigh": 0.684485557,
+     "p50": 0.7515126610000152,
+     "p95": 1.1427399860000005,
+     "min": 0.6328436530000036,
+     "ciLow": 0.7079228140000196,
+     "ciHigh": 0.8201506520000003,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -1922,11 +1904,50 @@
     {
      "provider": "tenki",
      "n": 30,
-     "p50": 1.8619243649999844,
-     "p95": 3.6106578599999923,
-     "min": 1.4315336039999675,
-     "ciLow": 1.631721583999999,
-     "ciHigh": 1.9844828569999955,
+     "p50": 1.8824126879999823,
+     "p95": 2.902491791999957,
+     "min": 1.398514667999989,
+     "ciLow": 1.686993528999912,
+     "ciHigh": 1.9584625589999778,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.892805022999994,
+     "p95": 13.096584121000138,
+     "min": 2.729558620999975,
+     "ciLow": 4.8117623860000025,
+     "ciHigh": 6.881383596000029,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 1.1415747340000235,
+     "p95": 1.1947366050000419,
+     "min": 1.088799151999934,
+     "ciLow": 1.1266281149999995,
+     "ciHigh": 1.145124994999962,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 30,
+     "p50": 0.546195326999994,
+     "p95": 0.6345281830000021,
+     "min": 0.527349636999992,
+     "ciLow": 0.5419114489999775,
+     "ciHigh": 0.558108236,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2666,39 +2687,13 @@
    "comparable": true,
    "values": [
     {
-     "provider": "e2b",
-     "n": 3,
-     "p50": 1.4450995609999997,
-     "p95": 1.5623314680000184,
-     "min": 1.1676171400000166,
-     "ciLow": 1.1676171400000166,
-     "ciHigh": 1.5623314680000184,
-     "successes": 3,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "upstash",
-     "n": 3,
-     "p50": 21.230734620000003,
-     "p95": 25.276903636,
-     "min": 4.779568430999992,
-     "ciLow": 4.779568430999992,
-     "ciHigh": 25.276903636,
-     "successes": 3,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
      "provider": "freestyle",
      "n": 3,
-     "p50": 1.0094734280000122,
-     "p95": 1.027925712000113,
-     "min": 0.8892868479999888,
-     "ciLow": 0.8892868479999888,
-     "ciHigh": 1.027925712000113,
+     "p50": 1.1503306949999823,
+     "p95": 7.977691640000005,
+     "min": 0.9967184160000033,
+     "ciLow": 0.9967184160000033,
+     "ciHigh": 7.977691640000005,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -2707,11 +2702,50 @@
     {
      "provider": "tenki",
      "n": 3,
-     "p50": 1.2340166520000202,
-     "p95": 1.2666618879999734,
-     "min": 1.2227733739999822,
-     "ciLow": 1.2227733739999822,
-     "ciHigh": 1.2666618879999734,
+     "p50": 1.1937548199999874,
+     "p95": 1.2033980039999879,
+     "min": 1.065217181,
+     "ciLow": 1.065217181,
+     "ciHigh": 1.2033980039999879,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 3,
+     "p50": 2.9660410180000003,
+     "p95": 4.828476752000002,
+     "min": 2.740164627,
+     "ciLow": 2.740164627,
+     "ciHigh": 4.828476752000002,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 3,
+     "p50": 2.5321920920000123,
+     "p95": 2.9987600190000085,
+     "min": 2.5059655970000003,
+     "ciLow": 2.5059655970000003,
+     "ciHigh": 2.9987600190000085,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 3,
+     "p50": 0.8398369259999999,
+     "p95": 1.5679195110000437,
+     "min": 0.5805726160000195,
+     "ciLow": 0.5805726160000195,
+     "ciHigh": 1.5679195110000437,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -2732,24 +2766,11 @@
     {
      "provider": "e2b",
      "n": 3,
-     "p50": 1.4924674110000051,
-     "p95": 2.8978881499999845,
-     "min": 1.4196216060000006,
-     "ciLow": 1.4196216060000006,
-     "ciHigh": 2.8978881499999845,
-     "successes": 3,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "boxd",
-     "n": 3,
-     "p50": 6.235332189999987,
-     "p95": 6.924318795,
-     "min": 6.198890578999882,
-     "ciLow": 6.198890578999882,
-     "ciHigh": 6.924318795,
+     "p50": 1.1092711429999909,
+     "p95": 1.2817946840000076,
+     "min": 0.942142114999966,
+     "ciLow": 0.942142114999966,
+     "ciHigh": 1.2817946840000076,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -2758,11 +2779,11 @@
     {
      "provider": "freestyle",
      "n": 3,
-     "p50": 1.4052769659999758,
-     "p95": 1.5386671920000226,
-     "min": 1.320318081000005,
-     "ciLow": 1.320318081000005,
-     "ciHigh": 1.5386671920000226,
+     "p50": 2.037128646999976,
+     "p95": 4.78315787299999,
+     "min": 1.4410017729999964,
+     "ciLow": 1.4410017729999964,
+     "ciHigh": 4.78315787299999,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -2771,11 +2792,37 @@
     {
      "provider": "tenki",
      "n": 3,
-     "p50": 1.6518386119999924,
-     "p95": 2.5585007619999813,
-     "min": 1.4233926959999954,
-     "ciLow": 1.4233926959999954,
-     "ciHigh": 2.5585007619999813,
+     "p50": 1.1933070230000011,
+     "p95": 1.2834068770000013,
+     "min": 1.1797465490000323,
+     "ciLow": 1.1797465490000323,
+     "ciHigh": 1.2834068770000013,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 3,
+     "p50": 5.932648025000002,
+     "p95": 7.661076058999985,
+     "min": 5.924225867000059,
+     "ciLow": 5.924225867000059,
+     "ciHigh": 7.661076058999985,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 3,
+     "p50": 0.7895723569999682,
+     "p95": 1.019187533000004,
+     "min": 0.7520391260000179,
+     "ciLow": 0.7520391260000179,
+     "ciHigh": 1.019187533000004,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -4351,12 +4398,15 @@
    1.154
   ]
  },
+ "missing": {
+  "burst-10": {
+   "e2b": "stopped-early: in one of its three bursts of 10, two creates failed on E2B's side (E2B reported a timeout), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
+  },
+  "burst-25": {
+   "upstash": "stopped-early: its bursts of 25 never started: Upstash's account cap is 25 sandboxes and one sandbox on the account that is not ours (social-flamingo-39321) was still there; coming in the next update"
+  }
+ },
  "sourceNotes": {
-  "snapshot": "From the previous run (Oct 22, SDK a2316c3); this release's results come in the next update.",
-  "create-from-snapshot": "From the previous run (Oct 22, SDK a2316c3); this release's results come in the next update.",
-  "burst-10": "From the previous run (Oct 22, SDK a2316c3); this release's results come in the next update.",
-  "burst-25": "From the previous run (Oct 22, SDK a2316c3); this release's results come in the next update.",
-  "cost": "Cost per task is from the previous run (Oct 22, SDK a2316c3); this release's cost run comes in the next update.",
   "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU."
  }
 }

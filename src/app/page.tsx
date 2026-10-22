@@ -382,7 +382,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every main-suite chart, cold start and SDK setup included, comes from one run per track on our faster SDK (commit 1185278). Pause and resume, snapshots, bursts and cost are still from the previous run (SDK a2316c3), and each of those charts says so; they move to the new run in the next update. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Boat joins in the next update.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Boat joins in the next update.",
   },
   {
     term: "Cost",

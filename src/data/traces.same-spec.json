@@ -1,6 +1,6 @@
 {
  "track": "same-spec",
- "generatedFrom": "m-same-spec (pause and resume: previous run)",
+ "generatedFrom": "m (pause and resume: previous run)",
  "providers": [
   {
    "id": "boxd",

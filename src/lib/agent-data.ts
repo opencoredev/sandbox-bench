@@ -376,7 +376,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, and any snapshot or burst a chart marks as coming. Every main-suite result, cold start and SDK setup included, comes from one run per track on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume, snapshots, bursts and cost are still from the previous run (SDK a2316c3), and each of those charts says so. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Boat, and any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona's billed cost can still change for up to 48 hours. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither gives a per-sandbox bill. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
