@@ -3,14 +3,15 @@
 import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
+import { ProviderLogo } from "@/components/provider-logo";
 import { useScrollFade } from "@/components/tabs";
 
 import { formatTaskCost } from "@/lib/cost";
 import { fillStyle } from "@/lib/dither";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { buildTrace, leaves, spanExtent } from "@/lib/spans";
-import type { Span, SpanIcon, Trace } from "@/lib/spans";
+import { buildTrace, compareTrace, leaves, spanExtent } from "@/lib/spans";
+import type { CompareRow, Span, SpanIcon, Trace } from "@/lib/spans";
 import { hasTrace, traceKinds } from "@/lib/traces";
 import type { TraceKind } from "@/lib/traces";
 import type { TrackId } from "@/lib/tracks";
@@ -19,7 +20,8 @@ import type { TrackId } from "@/lib/tracks";
  * Direction: flohoeller's trace waterfall (a card with a stat strip, a span
  * tree on the left, pill bars on a time axis with a playhead), redrawn in the
  * page's dark surfaces and mono numerals. Provider time is the provider's
- * colour, ours is grey hatching, bookkeeping we exclude is an outline.
+ * colour, ours is grey hatching. It opens on every provider at once, one
+ * stacked bar each on a shared axis; a row drills into that provider's tree.
  * Signature: collapsed groups draw their calls as a strip inside the bar.
  */
 
@@ -58,8 +60,6 @@ function Icon({ icon, color }: { icon: SpanIcon; color: string }) {
     pause: <path d="M6 4v8M10 4v8" />,
     resume: <path d="M5.5 3.8l6.5 4.2-6.5 4.2z" />,
     sdk: <path d="M8 2.8l4.6 2.6v5.2L8 13.2l-4.6-2.6V5.4zM8 8v5.2M8 8l4.6-2.6M8 8L3.4 5.4" />,
-    check: <path d="M3.8 8.3l2.6 2.6 5.8-5.8" />,
-    journal: <path d="M4.5 2.8h6l1.5 1.5v8.9h-7.5zM6.5 6.5h4M6.5 9h4" />,
     write: <path d="M10.5 3l2.5 2.5-7 7H3.5V10z" />,
     read: <path d="M4.5 2.8h5l2.5 2.5v7.9h-7.5zM6.5 8h3.5M6.5 10.5h3.5" />,
     edit: <path d="M3 12.5h10M9.5 3.5l2 2-5.5 5.5H4v-2z" />,
@@ -84,7 +84,7 @@ function Chevron({ open }: { open: boolean }) {
   );
 }
 
-/** How a bar is painted: provider colour, our grey, or a hatched outline for what we exclude. */
+/** How a bar is painted: provider colour, or grey for our time. */
 function barStyle(span: Span, color: string, group: boolean): CSSProperties {
   if (group) return { background: "linear-gradient(90deg, oklch(0.3 0 0), oklch(0.26 0 0))", boxShadow: "inset 0 0 0 1px oklch(0.36 0 0)" };
   switch (span.owner) {
@@ -92,8 +92,6 @@ function barStyle(span: Span, color: string, group: boolean): CSSProperties {
       return { background: `color-mix(in oklch, ${color} 34%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 70%, transparent)` };
     case "ours":
       return { background: "rgba(255,255,255,0.05)", boxShadow: "inset 0 0 0 1px oklch(0.48 0 0)" };
-    case "excluded":
-      return { boxShadow: "inset 0 0 0 1px oklch(0.45 0 0)" };
     default: {
       const _exhaustive: never = span.owner;
       return _exhaustive;
@@ -155,16 +153,21 @@ function Segmented<T extends string>({ label, items, value, onChange }: { label:
   );
 }
 
+type Pick = ProviderId | "all";
+
+/** Shades for a row's provider steps, so neighbouring steps stay apart in one colour. */
+const stepMix = [82, 50, 30, 66, 40, 22] as const;
+
 export function TraceWaterfallView({ track, providers }: { track: TrackId; providers: readonly WaterfallProvider[] }) {
   const usable = providers.filter((p) => traceKinds.some((k) => hasTrace(track, k, p.id)));
-  const [providerId, setProviderId] = useState<ProviderId | undefined>((usable.find((p) => p.id === "e2b") ?? usable[0])?.id);
+  const [pick, setPick] = useState<Pick>("all");
   const [kind, setKind] = useState<TraceKind>("cold");
-  const provider = usable.find((p) => p.id === providerId);
+  const provider = pick === "all" ? undefined : usable.find((p) => p.id === pick);
   const activeKind = provider && !hasTrace(track, kind, provider.id) ? (traceKinds.find((k) => hasTrace(track, k, provider.id)) ?? kind) : kind;
   const trace = useMemo(() => (provider ? buildTrace({ track, provider: provider.id, kind: activeKind, costUsd: provider.costUsd }) : null), [track, provider, activeKind]);
 
   const [collapsedFor, setCollapsedFor] = useState<{ key: string; ids: ReadonlySet<string> } | null>(null);
-  const key = `${providerId}:${activeKind}`;
+  const key = `${pick}:${activeKind}`;
   const collapsed = trace ? (collapsedFor?.key === key ? collapsedFor.ids : defaultCollapsed(trace)) : new Set<string>();
   const toggle = (id: string) => {
     const next = new Set(collapsed);
@@ -174,13 +177,49 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
   const scroller = useScrollFade<HTMLDivElement>();
 
+  const controls = (
+    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <Segmented
+        label="Trace"
+        items={traceKinds.map((k) => ({ id: k, label: kindLabel[k], disabled: provider ? !hasTrace(track, k, provider.id) : !usable.some((p) => hasTrace(track, k, p.id)) }))}
+        value={activeKind}
+        onChange={setKind}
+      />
+      <Segmented<Pick>
+        label="Provider"
+        items={[
+          { id: "all", label: "All" },
+          ...usable.map((p) => ({
+            id: p.id,
+            label: (
+              <>
+                <ProviderLogo id={p.id} />
+                {providerName(p.id)}
+              </>
+            ),
+          })),
+        ]}
+        value={pick}
+        onChange={setPick}
+      />
+    </div>
+  );
+
+  if (pick === "all") {
+    return (
+      <div className="[--wf-card:#111111] [--wf-hover:#181818] [--wf-line:rgba(255,255,255,0.08)]">
+        <style>{motionCss}</style>
+        {controls}
+        <CompareCard key={activeKind} kind={activeKind} track={track} providers={usable} onPick={setPick} />
+      </div>
+    );
+  }
+
   if (!provider || !trace) return null;
   const color = providerColor(provider.id);
   const { max, ticks } = axis(trace.total);
   const pct = (ms: number) => `${(ms / max) * 100}%`;
-  const slowest = leaves(trace.root)
-    .filter((s) => s.owner !== "excluded")
-    .reduce<Span | undefined>((a, s) => (!a || s.ms > a.ms ? s : a), undefined);
+  const slowest = leaves(trace.root).reduce<Span | undefined>((a, s) => (!a || s.ms > a.ms ? s : a), undefined);
   const rows = flatten(trace.root, collapsed, slowest);
   const ours = trace.total - trace.providerMs;
   const failures = provider.failures[activeKind];
@@ -189,33 +228,20 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
   return (
     <div className="[--wf-card:#111111] [--wf-hover:#181818] [--wf-line:rgba(255,255,255,0.08)]">
       <style>{motionCss}</style>
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Segmented label="Trace" items={traceKinds.map((k) => ({ id: k, label: kindLabel[k], disabled: !hasTrace(track, k, provider.id) }))} value={activeKind} onChange={setKind} />
-        <Segmented
-          label="Provider"
-          items={usable.map((p) => ({
-            id: p.id,
-            label: (
-              <>
-                <span aria-hidden className="size-2 rounded-full" style={{ background: providerColor(p.id) }} />
-                {providerName(p.id)}
-              </>
-            ),
-          }))}
-          value={provider.id}
-          onChange={setProviderId}
-        />
-      </div>
+      {controls}
 
       <div className="overflow-hidden rounded-xl border border-[var(--wf-line)] bg-[var(--wf-card)]">
         <div className="flex items-center gap-2.5 border-b border-[var(--wf-line)] px-4 py-3 sm:px-5">
-          <Icon icon="trace" color="var(--brand)" />
+          <button type="button" onClick={() => setPick("all")} className="-my-1 flex h-7 shrink-0 items-center gap-1 rounded-full pr-2.5 pl-1.5 text-[12.5px] text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--chip)] hover:text-[var(--foreground)] focus-visible:outline-1 focus-visible:outline-[var(--foreground)]">
+            <svg aria-hidden viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M10 4L6 8l4 4" /></svg>
+            All
+          </button>
           <span className="text-[14px] font-medium">Trace</span>
           <span className="min-w-0 truncate text-[14px] text-[var(--muted)]">
             {trace.title} · {trace.kind === "replay" ? "median run" : "median of each step"}
           </span>
           <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px]" style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 40%, transparent)` }}>
-            <span aria-hidden className="size-1.5 rounded-full" style={{ background: color }} />
+            <ProviderLogo id={provider.id} size={12} />
             {providerName(provider.id)}
           </span>
         </div>
@@ -261,12 +287,130 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
           <Legend style={barStyle({ ...trace.root, owner: "provider" }, color, false)}>{providerName(provider.id)}&apos;s time</Legend>
-          <Legend style={barStyle({ ...trace.root, owner: "ours" }, color, false)} hatched>Ours: Sandbox SDK</Legend>
-          <Legend style={barStyle({ ...trace.root, owner: "excluded" }, color, false)}>Ours, left out of every chart (shown here)</Legend>
-          <span className="sm:ml-auto">{trace.kind === "replay" ? "$ per call is the task's cost split by time" : "Times are medians"}</span>
+          {ours > 0 ? <Legend style={barStyle({ ...trace.root, owner: "ours" }, color, false)} hatched>Ours: Sandbox SDK</Legend> : null}
+          <span className="sm:ml-auto">{footnote[trace.kind]}</span>
         </div>
       </div>
     </div>
+  );
+}
+
+const footnote = {
+  cold: "Medians. Not drawn: our ownership check between create() and the first command, which no number includes.",
+  pause: "Medians of each step.",
+  replay: "$ per call is the task's cost split by time.",
+} as const satisfies Record<TraceKind, string>;
+
+/** Every provider's trace as one stacked bar on a shared axis; a row opens that provider's tree. */
+function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; track: TrackId; providers: readonly WaterfallProvider[]; onPick: (id: ProviderId) => void }) {
+  const scroller = useScrollFade<HTMLDivElement>();
+  const rows: CompareRow[] = compareTrace(track, kind, providers.map((p) => p.id));
+  const first = rows[0];
+  const last = rows.at(-1);
+  if (!first || !last) return null;
+  const { max, ticks } = axis(Math.max(...rows.map((r) => r.total)));
+  const pct = (ms: number) => `${(ms / max) * 100}%`;
+  const shown = providers.filter((p) => rows.some((r) => r.provider === p.id));
+  const failed = shown.reduce((a, p) => a + p.failures[kind].failed, 0);
+  const attempts = shown.reduce((a, p) => a + p.failures[kind].attempts, 0);
+  const hasOurs = first.steps.some((s) => s.owner === "ours");
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--wf-line)] bg-[var(--wf-card)]">
+      <div className="flex items-center gap-2.5 border-b border-[var(--wf-line)] px-4 py-3 sm:px-5">
+        <Icon icon="trace" color="var(--brand)" />
+        <span className="text-[14px] font-medium">Trace</span>
+        <span className="min-w-0 truncate text-[14px] text-[var(--muted)]">
+          {kindLabel[kind]} · every provider, {kind === "replay" ? "median run" : "median of each step"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 border-b border-[var(--wf-line)] sm:grid-cols-4">
+        <Stat label="Fastest" value={formatMs(first.providerMs)} sub={`${providerName(first.provider)} · provider time`} />
+        <Stat label="Slowest" value={formatMs(last.providerMs)} sub={`${providerName(last.provider)} · provider time`} />
+        <Stat label="Spread" value={`${(last.providerMs / first.providerMs).toFixed(1)}×`} sub="slowest vs fastest" />
+        <Stat label="Failures" value={failed.toLocaleString("en-US")} sub={`of ${attempts.toLocaleString("en-US")} attempts`} tone={failed > 0 ? "bad" : undefined} />
+      </div>
+
+      <div className="relative">
+        <div ref={scroller} className="peer overflow-x-auto overscroll-x-contain [--span-col:124px] sm:[--span-col:200px]">
+          <div className="relative grid min-w-[560px] grid-cols-[var(--span-col)_1fr] sm:min-w-0">
+            <div className="sticky top-0 left-0 z-30 flex h-9 items-center border-r border-b border-[var(--wf-line)] bg-[var(--wf-card)] pl-4 text-[10.5px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase sm:pl-5">Provider</div>
+            <div className="sticky top-0 z-20 h-9 border-b border-[var(--wf-line)] bg-[var(--wf-card)]">
+              {ticks.map((t) => (
+                <span key={t} className="absolute top-1/2 -translate-y-1/2 pl-1.5 font-mono text-[11px] text-[var(--muted)] tabular-nums" style={{ left: pct(t) }}>
+                  {tickLabel(t, max)}
+                </span>
+              ))}
+            </div>
+            <div aria-hidden className="pointer-events-none absolute top-9 right-0 bottom-0 left-[var(--span-col)]">
+              {ticks.map((t) => (
+                <span key={t} className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.05)]" style={{ left: pct(t) }} />
+              ))}
+            </div>
+            <ul className="contents">
+              {rows.map((row, i) => (
+                <CompareRowView key={row.provider} row={row} index={i} pct={pct} onPick={onPick} />
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-40 w-8 bg-gradient-to-l from-[var(--wf-card)] to-transparent opacity-0 transition-opacity duration-150 peer-data-[fade-end]:opacity-100" />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
+        {first.steps
+          .filter((s) => s.owner === "provider")
+          .map((s, i) => (
+            <Legend key={s.id} style={{ background: `color-mix(in oklch, oklch(0.9 0 0) ${stepMix[i % stepMix.length]}%, transparent)` }}>
+              {s.name}
+            </Legend>
+          ))}
+        {hasOurs ? <Legend style={barStyle({ id: "", name: "", sub: "", icon: "sdk", owner: "ours", start: 0, ms: 0, usd: null, children: [] }, "", false)} hatched>Ours: Sandbox SDK</Legend> : null}
+        <span className="sm:ml-auto">Ranked by provider time · pick a provider for its full trace</span>
+      </div>
+    </div>
+  );
+}
+
+function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: number; pct: (ms: number) => string; onPick: (id: ProviderId) => void }) {
+  const color = providerColor(row.provider);
+  const ours = row.total - row.providerMs;
+  let providerStep = 0;
+  return (
+    <li className="contents">
+      <button
+        type="button"
+        onClick={() => onPick(row.provider)}
+        aria-label={`${providerName(row.provider)}: ${formatMs(row.providerMs)} provider time${ours > 0 ? `, plus ${formatMs(ours)} of our SDK setup` : ""}. Open its full trace.`}
+        className="group col-span-2 grid grid-cols-subgrid text-left focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-[var(--foreground)]"
+      >
+        <span className="sticky left-0 z-10 flex h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
+          <ProviderLogo id={row.provider} size={16} />
+          <span className="min-w-0 truncate text-[13.5px] font-medium">{providerName(row.provider)}</span>
+        </span>
+        <span className="relative h-10 group-hover:bg-[var(--wf-hover)]">
+          <span className="waterfall-bar absolute top-1/2 flex h-[16px] -translate-y-1/2 gap-px overflow-hidden rounded-full" style={{ left: 0, width: pct(row.total), animationDelay: `${index * 15}ms` }}>
+            {row.steps.map((s) => {
+              const width = `${(s.ms / row.total) * 100}%`;
+              if (s.owner === "ours") {
+                return (
+                  <span key={s.id} className="relative h-full shrink-0" style={{ width, ...barStyle({ id: s.id, name: s.name, sub: "", icon: "sdk", owner: "ours", start: 0, ms: s.ms, usd: null, children: [] }, color, false) }}>
+                    <Hatch />
+                  </span>
+                );
+              }
+              const mix = stepMix[providerStep++ % stepMix.length];
+              return <span key={s.id} className="h-full shrink-0" style={{ width, background: `color-mix(in oklch, ${color} ${mix}%, transparent)` }} />;
+            })}
+          </span>
+          <span className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 pl-1.5 font-mono text-[12px] whitespace-nowrap tabular-nums" style={{ left: pct(row.total) }}>
+            <span className="rounded-[3px] bg-[var(--surface)] px-1 text-[var(--foreground)]">{formatMs(row.providerMs)}</span>
+            {ours > 0 ? <span className="text-[var(--muted)]">+ {formatMs(ours)} SDK</span> : null}
+          </span>
+        </span>
+      </button>
+    </li>
   );
 }
 
@@ -310,14 +454,14 @@ function SpanRow({ row, index, color, pct, onToggle }: { row: Row; index: number
         <span className="hidden sm:contents">
           <Icon icon={span.icon} color={span.owner === "provider" ? color : "var(--muted)"} />
         </span>
-        <span className={`min-w-0 truncate text-[13px] sm:shrink-0 sm:text-[13.5px] ${depth === 0 || isGroup ? "font-medium" : ""} ${span.owner === "excluded" ? "text-[var(--muted)]" : ""}`}>{span.name}</span>
+        <span className={`min-w-0 truncate text-[13px] sm:shrink-0 sm:text-[13.5px] ${depth === 0 || isGroup ? "font-medium" : ""}`}>{span.name}</span>
         <span className="hidden min-w-0 truncate text-[12.5px] text-[var(--muted)] sm:block">{span.sub}</span>
         {strip ? <span className="ml-auto shrink-0 rounded-[4px] sm:ml-0 bg-[var(--chip)] px-1.5 font-mono text-[11px] leading-[18px] text-[var(--muted)] tabular-nums">+{hidden.length}</span> : null}
       </div>
       <div className="relative h-[34px] group-hover:bg-[var(--wf-hover)]">
         <div
           className="waterfall-bar absolute top-1/2 h-[14px] -translate-y-1/2 overflow-hidden rounded-full"
-          style={{ left: pct(start), width: `max(3px, ${pct(ms)})`, ...barStyle(span, color, isGroup && span.owner !== "excluded"), ...delay }}
+          style={{ left: pct(start), width: `max(3px, ${pct(ms)})`, ...barStyle(span, color, isGroup), ...delay }}
         >
           {span.owner === "ours" && !isGroup ? <Hatch /> : null}
           {strip

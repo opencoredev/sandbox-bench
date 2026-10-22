@@ -5,14 +5,13 @@ import type { TrackId } from "@/lib/tracks";
 
 /**
  * Turns a provider's median phases into the span tree the trace waterfall
- * draws. Provider spans are the provider's own time; ours are our benchmark
- * and Sandbox SDK, drawn grey, and excluded spans are bookkeeping that no
- * published number includes.
+ * draws. Provider spans are the provider's own time; ours are our Sandbox SDK,
+ * drawn grey.
  */
 
-export type SpanOwner = "provider" | "ours" | "excluded";
+export type SpanOwner = "provider" | "ours";
 
-export type SpanIcon = "create" | "command" | "pause" | "resume" | "sdk" | "check" | "journal" | "trace" | "group" | ReplayOp;
+export type SpanIcon = "create" | "command" | "pause" | "resume" | "sdk" | "trace" | "group" | ReplayOp;
 
 export interface Span {
   id: string;
@@ -73,17 +72,17 @@ export function buildTrace({ track, provider, kind, costUsd }: { track: TrackId;
     case "cold": {
       if (!t.cold) return null;
       const m = t.cold.median;
-      const [create, check, journal, first, sdk] = chain(0, [
+      // Our ownership check and journal write sit between create and the first
+      // command in the raw run. No published number includes them, so the trace
+      // leaves them out and the view says so in a footnote.
+      const [create, first, sdk] = chain(0, [
         { id: "create", name: "create()", sub: "provider API", icon: "create", owner: "provider", ms: m.create },
-        { id: "verify", name: "Ownership check", sub: "ours · excluded", icon: "check", owner: "excluded", ms: m.verify },
-        { id: "persist", name: "Journal write", sub: "ours · excluded", icon: "journal", owner: "excluded", ms: m.persist },
         { id: "first", name: "First command", sub: "echo ok", icon: "command", owner: "provider", ms: m.firstCommand },
         { id: "sdk", name: "SDK setup", sub: "Sandbox SDK", icon: "sdk", owner: "ours", ms: m.sdkSetup },
       ]);
-      if (!create || !check || !journal || !first || !sdk) return null;
-      const bookkeeping: Span = { id: "bookkeeping", name: "Bench bookkeeping", sub: "not counted", icon: "group", owner: "excluded", ...extent([check, journal]), usd: null, children: [check, journal] };
-      const children = [create, bookkeeping, first, sdk];
-      const total = sumMs([create, check, journal, first, sdk]);
+      if (!create || !first || !sdk) return null;
+      const children = [create, first, sdk];
+      const total = sumMs(children);
       return {
         kind,
         title: "Cold start",
@@ -153,3 +152,24 @@ export const leaves = (s: Span): Span[] => (s.children.length === 0 ? [s] : s.ch
  * spans first call to last call while their label carries summed time.
  */
 export const spanExtent = (s: Span) => (s.children.length === 0 ? { start: s.start, ms: s.ms } : extent(leaves(s)));
+
+/** One provider's row in the all-providers view: its trace's top-level steps, end to end. */
+export interface CompareRow {
+  provider: ProviderId;
+  /** Provider-owned time, the number rows are ranked by. */
+  providerMs: number;
+  total: number;
+  steps: readonly { id: string; name: string; owner: SpanOwner; ms: number }[];
+}
+
+/** Every provider with this trace, fastest provider time first. */
+export function compareTrace(track: TrackId, kind: TraceKind, providers: readonly ProviderId[]): CompareRow[] {
+  return providers
+    .flatMap((provider) => {
+      const trace = buildTrace({ track, provider, kind, costUsd: null });
+      if (!trace) return [];
+      const steps = trace.root.children.map((c) => ({ id: c.id, name: c.name, owner: c.owner, ms: c.ms }));
+      return [{ provider, providerMs: trace.providerMs, total: trace.total, steps }];
+    })
+    .sort((a, b) => a.providerMs - b.providerMs);
+}
