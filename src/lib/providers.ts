@@ -3,7 +3,7 @@
  * the provider's own brand colour (Tenki and Daytona blues, Upstash emerald,
  * Superserve mint, boxd rose, Freestyle periwinkle, E2B orange, Boat's
  * near-white mark), with lightness spread so every pair stays apart under
- * protanopia and deuteranopia (OKLab ΔE ≥ 6.9; names and logos sit beside
+ * protanopia and deuteranopia (OKLab ΔE ≥ 6.8; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */

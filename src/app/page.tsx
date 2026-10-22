@@ -387,7 +387,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Cost",
-    line: "One task per sandbox, 10 per provider, priced from each provider's bill wherever it gives one.",
+    line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
     more: "Upstash Box and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {

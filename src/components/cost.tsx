@@ -46,7 +46,7 @@ export function costColumns(track: Track) {
 
 /** Cost per task from the cost run. */
 export function CostPerTaskChart({ track }: { track: Track }) {
-  const head = <ChartHead title="Cost per 1,000 tasks" sub={`${taskDefinition} · From each provider's bill · US dollars · Lower is better`} />;
+  const head = <ChartHead title="Cost per 1,000 tasks" sub={`${taskDefinition} · US dollars · Lower is better`} />;
   if (!hasTaskCosts(track))
     return (
       <>
@@ -65,7 +65,7 @@ export function CostPerTaskChart({ track }: { track: Track }) {
       <Footnotes
         items={[
           ...[...marks].map(([id, mark]) => ({ mark, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
-          { text: "Each task ran in its own sandbox, 10 per provider, in a separate cost run. The bar is the median." },
+          { text: "Each task ran in its own sandbox, up to 10 per provider, in a separate cost run. The bar is the median." },
           ...(missing.length > 0
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),
