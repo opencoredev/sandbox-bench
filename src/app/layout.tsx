@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { trackScript } from "@/components/track";
 import { TracePanel } from "@/components/trace-panel";
+import { PostHogProvider } from "@/lib/posthog-provider";
 
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         {children}
         <TracePanel />
+        <PostHogProvider />
       </body>
     </html>
   );
