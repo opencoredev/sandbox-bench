@@ -201,9 +201,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-10-22T20:12:53.641Z"
+  "end": "2026-10-22T20:27:09.732Z"
  },
- "observations": 19240,
+ "observations": 19543,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r8b3",
@@ -269,6 +269,11 @@
    "id": "sbx53-same-spec-cost-r8u",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbx53-same-spec-burst25-r8u",
+   "suite": "burst",
+   "samples": 303
   }
  ],
  "excluded": [
@@ -754,7 +759,7 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2586,
+    "successes": 2889,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -2803,6 +2808,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 3,
+     "p50": 5.404953581999995,
+     "p95": 5.732193100999999,
+     "min": 2.8298855049999982,
+     "ciLow": 2.8298855049999982,
+     "ciHigh": 5.732193100999999,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "boxd",
      "n": 3,
      "p50": 5.932648025000002,
@@ -4401,9 +4419,6 @@
  "missing": {
   "burst-10": {
    "e2b": "stopped-early: in one of its three bursts of 10, two creates failed on E2B's side (E2B reported a timeout), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
-  },
-  "burst-25": {
-   "upstash": "stopped-early: its bursts of 25 never started: Upstash's account cap is 25 sandboxes and one sandbox on the account that is not ours (social-flamingo-39321) was still there; coming in the next update"
   }
  },
  "sourceNotes": {

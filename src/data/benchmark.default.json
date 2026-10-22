@@ -200,9 +200,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-10-22T20:11:34.440Z"
+  "end": "2026-10-22T20:35:29.143Z"
  },
- "observations": 19685,
+ "observations": 20113,
  "runs": [
   {
    "id": "sbx53-default-main-r8b3",
@@ -240,11 +240,6 @@
    "samples": 1278
   },
   {
-   "id": "sbx53-default-burst-r8b2-daytona",
-   "suite": "burst",
-   "samples": 0
-  },
-  {
    "id": "sbx53-default-burst-r8c2",
    "suite": "burst",
    "samples": 852
@@ -273,6 +268,26 @@
    "id": "sbx53-default-cost-r8u",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbx53-default-burst-r8d-daytona-1",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbx53-default-burst-r8d-daytona-2",
+   "suite": "burst",
+   "samples": 43
+  },
+  {
+   "id": "sbx53-default-burst-r8d-daytona-3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbx53-default-burst25-r8u",
+   "suite": "burst",
+   "samples": 303
   }
  ],
  "excluded": [
@@ -441,13 +456,13 @@
    "pricingSource": "https://www.daytona.io/pricing",
    "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
    "reliability": {
-    "successes": 2456,
-    "failures": 0,
-    "raw": 1.0,
-    "adjusted": 1.0,
+    "successes": 2577,
+    "failures": 4,
+    "raw": 0.9984502130956994,
+    "adjusted": 0.9984502130956994,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 0
+    "provider": 4
    },
    "hardware": {
     "fingerprints": 130,
@@ -487,7 +502,17 @@
     "location": [],
     "network": []
    },
-   "failureReasons": [],
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Daytona request failed (provider). (provider, HTTP 409, operation=destroy)",
+     "count": 4,
+     "runs": 2,
+     "tests": [
+      "10 at once"
+     ]
+    }
+   ],
    "ourFailures": [],
    "pauseSplit": null
   },
@@ -775,7 +800,7 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2586,
+    "successes": 2889,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -2731,6 +2756,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "daytona",
+     "n": 3,
+     "p50": 2.1839106970000004,
+     "p95": 5.707040165,
+     "min": 2.034414164,
+     "ciLow": 2.034414164,
+     "ciHigh": 5.707040165,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "freestyle",
      "n": 3,
      "p50": 1.8954852710000123,
@@ -2841,6 +2879,19 @@
      "min": 0.9811399110000056,
      "ciLow": 0.9811399110000056,
      "ciHigh": 1.8753338420000218,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 3,
+     "p50": 15.393520336999995,
+     "p95": 17.395228465,
+     "min": 9.005611623999998,
+     "ciLow": 9.005611623999998,
+     "ciHigh": 17.395228465,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -4426,14 +4477,7 @@
    1.45
   ]
  },
- "missing": {
-  "burst-10": {
-   "daytona": "stopped-early: only 1 of its three bursts of 10 ran; the other two were skipped because our 10 vCPU account quota was still held by the previous burst's sandboxes while they were being deleted. That is our quota, not a Daytona failure; coming in the next update"
-  },
-  "burst-25": {
-   "upstash": "stopped-early: its bursts of 25 never started: Upstash's account cap is 25 sandboxes and one sandbox on the account that is not ours (social-flamingo-39321) was still there; coming in the next update"
-  }
- },
+ "missing": {},
  "sourceNotes": {
   "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch."
  }
