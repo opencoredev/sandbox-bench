@@ -22,11 +22,11 @@ export const metadata: Metadata = {
     ],
   },
   description,
-  openGraph: { title, description, type: "website", siteName: "Sandbox bench" },
+  openGraph: { title, description, type: "website", siteName: "Sandbox bench", url: "https://aisandboxbench.com" },
   twitter: { card: "summary", title, description },
-  alternates: { types: { "text/markdown": "/results.md", "application/json": "/results.json" } },
-  // Private until launch: flip to index on publish.
-  robots: { index: false, follow: false },
+  metadataBase: new URL("https://aisandboxbench.com"),
+  alternates: { canonical: "/", types: { "text/markdown": "/results.md", "application/json": "/results.json" } },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
