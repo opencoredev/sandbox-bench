@@ -197,12 +197,12 @@
    }
   }
  ],
- "generatedFrom": "merged-default-snap",
+ "generatedFrom": "m-default",
  "window": {
   "start": "2026-10-22T08:22:01.273Z",
-  "end": "2026-10-22T12:40:20.538Z"
+  "end": "2026-10-22T15:05:29.909Z"
  },
- "observations": 17933,
+ "observations": 18548,
  "runs": [
   {
    "id": "sbx53-default-main-r3",
@@ -218,6 +218,11 @@
    "id": "sbx53-default-cost-r5",
    "suite": "cost",
    "samples": 350
+  },
+  {
+   "id": "sbx53-default-burst-r5",
+   "suite": "burst",
+   "samples": 615
   }
  ],
  "excluded": [
@@ -281,10 +286,10 @@
    "pricingSource": "https://e2b.dev/pricing",
    "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
    "reliability": {
-    "successes": 2563,
+    "successes": 2686,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
@@ -387,10 +392,10 @@
    "pricingSource": "https://www.daytona.io/pricing",
    "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
    "reliability": {
-    "successes": 2458,
+    "successes": 2581,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
@@ -653,10 +658,10 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2562,
+    "successes": 2685,
     "failures": 1,
-    "raw": 0.9996098322278579,
-    "adjusted": 0.9996098322278579,
+    "raw": 0.9996276991809382,
+    "adjusted": 0.9996276991809382,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 1
@@ -769,9 +774,9 @@
    "pricingSource": "https://www.freestyle.sh/pricing",
    "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
    "reliability": {
-    "successes": 2555,
+    "successes": 2678,
     "failures": 0,
-    "raw": 0.9968786578228638,
+    "raw": 1.0,
     "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
@@ -991,10 +996,10 @@
    "pricingSource": "https://www.superserve.ai/pricing",
    "pricingNotes": "Published vCPU and GiB-hour rates converted to seconds. Credits excluded. One-second rounding assumed; snapshot storage, disk, transfer and any minimum charge excluded. Ran on our template sandbox-bench-node22-py311-1x1-pinned (Node 22 and Python 3.11 preinstalled), 1 vCPU, 1 GiB RAM, 4 GiB disk; resources are template-owned. Cold start ends at the provider's first command; our SDK's setup is reported separately as SDK-ready.",
    "reliability": {
-    "successes": 2563,
+    "successes": 2686,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
@@ -2709,7 +2714,73 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 3,
+     "p50": 0.9420455580000998,
+     "p95": 1.1026107850000002,
+     "min": 0.8464836189999915,
+     "ciLow": 0.8464836189999915,
+     "ciHigh": 1.1026107850000002,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 3,
+     "p50": 2.849276755000001,
+     "p95": 4.389115917999996,
+     "min": 2.154943196000066,
+     "ciLow": 2.154943196000066,
+     "ciHigh": 4.389115917999996,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 3,
+     "p50": 2.7352623069999975,
+     "p95": 2.8102957670000035,
+     "min": 2.0874838959999615,
+     "ciLow": 2.0874838959999615,
+     "ciHigh": 2.8102957670000035,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 3,
+     "p50": 1.5002656040000002,
+     "p95": 2.185415609000018,
+     "min": 0.9546633230000007,
+     "ciLow": 0.9546633230000007,
+     "ciHigh": 2.185415609000018,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 3,
+     "p50": 0.6930817649999809,
+     "p95": 0.9702224809999971,
+     "min": 0.6918805660000071,
+     "ciLow": 0.6918805660000071,
+     "ciHigh": 0.9702224809999971,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "burst-25",

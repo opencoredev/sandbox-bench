@@ -23,13 +23,48 @@ export const groups = [
 const round = (v: number | null) => (v === null ? null : Math.round(v * 1000) / 1000);
 const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecision(4)));
 
-// Tests we chose not to run, with the reason, when the data has no result; the page's footnotes use the same map.
-export const notRun: Partial<Record<string, Partial<Record<ProviderId, string>>>> = {
-  "burst-25": {
-    daytona: "not-run: our Daytona account's concurrency limit refused the creates",
-    boat: "not-run: Boat's account quota allows 12 creates a minute, so 25 at once would break it",
+// Tests with no published result for a provider, with the reason, per track. Shown only where the
+// data has no result; the page's footnotes use the same map. Results from runs we stopped early are
+// left out rather than shown partly, and none of their failures count against the provider.
+const stopped = "stopped-early: our run was stopped early, so nothing is counted against it; coming in the next update";
+const notYet = "not-run: not run yet; coming in the next update";
+const daytonaSnapshotQuota = "not-run: our Daytona account's 10 vCPU quota kept its 4 vCPU snapshot tests from running";
+export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>> = {
+  default: {
+    "burst-10": { upstash: stopped, tenki: notYet },
+    "burst-25": {
+      e2b: stopped,
+      freestyle: stopped,
+      superserve: stopped,
+      boxd: stopped,
+      upstash: stopped,
+      tenki: notYet,
+      daytona: "not-run: our Daytona account's 10 vCPU quota can't hold 25 sandboxes at once",
+    },
+  },
+  "same-spec": {
+    snapshot: { boxd: stopped, upstash: stopped, daytona: daytonaSnapshotQuota },
+    "create-from-snapshot": { boxd: stopped, upstash: stopped, daytona: daytonaSnapshotQuota },
+    "burst-10": {
+      freestyle: stopped,
+      boxd: stopped,
+      upstash: stopped,
+      tenki: notYet,
+      daytona: "not-run: our Daytona account's 10 vCPU quota can't hold ten 4 vCPU sandboxes at once",
+    },
+    "burst-25": {
+      e2b: stopped,
+      freestyle: stopped,
+      boxd: stopped,
+      upstash: stopped,
+      tenki: notYet,
+      daytona: "not-run: our Daytona account's 10 vCPU quota can't hold 25 4 vCPU sandboxes at once",
+    },
   },
 };
+
+/** A notRun reason as chart text: "not run: …", or the reason alone for a stopped run. */
+export const notRunText = (why: string) => why.replace(/^not-run: /, "not run: ").replace(/^stopped-early: /, "");
 
 /**
  * Results we measured but leave out of rankings, with the reason, keyed by
@@ -48,12 +83,12 @@ export const excludedFor = (track: Track) => exclusionsByRun[track.generatedFrom
 
 /** Why a result is blank, so an agent never has to guess. */
 function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["values"][number] | undefined) {
+  const skipped = notRun[track.id][id]?.[provider];
+  if (skipped && (!v || v.n === 0)) return skipped;
   if (track.metric(id).values.length === 0) return "coming-next-update: not collected in this release";
   const left = excludedFor(track)[id]?.[provider];
   if (left) return `excluded: ${left}`;
   if (id === "pause-resume" && noRealPause[provider]) return `unsupported: ${noRealPause[provider]}`;
-  const skipped = notRun[id]?.[provider];
-  if (skipped && (!v || v.n === 0)) return skipped;
   if (!v) return "unsupported";
   if (v.n > 0) return "measured";
   if (v.ourFailures > 0 && v.failures === 0) return "not-measured: our harness could not run this test on this provider";
@@ -346,7 +381,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, bursts of 10 and 25, and snapshots on the same-machine (4 vCPU, 8 GB) track. Default-machine timings come from one run on one harness commit; default-machine snapshots, the same-machine track and the cost run that prices each task ran on a later harness commit whose changes only touched cleanup.
+Boat; same-machine snapshots for boxd, Upstash Box and Daytona; bursts of 25 for every provider; and bursts of 10 for the providers whose runs were stopped early. We stopped the last runs early at a set time: Tenki's same-machine run ended at 78 of 100 cold starts. From the stopped snapshot and burst runs only providers that finished every attempt or burst are published, and none of the stopped runs' failures count against any provider. Default-machine timings come from one run on one harness commit; everything else ran on a later harness commit whose changes only touched cleanup.
 
 ## Data
 

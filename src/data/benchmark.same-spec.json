@@ -169,22 +169,32 @@
    }
   }
  ],
- "generatedFrom": "merged-same-spec",
+ "generatedFrom": "m-same",
  "window": {
   "start": "2026-10-22T12:41:17.842Z",
-  "end": "2026-10-22T14:05:39.746Z"
+  "end": "2026-10-22T15:05:26.030Z"
  },
- "observations": 11672,
+ "observations": 14072,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r5",
    "suite": "main",
-   "samples": 11374
+   "samples": 12664
   },
   {
    "id": "sbx53-same-spec-cost-r5",
    "suite": "cost",
    "samples": 298
+  },
+  {
+   "id": "sbx53-same-spec-snapshot-r5",
+   "suite": "snapshot",
+   "samples": 990
+  },
+  {
+   "id": "sbx53-same-spec-burst-r5",
+   "suite": "burst",
+   "samples": 123
   }
  ],
  "excluded": [
@@ -248,7 +258,7 @@
    "pricingSource": "https://e2b.dev/pricing",
    "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
    "reliability": {
-    "successes": 2233,
+    "successes": 2686,
     "failures": 0,
     "raw": 1,
     "adjusted": 1,
@@ -257,7 +267,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -268,7 +278,7 @@
     "cpuModels": [
      {
       "value": "Intel Xeon Processor @ 2.60GHz",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "Intel",
@@ -280,13 +290,13 @@
     "location": [
      {
       "value": "The Dalles, US",
-      "count": 100
+      "count": 129
      }
     ],
     "network": [
      {
       "value": "AS396982 Google LLC",
-      "count": 100
+      "count": 129
      }
     ]
    },
@@ -471,16 +481,16 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 1751,
-    "failures": 6,
-    "raw": 0.9965850882185544,
-    "adjusted": 0.9965850882185544,
+    "successes": 2204,
+    "failures": 3,
+    "raw": 0.9986406887177164,
+    "adjusted": 0.9986406887177164,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 6
+    "provider": 3
    },
    "hardware": {
-    "fingerprints": 75,
+    "fingerprints": 99,
     "vcpu": 4,
     "visibleCpus": [
      64
@@ -498,13 +508,13 @@
     "location": [
      {
       "value": "Ashburn, US",
-      "count": 75
+      "count": 99
      }
     ],
     "network": [
      {
       "value": "AS14618 Amazon.com, Inc.",
-      "count": 75
+      "count": 99
      }
     ]
    },
@@ -515,26 +525,23 @@
      "count": 3,
      "runs": 3,
      "tests": [
-      "Cold start",
       "cold",
-      "tool-replay"
-     ]
-    },
-    {
-     "kind": "provider-operation",
-     "reason": "Resource ownership unverified; see cleanupReview",
-     "count": 3,
-     "runs": 2,
-     "tests": [
-      "Destroy"
+      "tool-replay",
+      "Cold start"
      ]
     }
    ],
-   "ourFailures": [],
+   "ourFailures": [
+    {
+     "reason": "Our ownership check could not confirm the sandbox before deleting it, so we can't tell whose side failed",
+     "count": 5,
+     "runs": 3
+    }
+   ],
    "pauseSplit": {
     "pause": 0.8366179980000016,
-    "resume": 0.5827158219995908,
-    "n": 75
+    "resume": 0.5705873199999333,
+    "n": 99
    }
   },
   {
@@ -733,16 +740,16 @@
    "pricingSource": "https://www.freestyle.sh/pricing",
    "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
    "reliability": {
-    "successes": 2230,
+    "successes": 2559,
     "failures": 4,
-    "raw": 0.9982094897045658,
-    "adjusted": 0.9982094897045658,
+    "raw": 0.998439328911432,
+    "adjusted": 0.998439328911432,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 4
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -760,13 +767,13 @@
     "location": [
      {
       "value": "San Francisco, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS36320 Freestyle Cloud, Inc.",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -849,16 +856,16 @@
    "pricingSource": "https://tenki.cloud/pricing",
    "pricingNotes": "Per-second, no minimum. Separate persistent storage $0.000000076/GiB-second excluded. Credits excluded.",
    "reliability": {
-    "successes": 979,
+    "successes": 2141,
     "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "raw": 1.0,
+    "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 34,
+    "fingerprints": 108,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -869,7 +876,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC 7B13 64-Core Processor",
-      "count": 34
+      "count": 108
      }
     ],
     "vendor": "AMD",
@@ -881,22 +888,28 @@
     "location": [
      {
       "value": "Seattle, US",
-      "count": 34
+      "count": 108
      }
     ],
     "network": [
      {
       "value": "AS19538 Luxor",
-      "count": 34
+      "count": 108
      }
     ]
    },
    "failureReasons": [],
-   "ourFailures": [],
+   "ourFailures": [
+    {
+     "reason": "The run was stopped during this attempt, so it is not counted",
+     "count": 1,
+     "runs": 1
+    }
+   ],
    "pauseSplit": {
-    "pause": 59.691798120000165,
-    "resume": 2.5500197919998318,
-    "n": 34
+    "pause": 60.53191615900025,
+    "resume": 2.449111862000078,
+    "n": 77
    }
   }
  ],
@@ -939,13 +952,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 2.6499037029994654,
+     "n": 99,
+     "p50": 2.65196633400023,
      "p95": 9.053918775000144,
      "min": 2.5130509509998373,
-     "ciLow": 2.5946940399995073,
-     "ciHigh": 2.6669126250008124,
-     "successes": 75,
+     "ciLow": 2.6147088079999667,
+     "ciHigh": 2.6674471179991963,
+     "successes": 99,
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
@@ -978,13 +991,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 1.0782370079997927,
-     "p95": 4.549084318999667,
+     "n": 78,
+     "p50": 0.9631706900000573,
+     "p95": 2.960439737999812,
      "min": 0.7823652440000151,
-     "ciLow": 0.8973997630001977,
-     "ciHigh": 1.230702913999994,
-     "successes": 34,
+     "ciLow": 0.9131609209990129,
+     "ciHigh": 1.0695681389998646,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1029,13 +1042,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 0.22791369300009684,
-     "p95": 2.332226600000169,
+     "n": 99,
+     "p50": 0.22553385200002232,
+     "p95": 0.501998355000047,
      "min": 0.19666078200004997,
-     "ciLow": 0.21969761099992322,
-     "ciHigh": 0.24100753699988128,
-     "successes": 75,
+     "ciLow": 0.2205444120001048,
+     "ciHigh": 0.23167248499998824,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1068,13 +1081,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 0.16654931999975817,
+     "n": 78,
+     "p50": 0.16643296300014482,
      "p95": 0.2041657290000003,
      "min": 0.12782408300007228,
-     "ciLow": 0.16403895699977875,
-     "ciHigh": 0.17616158899990841,
-     "successes": 34,
+     "ciLow": 0.16246733400039376,
+     "ciHigh": 0.17204600600060077,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1119,13 +1132,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 0.33738276399997996,
-     "p95": 1.7847818919999991,
+     "n": 99,
+     "p50": 0.33944641599990427,
+     "p95": 1.097733277999796,
      "min": 0.24924118599994108,
-     "ciLow": 0.331362119999947,
-     "ciHigh": 0.3425230729999021,
-     "successes": 75,
+     "ciLow": 0.33558485300000757,
+     "ciHigh": 0.3451873419999611,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1158,13 +1171,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 0.2777663450000109,
-     "p95": 2.2438809370000383,
-     "min": 0.18677239699987694,
-     "ciLow": 0.26066312100039796,
-     "ciHigh": 0.2958248040000908,
-     "successes": 34,
+     "n": 77,
+     "p50": 0.26779102499969304,
+     "p95": 0.3711741650002077,
+     "min": 0.18387254599947483,
+     "ciLow": 0.26018777800071985,
+     "ciHigh": 0.2870704250000417,
+     "successes": 77,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1209,13 +1222,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 3.161471655000001,
-     "p95": 9.574218090000096,
+     "n": 99,
+     "p50": 3.0470017950000474,
+     "p95": 9.596669957000296,
      "min": 2.2182263549999917,
-     "ciLow": 2.6469664400001056,
-     "ciHigh": 4.361934029999888,
-     "successes": 75,
+     "ciLow": 2.6435690189995804,
+     "ciHigh": 3.7370307470000115,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1248,13 +1261,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 7.34061352000013,
-     "p95": 13.915068694999908,
-     "min": 1.7555933550000191,
-     "ciLow": 6.418043928999992,
-     "ciHigh": 8.563849279999733,
-     "successes": 34,
+     "n": 78,
+     "p50": 6.188157935000024,
+     "p95": 10.829579404999969,
+     "min": 1.591205351999961,
+     "ciLow": 6.021963406999595,
+     "ciHigh": 6.418043928999992,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1299,13 +1312,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 0.5239041279999074,
-     "p95": 0.812361135000363,
+     "n": 99,
+     "p50": 0.5200718580000102,
+     "p95": 1.1396850479999558,
      "min": 0.47324087999993936,
-     "ciLow": 0.5113579789998476,
-     "ciHigh": 0.5405423609999707,
-     "successes": 75,
+     "ciLow": 0.5143108629998752,
+     "ciHigh": 0.5319547850000672,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1338,13 +1351,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 0.7919997949999524,
-     "p95": 4.720104974000017,
+     "n": 77,
+     "p50": 0.7805704669998959,
+     "p95": 1.5813737690000562,
      "min": 0.7072354910001158,
      "ciLow": 0.7736997480001301,
-     "ciHigh": 0.8249465729999939,
-     "successes": 34,
+     "ciHigh": 0.7947074830001221,
+     "successes": 77,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1389,13 +1402,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 1.9517962869997136,
-     "p95": 14.103930542000104,
+     "n": 99,
+     "p50": 1.636371797000058,
+     "p95": 11.732524145000149,
      "min": 0.7201886829999276,
-     "ciLow": 1.2930958520001732,
-     "ciHigh": 2.222943535000086,
-     "successes": 75,
+     "ciLow": 1.2707953650001438,
+     "ciHigh": 2.0527881940002555,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1428,15 +1441,15 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
+     "n": 77,
      "p50": 63.779391864000125,
-     "p95": 83.93546450900007,
-     "min": 46.8502823549998,
+     "p95": 84.19455264099967,
+     "min": 45.581916104000065,
      "ciLow": 60.579707959000025,
-     "ciHigh": 71.25132510399982,
-     "successes": 34,
+     "ciHigh": 67.7041144650001,
+     "successes": 77,
      "failures": 0,
-     "ourFailures": 0,
+     "ourFailures": 1,
      "limitFailures": 0
     }
    ]
@@ -1479,15 +1492,15 @@
     },
     {
      "provider": "upstash",
-     "n": 74,
-     "p50": 1.2434358140002004,
-     "p95": 20.061523837999907,
+     "n": 95,
+     "p50": 1.0202537549999542,
+     "p95": 18.425837729000023,
      "min": 0.2836922249998897,
-     "ciLow": 0.7027082469998859,
-     "ciHigh": 1.7619510820000432,
-     "successes": 74,
-     "failures": 3,
-     "ourFailures": 0,
+     "ciLow": 0.6024081170000136,
+     "ciHigh": 1.5565207559997216,
+     "successes": 95,
+     "failures": 0,
+     "ourFailures": 5,
      "limitFailures": 0
     },
     {
@@ -1518,13 +1531,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 0.14107547599985265,
-     "p95": 0.17702351500000804,
-     "min": 0.12295546899968758,
-     "ciLow": 0.1336303439999465,
-     "ciHigh": 0.1562467249999754,
-     "successes": 34,
+     "n": 78,
+     "p50": 0.13262649299998885,
+     "p95": 0.17208051800000249,
+     "min": 0.11207435899972916,
+     "ciLow": 0.13099959100037814,
+     "ciHigh": 0.13738671599980443,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1540,7 +1553,47 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 1.4851626820000001,
+     "p95": 2.22887181099999,
+     "min": 0.5749842320000171,
+     "ciLow": 0.972717850999994,
+     "ciHigh": 1.7674787129999896,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.25825402799999575,
+     "p95": 0.7659358150000044,
+     "min": 0.2116442249999818,
+     "ciLow": 0.2422499329999846,
+     "ciHigh": 0.34116636699999797,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 6.776221587999986,
+     "p95": 6.978754061,
+     "min": 4.8256082279999974,
+     "ciLow": 6.765127307000017,
+     "ciHigh": 6.821416355000008,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "create-from-snapshot",
@@ -1551,7 +1604,47 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 1.3126471790000214,
+     "p95": 2.6115227060000032,
+     "min": 0.7865270499999751,
+     "ciLow": 0.9761919109999871,
+     "ciHigh": 1.6089662919999974,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.6482796580000141,
+     "p95": 0.9185432140000048,
+     "min": 0.5763777560000163,
+     "ciLow": 0.6173322859999971,
+     "ciHigh": 0.684485557,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 1.8619243649999844,
+     "p95": 3.6106578599999923,
+     "min": 1.4315336039999675,
+     "ciLow": 1.631721583999999,
+     "ciHigh": 1.9844828569999955,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "git-clone",
@@ -1977,13 +2070,13 @@
     },
     {
      "provider": "freestyle",
-     "n": 30,
-     "p50": 0.3787541579999961,
+     "n": 29,
+     "p50": 0.3916924519999884,
      "p95": 0.4856734510000097,
-     "min": 0.10205195699981413,
-     "ciLow": 0.3633092029999971,
-     "ciHigh": 0.4072171279999893,
-     "successes": 30,
+     "min": 0.329984896000009,
+     "ciLow": 0.37111091399996077,
+     "ciHigh": 0.41418444899999307,
+     "successes": 29,
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2192,7 +2285,21 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 3,
+     "p50": 1.3152488930001855,
+     "p95": 1.3415747309999861,
+     "min": 1.2440280160000001,
+     "ciLow": 1.2440280160000001,
+     "ciHigh": 1.3415747309999861,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "burst-25",
@@ -2243,13 +2350,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 13708231.83579064,
+     "n": 99,
+     "p50": 13706222.3148955,
      "p95": 13769646.569113348,
      "min": 12658418.57676535,
-     "ciLow": 13694807.896891309,
-     "ciHigh": 13726338.635334726,
-     "successes": 75,
+     "ciLow": 13694209.686952766,
+     "ciHigh": 13720265.756703176,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2282,13 +2389,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 19397206.21263024,
+     "n": 78,
+     "p50": 19575166.043898687,
      "p95": 20994581.781317476,
-     "min": 10464483.907874124,
-     "ciLow": 11297090.339487178,
-     "ciHigh": 20027098.66720651,
-     "successes": 34,
+     "min": 9091338.532682013,
+     "ciLow": 18301917.695068914,
+     "ciHigh": 20010902.33981274,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2333,13 +2440,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
+     "n": 99,
      "p50": 49910790.2732507,
-     "p95": 50661957.431812465,
+     "p95": 50642143.08994015,
      "min": 43758269.77485399,
-     "ciLow": 49131120.62316169,
-     "ciHigh": 50188709.18389674,
-     "successes": 75,
+     "ciLow": 49528825.59237445,
+     "ciHigh": 50137506.175306804,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2372,13 +2479,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
+     "n": 78,
      "p50": 36705717.63495284,
-     "p95": 44191400.06851196,
-     "min": 26238964.375364628,
-     "ciLow": 33265527.100593433,
-     "ciHigh": 39377466.27839313,
-     "successes": 34,
+     "p95": 46630779.30803973,
+     "min": 15453025.691613292,
+     "ciLow": 35042645.84871859,
+     "ciHigh": 39024522.73691668,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2423,13 +2530,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 36103.614991606264,
+     "n": 99,
+     "p50": 35997.700630260144,
      "p95": 41744.57512975814,
      "min": 22644.87089112901,
-     "ciLow": 34491.04916101458,
-     "ciHigh": 37140.569799189754,
-     "successes": 75,
+     "ciLow": 34447.0971924794,
+     "ciHigh": 37042.237921395295,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2462,13 +2569,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 46976.266162746455,
-     "p95": 52608.42901485167,
-     "min": 16880.47438935406,
-     "ciLow": 24310.539891900888,
-     "ciHigh": 48288.13270358841,
-     "successes": 34,
+     "n": 78,
+     "p50": 43552.9351170105,
+     "p95": 51854.74418139465,
+     "min": 14977.49033796315,
+     "ciLow": 36797.20904538045,
+     "ciHigh": 47528.69588720773,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2513,13 +2620,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 1882.248201334454,
-     "p95": 2152.1543284738577,
+     "n": 99,
+     "p50": 1886.445983808746,
+     "p95": 2164.7957263453004,
      "min": 172.5744383607839,
-     "ciLow": 1666.5094547486972,
-     "ciHigh": 1973.275871039732,
-     "successes": 75,
+     "ciLow": 1669.4988942253713,
+     "ciHigh": 1981.8150990014583,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2552,13 +2659,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 423.2357256353053,
+     "n": 78,
+     "p50": 464.80401931586687,
      "p95": 594.5629114290443,
      "min": 200.13952027441755,
-     "ciLow": 257.81065902579434,
-     "ciHigh": 480.74800526675386,
-     "successes": 34,
+     "ciLow": 418.3593321263654,
+     "ciHigh": 484.7651853332542,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2603,13 +2710,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
+     "n": 99,
      "p50": 21352.081093777448,
-     "p95": 23223.90318922858,
+     "p95": 23241.813579312977,
      "min": 17894.665303933365,
-     "ciLow": 20939.47575691727,
+     "ciLow": 21021.111092354764,
      "ciHigh": 21615.594356578003,
-     "successes": 75,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2642,13 +2749,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 10780.838281801867,
-     "p95": 20150.27658681935,
-     "min": 5208.827291583506,
-     "ciLow": 9939.447581894417,
+     "n": 78,
+     "p50": 12171.205751454816,
+     "p95": 21209.00116270844,
+     "min": 3336.2281937182324,
+     "ciLow": 10421.508145561304,
      "ciHigh": 14053.276451955413,
-     "successes": 34,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2693,13 +2800,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 405.99383528642056,
-     "p95": 565.723454566116,
+     "n": 99,
+     "p50": 402.3541918103053,
+     "p95": 561.1169645379135,
      "min": 61.07976618792334,
      "ciLow": 335.5069907517346,
-     "ciHigh": 462.40556660602283,
-     "successes": 75,
+     "ciHigh": 458.79138844410124,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2732,13 +2839,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 353.42244835270344,
-     "p95": 412.86136432773026,
+     "n": 78,
+     "p50": 357.8358886114537,
+     "p95": 414.3692548734688,
      "min": 173.3357656674651,
-     "ciLow": 303.47509665100955,
-     "ciHigh": 373.37133382311384,
-     "successes": 34,
+     "ciLow": 331.0265275633562,
+     "ciHigh": 365.8833954515902,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2783,13 +2890,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 511597.7817392,
-     "p95": 532025.5310405429,
+     "n": 99,
+     "p50": 511097.4267253481,
+     "p95": 531525.5505550625,
      "min": 74356.6998076958,
-     "ciLow": 505148.19718718814,
-     "ciHigh": 513341.4264605915,
-     "successes": 75,
+     "ciLow": 504513.09736839205,
+     "ciHigh": 512798.4309681271,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2822,13 +2929,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 220706.5886951223,
-     "p95": 607832.0104294012,
+     "n": 78,
+     "p50": 221002.10642636448,
+     "p95": 603930.2649266141,
      "min": 144939.10575968365,
-     "ciLow": 215802.47330030682,
-     "ciHigh": 233319.2673408345,
-     "successes": 34,
+     "ciLow": 218934.40519970548,
+     "ciHigh": 230273.8099521613,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2884,13 +2991,13 @@
     },
     {
      "provider": "upstash",
-     "n": 75,
-     "p50": 0.3821505233645439,
-     "p95": 0.5590079352259636,
+     "n": 99,
+     "p50": 0.38416124880313873,
+     "p95": 0.5759650841355324,
      "min": 0.34385211765766144,
-     "ciLow": 0.37840139120817184,
+     "ciLow": 0.3784339874982834,
      "ciHigh": 0.3939833492040634,
-     "successes": 75,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2923,13 +3030,13 @@
     },
     {
      "provider": "tenki",
-     "n": 34,
-     "p50": 1.8212749999996447,
-     "p95": 2.8784800000011046,
-     "min": 1.4100618000000509,
-     "ciLow": 1.7522167999999283,
-     "ciHigh": 2.0030779999999027,
-     "successes": 34,
+     "n": 78,
+     "p50": 1.8947317999998603,
+     "p95": 2.7763138000068466,
+     "min": 1.3176074000000426,
+     "ciLow": 1.8320364000000922,
+     "ciHigh": 1.9661659999997028,
+     "successes": 78,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3160,6 +3267,7 @@
    2.559,
    2.562,
    2.562,
+   2.562,
    2.565,
    2.566,
    2.567,
@@ -3169,17 +3277,26 @@
    2.569,
    2.569,
    2.571,
+   2.571,
    2.572,
    2.58,
    2.581,
+   2.581,
+   2.586,
+   2.588,
+   2.594,
    2.595,
    2.595,
+   2.605,
+   2.606,
    2.613,
    2.615,
    2.622,
+   2.626,
    2.635,
    2.636,
    2.639,
+   2.643,
    2.65,
    2.651,
    2.652,
@@ -3187,8 +3304,13 @@
    2.654,
    2.654,
    2.659,
+   2.66,
+   2.665,
+   2.665,
    2.665,
    2.667,
+   2.667,
+   2.671,
    2.736,
    2.758,
    2.798,
@@ -3198,17 +3320,25 @@
    4.606,
    4.615,
    4.629,
+   4.644,
+   4.646,
+   4.671,
    4.682,
    4.691,
+   4.698,
    4.714,
    4.775,
+   5.278,
    5.45,
    5.49,
    5.648,
    5.777,
    6.168,
+   6.239,
    6.659,
+   6.689,
    6.691,
+   6.698,
    6.72,
    6.899,
    8.175,
@@ -3216,6 +3346,7 @@
    8.704,
    9.054,
    14.543,
+   24.856,
    26.174,
    68.173
   ],
@@ -3426,33 +3557,77 @@
   "tenki": [
    0.782,
    0.798,
+   0.805,
+   0.806,
+   0.807,
    0.81,
+   0.812,
+   0.836,
+   0.837,
    0.839,
    0.844,
+   0.85,
+   0.856,
    0.857,
+   0.864,
+   0.866,
    0.869,
    0.875,
    0.875,
    0.877,
    0.879,
+   0.887,
+   0.888,
    0.897,
    0.905,
+   0.907,
+   0.909,
+   0.91,
+   0.911,
+   0.913,
    0.917,
+   0.92,
+   0.929,
+   0.936,
+   0.948,
+   0.948,
+   0.962,
+   0.962,
+   0.963,
+   0.975,
+   0.981,
+   0.982,
+   0.984,
+   1.034,
    1.059,
    1.059,
+   1.069,
+   1.07,
    1.078,
+   1.114,
+   1.116,
    1.135,
    1.154,
+   1.161,
+   1.163,
+   1.178,
+   1.182,
+   1.184,
+   1.196,
    1.202,
+   1.207,
+   1.21,
    1.212,
    1.218,
    1.231,
    1.24,
+   1.254,
    1.323,
    1.445,
    1.471,
    1.569,
    1.657,
+   1.959,
    2.146,
    2.96,
    3.852,

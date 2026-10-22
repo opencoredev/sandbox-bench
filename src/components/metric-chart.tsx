@@ -6,7 +6,7 @@ import type { Metric, MetricValue, Track } from "@/lib/data";
 import { formatCount, formatShort, formatValue, unitName } from "@/lib/format";
 import { absentNote, allocationNotes, mergeNotes, sentence } from "@/lib/notes";
 import type { Notes } from "@/lib/notes";
-import { providerColor, providerName } from "@/lib/providers";
+import { isProviderId, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace } from "@/lib/traces";
 import type { TraceKind } from "@/lib/traces";
@@ -76,6 +76,7 @@ export function MetricChart({
   notes: own = {},
   only,
   compact = false,
+  empty = "Not collected in this release.",
 }: {
   track: Track;
   metric: Metric;
@@ -86,8 +87,24 @@ export function MetricChart({
   /** Limit the chart to these providers. */
   only?: readonly ProviderId[];
   compact?: boolean;
+  /** What a chart with no results says instead. */
+  empty?: string;
 }) {
-  if (metric.values.length === 0) return compact ? <ComingNext compact>Not collected in this release.</ComingNext> : (<><ChartHead title={title} sub={metricSubtitle(metric, what)} /><ComingNext>Not collected in this release.</ComingNext></>);
+  if (metric.values.length === 0)
+    return compact ? (
+      <ComingNext compact>Not collected in this release.</ComingNext>
+    ) : (
+      <>
+        <ChartHead title={title} sub={metricSubtitle(metric, what)} />
+        <ComingNext>{empty}</ComingNext>
+        <Footnotes
+          items={[
+            ...Object.entries(own).flatMap(([id, note]) => (isProviderId(id) && note ? [{ text: <><Who id={id} />: {sentence(note)}</> }] : [])),
+            ...trackFootnotes(track),
+          ]}
+        />
+      </>
+    );
   const providers = track.providers;
   const notes = mergeNotes(allocationNotes(track), own);
   const ids = only ?? providers.map((p) => p.id);

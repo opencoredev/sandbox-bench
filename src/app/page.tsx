@@ -21,7 +21,7 @@ import { Card, TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
-import { excludedFor, notRun } from "@/lib/agent-data";
+import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costKinds, hasTaskCosts, pricedKinds, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
@@ -108,11 +108,11 @@ const PerTrack = ({ children }: { children: (track: Track) => ReactNode }) => (
 /** One tab per metric, each a column chart with its own subtitle and notes. */
 const metricTabs = (
   track: Track,
-  items: readonly { id: string; what: string; tab?: string; notes?: Notes; only?: readonly ProviderId[] }[],
+  items: readonly { id: string; what: string; tab?: string; notes?: Notes; only?: readonly ProviderId[]; empty?: string }[],
 ): Tab[] =>
-  items.map(({ id, what, tab, notes, only }) => {
+  items.map(({ id, what, tab, notes, only, empty }) => {
     const m = track.metric(id);
-    return { id, label: tab ?? m.label, content: <MetricChart track={track} metric={m} what={what} notes={notes} only={only} /> };
+    return { id, label: tab ?? m.label, content: <MetricChart track={track} metric={m} what={what} notes={notes} only={only} empty={empty} /> };
   });
 
 const per = (k: PriceKey) => (k === "hourly" ? "an hour" : "per vCPU-hour");
@@ -247,9 +247,9 @@ function blockedNotes(track: Track, id: string): Notes {
 function notRunNotes(track: Track, id: string): Notes {
   const m = track.metric(id);
   return Object.fromEntries(
-    Object.entries(notRun[id] ?? {}).flatMap(([pid, why]) => {
+    Object.entries(notRun[track.id][id] ?? {}).flatMap(([pid, why]) => {
       const v = m.values.find((x) => x.provider === pid);
-      return !v || v.n === 0 ? [[pid, why.replace(/^not-run: /, "not run: ")]] : [];
+      return !v || v.n === 0 ? [[pid, notRunText(why)]] : [];
     }),
   );
 }
@@ -392,7 +392,7 @@ function SetAside() {
 const methodRows: readonly (readonly [string, ReactNode])[] = [
   [
     "This release",
-    "Default-machine timings come from one run on one harness commit. Default-machine snapshots, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki and Upstash Box were still finishing their same-machine runs when this was published, so their attempt counts are lower; each chart shows how many runs it used. Boat, same-machine snapshots and bursts will be added in the next update.",
+    "Default-machine timings come from one run on one harness commit. Default-machine snapshots and bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. We stopped the last runs early, at a set time: Tenki's same-machine run ended at 78 of 100 cold starts, and each chart shows its attempt count. From the stopped snapshot and burst runs we publish only providers that finished every attempt or burst; the others say so on the chart, and none of their failures count against them. Boat will be added in the next update.",
   ],
   [
     "One SDK",
@@ -426,7 +426,7 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
   [
     "Attempts",
-    "100 runs per quick test, 30 per agent task and 30 per snapshot test. When bursts arrive: 3 bursts of each size.",
+    "100 runs per quick test, 30 per agent task and 30 per snapshot test. Bursts: 3 of each size, each timed until every sandbox in it runs a command.",
   ],
   [
     "Independent",
@@ -604,8 +604,8 @@ export default function Page() {
                     : []),
                   { id: "pause-resume", label: "Pause + resume", content: <PauseChart track={track} /> },
                   ...metricTabs(track, [
-                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: blockedNotes(track, "snapshot") },
-                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: blockedNotes(track, "create-from-snapshot") },
+                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: mergeNotes(blockedNotes(track, "snapshot"), notRunNotes(track, "snapshot")) },
+                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot")) },
                   ]),
                 ]}
               />
@@ -625,10 +625,10 @@ export default function Page() {
               </Card>
             ) : (
               <TabCard
-                label="Bursts"
+                label="Bursts" section="scale"
                 tabs={metricTabs(track, [
                   { id: "burst-10", tab: "10 at once", what: "10 creates at once, until all 10 run a command", notes: mergeNotes(partialBursts(track, "burst-10"), notRunNotes(track, "burst-10")) },
-                  { id: "burst-25", tab: "25 at once", what: "25 creates at once, until all 25 run a command", notes: mergeNotes(partialBursts(track, "burst-25"), notRunNotes(track, "burst-25")) },
+                  { id: "burst-25", tab: "25 at once", what: "25 creates at once, until all 25 run a command", notes: mergeNotes(partialBursts(track, "burst-25"), notRunNotes(track, "burst-25")), empty: "Our run was stopped before any provider finished three bursts of 25. Coming in the next update." },
                 ])}
               />
             )}
