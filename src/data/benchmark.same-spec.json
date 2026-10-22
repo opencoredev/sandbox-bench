@@ -172,9 +172,9 @@
  "generatedFrom": "m-same",
  "window": {
   "start": "2026-10-22T12:41:17.842Z",
-  "end": "2026-10-22T15:58:23.746Z"
+  "end": "2026-10-22T16:13:46.713Z"
  },
- "observations": 14674,
+ "observations": 16255,
  "runs": [
   {
    "id": "sbx53-same-spec-main-r5",
@@ -190,6 +190,11 @@
    "id": "sbx53-same-spec-snapshot-r5",
    "suite": "snapshot",
    "samples": 990
+  },
+  {
+   "id": "sbx53-same-spec-burst-r6",
+   "suite": "burst",
+   "samples": 1704
   },
   {
    "id": "sbx53-same-spec-snapshot-r6",
@@ -258,7 +263,7 @@
    "pricingSource": "https://e2b.dev/pricing",
    "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
    "reliability": {
-    "successes": 2686,
+    "successes": 2989,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -481,10 +486,10 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2531,
+    "successes": 2654,
     "failures": 1,
-    "raw": 0.9996050552922591,
-    "adjusted": 0.9996050552922591,
+    "raw": 0.9996233521657251,
+    "adjusted": 0.9996233521657251,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 1
@@ -538,6 +543,11 @@
     {
      "reason": "Our ownership check failed on 4 snapshot cleanup steps; none is counted",
      "count": 4,
+     "runs": 3
+    },
+    {
+     "reason": "Our ownership check failed on 3 burst deletes; none is counted",
+     "count": 3,
      "runs": 3
     }
    ],
@@ -618,10 +628,10 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2505,
+    "successes": 2808,
     "failures": 2,
-    "raw": 0.9992022337455125,
-    "adjusted": 0.9992022337455125,
+    "raw": 0.999288256227758,
+    "adjusted": 0.999288256227758,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 2
@@ -685,6 +695,11 @@
      "reason": "Our ownership check failed on 4 snapshot attempts, and our 30-second cleanup deadline ran out 8 times; none is counted",
      "count": 12,
      "runs": 12
+    },
+    {
+     "reason": "Our ownership check failed on 1 burst create and 13 burst deletes; none is counted",
+     "count": 14,
+     "runs": 4
     }
    ],
    "pauseSplit": {
@@ -749,10 +764,10 @@
    "pricingSource": "https://www.freestyle.sh/pricing",
    "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
    "reliability": {
-    "successes": 2559,
+    "successes": 2985,
     "failures": 4,
-    "raw": 0.998439328911432,
-    "adjusted": 0.998439328911432,
+    "raw": 0.9986617597858816,
+    "adjusted": 0.9986617597858816,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 4
@@ -865,7 +880,7 @@
    "pricingSource": "https://tenki.cloud/pricing",
    "pricingNotes": "Per-second, no minimum. Separate persistent storage $0.000000076/GiB-second excluded. Credits excluded.",
    "reliability": {
-    "successes": 2141,
+    "successes": 2567,
     "failures": 0,
     "raw": 1.0,
     "adjusted": 1.0,
@@ -2354,11 +2369,50 @@
     {
      "provider": "e2b",
      "n": 3,
-     "p50": 1.3152488930001855,
-     "p95": 1.3415747309999861,
-     "min": 1.2440280160000001,
-     "ciLow": 1.2440280160000001,
-     "ciHigh": 1.3415747309999861,
+     "p50": 1.4450995609999997,
+     "p95": 1.5623314680000184,
+     "min": 1.1676171400000166,
+     "ciLow": 1.1676171400000166,
+     "ciHigh": 1.5623314680000184,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 3,
+     "p50": 21.230734620000003,
+     "p95": 25.276903636,
+     "min": 4.779568430999992,
+     "ciLow": 4.779568430999992,
+     "ciHigh": 25.276903636,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 3,
+     "p50": 1.0094734280000122,
+     "p95": 1.027925712000113,
+     "min": 0.8892868479999888,
+     "ciLow": 0.8892868479999888,
+     "ciHigh": 1.027925712000113,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 3,
+     "p50": 1.2340166520000202,
+     "p95": 1.2666618879999734,
+     "min": 1.2227733739999822,
+     "ciLow": 1.2227733739999822,
+     "ciHigh": 1.2666618879999734,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -2375,7 +2429,60 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 3,
+     "p50": 1.4924674110000051,
+     "p95": 2.8978881499999845,
+     "min": 1.4196216060000006,
+     "ciLow": 1.4196216060000006,
+     "ciHigh": 2.8978881499999845,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 3,
+     "p50": 6.235332189999987,
+     "p95": 6.924318795,
+     "min": 6.198890578999882,
+     "ciLow": 6.198890578999882,
+     "ciHigh": 6.924318795,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 3,
+     "p50": 1.4052769659999758,
+     "p95": 1.5386671920000226,
+     "min": 1.320318081000005,
+     "ciLow": 1.320318081000005,
+     "ciHigh": 1.5386671920000226,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 3,
+     "p50": 1.6518386119999924,
+     "p95": 2.5585007619999813,
+     "min": 1.4233926959999954,
+     "ciLow": 1.4233926959999954,
+     "ciHigh": 2.5585007619999813,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "cpu-single",

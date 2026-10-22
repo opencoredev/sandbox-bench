@@ -26,8 +26,6 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // Tests with no published result for a provider, with the reason, per track. Shown only where the
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
-const stopped = "stopped-early: our run was stopped early, so nothing is counted against it; coming in the next update";
-const notYet = "not-run: not run yet; coming in the next update";
 const daytonaSnapshotQuota = "not-run: our Daytona account's 10 vCPU quota kept its 4 vCPU snapshot tests from running";
 export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>> = {
   default: {
@@ -41,18 +39,11 @@ export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<Provi
     snapshot: { daytona: daytonaSnapshotQuota },
     "create-from-snapshot": { daytona: daytonaSnapshotQuota },
     "burst-10": {
-      freestyle: stopped,
-      boxd: stopped,
-      upstash: stopped,
-      tenki: notYet,
+      boxd: "stopped-early: one of its three bursts of 10 was cut short by our own ownership check (1 create failed on our side), so it is not counted; coming in the next update",
       daytona: "not-run: our Daytona account's 10 vCPU quota can't hold ten 4 vCPU sandboxes at once",
     },
     "burst-25": {
-      e2b: stopped,
-      freestyle: stopped,
-      boxd: stopped,
-      upstash: stopped,
-      tenki: notYet,
+      upstash: "stopped-early: its third burst of 25 never started, because our harness still had one of its own sandboxes open and Upstash's 25-sandbox account cap left no room; not counted; coming in the next update",
       daytona: "not-run: our Daytona account's 10 vCPU quota can't hold 25 4 vCPU sandboxes at once",
     },
   },
