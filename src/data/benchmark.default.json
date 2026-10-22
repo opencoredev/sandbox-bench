@@ -573,12 +573,12 @@
   {
    "id": "boxd",
    "costPerTask": {
-    "usd": 0.0019564123537203506,
-    "kind": "estimate",
-    "source": "List price 2 vCPU, 8 GiB at $0.1955/h x measured sandbox lifetime (boxd's own meter settles within ~25 min; Daytona's bill within 48 h)",
-    "confidence": "low",
+    "usd": 0.0010005,
+    "kind": "metered",
+    "source": "boxd orgs.usage / orgs.billingActivityPage",
+    "confidence": "medium",
     "n": 10,
-    "settled": false
+    "settled": true
    },
    "track": "default",
    "requestedAllocation": {

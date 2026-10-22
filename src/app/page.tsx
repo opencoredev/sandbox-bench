@@ -366,7 +366,7 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
   [
     "Billing",
-    "Cost per task comes from a separate cost run: 10 sandboxes per provider, each created, running the 100-call tool replay once and deleted, so one sandbox's charge is the cost of one task. The main benchmark sandboxes are not priced, because providers ran different mixes of tests in them. Billed is the provider's own usage charge (Upstash). Metered is its recorded usage at published rates (E2B). The rest are estimates for now: list price for the machine times the sandbox's measured lifetime. Daytona's bill takes up to 48 hours and boxd's meter about 25 minutes to settle, and Tenki and Freestyle have no billing API; Superserve reports usage only per account. Credits, tax and plan minimums are left out.",
+    "Cost per task comes from a separate cost run: 10 sandboxes per provider, each created, running the 100-call tool replay once and deleted, so one sandbox's charge is the cost of one task. The main benchmark sandboxes are not priced, because providers ran different mixes of tests in them. Billed is the provider's own usage charge (Upstash). Metered is its recorded usage at published rates (E2B, boxd). The rest are estimates for now: list price for the machine times the sandbox's measured lifetime. Daytona's bill takes up to 48 hours to settle, Tenki and Freestyle have no billing API, and Superserve reports usage only per account. Credits, tax and plan minimums are left out.",
   ],
   [
     "One location",
