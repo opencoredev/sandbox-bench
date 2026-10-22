@@ -1,0 +1,318 @@
+{
+ "track": "same-spec",
+ "allocations": [],
+ "generatedFrom": "publication-final-v3",
+ "window": {
+  "start": "2026-10-19T20:33:59.760Z",
+  "end": "2026-10-21T19:24:13.765Z"
+ },
+ "observations": 0,
+ "runs": [],
+ "excluded": [
+  {
+   "runId": "publication-001",
+   "reason": "Aborted: snapshot timeouts blocked Daytona; discarded in full, including successful rows."
+  }
+ ],
+ "providers": [],
+ "metrics": [
+  {
+   "id": "cold",
+   "suite": "main",
+   "scenario": "cold",
+   "label": "Cold start",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "command",
+   "suite": "main",
+   "scenario": "command",
+   "label": "Run a command",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "files-1kb",
+   "suite": "main",
+   "scenario": "files-1kb",
+   "label": "Write + read 1 KB",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "files-10mb",
+   "suite": "main",
+   "scenario": "files-10mb",
+   "label": "Write + read 10 MB",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "reconnect",
+   "suite": "main",
+   "scenario": "reconnect",
+   "label": "Reconnect",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "pause-resume",
+   "suite": "main",
+   "scenario": "pause-resume",
+   "label": "Pause + resume",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "destroy",
+   "suite": "main",
+   "scenario": "destroy",
+   "label": "Destroy",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "snapshot",
+   "suite": "snapshot",
+   "scenario": "snapshot",
+   "label": "Take snapshot",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "create-from-snapshot",
+   "suite": "snapshot",
+   "scenario": "create-from-snapshot",
+   "label": "Start from snapshot",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "git-clone",
+   "suite": "main",
+   "scenario": "git-clone",
+   "label": "git clone",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "npm-install",
+   "suite": "main",
+   "scenario": "npm-install",
+   "label": "npm install",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "pip-install",
+   "suite": "main",
+   "scenario": "pip-install",
+   "label": "pip install",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "dev-server",
+   "suite": "main",
+   "scenario": "dev-server",
+   "label": "Dev server ready",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "preview-first-byte",
+   "suite": "main",
+   "scenario": "preview-first-byte",
+   "label": "Preview URL first byte",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "edit-loop",
+   "suite": "main",
+   "scenario": "edit-loop",
+   "label": "Edit, rebuild, reload",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "tool-replay",
+   "suite": "main",
+   "scenario": "tool-replay",
+   "label": "Agent tool replay",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "burst-10",
+   "suite": "burst",
+   "scenario": "burst-10/all-ready",
+   "label": "10 at once, all ready",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "burst-25",
+   "suite": "burst",
+   "scenario": "burst-25/all-ready",
+   "label": "25 at once, all ready",
+   "unit": "s",
+   "better": "lower",
+   "scale": 0.001,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "cpu-single",
+   "suite": "main",
+   "scenario": "cpu-single",
+   "label": "CPU, one core",
+   "unit": "ops/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "cpu-all",
+   "suite": "main",
+   "scenario": "cpu-all",
+   "label": "CPU, all cores",
+   "unit": "ops/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "memory",
+   "suite": "main",
+   "scenario": "memory-mbps",
+   "label": "Memory bandwidth",
+   "unit": "MB/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "disk-write",
+   "suite": "main",
+   "scenario": "disk-write-mbps",
+   "label": "Disk write",
+   "unit": "MB/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "disk-read",
+   "suite": "main",
+   "scenario": "disk-read-mbps",
+   "label": "Disk read",
+   "unit": "MB/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "iops-write",
+   "suite": "main",
+   "scenario": "disk-4k-write-iops",
+   "label": "4K random write",
+   "unit": "IOPS",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "iops-read",
+   "suite": "main",
+   "scenario": "disk-4k-read-iops",
+   "label": "4K random read",
+   "unit": "IOPS",
+   "better": "higher",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  },
+  {
+   "id": "network",
+   "suite": "main",
+   "scenario": "network-mbps",
+   "label": "Download speed",
+   "unit": "MB/s",
+   "better": "higher",
+   "scale": 1,
+   "comparable": false,
+   "values": []
+  },
+  {
+   "id": "tcp",
+   "suite": "main",
+   "scenario": "tcp-ms",
+   "label": "TCP connect",
+   "unit": "ms",
+   "better": "lower",
+   "scale": 1,
+   "comparable": true,
+   "values": []
+  }
+ ],
+ "coldSamples": {}
+}

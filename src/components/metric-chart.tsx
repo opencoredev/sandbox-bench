@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
-import { providers } from "@/lib/data";
-import type { Metric, MetricValue } from "@/lib/data";
+import type { Metric, MetricValue, Track } from "@/lib/data";
 import { formatCount, formatShort, formatValue, unitName } from "@/lib/format";
+import { absentNote, allocationNotes, mergeNotes, sentence } from "@/lib/notes";
+import type { Notes } from "@/lib/notes";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
-export type Notes = Partial<Record<ProviderId, string>>;
+export type { Notes };
 
 /** A chart's title and its one-line "what and which way" subtitle, as Artificial Analysis writes them. */
 export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
@@ -50,18 +51,28 @@ const better = (m: Metric) => (m.better === "lower" ? "Lower is better" : "Highe
 
 export const metricSubtitle = (m: Metric, what: string) => `${what} · Median ${unitName[m.unit]} · ${better(m)}`;
 
+/** Footnotes every chart in a track carries: machines that differ from the track's, and providers the track leaves out. */
+export const trackFootnotes = (track: Track) =>
+  track.absent.map((id) => ({ text: <><Who id={id} />: {absentNote(track, id)}</> }));
+
+export { sentence };
+
 /**
  * Median of one metric per provider, best first, with p95 and sample size on
- * hover. `compact` drops the title and footnotes for a headline card.
+ * hover. `compact` drops the title and footnotes for a headline card. In the
+ * same-machine track every provider whose machine differs gets a mark and a
+ * note, whatever the chart.
  */
 export function MetricChart({
+  track,
   metric,
   title = metric.label,
   what,
-  notes = {},
+  notes: own = {},
   only,
   compact = false,
 }: {
+  track: Track;
   metric: Metric;
   title?: string;
   /** What was timed, ahead of the unit and direction. */
@@ -71,6 +82,9 @@ export function MetricChart({
   only?: readonly ProviderId[];
   compact?: boolean;
 }) {
+  if (metric.values.length === 0) return compact ? <ComingNext compact>Not collected in this release.</ComingNext> : (<><ChartHead title={title} sub={metricSubtitle(metric, what)} /><ComingNext>Not collected in this release.</ComingNext></>);
+  const providers = track.providers;
+  const notes = mergeNotes(allocationNotes(track), own);
   const ids = only ?? providers.map((p) => p.id);
   const values = ids.map((id) => ({ id, value: metric.values.find((v) => v.provider === id) }));
   const sign = metric.better === "lower" ? 1 : -1;
@@ -102,14 +116,16 @@ export function MetricChart({
     <>
       {compact ? null : <ChartHead title={title} sub={metricSubtitle(metric, what)} />}
       <Columns columns={columns} label={title} compact={compact} />
-      {compact ? null : (
+      {compact ? (
+        <CompactNotes items={measured.flatMap((v) => { const note = notes[v.provider]; return note ? [{ mark: marks.get(v.provider), id: v.provider, note }] : []; })} />
+      ) : (
         <Footnotes
           items={[
             ...measured.flatMap((v) => {
               const note = notes[v.provider];
-              return note ? [{ mark: marks.get(v.provider), text: <><Who id={v.provider} />: {note}</> }] : [];
+              return note ? [{ mark: marks.get(v.provider), text: <><Who id={v.provider} />: {sentence(note)}</> }] : [];
             }),
-            ...leftOut.map((id) => ({ text: <><Who id={id} />: {notes[id]}.</> })),
+            ...leftOut.map((id) => ({ text: <><Who id={id} />: {sentence(notes[id] ?? "")}</> })),
             ...(missing.length > 0
               ? [
                   {
@@ -119,7 +135,7 @@ export function MetricChart({
                         {missing.map(({ id, value }, i) => (
                           <span key={id}>
                             {i > 0 ? "; " : ""}
-                            <Who id={id} /> ({notes[id] ?? missingReason(value)})
+                            <Who id={id} /> ({(notes[id] ?? missingReason(value)).replace(/\.$/, "")})
                           </span>
                         ))}
                         .
@@ -128,12 +144,39 @@ export function MetricChart({
                   },
                 ]
               : []),
+            ...trackFootnotes(track),
           ]}
         />
       )}
     </>
   );
 }
+
+/** The marked notes of a headline chart, kept to one small block so no mark is left unexplained. */
+export function CompactNotes({ items }: { items: readonly { mark: number | undefined; id: ProviderId; note: string }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <ul className="mt-3 flex flex-col gap-1 text-[11.5px] leading-snug text-[var(--muted)]">
+      {items.map(({ mark, id, note }) => (
+        <li key={id} className="flex gap-1.5">
+          <span className="w-2.5 shrink-0 font-mono">{mark}</span>
+          <span>
+            <Who id={id} />: {sentence(note)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Stands in for a result this release does not have yet. */
+export const ComingNext = ({ compact = false, children }: { compact?: boolean; children?: ReactNode }) => (
+  <p
+    className={`text-[13px] leading-snug text-[var(--muted)] ${compact ? "" : "rounded-lg border border-dashed border-[var(--line)] px-4 py-6 text-center"}`}
+  >
+    <span className="font-medium text-[var(--foreground)]">Coming in the next update.</span> {children}
+  </p>
+);
 
 export const Who = ({ id }: { id: ProviderId }) => (
   <span className="font-medium" style={{ color: providerColor(id) }}>

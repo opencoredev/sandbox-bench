@@ -88,7 +88,7 @@ function Break({ color, along }: { color: string; along: "x" | "y" }) {
 }
 
 const Mark = ({ column }: { column: Column }) =>
-  column.mark === undefined ? null : <sup className="ml-px text-[9px] text-[var(--muted)]">{column.mark}</sup>;
+  column.mark === undefined ? null : <sup className="ml-px text-[11px] leading-none text-[var(--muted)]">{column.mark}</sup>;
 
 const Card = ({ column, className, style }: { column: Column; className: string; style?: CSSProperties }) => (
   <div

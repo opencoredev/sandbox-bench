@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { useScrollFade } from "@/components/tabs";
 
@@ -37,7 +38,16 @@ function useCurrentSection(sections: Sections) {
  * filled; narrower screens get one button naming the current section that
  * opens a full-width menu, so nothing hides off the edge.
  */
-export function SectionNav({ sections, extra }: { sections: Sections; extra?: { href: string; label: string } }) {
+export function SectionNav({
+  sections,
+  extra,
+  menuTop,
+}: {
+  sections: Sections;
+  extra?: { href: string; label: string };
+  /** Shown above the links in the narrow-screen menu, such as the track switch. */
+  menuTop?: ReactNode;
+}) {
   const current = useCurrentSection(sections);
   const scroller = useScrollFade<HTMLElement>();
   const [open, setOpen] = useState(false);
@@ -74,7 +84,7 @@ export function SectionNav({ sections, extra }: { sections: Sections; extra?: { 
                 key={id}
                 href={`#${id}`}
                 aria-current={active ? "location" : undefined}
-                className={`rounded-full px-3 py-1 text-[13px] whitespace-nowrap transition-colors duration-150 motion-reduce:transition-none ${
+                className={`rounded-full px-3 py-1 text-[13px] whitespace-nowrap xl:px-2 xl:text-[12.5px] transition-colors duration-150 motion-reduce:transition-none ${
                   active
                     ? "bg-[var(--foreground)] font-medium text-[var(--background)]"
                     : "text-[var(--muted)] hover:bg-[var(--chip)] hover:text-[var(--foreground)]"
@@ -104,6 +114,7 @@ export function SectionNav({ sections, extra }: { sections: Sections; extra?: { 
         </button>
         {open ? (
           <div id={panel} className="absolute inset-x-0 top-full border-b border-[var(--line)] bg-[var(--background)] px-4 pt-2 pb-4 shadow-[0_16px_32px_rgb(0_0_0/0.6)] sm:px-6">
+            {menuTop ? <div className="mb-3">{menuTop}</div> : null}
             <nav aria-label="Sections">
               <ul className="grid grid-cols-2 gap-1">
                 {sections.map(([id, label]) => (

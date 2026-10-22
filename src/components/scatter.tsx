@@ -1,4 +1,8 @@
-import { formatMoney, formatValue } from "@/lib/format";
+import type { CSSProperties } from "react";
+
+import { costKinds, formatTaskCost, pricedKinds } from "@/lib/cost";
+import type { PricedKind } from "@/lib/cost";
+import { formatValue } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -6,12 +10,35 @@ export interface ScatterPoint {
   provider: ProviderId;
   /** Seconds. */
   x: number;
-  /** Price per hour. */
+  /** US dollars per task. */
   y: number;
-  currency: string;
+  /** Where the cost came from; each kind has its own marker shape. */
+  kind: PricedKind;
   /** Extra context after the name, such as the machine the time was measured on. */
   tag?: string;
 }
+
+/** Filled circle for billed, filled diamond for metered, hollow ring for estimates: shape, not only colour, tells them apart. */
+function markerStyle(kind: PricedKind, color: string): CSSProperties {
+  switch (kind) {
+    case "billed":
+      return { backgroundColor: color, borderRadius: 9999 };
+    case "metered":
+      return { backgroundColor: color, rotate: "45deg", scale: "0.85" };
+    case "estimate":
+      return { border: `2px solid ${color}`, borderRadius: 9999, backgroundColor: "var(--surface)" };
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+export const Marker = ({ kind, color }: { kind: PricedKind; color: string }) => (
+  <span aria-hidden className="relative inline-block size-3 shrink-0">
+    <span className="absolute top-1/2 left-1/2 size-[10px] -translate-x-1/2 -translate-y-1/2" style={markerStyle(kind, color)} />
+  </span>
+);
 
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
@@ -63,7 +90,7 @@ export function Scatter({
   const mx = fx(median(points.map((p) => p.x)));
   const my = fy(median(points.map((p) => p.y)));
   const summary = points
-    .map((p) => `${providerName(p.provider)}${p.tag ? ` (${p.tag})` : ""}: ${formatValue(p.x, "s")}, ${formatMoney(p.y, p.currency)} an hour`)
+    .map((p) => `${providerName(p.provider)}${p.tag ? ` (${p.tag})` : ""}: ${formatValue(p.x, "s")}, ${costKinds[p.kind].label.toLowerCase()} ${formatTaskCost(p.y)} per task`)
     .join("; ");
 
   return (
@@ -73,10 +100,10 @@ export function Scatter({
           <span aria-hidden className="size-3 rounded-[2px] border" style={{ backgroundColor: `color-mix(in oklch, ${QUADRANT} 16%, transparent)`, borderColor: `color-mix(in oklch, ${QUADRANT} 45%, transparent)` }} />
           Faster and cheaper than the median
         </span>
-        {points.map((p) => (
-          <span key={p.provider} className="flex items-center gap-1.5">
-            <span aria-hidden className="size-2 rounded-full" style={{ backgroundColor: providerColor(p.provider) }} />
-            {providerName(p.provider)}
+        {pricedKinds.filter((k) => points.some((p) => p.kind === k)).map((k) => (
+          <span key={k} className="flex items-center gap-1.5">
+            <Marker kind={k} color="var(--foreground)" />
+            {costKinds[k].label}
           </span>
         ))}
       </div>
@@ -103,7 +130,7 @@ export function Scatter({
           {yTicks.map((t) => (
             <div key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-dotted border-[var(--grid)]" style={{ top: along(fy(t), "y") }}>
               <span className="absolute -left-2 -translate-x-full -translate-y-1/2 font-mono text-[11px] text-[var(--muted)] tabular-nums">
-                ${t.toFixed(2)}
+                {formatTaskCost(t)}
               </span>
             </div>
           ))}
@@ -125,14 +152,16 @@ export function Scatter({
             // Two points at nearly the same price print their labels on one line, and on a
             // narrow plot they collide whatever the gap: the dearer label moves above, the cheaper below,
             // so neither runs over the other's dot. At exactly one price the further-right one moves below.
-            const twin = points.find((q) => q !== p && Math.abs(fy(q.y) - fy(p.y)) < 0.05);
+            const twin = points
+              .filter((q) => q !== p && Math.abs(fy(q.y) - fy(p.y)) < 0.08)
+              .sort((a, b) => Math.abs(fy(a.y) - fy(p.y)) - Math.abs(fy(b.y) - fy(p.y)))[0];
             const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
             const nudge = twin ? (above ? -15 : 15) : 0;
             return (
               <div key={p.provider} className="absolute" style={{ left: along(px, "x"), top: along(fy(p.y), "y") }}>
                 <span
-                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-[3px] ring-[var(--surface)]"
-                  style={{ backgroundColor: providerColor(p.provider) }}
+                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 ring-[3px] ring-[var(--surface)]"
+                  style={markerStyle(p.kind, providerColor(p.provider))}
                 />
                 <span
                   className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
@@ -141,7 +170,7 @@ export function Scatter({
                   {providerName(p.provider)}
                   <span className="ml-1.5 hidden font-mono text-[11px] font-normal text-[var(--muted)] sm:inline">
                     {p.tag ? `${p.tag} · ` : ""}
-                    {formatValue(p.x, "s")} · {formatMoney(p.y, p.currency)}
+                    {formatValue(p.x, "s")} · {formatTaskCost(p.y)}
                   </span>
                 </span>
               </div>
@@ -152,4 +181,22 @@ export function Scatter({
       <p className="mt-3 pl-5 text-center text-[12px] text-[var(--muted)]">{xTitle}</p>
     </figure>
   );
+}
+
+/** Evenly spaced ticks from 0 past `max`, at a 1, 2 or 5 step. */
+export function linearTicks(max: number): readonly [number, ...number[]] {
+  const raw = Math.max(max, Number.EPSILON) / 4;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = ([1, 2, 5, 10].find((m) => m * mag >= raw) ?? 10) * mag;
+  const count = Math.ceil(max / step + 0.15);
+  return [0, ...Array.from({ length: count }, (_, i) => Number(((i + 1) * step).toPrecision(6)))];
+}
+
+/** 1, 2, 5 steps covering `min` to `max`, for a log axis. */
+export function logTicks(min: number, max: number): readonly [number, ...number[]] {
+  const ladder = Array.from({ length: 8 }, (_, e) => [1, 2, 5].map((m) => m * 10 ** (e - 2))).flat();
+  const lo = [...ladder].reverse().find((t) => t <= min) ?? ladder[0] ?? 0.01;
+  const hi = ladder.find((t) => t >= max) ?? max;
+  const inside = ladder.filter((t) => t > lo && t < hi);
+  return [lo, ...inside, hi];
 }

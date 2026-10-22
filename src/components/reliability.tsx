@@ -1,7 +1,7 @@
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead } from "@/components/metric-chart";
-import type { Provider } from "@/lib/data";
+import type { Provider, Track } from "@/lib/data";
 import { formatCount } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
 import { successRate } from "@/lib/status";
@@ -13,14 +13,37 @@ const plain = (reason: string) =>
     .replace(/^Scenario timed out after 600000ms$/, "Hung for 10 minutes")
     .replace(/\.$/, "");
 
+type Failure = Provider["failureReasons"][number];
+
+/** The structured cause, where the export records one: "HTTP 503 · sandbox_unavailable · during create". */
+export function causeText(f: Failure) {
+  const parts = [
+    typeof f.status === "number" ? `HTTP ${f.status}` : null,
+    f.code ?? null,
+    f.stage ? `during ${f.stage}` : null,
+  ].filter((x) => x !== null);
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
+
+const Cause = ({ f }: { f: Failure }) => {
+  const cause = causeText(f);
+  return (
+    <>
+      {plain(f.reason)}
+      {cause ? <span className="mt-0.5 block font-mono text-[11px] text-[var(--muted)]">{cause}</span> : null}
+    </>
+  );
+};
+
 /**
  * Failed attempts per 1,000, fewest first, with every cause behind one
- * disclosure so the section stays a single chart until someone asks.
+ * disclosure so the section stays a single chart until someone asks. Only
+ * failures the provider caused are here; Method lists the ones set aside.
  */
-export function Reliability({ providers }: { providers: readonly Provider[] }) {
-  const ranked = providers
+export function Reliability({ track }: { track: Track }) {
+  const ranked = track.providers
     .map((p) => {
-      const s = successRate(p);
+      const s = successRate(track, p);
       return { p, s, perThousand: s.attempts ? ((s.attempts - s.succeeded) / s.attempts) * 1000 : 0 };
     })
     .sort((a, b) => a.perThousand - b.perThousand);
@@ -63,7 +86,7 @@ export function Reliability({ providers }: { providers: readonly Provider[] }) {
                     <ul className="mt-1.5 flex flex-col gap-2">
                       {p.failureReasons.map((f) => (
                         <li key={f.reason} className="text-[13px] leading-snug">
-                          <span className="font-mono tabular-nums">{f.runs}×</span> {plain(f.reason)}
+                          <span className="font-mono tabular-nums">{f.runs}×</span> <Cause f={f} />
                           <span className="block text-[12px] text-[var(--muted)]">
                             {f.tests.length > 3 ? `${f.tests.length} tests` : f.tests.join(", ")}
                           </span>
@@ -93,7 +116,7 @@ export function Reliability({ providers }: { providers: readonly Provider[] }) {
                   </th>
                   <td className="px-4 py-1.5 align-top font-mono tabular-nums">{f.runs}</td>
                   <td className="px-4 py-1.5 align-top">
-                    {plain(f.reason)}
+                    <Cause f={f} />
                   </td>
                   <td className="px-4 py-1.5 align-top text-[var(--muted)]">
                     {f.tests.length > 3 ? `${f.tests.length} tests` : f.tests.join(", ")}

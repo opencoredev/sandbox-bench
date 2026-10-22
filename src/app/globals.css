@@ -110,3 +110,11 @@ body {
     --fade-end: 36px;
   }
 }
+
+/* Both tracks ship in the static page; the default shows unless trackStyle is in <head> (components/track.tsx). */
+[data-track-view] {
+  display: contents;
+}
+[data-track-view="same-spec"] {
+  display: none;
+}

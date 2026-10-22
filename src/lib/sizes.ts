@@ -13,7 +13,7 @@ export const advertised = {
     memoryGiB: 0.5,
     diskGiB: null,
     source: "https://e2b.dev/pricing",
-    note: "The SDK starts E2B's base template, a 512 MB machine. E2B's pricing page says its default sandbox has 4 GiB, so E2B ran smaller here than its advertised default.",
+    note: "E2B's default base template is 2 vCPU and 512 MB. E2B's pricing page says its default sandbox has 4 GB, so E2B ran smaller here than that.",
   },
   daytona: { vcpu: 1, memoryGiB: 1, diskGiB: 3, source: "https://www.daytona.io/docs/en/sandboxes/", note: null },
   upstash: { vcpu: 2, memoryGiB: 4, diskGiB: 5, source: "https://upstash.com/pricing/box", note: null },
@@ -32,7 +32,7 @@ export const advertised = {
     memoryGiB: 1,
     diskGiB: 4,
     source: "https://docs.superserve.ai",
-    note: "The SDK starts Superserve's node-22 template, because its base template has no Node or Python. Both are 1 vCPU, 1 GiB RAM, 4 GiB disk.",
+    note: "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled, at its default 1 vCPU, 1 GB RAM and 4 GB disk. Its own node-22 template has no Python.",
   },
 } as const satisfies Record<
   ProviderId,
@@ -42,9 +42,10 @@ export const advertised = {
 /** The size to show: advertised where the provider states it, otherwise what we measured inside. */
 export function sizeOf(p: Provider) {
   const a = advertised[p.id];
+  const m = p.measuredAllocations[0];
   return {
-    vcpu: a.vcpu ?? p.hardware?.vcpu ?? null,
-    memoryGiB: a.memoryGiB ?? p.hardware?.memoryGiB ?? null,
-    diskGiB: a.diskGiB ?? p.hardware?.diskGiB ?? null,
+    vcpu: a.vcpu ?? m?.cpu ?? p.hardware?.vcpu ?? null,
+    memoryGiB: a.memoryGiB ?? m?.memoryGiB ?? p.hardware?.memoryGiB ?? null,
+    diskGiB: a.diskGiB ?? m?.diskGiB ?? p.hardware?.diskGiB ?? null,
   };
 }

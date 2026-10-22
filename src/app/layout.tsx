@@ -4,11 +4,13 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { trackScript } from "@/components/track";
+
 import "./globals.css";
 
 const title = "Sandbox bench: cloud sandboxes for agents, measured";
 const description =
-  "8 cloud sandboxes for AI agents (E2B, Daytona, Upstash Box, Boat, boxd, Freestyle, Tenki, Superserve) timed on cold start, real agent tasks, bursts, reliability and price.";
+  "8 cloud sandboxes for AI agents (E2B, Daytona, Upstash Box, Boat, boxd, Freestyle, Tenki, Superserve) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GB machine.";
 
 export const metadata: Metadata = {
   title,
@@ -32,6 +34,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       lang="en"
       className={`dark ${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: trackScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );
