@@ -328,7 +328,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, snapshot and restore, bursts of 10 and 25, and the same-machine (4 vCPU, 8 GB) track. This release is one run on one harness commit, default machines only, plus a separate cost run for cost per task.
+Boat, bursts of 10 and 25, and snapshots on the same-machine (4 vCPU, 8 GB) track. Default-machine timings come from one run on one harness commit; default-machine snapshots, the same-machine track and the cost run that prices each task ran on a later harness commit whose changes only touched cleanup.
 
 ## Data
 

@@ -344,7 +344,7 @@ function SetAside() {
 const methodRows: readonly (readonly [string, ReactNode])[] = [
   [
     "This release",
-    "Default-machine timings come from one run on one harness commit; the same-machine track and cost per task come from runs on a later commit whose changes only touch cleanup. Tenki and Upstash Box were still finishing their same-machine runs when this was published, so their attempt counts are lower; each chart shows how many runs it used. Boat, snapshots and bursts will be added in the next update.",
+    "Default-machine timings come from one run on one harness commit. Default-machine snapshots, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki and Upstash Box were still finishing their same-machine runs when this was published, so their attempt counts are lower; each chart shows how many runs it used. Boat, same-machine snapshots and bursts will be added in the next update.",
   ],
   [
     "One SDK",
@@ -378,7 +378,7 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
   [
     "Attempts",
-    "100 runs per quick test and 30 per agent task. When snapshots and bursts arrive: 30 per snapshot test and 3 bursts of each size.",
+    "100 runs per quick test, 30 per agent task and 30 per snapshot test. When bursts arrive: 3 bursts of each size.",
   ],
   [
     "Independent",
@@ -550,8 +550,8 @@ export default function Page() {
                     : []),
                   { id: "pause-resume", label: "Pause + resume", content: <PauseChart track={track} /> },
                   ...metricTabs(track, [
-                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot" },
-                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command" },
+                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: blockedNotes(track, "snapshot") },
+                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: blockedNotes(track, "create-from-snapshot") },
                   ]),
                 ]}
               />

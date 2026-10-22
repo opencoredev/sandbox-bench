@@ -197,17 +197,27 @@
    }
   }
  ],
- "generatedFrom": "merged-default",
+ "generatedFrom": "merged-default-snap",
  "window": {
   "start": "2026-10-22T08:22:01.273Z",
-  "end": "2026-10-22T10:42:20.059Z"
+  "end": "2026-10-22T12:40:20.538Z"
  },
- "observations": 15281,
+ "observations": 17933,
  "runs": [
   {
    "id": "sbx53-default-main-r3",
    "suite": "main",
    "samples": 15281
+  },
+  {
+   "id": "sbx53-default-snapshot-r5",
+   "suite": "snapshot",
+   "samples": 2302
+  },
+  {
+   "id": "sbx53-default-cost-r5",
+   "suite": "cost",
+   "samples": 350
   }
  ],
  "excluded": [
@@ -271,7 +281,7 @@
    "pricingSource": "https://e2b.dev/pricing",
    "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
    "reliability": {
-    "successes": 2183,
+    "successes": 2563,
     "failures": 0,
     "raw": 1,
     "adjusted": 1,
@@ -280,7 +290,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 2,
     "visibleCpus": [
      2
@@ -291,7 +301,7 @@
     "cpuModels": [
      {
       "value": "Intel Xeon Processor @ 2.60GHz",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "Intel",
@@ -303,13 +313,13 @@
     "location": [
      {
       "value": "The Dalles, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS396982 Google LLC",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -377,7 +387,7 @@
    "pricingSource": "https://www.daytona.io/pricing",
    "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
    "reliability": {
-    "successes": 2083,
+    "successes": 2458,
     "failures": 0,
     "raw": 1,
     "adjusted": 1,
@@ -386,7 +396,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 1,
     "visibleCpus": [
      64,
@@ -399,15 +409,15 @@
     "cpuModels": [
      {
       "value": "AMD EPYC 9354P 32-Core Processor",
-      "count": 47
+      "count": 59
      },
      {
       "value": "AMD EPYC 9254 24-Core Processor",
-      "count": 31
+      "count": 43
      },
      {
       "value": "AMD EPYC 9354 32-Core Processor",
-      "count": 21
+      "count": 27
      },
      {
       "value": "AMD EPYC 9275F 24-Core Processor",
@@ -498,16 +508,16 @@
    "pricingSource": "https://upstash.com/pricing/box",
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
-    "successes": 2175,
+    "successes": 2555,
     "failures": 3,
-    "raw": 0.9986225895316805,
-    "adjusted": 0.9986225895316805,
+    "raw": 0.9988272087568413,
+    "adjusted": 0.9988272087568413,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 3
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 2,
     "visibleCpus": [
      64
@@ -525,13 +535,13 @@
     "location": [
      {
       "value": "Ashburn, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS14618 Amazon.com, Inc.",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -643,16 +653,16 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2182,
+    "successes": 2562,
     "failures": 1,
-    "raw": 0.9995419147961521,
-    "adjusted": 0.9995419147961521,
+    "raw": 0.9996098322278579,
+    "adjusted": 0.9996098322278579,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 1
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 2,
     "visibleCpus": [
      2
@@ -663,7 +673,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "AMD",
@@ -675,13 +685,13 @@
     "location": [
      {
       "value": "Frankfurt am Main, DE",
-      "count": 61
+      "count": 75
      }
     ],
     "network": [
      {
       "value": "AS396356 Latitude.sh",
-      "count": 61
+      "count": 75
      }
     ]
    },
@@ -759,16 +769,16 @@
    "pricingSource": "https://www.freestyle.sh/pricing",
    "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
    "reliability": {
-    "successes": 2175,
+    "successes": 2555,
     "failures": 0,
-    "raw": 0.9963353183692166,
+    "raw": 0.9968786578228638,
     "adjusted": 1.0,
     "accountLimit": 0,
     "clientNetwork": 0,
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 4,
     "visibleCpus": [
      4
@@ -786,13 +796,13 @@
     "location": [
      {
       "value": "San Francisco, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS36320 Freestyle Cloud, Inc.",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -859,16 +869,16 @@
    "pricingSource": "https://tenki.cloud/pricing",
    "pricingNotes": "Per-second, no minimum. Separate persistent storage $0.000000076/GiB-second excluded. Credits excluded.",
    "reliability": {
-    "successes": 2183,
-    "failures": 0,
-    "raw": 1,
-    "adjusted": 1,
+    "successes": 2556,
+    "failures": 1,
+    "raw": 0.9996089166992569,
+    "adjusted": 0.9996089166992569,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 0
+    "provider": 1
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 2,
     "visibleCpus": [
      2
@@ -879,7 +889,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC 7B13 64-Core Processor",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "AMD",
@@ -891,18 +901,34 @@
     "location": [
      {
       "value": "Seattle, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS19538 Luxor",
-      "count": 100
+      "count": 130
      }
     ]
    },
-   "failureReasons": [],
-   "ourFailures": [],
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Tenki request failed (not_found). (not_found, 5, operation=snapshot)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Take snapshot"
+     ]
+    }
+   ],
+   "ourFailures": [
+    {
+     "reason": "Our cleanup check could not confirm the sandbox after Tenki's snapshot failed, so we can't tell whose side the delete failure was on",
+     "count": 2,
+     "runs": 1
+    }
+   ],
    "pauseSplit": {
     "pause": 55.56055400800053,
     "resume": 2.2910779680004345,
@@ -965,7 +991,7 @@
    "pricingSource": "https://www.superserve.ai/pricing",
    "pricingNotes": "Published vCPU and GiB-hour rates converted to seconds. Credits excluded. One-second rounding assumed; snapshot storage, disk, transfer and any minimum charge excluded. Ran on our template sandbox-bench-node22-py311-1x1-pinned (Node 22 and Python 3.11 preinstalled), 1 vCPU, 1 GiB RAM, 4 GiB disk; resources are template-owned. Cold start ends at the provider's first command; our SDK's setup is reported separately as SDK-ready.",
    "reliability": {
-    "successes": 2183,
+    "successes": 2563,
     "failures": 0,
     "raw": 1,
     "adjusted": 1,
@@ -974,7 +1000,7 @@
     "provider": 0
    },
    "hardware": {
-    "fingerprints": 100,
+    "fingerprints": 130,
     "vcpu": 1,
     "visibleCpus": [
      1
@@ -985,7 +1011,7 @@
     "cpuModels": [
      {
       "value": "Intel Xeon Processor",
-      "count": 100
+      "count": 130
      }
     ],
     "vendor": "Intel",
@@ -997,13 +1023,13 @@
     "location": [
      {
       "value": "Washington, US",
-      "count": 100
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS396982 Google LLC",
-      "count": 100
+      "count": 130
      }
     ]
    },
@@ -1747,7 +1773,99 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 0.3265106640000013,
+     "p95": 0.5946242320000019,
+     "min": 0.2852945899999904,
+     "ciLow": 0.3133060400000013,
+     "ciHigh": 0.34115050399999747,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 6.484827134000021,
+     "p95": 389.726772041,
+     "min": 5.562269885000016,
+     "ciLow": 6.158697649999987,
+     "ciHigh": 7.114664179999964,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.136782465000002,
+     "p95": 34.82990750899992,
+     "min": 2.0874888890000003,
+     "ciLow": 2.1005505739999935,
+     "ciHigh": 6.186209736999823,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 3.20944114499999,
+     "p95": 4.709452027,
+     "min": 2.830307664000022,
+     "ciLow": 2.973474569000013,
+     "ciHigh": 3.215261083999998,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.2619875530000136,
+     "p95": 0.6853764400000073,
+     "min": 0.20672759800002677,
+     "ciLow": 0.246860983999999,
+     "ciHigh": 0.29874351000000027,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 29,
+     "p50": 6.844056378000008,
+     "p95": 8.877249107000011,
+     "min": 4.698489241999981,
+     "ciLow": 6.80966221499996,
+     "ciHigh": 6.900665552999999,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "superserve",
+     "n": 30,
+     "p50": 0.3643639470000053,
+     "p95": 0.45572524699999484,
+     "min": 0.32783162700000684,
+     "ciLow": 0.3563544050000201,
+     "ciHigh": 0.3750296759999983,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "create-from-snapshot",
@@ -1758,7 +1876,101 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 0.8363759450000071,
+     "p95": 1.167660361999995,
+     "min": 0.4920965390000056,
+     "ciLow": 0.692332854999986,
+     "ciHigh": 0.9705156269999862,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 2.045063137000019,
+     "p95": 3.815487073999975,
+     "min": 1.8246346439998598,
+     "ciLow": 1.9584070300003513,
+     "ciHigh": 2.208628236999852,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.651899320000084,
+     "p95": 23.815909074999976,
+     "min": 2.5832155560001264,
+     "ciLow": 2.6946352219999534,
+     "ciHigh": 4.727665155000054,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 1.3463805190000566,
+     "p95": 1.5957728550000465,
+     "min": 1.202139068999968,
+     "ciLow": 1.3245959669999938,
+     "ciHigh": 1.419490831000032,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.6650984570000037,
+     "p95": 1.0491926080000122,
+     "min": 0.5887420920000296,
+     "ciLow": 0.6281401320000005,
+     "ciHigh": 0.7798374999999942,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 29,
+     "p50": 2.1178451520000237,
+     "p95": 2.966777728999965,
+     "min": 1.0983441829999792,
+     "ciLow": 1.8003443230000558,
+     "ciHigh": 2.602636143999931,
+     "successes": 29,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0,
+     "blocked": 1,
+     "blockedNote": "29 of 30: Tenki's snapshot failed on one sandbox, so there was nothing to start from."
+    },
+    {
+     "provider": "superserve",
+     "n": 30,
+     "p50": 0.47065270999999487,
+     "p95": 0.5621245470000067,
+     "min": 0.43340044000001215,
+     "ciLow": 0.4617542420000245,
+     "ciHigh": 0.5120387070000143,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "git-clone",
