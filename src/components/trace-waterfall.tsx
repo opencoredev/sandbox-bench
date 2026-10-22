@@ -34,7 +34,7 @@ export function TraceWaterfall() {
         Where the time goes
       </h2>
       <p className="mt-3 mb-6 max-w-[72ch] text-[14px] leading-relaxed text-[var(--muted)]">
-        Step by step, from median timings. Colour is the provider&apos;s time; grey is ours.
+        Step by step, from median timings, in each provider&apos;s own time.
       </p>
       <Tracked>{(track) => (hasResults(track) ? <TraceWaterfallView track={track.id} providers={providersOf(track)} /> : null)}</Tracked>
     </section>
