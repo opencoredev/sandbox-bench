@@ -80,8 +80,8 @@ export const hardware = {
   },
   upstash: {
     chip: "AWS Graviton4",
-    family: "Arm Neoverse V2, 2.8 GHz",
-    chipBasis: "named",
+    family: "Arm Neoverse V2, 2.8 GHz; Graviton4 from the m8g instance type",
+    chipBasis: "inferred",
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5-5600, from AWS's Graviton4 spec" },
     cloud: "AWS EC2",
     region: "us-east-1, Ashburn, Virginia",

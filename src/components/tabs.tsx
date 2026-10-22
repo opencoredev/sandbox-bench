@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
-import { TAB_EVENT, tabRequest } from "@/components/jump";
+import { parseTabHash } from "@/components/jump";
 
 export interface Tab {
   id: string;
@@ -42,16 +42,20 @@ export function useScrollFade<T extends HTMLElement>() {
  * A bordered card with a band of tabs along its top, as on Artificial
  * Analysis. Panels are pre-rendered; arrow keys, Home and End move between tabs.
  */
-export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label: string; /** The section id a JumpLink names to open one of these tabs. */ section?: string }) {
+export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label: string; /** The section id a `#section/tab` hash names to open one of these tabs. */ section?: string }) {
   const [active, setActive] = useState(tabs[0]?.id);
   useEffect(() => {
     if (!section) return;
-    const open = (event: Event) => {
-      const request = tabRequest(event);
-      if (request?.section === section && tabs.some((t) => t.id === request.tab)) setActive(request.tab);
+    const open = () => {
+      const request = parseTabHash(window.location.hash);
+      if (request?.section !== section || !tabs.some((t) => t.id === request.tab)) return;
+      setActive(request.tab);
+      // No element has the combined id, so the browser does not scroll; do it here.
+      document.getElementById(section)?.scrollIntoView();
     };
-    window.addEventListener(TAB_EVENT, open);
-    return () => window.removeEventListener(TAB_EVENT, open);
+    open();
+    window.addEventListener("hashchange", open);
+    return () => window.removeEventListener("hashchange", open);
   }, [section, tabs]);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();

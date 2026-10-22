@@ -69,8 +69,8 @@ const segmentStyle = (s: Segment, edge: FillEdge, length: number): CSSProperties
     ? fillStyle("gradient", { color: s.color, edge, length, to: 0.2 })
     : fillStyle(s.variant, { color: s.color });
 
-const describe = (column: Column, bar: Bar) =>
-  `${providerName(column.provider)}: ${column.detail.join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace ? ". Press Enter for the time breakdown" : ""}`;
+const describe = (column: Column, bar: Bar, still = false) =>
+  `${providerName(column.provider)}: ${column.detail.join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace && !still ? ". Press Enter for the time breakdown" : ""}`;
 
 /**
  * What makes a column a button that opens its breakdown. The panel listens on
@@ -210,7 +210,7 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
         return (
           <div
             key={column.provider}
-            aria-label={describe(column, bar)}
+            aria-label={describe(column, bar, still)}
             {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
             className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "h-6" : "h-8"}`}
           >
