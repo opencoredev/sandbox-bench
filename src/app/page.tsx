@@ -360,7 +360,7 @@ function SetAside() {
 const methodRows: readonly (readonly [string, ReactNode])[] = [
   [
     "This release",
-    "Default-machine timings come from one run on one harness commit. Default-machine snapshots and bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. We stopped the last runs early, at a set time: Tenki's same-machine run ended at 78 of 100 cold starts, and each chart shows its attempt count. From the stopped snapshot and burst runs we publish only providers that finished every attempt or burst; the others say so on the chart, and none of their failures count against them. Boat will be added in the next update.",
+    "Default-machine timings come from one run on one harness commit. Snapshots, bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki's same-machine run stopped early at 78 of 100 cold starts; each chart shows its attempt count. A burst size is published for a provider only when all three of its bursts finished, and a chart names the reason for any provider it leaves out. Failures caused by our own code are set aside, not counted. Boat will be added in the next update.",
   ],
   [
     "One SDK",

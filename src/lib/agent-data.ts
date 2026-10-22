@@ -31,14 +31,9 @@ const notYet = "not-run: not run yet; coming in the next update";
 const daytonaSnapshotQuota = "not-run: our Daytona account's 10 vCPU quota kept its 4 vCPU snapshot tests from running";
 export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>> = {
   default: {
-    "burst-10": { upstash: stopped, tenki: notYet },
     "burst-25": {
-      e2b: stopped,
-      freestyle: stopped,
-      superserve: stopped,
-      boxd: stopped,
-      upstash: stopped,
-      tenki: notYet,
+      boxd: "stopped-early: one of its three bursts of 25 was cut short by our own ownership check (16 creates and 5 deletes failed on our side), so it is not counted; coming in the next update",
+      upstash: "stopped-early: two of its three bursts of 25 never started, because our harness still had two of its own sandboxes open and Upstash's 25-sandbox account cap left no room; not counted; coming in the next update",
       daytona: "not-run: our Daytona account's 10 vCPU quota can't hold 25 sandboxes at once",
     },
   },
@@ -381,7 +376,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat; same-machine snapshots for boxd, Upstash Box and Daytona; bursts of 25 for every provider; and bursts of 10 for the providers whose runs were stopped early. We stopped the last runs early at a set time: Tenki's same-machine run ended at 78 of 100 cold starts. From the stopped snapshot and burst runs only providers that finished every attempt or burst are published, and none of the stopped runs' failures count against any provider. Default-machine timings come from one run on one harness commit; everything else ran on a later harness commit whose changes only touched cleanup.
+Boat, and any snapshot or burst a chart marks as coming. Default-machine timings come from one run on one harness commit. Snapshots, bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki's same-machine run stopped early at 78 of 100 cold starts; each chart shows its attempt count. A burst size is published for a provider only when all three of its bursts finished, and a chart names the reason for any provider it leaves out. Failures caused by our own code are set aside, not counted. Boat will be added in the next update.
 
 ## Data
 
