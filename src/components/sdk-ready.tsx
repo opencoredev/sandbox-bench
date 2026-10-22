@@ -6,6 +6,7 @@ import { fillStyle } from "@/lib/dither";
 import { formatShort, formatValue } from "@/lib/format";
 import { allocationNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
+import { hasTrace } from "@/lib/traces";
 
 /** Whether the track recorded SDK readiness for anyone, so the tab has something to show. */
 export const hasSdkReady = (track: Track) => Object.keys(track.sdkReady).length > 0;
@@ -30,6 +31,7 @@ export function SdkReadyChart({ track }: { track: Track }) {
     provider: id,
     label: formatShort(own + setup, "s"),
     mark: marks.get(id),
+    trace: hasTrace(track.id, "cold", id) ? "cold" : undefined,
     segments: [
       { value: own, color: providerColor(id), variant: "gradient" },
       { value: setup, color: providerColor(id), variant: "hatched" },

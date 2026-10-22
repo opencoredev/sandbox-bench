@@ -8,8 +8,13 @@ import { absentNote, allocationNotes, mergeNotes, sentence } from "@/lib/notes";
 import type { Notes } from "@/lib/notes";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { hasTrace } from "@/lib/traces";
+import type { TraceKind } from "@/lib/traces";
 
 export type { Notes };
+
+/** Metrics whose columns open a time breakdown. */
+const traceOf: Partial<Record<string, TraceKind>> = { cold: "cold", "tool-replay": "replay" };
 
 /** A chart's title and its one-line "what and which way" subtitle, as Artificial Analysis writes them. */
 export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
@@ -95,6 +100,7 @@ export function MetricChart({
   // Providers left out of this chart on purpose still get their note.
   const leftOut = only ? providers.flatMap((p) => (only.includes(p.id) || !notes[p.id] ? [] : [p.id])) : [];
 
+  const kind = traceOf[metric.id];
   let next = 0;
   const marks = new Map<ProviderId, number>();
   for (const v of measured) if (notes[v.provider]) marks.set(v.provider, ++next);
@@ -103,6 +109,7 @@ export function MetricChart({
     provider: v.provider,
     label: formatShort(v.p50, metric.unit),
     mark: marks.get(v.provider),
+    trace: kind && hasTrace(track.id, kind, v.provider) ? kind : undefined,
     segments: [{ value: v.p50, color: providerColor(v.provider), variant: "gradient" }],
     detail: [
       `median ${formatValue(v.p50, metric.unit)}`,

@@ -9,6 +9,7 @@ import { formatShort, formatValue } from "@/lib/format";
 import { allocationNotes, noRealPause } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { hasTrace } from "@/lib/traces";
 
 const what = "Pause, resume, then run a command";
 
@@ -68,6 +69,7 @@ export function PauseChart({ track }: { track: Track }) {
     provider: p.id,
     label: formatShort(sum, "s"),
     mark: marks.get(p.id),
+    trace: hasTrace(track.id, "pause", p.id) ? "pause" : undefined,
     segments: parts
       ? [
           { value: parts.resume, color: providerColor(p.id), variant: "hatched" },
@@ -118,6 +120,7 @@ export function PausePart({ track, part }: { track: Track; part: keyof typeof pa
     provider: p.id,
     label: formatShort(value, "s"),
     mark: marks.get(p.id),
+    trace: hasTrace(track.id, "pause", p.id) ? "pause" : undefined,
     segments: [{ value, color: providerColor(p.id), variant: "gradient" }],
     detail: [`median ${formatValue(value, "s")}`, `${n} attempts`],
   }));

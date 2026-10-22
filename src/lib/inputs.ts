@@ -7,6 +7,8 @@
  * - benchmark.<track>.json: `bun bench site-data --track <track>` (bench/src/site-data.ts).
  * - extras.<track>.json: `bun run extras` in this app (scripts/site-extras.ts),
  *   from the same merged report.
+ * - traces.<track>.json: `bun run traces` in this app (scripts/site-traces.ts),
+ *   from a run's samples.ndjson.
  *
  * JSON imports widen string literals to `string`, so enum-like fields are
  * typed as strings here and narrowed in data.ts.
@@ -120,4 +122,44 @@ export interface ExtrasExport {
   track: string;
   generatedFrom: string;
   providers: readonly ExtrasProviderExport[];
+}
+
+/** Cold start parts, ms, in the order they run. Only create and firstCommand count toward cold start. */
+export interface ColdPhases {
+  create: number;
+  /** Our benchmark's ownership check: excluded from every number. */
+  verify: number;
+  /** Our benchmark's journal write: excluded from every number. */
+  persist: number;
+  firstCommand: number;
+  /** Sandbox SDK's own setup after the first command. */
+  sdkSetup: number;
+}
+
+/** Pause + resume parts, ms, in the order they run. */
+export interface PausePhases {
+  pause: number;
+  resume: number;
+  /** The first command after resume returned. */
+  firstCommand: number;
+}
+
+/** traces.<track>.json, from `bun run traces` (scripts/site-traces.ts). */
+export interface TraceProviderExport {
+  id: string;
+  cold: { n: number; median: ColdPhases } | null;
+  pauseResume: { n: number; median: PausePhases } | null;
+  replay: {
+    n: number;
+    totalP50: number;
+    ops: readonly { op: string; n: number; p50: number; p95: number }[];
+    /** The attempt with the median total, step by step. */
+    sample: readonly { op: string; ms: number }[];
+  } | null;
+}
+
+export interface TracesExport {
+  track: string;
+  generatedFrom: string;
+  providers: readonly TraceProviderExport[];
 }

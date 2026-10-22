@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { trackScript } from "@/components/track";
+import { TracePanel } from "@/components/trace-panel";
 
 import "./globals.css";
 
@@ -37,7 +38,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: trackScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <TracePanel />
+      </body>
     </html>
   );
 }

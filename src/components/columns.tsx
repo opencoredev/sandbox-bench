@@ -4,6 +4,7 @@ import { fillStyle } from "@/lib/dither";
 import type { FillEdge, FillVariant } from "@/lib/dither";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import type { TraceKind } from "@/lib/traces";
 
 export interface Segment {
   value: number;
@@ -21,6 +22,8 @@ export interface Column {
   detail: readonly string[];
   /** Footnote number shown beside the provider name. */
   mark?: number;
+  /** The time breakdown the column opens on click or Enter (components/trace-panel.tsx). */
+  trace?: TraceKind;
 }
 
 const total = (c: Column) => c.segments.reduce((sum, s) => sum + s.value, 0);
@@ -67,7 +70,16 @@ const segmentStyle = (s: Segment, edge: FillEdge, length: number): CSSProperties
     : fillStyle(s.variant, { color: s.color });
 
 const describe = (column: Column, bar: Bar) =>
-  `${providerName(column.provider)}: ${column.detail.join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}`;
+  `${providerName(column.provider)}: ${column.detail.join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace ? ". Press Enter for the time breakdown" : ""}`;
+
+/**
+ * What makes a column a button that opens its breakdown. The panel listens on
+ * the document for these attributes, so the charts stay server components.
+ */
+const opener = (column: Column) =>
+  column.trace
+    ? ({ role: "button", "aria-haspopup": "dialog", "data-trace": `${column.trace}:${column.provider}` } as const)
+    : {};
 
 /**
  * The axis break: a slanted gap through the bar, edged in its colour, so a
@@ -104,6 +116,12 @@ const Card = ({ column, className, style }: { column: Column; className: string;
         {line}
       </span>
     ))}
+    {column.trace ? (
+      <span className="mt-1.5 flex items-center gap-1 border-t border-[var(--line)] pt-1.5 text-[11px] text-[var(--foreground)]">
+        Click for where the time goes
+        <span aria-hidden>→</span>
+      </span>
+    ) : null}
   </div>
 );
 
@@ -127,7 +145,8 @@ function Vertical({ columns, max }: { columns: readonly Column[]; max: number })
               key={column.provider}
               tabIndex={0}
               aria-label={describe(column, bar)}
-              className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none"
+              {...opener(column)}
+              className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace ? "cursor-pointer" : ""}`}
             >
               <span className="mb-1.5 shrink-0 font-mono text-[12px] whitespace-nowrap text-[var(--foreground)] tabular-nums">
                 {column.label}
@@ -193,7 +212,8 @@ function Horizontal({ columns, max }: { columns: readonly Column[]; max: number 
             key={column.provider}
             tabIndex={0}
             aria-label={describe(column, bar)}
-            className="group relative grid h-8 grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto]"
+            {...opener(column)}
+            className="group relative grid data-trace:cursor-pointer h-8 grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto]"
           >
             <span aria-hidden className="truncate text-[13px] leading-none font-medium sm:text-[12px]" style={{ color }}>
               {providerName(column.provider)}
