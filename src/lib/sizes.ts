@@ -32,7 +32,7 @@ export const advertised = {
     memoryGiB: 1,
     diskGiB: 4,
     source: "https://docs.superserve.ai",
-    note: "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled, at its default 1 vCPU, 1 GB RAM and 4 GB disk. Its own node-22 template has no Python.",
+    note: "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled, at its default 1 vCPU, 1 GB RAM and 4 GB disk. Superserve's own templates have Node (node-22) or Python (python-3.11), not both, and our tests need both.",
   },
 } as const satisfies Record<
   ProviderId,

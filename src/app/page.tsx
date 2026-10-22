@@ -344,7 +344,7 @@ function SetAside() {
 const methodRows: readonly (readonly [string, ReactNode])[] = [
   [
     "This release",
-    "Timings come from one run on one harness commit, on each provider's default machine; cost per task comes from a separate cost run on the same machines. Boat, snapshots, bursts and the same-machine track will be added in the next update.",
+    "Default-machine timings come from one run on one harness commit; the same-machine track and cost per task come from runs on a later commit whose changes only touch cleanup. Tenki and Upstash Box were still finishing their same-machine runs when this was published, so their attempt counts are lower; each chart shows how many runs it used. Boat, snapshots and bursts will be added in the next update.",
   ],
   [
     "One SDK",
@@ -356,12 +356,12 @@ const methodRows: readonly (readonly [string, ReactNode])[] = [
   ],
   [
     "Superserve",
-    "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled. Its own node-22 template has no Python, which used to force a Python install on every create.",
+    "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled. Superserve offers a Node template (node-22) and a Python template (python-3.11), but our tests need both in one sandbox; before this template, our setup installed Python on every create.",
   ],
   [
     "Two tracks",
     <>
-      Default machines: each provider&apos;s default sandbox, so sizes differ. E2B&apos;s default base template is 2 vCPU and 512 MB, though its pricing page says 4 GB. Same machine, coming in the next update: every provider asks for 4 vCPU and 8 GB, Boat&apos;s default. boxd has no such size and will run 4 vCPU, 16 GB, its nearest. Superserve will be left out because its account caps templates at 2 vCPU. Machines that differ from the track will be marked on every chart.
+      Default machines: each provider&apos;s default sandbox, so sizes differ. E2B&apos;s default base template is 2 vCPU and 512 MB, though its pricing page says 4 GB. Same machine: every provider asked for 4 vCPU and 8 GB, Boat&apos;s default. boxd has no such size and ran 4 vCPU, 16 GB, its nearest. Superserve is left out because its account caps templates at 2 vCPU. Machines that differ from the track are marked on every chart.
     </>,
   ],
   [

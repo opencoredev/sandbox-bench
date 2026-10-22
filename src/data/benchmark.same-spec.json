@@ -1,20 +1,902 @@
 {
  "track": "same-spec",
- "allocations": [],
- "generatedFrom": "publication-final-v3",
+ "allocations": [
+  {
+   "provider": "e2b",
+   "track": "same-spec",
+   "requested": {
+    "size": null,
+    "template": "r1h7gud12rf1f6iu29r0",
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8
+    }
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.770164489746094,
+     "diskGiB": 21.534767150878906
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "daytona",
+   "track": "same-spec",
+   "requested": {
+    "size": null,
+    "template": "daytona-large",
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "upstash",
+   "track": "same-spec",
+   "requested": {
+    "size": "medium",
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "boxd",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 16384
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 16
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 15.64040756225586,
+     "diskGiB": 97.87200164794922
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "freestyle",
+   "track": "same-spec",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 32
+    }
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.755207061767578,
+     "diskGiB": 31.200942993164062
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "tenki",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.796802520751953,
+     "diskGiB": 4.839508056640625
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  }
+ ],
+ "generatedFrom": "merged-same-spec",
  "window": {
-  "start": "2026-10-19T20:33:59.760Z",
-  "end": "2026-10-21T19:24:13.765Z"
+  "start": "2026-10-22T12:41:17.842Z",
+  "end": "2026-10-22T14:05:39.746Z"
  },
- "observations": 0,
- "runs": [],
+ "observations": 11672,
+ "runs": [
+  {
+   "id": "sbx53-same-spec-main-r5",
+   "suite": "main",
+   "samples": 11374
+  },
+  {
+   "id": "sbx53-same-spec-cost-r5",
+   "suite": "cost",
+   "samples": 298
+  }
+ ],
  "excluded": [
   {
    "runId": "publication-001",
    "reason": "Aborted: snapshot timeouts blocked Daytona; discarded in full, including successful rows."
   }
  ],
- "providers": [],
+ "providers": [
+  {
+   "id": "e2b",
+   "costPerTask": {
+    "usd": 0.0015523160000000002,
+    "kind": "metered",
+    "source": "https://api.e2b.app/events/sandboxes/{id}",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": null,
+    "template": "r1h7gud12rf1f6iu29r0",
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.770164489746094,
+     "diskGiB": 21.534767150878906
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.3312,
+   "commonHourly": 0.3312,
+   "perVcpuHour": 0.0828,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0504,
+    "memoryGiBHour": 0.0162,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://e2b.dev/pricing",
+   "pricingNotes": "10 GiB Hobby / 20 GiB Pro included disk. Subscription excluded. Per-second billing; no separate creation fee listed.",
+   "reliability": {
+    "successes": 2233,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.770164489746094,
+    "diskGiB": 21.534767150878906,
+    "cpuModels": [
+     {
+      "value": "Intel Xeon Processor @ 2.60GHz",
+      "count": 100
+     }
+    ],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "kvm",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.1.158+",
+    "location": [
+     {
+      "value": "The Dalles, US",
+      "count": 100
+     }
+    ],
+    "network": [
+     {
+      "value": "AS396982 Google LLC",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 1.2916321539999918,
+    "resume": 0.5057368029998616,
+    "n": 100
+   }
+  },
+  {
+   "id": "daytona",
+   "costPerTask": {
+    "usd": 0.0011886394,
+    "kind": "billed",
+    "source": "https://analytics.app.daytona.io/organization/{org}/usage/sandbox",
+    "confidence": "low",
+    "n": 10,
+    "settled": false
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": null,
+    "template": "daytona-large",
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.3312,
+   "commonHourly": 0.3312,
+   "perVcpuHour": 0.0828,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0504,
+    "memoryGiBHour": 0.0162,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://www.daytona.io/pricing",
+   "pricingNotes": "Hourly published rates converted to seconds. Assumed one-second increment; minimum and creation fee not stated. Snapshot storage excluded.",
+   "reliability": {
+    "successes": 2133,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     64,
+     48,
+     5
+    ],
+    "cpuQuota": 4,
+    "memoryGiB": 8,
+    "diskGiB": 10,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC 9254 24-Core Processor",
+      "count": 35
+     },
+     {
+      "value": "AMD EPYC 9354P 32-Core Processor",
+      "count": 34
+     },
+     {
+      "value": "AMD EPYC 9354 32-Core Processor",
+      "count": 24
+     },
+     {
+      "value": "AMD EPYC 9275F 24-Core Processor",
+      "count": 7
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "docker",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.15",
+    "location": [],
+    "network": []
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": null
+  },
+  {
+   "id": "upstash",
+   "costPerTask": {
+    "usd": 0.0004738445,
+    "kind": "billed",
+    "source": "https://us-east-1.box.upstash.com/v2/box/{id}",
+    "confidence": "high",
+    "n": 8,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": "medium",
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 10
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.2,
+   "commonHourly": 0.2,
+   "perVcpuHour": 0.05,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": null,
+    "memoryGiBHour": 0,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4,
+      "hourly": 0.1
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8,
+      "hourly": 0.2
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16,
+      "hourly": 0.4
+     }
+    ],
+    "offeredSizes": null
+   },
+   "pricingSource": "https://upstash.com/pricing/box",
+   "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
+   "reliability": {
+    "successes": 1751,
+    "failures": 6,
+    "raw": 0.9965850882185544,
+    "adjusted": 0.9965850882185544,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 6
+   },
+   "hardware": {
+    "fingerprints": 75,
+    "vcpu": 4,
+    "visibleCpus": [
+     64
+    ],
+    "cpuQuota": 4,
+    "memoryGiB": 8,
+    "diskGiB": 10,
+    "cpuModels": [],
+    "vendor": "Arm",
+    "arch": "arm64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": "m8g.16xlarge",
+    "kernel": "7.0.0-1011-aws",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 75
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 75
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Upstash Box exec failed (provider). (provider)",
+     "count": 3,
+     "runs": 3,
+     "tests": [
+      "Cold start",
+      "cold",
+      "tool-replay"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Resource ownership unverified; see cleanupReview",
+     "count": 3,
+     "runs": 2,
+     "tests": [
+      "Destroy"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 0.8366179980000016,
+    "resume": 0.5827158219995908,
+    "n": 75
+   }
+  },
+  {
+   "id": "boxd",
+   "costPerTask": {
+    "usd": 0.0019985000000000003,
+    "kind": "metered",
+    "source": "boxd orgs.usage / orgs.billingActivityPage",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 16384
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 16
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 15.64040756225586,
+     "diskGiB": 97.87200164794922
+    }
+   ],
+   "equalSpec": false,
+   "currency": "EUR",
+   "hourly": 0.348,
+   "commonHourly": null,
+   "perVcpuHour": 0.087,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 16
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.039,
+    "memoryGiBHour": 0.012,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 1,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 2,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 16
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 32
+     }
+    ]
+   },
+   "pricingSource": "https://boxd.sh/pricing",
+   "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
+   "reliability": {
+    "successes": 2230,
+    "failures": 2,
+    "raw": 0.9991039426523297,
+    "adjusted": 0.9991039426523297,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 2
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 15.64040756225586,
+    "diskGiB": 97.87200164794922,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC",
+      "count": 100
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "docker",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.0+",
+    "location": [
+     {
+      "value": "Frankfurt am Main, DE",
+      "count": 89
+     }
+    ],
+    "network": [
+     {
+      "value": "AS396356 Latitude.sh",
+      "count": 89
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed. (invalid_argument)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Pause + resume"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Write + read 10 MB"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 0.12380898099998013,
+    "resume": 0.4039313779999502,
+    "n": 99
+   }
+  },
+  {
+   "id": "freestyle",
+   "costPerTask": {
+    "usd": 0.0017815466666666671,
+    "kind": "estimate",
+    "source": "https://www.freestyle.sh/pricing",
+    "confidence": "low",
+    "n": 10,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 32
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.755207061767578,
+     "diskGiB": 31.200942993164062
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.26448000000000005,
+   "commonHourly": 0.26448000000000005,
+   "perVcpuHour": 0.06612000000000001,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.04032,
+    "memoryGiBHour": 0.0129,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://www.freestyle.sh/pricing",
+   "pricingNotes": "Published overage rates, allowances/subscriptions excluded. $0.02/GB transfer excluded. Billing increment/minimum and creation fees unspecified; one-second estimate.",
+   "reliability": {
+    "successes": 2230,
+    "failures": 4,
+    "raw": 0.9982094897045658,
+    "adjusted": 0.9982094897045658,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 4
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.755207061767578,
+    "diskGiB": 31.200942993164062,
+    "cpuModels": [],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "kvm",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.1.102",
+    "location": [
+     {
+      "value": "San Francisco, US",
+      "count": 100
+     }
+    ],
+    "network": [
+     {
+      "value": "AS36320 Freestyle Cloud, Inc.",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Preview HTTP 502, no first byte",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Preview URL first byte"
+     ]
+    }
+   ],
+   "ourFailures": [
+    {
+     "reason": "Our SDK timed out or wrapped the error moving 10 MB, so we can't tell whose side failed",
+     "count": 3,
+     "runs": 3
+    }
+   ],
+   "pauseSplit": {
+    "pause": 0.3201344599998556,
+    "resume": 0.34602604700019585,
+    "n": 100
+   }
+  },
+  {
+   "id": "tenki",
+   "costPerTask": {
+    "usd": 0.001794,
+    "kind": "estimate",
+    "source": "https://tenki.cloud/pricing",
+    "confidence": "low",
+    "n": 10,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.796802520751953,
+     "diskGiB": 4.839508056640625
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.3312,
+   "commonHourly": 0.3312,
+   "perVcpuHour": 0.0828,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0504,
+    "memoryGiBHour": 0.0162,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://tenki.cloud/pricing",
+   "pricingNotes": "Per-second, no minimum. Separate persistent storage $0.000000076/GiB-second excluded. Credits excluded.",
+   "reliability": {
+    "successes": 979,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 34,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.796802520751953,
+    "diskGiB": 4.839508056640625,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC 7B13 64-Core Processor",
+      "count": 34
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "docker",
+    "hypervisor": true,
+    "host": "cloud-hypervisor",
+    "kernel": "6.18.29",
+    "location": [
+     {
+      "value": "Seattle, US",
+      "count": 34
+     }
+    ],
+    "network": [
+     {
+      "value": "AS19538 Luxor",
+      "count": 34
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 59.691798120000165,
+    "resume": 2.5500197919998318,
+    "n": 34
+   }
+  }
+ ],
  "metrics": [
   {
    "id": "cold",
@@ -25,7 +907,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.954382467999938,
+     "p95": 3.096511466000229,
+     "min": 0.5241166340000928,
+     "ciLow": 0.9207339370001574,
+     "ciHigh": 1.0423991770001595,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 1.1347466740000527,
+     "p95": 3.017132513999939,
+     "min": 0.7009981269999407,
+     "ciLow": 1.0187422529999166,
+     "ciHigh": 1.2836251129999292,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 2.6499037029994654,
+     "p95": 9.053918775000144,
+     "min": 2.5130509509998373,
+     "ciLow": 2.5946940399995073,
+     "ciHigh": 2.6669126250008124,
+     "successes": 75,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 1.3823767340001651,
+     "p95": 3.9223546159993856,
+     "min": 1.2819084820001154,
+     "ciLow": 1.3704183740005829,
+     "ciHigh": 1.3995168920001015,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.6572771749999374,
+     "p95": 2.809607847000938,
+     "min": 0.5327006580003072,
+     "ciLow": 0.6429932569998782,
+     "ciHigh": 0.681387422000058,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 1.0782370079997927,
+     "p95": 4.549084318999667,
+     "min": 0.7823652440000151,
+     "ciLow": 0.8973997630001977,
+     "ciHigh": 1.230702913999994,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "command",
@@ -36,7 +997,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.12164414099999704,
+     "p95": 0.1351141550000757,
+     "min": 0.11019222300010734,
+     "ciLow": 0.12048703800002113,
+     "ciHigh": 0.12263608600012958,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.10655449800007046,
+     "p95": 0.277672278999933,
+     "min": 0.07171587199997156,
+     "ciLow": 0.10297299799998291,
+     "ciHigh": 0.11009614299982787,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 0.22791369300009684,
+     "p95": 2.332226600000169,
+     "min": 0.19666078200004997,
+     "ciLow": 0.21969761099992322,
+     "ciHigh": 0.24100753699988128,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 0.28071062299981714,
+     "p95": 0.2876159709999338,
+     "min": 0.22519421400001738,
+     "ciLow": 0.2791169859999791,
+     "ciHigh": 0.28250776199996475,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.14969440300017595,
+     "p95": 0.2151773139999714,
+     "min": 0.13219919199985453,
+     "ciLow": 0.14460908600012773,
+     "ciHigh": 0.1531910869998392,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 0.16654931999975817,
+     "p95": 0.2041657290000003,
+     "min": 0.12782408300007228,
+     "ciLow": 0.16403895699977875,
+     "ciHigh": 0.17616158899990841,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "files-1kb",
@@ -47,7 +1087,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.2053812840001192,
+     "p95": 0.34634635399980473,
+     "min": 0.18699366099992767,
+     "ciLow": 0.20222796299983747,
+     "ciHigh": 0.20875275399995735,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.12427951400005259,
+     "p95": 0.4509996099998243,
+     "min": 0.07482306100009009,
+     "ciLow": 0.12126510000019335,
+     "ciHigh": 0.12700197600002866,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 0.33738276399997996,
+     "p95": 1.7847818919999991,
+     "min": 0.24924118599994108,
+     "ciLow": 0.331362119999947,
+     "ciHigh": 0.3425230729999021,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 0.4677455439999976,
+     "p95": 0.480990228000097,
+     "min": 0.4145475799999986,
+     "ciLow": 0.4664292500000447,
+     "ciHigh": 0.4701177690001205,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.1833151690000668,
+     "p95": 0.3973444219999947,
+     "min": 0.16988019199995325,
+     "ciLow": 0.18027864399994725,
+     "ciHigh": 0.18869266199995763,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 0.2777663450000109,
+     "p95": 2.2438809370000383,
+     "min": 0.18677239699987694,
+     "ciLow": 0.26066312100039796,
+     "ciHigh": 0.2958248040000908,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "files-10mb",
@@ -58,7 +1177,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 1.3100725979999406,
+     "p95": 2.5482805019998924,
+     "min": 1.1352720129999798,
+     "ciLow": 1.2579581319999416,
+     "ciHigh": 1.3591502529999706,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.7610146089999471,
+     "p95": 3.677976571999956,
+     "min": 0.48286814599996436,
+     "ciLow": 0.7284103940001223,
+     "ciHigh": 0.7875173589999976,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 3.161471655000001,
+     "p95": 9.574218090000096,
+     "min": 2.2182263549999917,
+     "ciLow": 2.6469664400001056,
+     "ciHigh": 4.361934029999888,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 98,
+     "p50": 2.976178499000147,
+     "p95": 4.75894941499969,
+     "min": 2.7745574539997615,
+     "ciLow": 2.9174855949999765,
+     "ciHigh": 3.018719413000159,
+     "successes": 98,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 97,
+     "p50": 2.4605530710000023,
+     "p95": 5.502673643999966,
+     "min": 1.9210130489999429,
+     "ciLow": 2.3853030990003607,
+     "ciHigh": 2.7844210040000035,
+     "successes": 97,
+     "failures": 0,
+     "ourFailures": 3,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 7.34061352000013,
+     "p95": 13.915068694999908,
+     "min": 1.7555933550000191,
+     "ciLow": 6.418043928999992,
+     "ciHigh": 8.563849279999733,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "reconnect",
@@ -69,7 +1267,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.5262359670000151,
+     "p95": 2.294695136999944,
+     "min": 0.5037510989999865,
+     "ciLow": 0.5234383209999651,
+     "ciHigh": 0.5294638489999343,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.31280735199991616,
+     "p95": 1.196674972999841,
+     "min": 0.209665234999964,
+     "ciLow": 0.30648686800000724,
+     "ciHigh": 0.32531231800001115,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 0.5239041279999074,
+     "p95": 0.812361135000363,
+     "min": 0.47324087999993936,
+     "ciLow": 0.5113579789998476,
+     "ciHigh": 0.5405423609999707,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 1.098828073999961,
+     "p95": 3.2740392760001122,
+     "min": 0.988659924000036,
+     "ciLow": 1.0956572670000606,
+     "ciHigh": 1.1049514620001428,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.5430075939996168,
+     "p95": 1.763896762999939,
+     "min": 0.4964431239999831,
+     "ciLow": 0.536117186000105,
+     "ciHigh": 0.5519529880000046,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 0.7919997949999524,
+     "p95": 4.720104974000017,
+     "min": 0.7072354910001158,
+     "ciLow": 0.7736997480001301,
+     "ciHigh": 0.8249465729999939,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "pause-resume",
@@ -80,7 +1357,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 1.808733469999861,
+     "p95": 3.4933066480001433,
+     "min": 0.8544005790000083,
+     "ciLow": 1.6343901820000029,
+     "ciHigh": 1.9617494329998735,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 0,
+     "p50": null,
+     "p95": null,
+     "min": null,
+     "ciLow": null,
+     "ciHigh": null,
+     "successes": 0,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 1.9517962869997136,
+     "p95": 14.103930542000104,
+     "min": 0.7201886829999276,
+     "ciLow": 1.2930958520001732,
+     "ciHigh": 2.222943535000086,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 99,
+     "p50": 0.5277883840000722,
+     "p95": 1.0775770809999667,
+     "min": 0.4669702820000239,
+     "ciLow": 0.5260100730000995,
+     "ciHigh": 0.52972657300008,
+     "successes": 99,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.7250656570000574,
+     "p95": 2.6087546890000812,
+     "min": 0.5151838130000979,
+     "ciLow": 0.6821215749999974,
+     "ciHigh": 0.8075106829999713,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 63.779391864000125,
+     "p95": 83.93546450900007,
+     "min": 46.8502823549998,
+     "ciLow": 60.579707959000025,
+     "ciHigh": 71.25132510399982,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "destroy",
@@ -91,7 +1447,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.1159292949999217,
+     "p95": 0.1253917510000174,
+     "min": 0.11054355199995916,
+     "ciLow": 0.11445231999992393,
+     "ciHigh": 0.11708116899989546,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.8771676159999333,
+     "p95": 2.3952164040000645,
+     "min": 0.5709934369998518,
+     "ciLow": 0.7706557669999311,
+     "ciHigh": 0.9971550669998397,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 74,
+     "p50": 1.2434358140002004,
+     "p95": 20.061523837999907,
+     "min": 0.2836922249998897,
+     "ciLow": 0.7027082469998859,
+     "ciHigh": 1.7619510820000432,
+     "successes": 74,
+     "failures": 3,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 0.1423225629995577,
+     "p95": 0.15877186099998652,
+     "min": 0.13632523800013588,
+     "ciLow": 0.14168084000004455,
+     "ciHigh": 0.14316783799999394,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 0.2048352690001484,
+     "p95": 0.4291818899998907,
+     "min": 0.1243119969998952,
+     "ciLow": 0.18452736200019718,
+     "ciHigh": 0.22025797699997202,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 0.14107547599985265,
+     "p95": 0.17702351500000804,
+     "min": 0.12295546899968758,
+     "ciLow": 0.1336303439999465,
+     "ciHigh": 0.1562467249999754,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "snapshot",
@@ -124,7 +1559,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 1.1095301169999876,
+     "p95": 1.9452511679999298,
+     "min": 0.9446615100000054,
+     "ciLow": 1.0873627119999145,
+     "ciHigh": 1.1802371430001222,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 0.4381510259999195,
+     "p95": 2.116426253999991,
+     "min": 0.3824880559999729,
+     "ciLow": 0.4021465909999097,
+     "ciHigh": 0.5303651560000144,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.5634851090000011,
+     "p95": 2.8069198259999975,
+     "min": 0.47856666799995584,
+     "ciLow": 0.542043229999952,
+     "ciHigh": 0.5881286100000143,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 1.557996981000062,
+     "p95": 2.561285028999904,
+     "min": 1.3014582140000421,
+     "ciLow": 1.5041370360000292,
+     "ciHigh": 1.5660792680000886,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 1.7021927700000816,
+     "p95": 2.7584511660001008,
+     "min": 1.2577293770000106,
+     "ciLow": 1.442957939999993,
+     "ciHigh": 1.8337479209999874,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 1.0939490369996057,
+     "p95": 3.197558878000127,
+     "min": 0.9167738979999849,
+     "ciLow": 1.0360617919997313,
+     "ciHigh": 1.1370201369998978,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "npm-install",
@@ -135,7 +1649,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 1.8602769990000017,
+     "p95": 2.842500139000127,
+     "min": 1.4470325460000895,
+     "ciLow": 1.6890146290000412,
+     "ciHigh": 2.1316247050000237,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 0.7380126489999821,
+     "p95": 1.2195983750000015,
+     "min": 0.5251716950000264,
+     "ciLow": 0.7035106679999735,
+     "ciHigh": 0.7637444900000119,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.9862020019998309,
+     "p95": 2.5807414710000156,
+     "min": 0.939131297999993,
+     "ciLow": 0.9652231659999961,
+     "ciHigh": 1.0175546830000821,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 1.503697616999969,
+     "p95": 2.6327537620000077,
+     "min": 1.2512566970000043,
+     "ciLow": 1.3591817530000116,
+     "ciHigh": 1.604489857000008,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 1.5498303070000001,
+     "p95": 2.7099352639999705,
+     "min": 1.2860755399998742,
+     "ciLow": 1.4830843150000146,
+     "ciHigh": 1.6645365870000097,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 1.4793869829999748,
+     "p95": 3.5756461959998123,
+     "min": 0.9072335979999043,
+     "ciLow": 1.1349700629999862,
+     "ciHigh": 1.692542935000034,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "pip-install",
@@ -146,7 +1739,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 4.758574534999992,
+     "p95": 5.732518163000001,
+     "min": 3.839411387,
+     "ciLow": 4.452096396000008,
+     "ciHigh": 5.050489065000089,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 4.14373234899994,
+     "p95": 6.142731717000003,
+     "min": 2.968764712000033,
+     "ciLow": 3.9651622729999945,
+     "ciHigh": 4.253782718000002,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 3.638600466999924,
+     "p95": 6.323819831000176,
+     "min": 3.485451780000003,
+     "ciLow": 3.6018874399999623,
+     "ciHigh": 3.678775310999976,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 4.619552421000029,
+     "p95": 5.948066879999999,
+     "min": 4.265340235000011,
+     "ciLow": 4.4758655779999685,
+     "ciHigh": 4.630037450000062,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 7.350772604000056,
+     "p95": 8.072096540999949,
+     "min": 7.33098164800019,
+     "ciLow": 7.341975451000035,
+     "ciHigh": 7.381434247999991,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 3.3178254309999757,
+     "p95": 6.131238908000058,
+     "min": 2.786097230000072,
+     "ciLow": 3.0883921980001032,
+     "ciHigh": 4.719059367000125,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "dev-server",
@@ -157,7 +1829,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 1.9284193050000014,
+     "p95": 2.897248981999932,
+     "min": 1.7752196209999966,
+     "ciLow": 1.839813775000046,
+     "ciHigh": 1.9871488660000032,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 2.9456117729999822,
+     "p95": 9.468119675999974,
+     "min": 2.610867114999972,
+     "ciLow": 2.697047877999954,
+     "ciHigh": 3.524905261000036,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 3.1985097739999984,
+     "p95": 8.545324163999874,
+     "min": 2.811303106999956,
+     "ciLow": 3.0873539939999755,
+     "ciHigh": 3.5370525619999973,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 3.708206364999991,
+     "p95": 7.095179774000076,
+     "min": 3.4680103649999947,
+     "ciLow": 3.682967021999997,
+     "ciHigh": 4.272282459000009,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 1.9638522500000108,
+     "p95": 3.1915332919999493,
+     "min": 1.6809211319999304,
+     "ciLow": 1.917687940999982,
+     "ciHigh": 2.1010505840000113,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 1.919818850999698,
+     "p95": 4.353653526000213,
+     "min": 1.789752758000046,
+     "ciLow": 1.8935775469999645,
+     "ciHigh": 2.0058141009999964,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "preview-first-byte",
@@ -168,7 +1919,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 0.21650599099998363,
+     "p95": 0.44849928399999955,
+     "min": 0.20360962100001054,
+     "ciLow": 0.21259702400001698,
+     "ciHigh": 0.2228033529999957,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 0.1799608930000104,
+     "p95": 0.3558977599999635,
+     "min": 0.1511161410000059,
+     "ciLow": 0.16885196699993685,
+     "ciHigh": 0.18602461900000344,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.1868444909999962,
+     "p95": 0.23026551200000178,
+     "min": 0.17638764799991624,
+     "ciLow": 0.18161171399999876,
+     "ciHigh": 0.1894703809999628,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 0.8294969220000203,
+     "p95": 1.9285138779999689,
+     "min": 0.6510525030000135,
+     "ciLow": 0.8190874470002019,
+     "ciHigh": 0.8791684290000703,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.3787541579999961,
+     "p95": 0.4856734510000097,
+     "min": 0.10205195699981413,
+     "ciLow": 0.3633092029999971,
+     "ciHigh": 0.4072171279999893,
+     "successes": 30,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 0.3419852189999947,
+     "p95": 1.8289091589997988,
+     "min": 0.3027242930000648,
+     "ciLow": 0.33340936899976803,
+     "ciHigh": 0.36723312500002797,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "edit-loop",
@@ -179,7 +2009,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 0.30356745299999605,
+     "p95": 0.49724743200000376,
+     "min": 0.28994430900004226,
+     "ciLow": 0.2998110009999946,
+     "ciHigh": 0.30961370199998783,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 0.2408407179999631,
+     "p95": 0.9952123900000006,
+     "min": 0.16902651600004173,
+     "ciLow": 0.2283945789999998,
+     "ciHigh": 0.2610799320000224,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.38864212899999984,
+     "p95": 1.5226174220000395,
+     "min": 0.3071850409999024,
+     "ciLow": 0.3738469630000182,
+     "ciHigh": 0.3984186890000128,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 0.9595507309999667,
+     "p95": 3.2122749199999965,
+     "min": 0.9385873800000117,
+     "ciLow": 0.9538682840000257,
+     "ciHigh": 0.967466876000166,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 0.2724657630000147,
+     "p95": 0.47955584700003967,
+     "min": 0.24821988099999726,
+     "ciLow": 0.2595906099999993,
+     "ciHigh": 0.28341415600001346,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 0.5150564010000089,
+     "p95": 1.800454672999913,
+     "min": 0.4685346819999977,
+     "ciLow": 0.5036648769999993,
+     "ciHigh": 0.5278003189999144,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "tool-replay",
@@ -190,7 +2099,86 @@
    "better": "lower",
    "scale": 0.001,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 30,
+     "p50": 15.082763331999995,
+     "p95": 16.29976363100007,
+     "min": 13.541322301000008,
+     "ciLow": 14.521060022999999,
+     "ciHigh": 15.474098139999901,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 30,
+     "p50": 10.837094091999985,
+     "p95": 28.920952424000017,
+     "min": 8.365490086999955,
+     "ciLow": 9.930032618999999,
+     "ciHigh": 11.893153993,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 27.52892298100004,
+     "p95": 54.40179964699992,
+     "min": 22.196988014999995,
+     "ciLow": 24.250919874000015,
+     "ciHigh": 30.21373949199985,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 30,
+     "p50": 33.20207680000004,
+     "p95": 49.17269109000009,
+     "min": 29.715271966999993,
+     "ciLow": 32.257911356,
+     "ciHigh": 40.688024640000194,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 30,
+     "p50": 20.078376497999997,
+     "p95": 28.165304543999955,
+     "min": 18.580242889999994,
+     "ciLow": 19.71905937500001,
+     "ciHigh": 21.693673805999918,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 30,
+     "p50": 21.383550277999603,
+     "p95": 33.77929946499993,
+     "min": 15.42905971100001,
+     "ciLow": 20.482418958999915,
+     "ciHigh": 25.43378187600011,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "burst-10",
@@ -223,7 +2211,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 10798481.396603018,
+     "p95": 16097045.092797158,
+     "min": 6299599.423591645,
+     "ciLow": 9921833.2182302,
+     "ciHigh": 11887665.884501806,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 9236875.307274954,
+     "p95": 14168601.933188664,
+     "min": 7032332.148873277,
+     "ciLow": 9094525.649307068,
+     "ciHigh": 9429433.470712846,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 13708231.83579064,
+     "p95": 13769646.569113348,
+     "min": 12658418.57676535,
+     "ciLow": 13694807.896891309,
+     "ciHigh": 13726338.635334726,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 12108815.189359302,
+     "p95": 12869277.97646319,
+     "min": 8505010.368843779,
+     "ciLow": 11859872.710323643,
+     "ciHigh": 12357053.602644665,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 10034541.499362947,
+     "p95": 10449583.731184648,
+     "min": 6650017.063771795,
+     "ciLow": 9892075.086686676,
+     "ciHigh": 10201474.639494361,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 19397206.21263024,
+     "p95": 20994581.781317476,
+     "min": 10464483.907874124,
+     "ciLow": 11297090.339487178,
+     "ciHigh": 20027098.66720651,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "cpu-all",
@@ -234,7 +2301,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 27143907.224295914,
+     "p95": 36925050.53862504,
+     "min": 11379410.813253263,
+     "ciLow": 25322362.85854585,
+     "ciHigh": 28655816.26601283,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 26344521.41846755,
+     "p95": 31304438.220341016,
+     "min": 17431112.537402175,
+     "ciLow": 25893375.560776714,
+     "ciHigh": 26830494.57667554,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 49910790.2732507,
+     "p95": 50661957.431812465,
+     "min": 43758269.77485399,
+     "ciLow": 49131120.62316169,
+     "ciHigh": 50188709.18389674,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 28434905.279451102,
+     "p95": 31617783.238561425,
+     "min": 22553014.68144106,
+     "ciLow": 27630343.227931216,
+     "ciHigh": 29121367.92276985,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 28011834.548887316,
+     "p95": 32688469.372000974,
+     "min": 17895335.259337623,
+     "ciLow": 27191139.334170543,
+     "ciHigh": 28684855.459325124,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 36705717.63495284,
+     "p95": 44191400.06851196,
+     "min": 26238964.375364628,
+     "ciLow": 33265527.100593433,
+     "ciHigh": 39377466.27839313,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "memory",
@@ -245,7 +2391,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 12648.498764607753,
+     "p95": 14404.39739718928,
+     "min": 5038.115039292117,
+     "ciLow": 12444.584656752408,
+     "ciHigh": 12854.28565326523,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 31283.24585808876,
+     "p95": 57714.149069169434,
+     "min": 20245.92580481339,
+     "ciLow": 30324.218532402057,
+     "ciHigh": 31818.03248432823,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 36103.614991606264,
+     "p95": 41744.57512975814,
+     "min": 22644.87089112901,
+     "ciLow": 34491.04916101458,
+     "ciHigh": 37140.569799189754,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 22102.988385151075,
+     "p95": 24686.364086457426,
+     "min": 13897.13831099682,
+     "ciLow": 21610.663381475617,
+     "ciHigh": 22630.887381863085,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 17013.857763778327,
+     "p95": 20821.552371837417,
+     "min": 6496.344580542702,
+     "ciLow": 16163.380558765008,
+     "ciHigh": 17802.601326591932,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 46976.266162746455,
+     "p95": 52608.42901485167,
+     "min": 16880.47438935406,
+     "ciLow": 24310.539891900888,
+     "ciHigh": 48288.13270358841,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "disk-write",
@@ -256,7 +2481,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 858.6757079716051,
+     "p95": 1062.934450727434,
+     "min": 94.49987358192507,
+     "ciLow": 806.2696764338564,
+     "ciHigh": 890.8000670865806,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 1392.8288380925771,
+     "p95": 3036.950460776585,
+     "min": 78.65736231897684,
+     "ciLow": 1270.5759815929946,
+     "ciHigh": 1518.4488777140803,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 1882.248201334454,
+     "p95": 2152.1543284738577,
+     "min": 172.5744383607839,
+     "ciLow": 1666.5094547486972,
+     "ciHigh": 1973.275871039732,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 742.1925080039538,
+     "p95": 809.0212347516364,
+     "min": 499.1734414619364,
+     "ciLow": 736.6359910099532,
+     "ciHigh": 747.3943271321492,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 228.41403519887606,
+     "p95": 257.7959143765271,
+     "min": 56.131967216074685,
+     "ciLow": 223.23551475209135,
+     "ciHigh": 235.4438861823849,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 423.2357256353053,
+     "p95": 594.5629114290443,
+     "min": 200.13952027441755,
+     "ciLow": 257.81065902579434,
+     "ciHigh": 480.74800526675386,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "disk-read",
@@ -267,7 +2571,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 6308.614445570932,
+     "p95": 7555.717633627442,
+     "min": 1398.8110842491226,
+     "ciLow": 6052.816338965529,
+     "ciHigh": 6531.484164993948,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 17425.78174094546,
+     "p95": 24801.264554941812,
+     "min": 1992.6565902435732,
+     "ciLow": 17168.977661279605,
+     "ciHigh": 17912.32512475855,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 21352.081093777448,
+     "p95": 23223.90318922858,
+     "min": 17894.665303933365,
+     "ciLow": 20939.47575691727,
+     "ciHigh": 21615.594356578003,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 11721.335232178422,
+     "p95": 13671.429473570455,
+     "min": 6689.5534090494975,
+     "ciLow": 11449.424066992719,
+     "ciHigh": 11884.315542234712,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 7530.659690968935,
+     "p95": 9303.108158205234,
+     "min": 475.77124562555633,
+     "ciLow": 6846.80719219567,
+     "ciHigh": 7757.375777416807,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 10780.838281801867,
+     "p95": 20150.27658681935,
+     "min": 5208.827291583506,
+     "ciLow": 9939.447581894417,
+     "ciHigh": 14053.276451955413,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "iops-write",
@@ -278,7 +2661,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 6674.076107774159,
+     "p95": 9095.696928820502,
+     "min": 3633.2025952817553,
+     "ciLow": 6439.7036709982485,
+     "ciHigh": 6963.1526282799,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 20959.57161139829,
+     "p95": 32080.11721842912,
+     "min": 313.0576576742578,
+     "ciLow": 20064.619760881167,
+     "ciHigh": 23151.778586859018,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 405.99383528642056,
+     "p95": 565.723454566116,
+     "min": 61.07976618792334,
+     "ciLow": 335.5069907517346,
+     "ciHigh": 462.40556660602283,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 8476.478769620548,
+     "p95": 14216.725097782348,
+     "min": 5203.703124109875,
+     "ciLow": 7799.402294398334,
+     "ciHigh": 9279.87044894319,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 6976.671989594304,
+     "p95": 8848.80289880659,
+     "min": 7.31340029992996,
+     "ciLow": 6660.4559572777125,
+     "ciHigh": 7307.9265718934985,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 353.42244835270344,
+     "p95": 412.86136432773026,
+     "min": 173.3357656674651,
+     "ciLow": 303.47509665100955,
+     "ciHigh": 373.37133382311384,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "iops-read",
@@ -289,7 +2751,86 @@
    "better": "higher",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 474327.9273536661,
+     "p95": 661592.7328191769,
+     "min": 57502.362426161744,
+     "ciLow": 455866.4311355321,
+     "ciHigh": 500302.9177825135,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 357538.71190391335,
+     "p95": 833519.0337315786,
+     "min": 37647.2249142307,
+     "ciLow": 338099.87963710073,
+     "ciHigh": 366110.7340154564,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 511597.7817392,
+     "p95": 532025.5310405429,
+     "min": 74356.6998076958,
+     "ciLow": 505148.19718718814,
+     "ciHigh": 513341.4264605915,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 427364.68481425015,
+     "p95": 462886.77802887675,
+     "min": 149127.7495936244,
+     "ciLow": 420517.30932999763,
+     "ciHigh": 433651.33382650214,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 298657.5634638234,
+     "p95": 347887.5437408985,
+     "min": 85757.34716262201,
+     "ciLow": 281081.76805234636,
+     "ciHigh": 303983.84735555167,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 220706.5886951223,
+     "p95": 607832.0104294012,
+     "min": 144939.10575968365,
+     "ciLow": 215802.47330030682,
+     "ciHigh": 233319.2673408345,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   },
   {
    "id": "network",
@@ -311,8 +2852,609 @@
    "better": "lower",
    "scale": 1,
    "comparable": true,
-   "values": []
+   "values": [
+    {
+     "provider": "e2b",
+     "n": 100,
+     "p50": 0.6135858000003935,
+     "p95": 0.8015104000001827,
+     "min": 0.43265619999992566,
+     "ciLow": 0.6012373999997322,
+     "ciHigh": 0.6309190000006737,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "daytona",
+     "n": 100,
+     "p50": 0.4342779517173767,
+     "p95": 0.6509993225336075,
+     "min": 0.27728602290153503,
+     "ciLow": 0.422469899058342,
+     "ciHigh": 0.4458877258002758,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 75,
+     "p50": 0.3821505233645439,
+     "p95": 0.5590079352259636,
+     "min": 0.34385211765766144,
+     "ciLow": 0.37840139120817184,
+     "ciHigh": 0.3939833492040634,
+     "successes": 75,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boxd",
+     "n": 100,
+     "p50": 1.6098012041766196,
+     "p95": 2.135203604120761,
+     "min": 1.4198410091921687,
+     "ciLow": 1.5836342005059123,
+     "ciHigh": 1.6358916007447988,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "freestyle",
+     "n": 100,
+     "p50": 4.926389793399721,
+     "p95": 24.61376303108409,
+     "min": 3.164494992233813,
+     "ciLow": 4.389730980619788,
+     "ciHigh": 5.670298403128982,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "tenki",
+     "n": 34,
+     "p50": 1.8212749999996447,
+     "p95": 2.8784800000011046,
+     "min": 1.4100618000000509,
+     "ciLow": 1.7522167999999283,
+     "ciHigh": 2.0030779999999027,
+     "successes": 34,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    }
+   ]
   }
  ],
- "coldSamples": {}
+ "coldSamples": {
+  "e2b": [
+   0.524,
+   0.531,
+   0.535,
+   0.56,
+   0.601,
+   0.608,
+   0.609,
+   0.772,
+   0.786,
+   0.793,
+   0.816,
+   0.821,
+   0.824,
+   0.825,
+   0.832,
+   0.834,
+   0.84,
+   0.847,
+   0.853,
+   0.854,
+   0.858,
+   0.858,
+   0.861,
+   0.869,
+   0.871,
+   0.872,
+   0.873,
+   0.874,
+   0.874,
+   0.887,
+   0.902,
+   0.909,
+   0.91,
+   0.91,
+   0.914,
+   0.914,
+   0.916,
+   0.917,
+   0.918,
+   0.921,
+   0.922,
+   0.933,
+   0.935,
+   0.942,
+   0.942,
+   0.944,
+   0.944,
+   0.948,
+   0.952,
+   0.954,
+   0.957,
+   0.958,
+   0.964,
+   0.969,
+   0.979,
+   0.989,
+   1.009,
+   1.017,
+   1.035,
+   1.042,
+   1.043,
+   1.059,
+   1.068,
+   1.084,
+   1.093,
+   1.093,
+   1.097,
+   1.13,
+   1.176,
+   1.21,
+   1.211,
+   1.226,
+   1.267,
+   1.64,
+   1.654,
+   1.746,
+   1.912,
+   1.918,
+   1.926,
+   2.206,
+   2.211,
+   2.237,
+   2.241,
+   2.268,
+   2.321,
+   2.378,
+   2.407,
+   2.456,
+   2.461,
+   2.499,
+   2.634,
+   2.748,
+   2.826,
+   2.853,
+   3.097,
+   3.098,
+   3.287,
+   3.426,
+   4.754,
+   5.643
+  ],
+  "daytona": [
+   0.701,
+   0.766,
+   0.779,
+   0.781,
+   0.785,
+   0.788,
+   0.788,
+   0.796,
+   0.828,
+   0.833,
+   0.845,
+   0.847,
+   0.851,
+   0.855,
+   0.877,
+   0.895,
+   0.899,
+   0.909,
+   0.909,
+   0.91,
+   0.916,
+   0.925,
+   0.927,
+   0.929,
+   0.935,
+   0.938,
+   0.942,
+   0.952,
+   0.97,
+   0.975,
+   0.979,
+   0.981,
+   0.988,
+   0.996,
+   0.997,
+   1.005,
+   1.007,
+   1.016,
+   1.017,
+   1.019,
+   1.031,
+   1.031,
+   1.037,
+   1.038,
+   1.056,
+   1.057,
+   1.099,
+   1.131,
+   1.134,
+   1.135,
+   1.147,
+   1.152,
+   1.201,
+   1.21,
+   1.225,
+   1.254,
+   1.259,
+   1.282,
+   1.284,
+   1.311,
+   1.314,
+   1.323,
+   1.33,
+   1.34,
+   1.432,
+   1.471,
+   1.49,
+   1.504,
+   1.576,
+   1.598,
+   1.615,
+   1.615,
+   1.752,
+   1.762,
+   1.82,
+   1.865,
+   1.866,
+   1.876,
+   1.926,
+   1.934,
+   1.959,
+   2.061,
+   2.064,
+   2.095,
+   2.183,
+   2.259,
+   2.309,
+   2.317,
+   2.357,
+   2.384,
+   2.419,
+   2.436,
+   2.657,
+   2.886,
+   3.017,
+   3.357,
+   3.871,
+   4.322,
+   4.53,
+   4.555
+  ],
+  "upstash": [
+   2.513,
+   2.52,
+   2.532,
+   2.536,
+   2.54,
+   2.541,
+   2.542,
+   2.545,
+   2.55,
+   2.55,
+   2.551,
+   2.552,
+   2.556,
+   2.557,
+   2.559,
+   2.562,
+   2.562,
+   2.565,
+   2.566,
+   2.567,
+   2.567,
+   2.567,
+   2.567,
+   2.569,
+   2.569,
+   2.571,
+   2.572,
+   2.58,
+   2.581,
+   2.595,
+   2.595,
+   2.613,
+   2.615,
+   2.622,
+   2.635,
+   2.636,
+   2.639,
+   2.65,
+   2.651,
+   2.652,
+   2.654,
+   2.654,
+   2.654,
+   2.659,
+   2.665,
+   2.667,
+   2.736,
+   2.758,
+   2.798,
+   3.032,
+   3.798,
+   4.581,
+   4.606,
+   4.615,
+   4.629,
+   4.682,
+   4.691,
+   4.714,
+   4.775,
+   5.45,
+   5.49,
+   5.648,
+   5.777,
+   6.168,
+   6.659,
+   6.691,
+   6.72,
+   6.899,
+   8.175,
+   8.684,
+   8.704,
+   9.054,
+   14.543,
+   26.174,
+   68.173
+  ],
+  "boxd": [
+   1.282,
+   1.283,
+   1.283,
+   1.285,
+   1.292,
+   1.293,
+   1.304,
+   1.307,
+   1.31,
+   1.311,
+   1.312,
+   1.314,
+   1.315,
+   1.316,
+   1.317,
+   1.317,
+   1.317,
+   1.326,
+   1.332,
+   1.336,
+   1.337,
+   1.339,
+   1.342,
+   1.342,
+   1.342,
+   1.343,
+   1.347,
+   1.351,
+   1.352,
+   1.354,
+   1.354,
+   1.355,
+   1.356,
+   1.357,
+   1.357,
+   1.357,
+   1.364,
+   1.368,
+   1.368,
+   1.37,
+   1.373,
+   1.373,
+   1.375,
+   1.376,
+   1.376,
+   1.377,
+   1.377,
+   1.379,
+   1.381,
+   1.382,
+   1.383,
+   1.385,
+   1.385,
+   1.387,
+   1.388,
+   1.388,
+   1.389,
+   1.396,
+   1.397,
+   1.4,
+   1.401,
+   1.403,
+   1.404,
+   1.415,
+   1.416,
+   1.422,
+   1.422,
+   1.427,
+   1.428,
+   1.435,
+   1.435,
+   1.466,
+   1.471,
+   1.473,
+   1.513,
+   1.535,
+   1.554,
+   1.678,
+   1.706,
+   1.861,
+   1.892,
+   1.942,
+   2.013,
+   2.036,
+   2.417,
+   2.512,
+   2.647,
+   3.517,
+   3.553,
+   3.691,
+   3.736,
+   3.756,
+   3.781,
+   3.801,
+   3.922,
+   4.189,
+   4.266,
+   4.398,
+   4.4,
+   5.462
+  ],
+  "freestyle": [
+   0.533,
+   0.546,
+   0.551,
+   0.554,
+   0.569,
+   0.573,
+   0.574,
+   0.575,
+   0.577,
+   0.578,
+   0.579,
+   0.582,
+   0.583,
+   0.587,
+   0.59,
+   0.591,
+   0.594,
+   0.599,
+   0.599,
+   0.602,
+   0.604,
+   0.605,
+   0.605,
+   0.611,
+   0.615,
+   0.616,
+   0.62,
+   0.621,
+   0.625,
+   0.625,
+   0.626,
+   0.626,
+   0.63,
+   0.63,
+   0.632,
+   0.635,
+   0.636,
+   0.638,
+   0.64,
+   0.642,
+   0.643,
+   0.646,
+   0.649,
+   0.649,
+   0.649,
+   0.65,
+   0.65,
+   0.652,
+   0.656,
+   0.657,
+   0.66,
+   0.662,
+   0.662,
+   0.668,
+   0.672,
+   0.675,
+   0.675,
+   0.676,
+   0.677,
+   0.681,
+   0.682,
+   0.686,
+   0.693,
+   0.711,
+   0.719,
+   0.719,
+   0.72,
+   0.724,
+   0.726,
+   0.742,
+   0.75,
+   0.761,
+   0.766,
+   0.769,
+   0.769,
+   0.791,
+   0.802,
+   0.808,
+   0.862,
+   0.877,
+   0.883,
+   0.92,
+   0.944,
+   1.073,
+   1.281,
+   1.409,
+   1.464,
+   2.132,
+   2.332,
+   2.413,
+   2.461,
+   2.704,
+   2.739,
+   2.759,
+   2.81,
+   2.861,
+   2.949,
+   3.041,
+   3.224,
+   3.254
+  ],
+  "tenki": [
+   0.782,
+   0.798,
+   0.81,
+   0.839,
+   0.844,
+   0.857,
+   0.869,
+   0.875,
+   0.875,
+   0.877,
+   0.879,
+   0.897,
+   0.905,
+   0.917,
+   1.059,
+   1.059,
+   1.078,
+   1.135,
+   1.154,
+   1.202,
+   1.212,
+   1.218,
+   1.231,
+   1.24,
+   1.323,
+   1.445,
+   1.471,
+   1.569,
+   1.657,
+   2.146,
+   2.96,
+   3.852,
+   4.549,
+   7.111
+  ]
+ }
 }

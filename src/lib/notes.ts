@@ -47,6 +47,7 @@ export const absentWhy: Record<TrackId, Notes> = {
     boat: "coming in the next update. Its account's daily create quota blocked this run.",
   },
   "same-spec": {
+    boat: "coming in the next update. Its account's daily create quota blocked this run.",
     superserve: "not in this track: its account caps templates at 2 vCPU, so it has no 4 vCPU machine to test.",
   },
 };
