@@ -674,8 +674,8 @@ export default function Page() {
                     label: "Hardware",
                     content: (
                       <>
-                        <ChartHead title="Hardware inside each sandbox" sub="Read from inside each sandbox" />
-                        <SpecSheet providers={track.providers} />
+                        <ChartHead title="Hardware inside each sandbox" sub="Chip, memory, cloud and region, and how each sandbox is isolated" />
+                        <SpecSheet providers={track.providers} track={track.id} />
                       </>
                     ),
                   },

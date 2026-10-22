@@ -2,6 +2,7 @@ import { TASKS_PER_PRICE, costBasis, costKinds, formatPerThousand, formatTaskCos
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Metric, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
+import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, measuredText, noRealPause, requestedText } from "@/lib/notes";
 import { providerName } from "@/lib/providers";
@@ -136,6 +137,22 @@ const allocationOf = (p: Track["providers"][number]) => ({
   pricedAt: p.pricingAllocation,
 });
 
+/** The hardware probe's findings, with how sure each one is. */
+function hardwareOf(id: ProviderId) {
+  const h = hardware[id];
+  return {
+    chip: h.chip,
+    family: h.family,
+    chipBasis: chipBasisLabel[h.chipBasis],
+    memory: h.memory.kind === "known" ? { type: h.memory.type, basis: h.memory.basis, detail: h.memory.detail } : { type: null, note: h.memory.why },
+    cloud: h.cloud,
+    region: h.region,
+    runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
+    hidden: h.hidden,
+    probed: probeDate,
+  };
+}
+
 function costOf(track: Track, id: ProviderId) {
   const c = track.costs[id];
   if (!c) return { kind: "none", perTaskUsd: null, note: "no cost data" };
@@ -174,6 +191,7 @@ function trackData(track: Track) {
         advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
         ranIn: p.hardware?.location[0]?.value ?? null,
         cpu: p.hardware?.cpuModels[0]?.value ?? null,
+        hardware: hardwareOf(p.id),
         sdkReady: sdk ? { median: round(sdk.p50), p95: round(sdk.p95), sdkSetupMedian: round(sdk.setupP50), coldStarts: sdk.n } : null,
         costPerTask: costOf(track, p.id),
         price: {
