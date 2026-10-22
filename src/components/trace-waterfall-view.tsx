@@ -299,7 +299,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 }
 
 const footnote = {
-  cold: "Medians. Not drawn: our ownership check between create() and the first command, which no number includes.",
+  cold: "Our SDK's setup after create has since been cut to about zero. It's being remeasured and returns in the next update.",
   pause: "Medians of each step.",
   replay: "Time per kind of call, added up over the median run, longest first.",
 } as const satisfies Record<TraceKind, string>;
@@ -370,7 +370,7 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
             </Legend>
           ))}
         {hasOurs ? <Legend style={barStyle({ id: "", name: "", sub: "", icon: "sdk", owner: "ours", start: 0, ms: 0, usd: null, children: [] }, "", false)} hatched>Ours: Sandbox SDK</Legend> : null}
-        <span className="sm:ml-auto">Ranked by provider time · pick a provider for its full trace</span>
+        <span className="sm:ml-auto">{kind === "cold" ? `${footnote.cold} ` : ""}Ranked by provider time · pick a provider for its full trace.</span>
       </div>
     </div>
   );

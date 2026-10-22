@@ -203,7 +203,6 @@ function trackData(track: Track) {
     absent: track.absent.map((id) => ({ provider: id, reason: absentNote(track, id) })),
     providers: track.providers.map((p) => {
       const rel = successRate(track, p);
-      const sdk = track.sdkReady[p.id];
       return {
         id: p.id,
         name: providerName(p.id),
@@ -213,7 +212,6 @@ function trackData(track: Track) {
         ranIn: p.hardware?.location[0]?.value ?? null,
         cpu: p.hardware?.cpuModels[0]?.value ?? null,
         hardware: hardwareOf(p.id),
-        sdkReady: sdk ? { median: round(sdk.p50), p95: round(sdk.p95), sdkSetupMedian: round(sdk.setupP50), coldStarts: sdk.n } : null,
         costPerTask: costOf(track, p.id),
         price: {
           currency: p.currency,
@@ -245,7 +243,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: each provider's default machine, and the same 4 vCPU, 8 GB machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks.default` compares each provider's default sandbox, so sizes differ; `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; `sdkReady` adds our SDK's setup and is ours, not the provider's. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); a task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run: never compare them as if they were the same kind without saying so.";
+  "Pick a track first: `tracks.default` compares each provider's default sandbox, so sizes differ; `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; it has since been cut to about zero and returns, remeasured, in the next update. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); a task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run: never compare them as if they were the same kind without saying so.";
 
 /** Everything on the page as one JSON document, both tracks, for agents and scripts. */
 export function agentData() {
@@ -290,12 +288,6 @@ function trackMarkdown(id: TrackId) {
     ...d.providers.flatMap((p) => ("basis" in p.costPerTask ? [`Cost on ${p.name}: ${p.costPerTask.basis}.`] : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}).`])),
     "",
   );
-  const sdk = d.providers.filter((p) => p.sdkReady);
-  if (sdk.length) {
-    lines.push("## Ready through Sandbox SDK", "", "Cold start plus our SDK's setup. The setup is ours, not the provider's.", "", "| Provider | Ready through SDK, median | Our SDK setup, median |", "| --- | --- | --- |");
-    for (const p of sdk) lines.push(`| ${p.name} | ${cell(p.sdkReady?.median ?? null, { unit: "s" })} | ${cell(p.sdkReady?.sdkSetupMedian ?? null, { unit: "s" })} |`);
-    lines.push("");
-  }
   for (const g of groups) {
     lines.push(`## ${g.title}`, "");
     for (const metricId of g.ids) {

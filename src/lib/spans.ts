@@ -77,13 +77,13 @@ export function buildTrace({ track, provider, kind }: { track: TrackId; provider
       // Our ownership check and journal write sit between create and the first
       // command in the raw run. No published number includes them, so the trace
       // leaves them out and the view says so in a footnote.
-      const [create, first, sdk] = chain(0, [
+      // Our SDK's setup is left out until it is remeasured on the faster SDK.
+      const [create, first] = chain(0, [
         { id: "create", name: "create()", sub: "provider API", icon: "create", owner: "provider", ms: m.create },
         { id: "first", name: "First command", sub: "echo ok", icon: "command", owner: "provider", ms: m.firstCommand },
-        { id: "sdk", name: "SDK setup", sub: "Sandbox SDK", icon: "sdk", owner: "ours", ms: m.sdkSetup },
       ]);
-      if (!create || !first || !sdk) return null;
-      const children = [create, first, sdk];
+      if (!create || !first) return null;
+      const children = [create, first];
       const total = sumMs(children);
       return {
         kind,

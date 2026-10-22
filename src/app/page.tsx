@@ -13,7 +13,6 @@ import { Reliability } from "@/components/reliability";
 import { Ridgelines } from "@/components/ridgelines";
 import { Scatter, linearTicks, logTicks } from "@/components/scatter";
 import type { ScatterPoint } from "@/components/scatter";
-import { SdkReadyChart, hasSdkReady } from "@/components/sdk-ready";
 import { JumpLink } from "@/components/jump";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
@@ -377,8 +376,8 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Cold start",
-    line: "Timed from create() until a first command runs; our SDK's own setup is timed separately.",
-    more: "The command is a bare true. Setup after that point is shown as Ready through Sandbox SDK and is never part of cold start or bursts.",
+    line: "Timed from create() until a first command runs: the provider's own time.",
+    more: "The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. Our SDK's setup after create has since been cut to about zero. It's being remeasured and returns in the next update.",
   },
   {
     term: "Runs",
@@ -475,7 +474,7 @@ export default function Page() {
         <Section
           id="startup"
           title="Start-up"
-          lede="Cold start is the wait before an agent can do anything: from create() until the first command runs, the provider's own time. Ready through Sandbox SDK adds the setup our SDK does after that, marked as ours."
+          lede="Cold start is the wait before an agent can do anything: from create() until the first command runs, the provider's own time."
         >
           <PerTrack>
             {(track) => (
@@ -483,7 +482,6 @@ export default function Page() {
                 label="Start-up" section="startup"
                 tabs={[
                   ...metricTabs(track, [{ id: "cold", what: "create() to first command, without our SDK's setup", tab: "Cold start", notes: machineNotes(track) }]),
-                  ...(hasSdkReady(track) ? [{ id: "sdk-ready", label: "Ready through Sandbox SDK", content: <SdkReadyChart track={track} /> }] : []),
                   {
                     id: "cold-all",
                     label: "Every cold start",

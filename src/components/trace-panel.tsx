@@ -308,7 +308,6 @@ function ColdView({ data, provider }: { data: { n: number; median: ColdPhases };
     { label: "Ownership check", what: "We confirm the sandbox belongs to this run. Paused out of the clock.", ms: m.verify, owner: "ours", counted: false },
     { label: "Journal write", what: "We record the sandbox so cleanup can find it. Paused out of the clock.", ms: m.persist, owner: "ours", counted: false },
     { label: "First command", what: "A bare true command runs in the new sandbox", ms: m.firstCommand, owner: "provider", counted: true },
-    { label: "Sandbox SDK setup", what: "Our SDK prepares its handle. Shown on Ready through Sandbox SDK, never in cold start.", ms: m.sdkSetup, owner: "ours", counted: false },
   ];
   return (
     <>
