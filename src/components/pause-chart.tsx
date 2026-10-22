@@ -43,7 +43,7 @@ function pauseNotes(track: Track, marks: ReadonlyMap<ProviderId, number>, extra:
     ...extra,
     ...restart.map((p) => ({ text: <><Who id={p.id} />: not supported. {noRealPause[p.id]} We don&apos;t time a restart as a pause.</> })),
     ...(missing.length > 0 ? [{ text: <>No result for {list(missing)} (no pause support).</> }] : []),
-    ...trackFootnotes(track),
+    ...trackFootnotes(track, "pause-resume"),
   ];
 }
 

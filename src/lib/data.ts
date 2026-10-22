@@ -82,6 +82,10 @@ export interface Track {
   sdkReady: Partial<Record<ProviderId, SdkReady>>;
   /** Providers in another track that this one leaves out. */
   absent: readonly ProviderId[];
+  /** Where a chart's data comes from when it is not the track's main run, keyed by metric id or "cost". */
+  sourceNotes: Readonly<Record<string, string>>;
+  /** Why a provider has no result on a chart, from the data, keyed by metric id then provider. */
+  missing: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Built from the local preview fixture: never real numbers. */
   preview: boolean;
 }
@@ -140,6 +144,8 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
     costs: Object.fromEntries(raw.providers.flatMap((p) => (isProviderId(p.id) ? [[p.id, readCostPerTask(p)]] : []))),
     sdkReady: Object.fromEntries(providers.flatMap((p) => { const s = extra(p.id)?.sdkReady; return s ? [[p.id, s]] : []; })),
     preview: raw.generatedFrom.startsWith("preview-fixture"),
+    sourceNotes: raw.sourceNotes ?? {},
+    missing: raw.missing ?? {},
   };
 }
 

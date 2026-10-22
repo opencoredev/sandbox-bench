@@ -70,7 +70,7 @@ export function CostPerTaskChart({ track }: { track: Track }) {
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),
           { text: "Usage charges only: credits, tax and plan minimums are left out." },
-          ...trackFootnotes(track),
+          ...trackFootnotes(track, "cost"),
         ]}
       />
     </>

@@ -370,7 +370,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
     line: "Default machines compares each provider's default sandbox; Same machine asks every provider for 4 vCPU and 8 GB.",
     more: (
       <>
-        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve is left out of Same machine because its account caps templates at 2 vCPU. Every chart marks a machine that differs from its track.
+        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
       </>
     ),
   },
@@ -382,7 +382,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Tenki's Same machine run stopped at 78 of 100 cold starts; each chart shows its attempt count. Default timings come from one run; snapshots, bursts, Same machine and cost come from a later run whose code changes touched only cleanup. Download speed is left out because the test host rate-limited several providers. Boat joins in the next update.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every main-suite chart, cold start and SDK setup included, comes from one run per track on our faster SDK (commit 1185278). Pause and resume, snapshots, bursts and cost are still from the previous run (SDK a2316c3), and each of those charts says so; they move to the new run in the next update. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Boat joins in the next update.",
   },
   {
     term: "Cost",
@@ -402,7 +402,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve caps templates at 2 vCPU, so it is not in Same machine. Boat allows 200 creates a day. Daytona's 10 vCPU quota stopped its 4 vCPU snapshot and burst tests. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Daytona's 10 vCPU quota stopped its 4 vCPU snapshot and burst tests. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",

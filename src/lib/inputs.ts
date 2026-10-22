@@ -110,6 +110,10 @@ export interface SiteExport {
   providers: readonly SiteProviderExport[];
   metrics: readonly SiteMetricExport[];
   coldSamples: Readonly<Record<string, readonly number[]>>;
+  /** Where a chart's data comes from when it is not this export's main run, keyed by metric id or "cost". */
+  sourceNotes?: Readonly<Record<string, string>>;
+  /** Why a provider has no result on a chart, worked out from the runs, keyed by metric id then provider. */
+  missing?: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }
 
 export interface ExtrasProviderExport {

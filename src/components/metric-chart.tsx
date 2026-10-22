@@ -63,9 +63,11 @@ const better = (m: Metric) => (m.better === "lower" ? "Lower is better" : "Highe
 
 export const metricSubtitle = (m: Metric, what: string) => `${what} · Median ${unitName[m.unit]} · ${better(m)}`;
 
-/** Footnotes every chart in a track carries: machines that differ from the track's, and providers the track leaves out. */
-export const trackFootnotes = (track: Track) =>
-  track.absent.map((id) => ({ text: <><Who id={id} />: {absentNote(track, id)}</> }));
+/** Footnotes every chart in a track carries: providers the track leaves out, and where this chart's data came from if not the main run. */
+export const trackFootnotes = (track: Track, source?: string) => [
+  ...track.absent.map((id) => ({ text: <><Who id={id} />: {absentNote(track, id)}</> })),
+  ...(source && track.sourceNotes[source] ? [{ text: track.sourceNotes[source] }] : []),
+];
 
 export { sentence };
 
@@ -107,7 +109,7 @@ export function MetricChart({
         <Footnotes
           items={[
             ...Object.entries(own).flatMap(([id, note]) => (isProviderId(id) && note ? [{ text: <><Who id={id} />: {sentence(note)}</> }] : [])),
-            ...trackFootnotes(track),
+            ...trackFootnotes(track, metric.id),
           ]}
         />
       </>
@@ -175,7 +177,7 @@ export function MetricChart({
                   },
                 ]
               : []),
-            ...trackFootnotes(track),
+            ...trackFootnotes(track, metric.id),
           ]}
         />
       )}

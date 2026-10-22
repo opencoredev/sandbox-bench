@@ -5,7 +5,7 @@ import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, measuredText, noRealPause, requestedText } from "@/lib/notes";
-import { providerName } from "@/lib/providers";
+import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
@@ -26,8 +26,10 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // Tests with no published result for a provider, with the reason, per track. Shown only where the
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
+const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
 const daytonaSnapshotQuota = "not-run: our Daytona account's 10 vCPU quota kept its 4 vCPU snapshot tests from running";
-export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>> = {
+type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
+const handNotRun: NotRun = {
   default: {
     "burst-25": {
       boxd: "stopped-early: one of its three bursts of 25 was cut short by our own ownership check (16 creates and 5 deletes failed on our side), so it is not counted; coming in the next update",
@@ -36,18 +38,33 @@ export const notRun: Record<TrackId, Partial<Record<string, Partial<Record<Provi
     },
   },
   "same-spec": {
-    snapshot: { daytona: daytonaSnapshotQuota },
-    "create-from-snapshot": { daytona: daytonaSnapshotQuota },
+    snapshot: { superserve: superserveJoins, daytona: daytonaSnapshotQuota },
+    "create-from-snapshot": { superserve: superserveJoins, daytona: daytonaSnapshotQuota },
     "burst-10": {
+      superserve: superserveJoins,
       boxd: "stopped-early: one of its three bursts of 10 was cut short by our own ownership check (1 create failed on our side), so it is not counted; coming in the next update",
       daytona: "not-run: our Daytona account's 10 vCPU quota can't hold ten 4 vCPU sandboxes at once",
     },
     "burst-25": {
+      superserve: superserveJoins,
       upstash: "stopped-early: its third burst of 25 never started, because our harness still had one of its own sandboxes open and Upstash's 25-sandbox account cap left no room; not counted; coming in the next update",
       daytona: "not-run: our Daytona account's 10 vCPU quota can't hold 25 4 vCPU sandboxes at once",
     },
   },
 };
+
+/** The hand-written reasons above plus the ones each track's data works out from its runs; the data wins for a provider it names. */
+function withData(id: TrackId): NotRun[TrackId] {
+  const fromData = tracks[id].missing;
+  const out: NotRun[TrackId] = {};
+  for (const m of new Set([...Object.keys(handNotRun[id]), ...Object.keys(fromData)])) {
+    const row: Partial<Record<ProviderId, string>> = { ...handNotRun[id][m] };
+    for (const [pid, why] of Object.entries(fromData[m] ?? {})) if (isProviderId(pid)) row[pid] = why;
+    out[m] = row;
+  }
+  return out;
+}
+export const notRun: NotRun = { default: withData("default"), "same-spec": withData("same-spec") };
 
 /** A notRun reason as chart text: "not run: …", or the reason alone for a stopped run. */
 export const notRunText = (why: string) => why.replace(/^not-run: /, "not run: ").replace(/^stopped-early: /, "");
@@ -359,7 +376,7 @@ The page shows one track at a time: \`/?track=same-spec\` opens the same-machine
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, and any snapshot or burst a chart marks as coming. Default-machine timings come from one run on one harness commit. Snapshots, bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki's same-machine run stopped early at 78 of 100 cold starts; each chart shows its attempt count. A burst size is published for a provider only when all three of its bursts finished, and a chart names the reason for any provider it leaves out. Failures caused by our own code are set aside, not counted. Boat will be added in the next update.
+Boat, and any snapshot or burst a chart marks as coming. Every main-suite result, cold start and SDK setup included, comes from one run per track on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume, snapshots, bursts and cost are still from the previous run (SDK a2316c3), and each of those charts says so. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
