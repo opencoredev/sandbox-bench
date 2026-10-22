@@ -482,12 +482,12 @@
    "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
    "reliability": {
     "successes": 2204,
-    "failures": 3,
-    "raw": 0.9986406887177164,
-    "adjusted": 0.9986406887177164,
+    "failures": 1,
+    "raw": 0.999546485260771,
+    "adjusted": 0.999546485260771,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 3
+    "provider": 1
    },
    "hardware": {
     "fingerprints": 99,
@@ -522,11 +522,9 @@
     {
      "kind": "provider-operation",
      "reason": "Upstash Box exec failed (provider). (provider)",
-     "count": 3,
-     "runs": 3,
+     "count": 1,
+     "runs": 1,
      "tests": [
-      "cold",
-      "tool-replay",
       "Cold start"
      ]
     }
