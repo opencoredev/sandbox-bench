@@ -1,43 +1,35 @@
+import type { ReactNode } from "react";
+
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, ComingNext, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
-import { Marker } from "@/components/scatter";
-import { costBasis, costKinds, formatPerThousand, formatTaskCost, hasTaskCosts, perPriceLabel, pricedKinds, pricedTasks, unpricedTasks } from "@/lib/cost";
+import { costSource, formatPerThousand, hasTaskCosts, notFromBill, perPriceLabel, pricedTasks, unpricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
-import { fillStyle } from "@/lib/dither";
 import { allocationNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 /** What a task is, said the same way everywhere it is priced. */
-export const taskDefinition =
-  "A task is: create a sandbox, run the 100-call tool replay, delete it. Each was its own sandbox in a separate cost run, billed per sandbox.";
+export const taskDefinition = "One task = create a sandbox, run 100 tool calls, delete it";
 
 /** Stands in for a cost chart until the cost run has results. */
 export const NoCostResults = ({ compact = false }: { compact?: boolean }) => (
   <ComingNext compact={compact}>Cost per task comes from a separate cost run, billed per sandbox.</ComingNext>
 );
 
-/** The swatches that tell billed, metered and estimated costs apart, for the kinds a chart shows. */
-export function CostLegend({ track, shape = "fill" }: { track: Track; shape?: "fill" | "marker" }) {
-  const kinds = pricedKinds.filter((k) => pricedTasks(track).some((t) => t.cost.kind === k));
-  return (
-    <ul className="mb-5 flex flex-wrap gap-x-5 gap-y-2 text-[12px] text-[var(--muted)]">
-      {kinds.map((k) => (
-        <li key={k} className="flex items-center gap-2">
-          {shape === "fill" ? (
-            <span aria-hidden className="inline-block size-3 shrink-0" style={fillStyle(costKinds[k].fill, { color: "var(--foreground)" })} />
-          ) : (
-            <Marker kind={k} color="var(--foreground)" />
-          )}
-          {costKinds[k].long}
-        </li>
-      ))}
-    </ul>
-  );
+const names = (ids: readonly ProviderId[]) => ids.map((id, i) => <span key={id}>{i > 0 ? (i === ids.length - 1 ? " and " : ", ") : ""}<Who id={id} /></span>);
+
+/** The one visible note naming providers whose figure is not straight from a bill, and how they were priced. Empty once every figure is billed. */
+export function NotFromBill({ track }: { track: Track }) {
+  const groups = notFromBill(track);
+  if (groups.length === 0) return null;
+  const parts: ReactNode[] = groups.map(({ kind, ids, source }, i) => (
+    <span key={kind}>{i > 0 ? "; " : ""}{names(ids)}: {source}</span>
+  ));
+  return <p className="mt-3 text-[12px] leading-snug text-pretty text-[var(--muted)]">Not from a bill yet. {parts}.</p>;
 }
 
-/** Columns of cost per task, cheapest first, each drawn in its kind's fill. */
+/** Columns of cost per task, cheapest first, all drawn alike. */
 export function costColumns(track: Track) {
   const machine = allocationNotes(track);
   let next = 0;
@@ -46,42 +38,38 @@ export function costColumns(track: Track) {
     provider: id,
     label: formatPerThousand(cost.usd),
     mark: marks.get(id),
-    segments: [{ value: cost.usd, color: providerColor(id), variant: costKinds[cost.kind].fill }],
-    detail: [`${costKinds[cost.kind].label} ${formatPerThousand(cost.usd)} ${perPriceLabel}`, `${formatTaskCost(cost.usd)} for one task`, costBasis(cost)],
+    segments: [{ value: cost.usd, color: providerColor(id), variant: "gradient" }],
+    detail: [`${formatPerThousand(cost.usd)} ${perPriceLabel}`, costSource(id, cost)],
   }));
   return { columns, marks };
 }
 
-/** Cost per task from the cost run, never mixing billed, metered and estimated silently. */
+/** Cost per task from the cost run. */
 export function CostPerTaskChart({ track }: { track: Track }) {
-  const head = <ChartHead title="Cost per 1,000 tasks" sub="Create a sandbox, run the 100-call tool replay, delete it · US dollars per 1,000 tasks · Lower is better" />;
+  const head = <ChartHead title="Cost per 1,000 tasks" sub={`${taskDefinition} · From each provider's bill · US dollars · Lower is better`} />;
   if (!hasTaskCosts(track))
     return (
       <>
         {head}
         <NoCostResults />
-        <Footnotes items={[{ text: taskDefinition }]} />
       </>
     );
   const { columns, marks } = costColumns(track);
   const machine = allocationNotes(track);
-  const estimates = pricedTasks(track).filter(({ cost }) => cost.kind === "estimate");
   const missing = unpricedTasks(track);
-  const names = (ids: readonly { id: ProviderId }[]) => ids.map(({ id }, i) => <span key={id}>{i > 0 ? ", " : ""}<Who id={id} /></span>);
   return (
     <>
       {head}
-      <CostLegend track={track} />
-      <Columns columns={columns} label="Cost per task by provider" />
+      <Columns columns={columns} label="Cost per 1,000 tasks by provider" />
+      <NotFromBill track={track} />
       <Footnotes
         items={[
           ...[...marks].map(([id, mark]) => ({ mark, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
-          { text: taskDefinition },
-          ...(estimates.length > 0 ? [{ text: <>{names(estimates)}: list-price estimates, because billing gives no amount for them.</> }] : []),
+          { text: "Each task ran in its own sandbox, 10 per provider, in a separate cost run. The bar is the median." },
           ...(missing.length > 0
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),
-          { text: "Billed and metered amounts are usage charges before credits, tax and plan minimums, not invoices. Estimates use compute list price only; disk, transfer and subscriptions are left out." },
+          { text: "Usage charges only: credits, tax and plan minimums are left out." },
           ...trackFootnotes(track),
         ]}
       />

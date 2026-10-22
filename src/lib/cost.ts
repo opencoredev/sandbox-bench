@@ -1,23 +1,20 @@
-import type { FillVariant } from "@/lib/dither";
 import type { TaskCost, Track } from "@/lib/data";
+import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 type Priced = Exclude<TaskCost, { kind: "none" }>;
 export type PricedKind = Priced["kind"];
 
 /**
- * How each kind of cost is named and drawn. Billed is the provider's own
- * charge, metered is the provider's usage at its published rates, an estimate
- * is our list-price arithmetic. Each gets its own fill so they never read as
- * one series.
+ * Where each kind of cost came from, in plain words. Charts draw every kind
+ * the same way; only a figure that is not straight from a bill gets named,
+ * once, under the chart.
  */
 export const costKinds = {
-  billed: { label: "Billed", long: "Billed: the provider's own usage charge", fill: "gradient" },
-  metered: { label: "Metered", long: "Metered: the provider's recorded usage at its published rates", fill: "hatched" },
-  estimate: { label: "Estimate", long: "Estimate: list price, where the provider's billing gives no amount", fill: "dotted" },
-} as const satisfies Record<PricedKind, { label: string; long: string; fill: FillVariant }>;
-
-export const pricedKinds = ["billed", "metered", "estimate"] as const satisfies readonly PricedKind[];
+  billed: { label: "Billed", source: "from its bill" },
+  metered: { label: "Metered", source: "their own usage records at published rates" },
+  estimate: { label: "Estimate", source: "our measured time at list price" },
+} as const satisfies Record<PricedKind, { label: string; source: string }>;
 
 export const isPriced = (c: TaskCost): c is Priced => c.kind !== "none";
 
@@ -65,3 +62,16 @@ export const unpricedTasks = (track: Track) =>
 /** One line on where a cost came from, for hover cards and agent files. */
 export const costBasis = (c: Priced) =>
   `${costKinds[c.kind].label} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}`;
+
+/** The second line of a hover card: what the amount is, without jargon. */
+export const costSource = (id: ProviderId, c: Priced) =>
+  `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}`;
+
+/** Providers whose figure is not straight from a bill, grouped by how it was priced, for the one note under a cost chart. */
+export function notFromBill(track: Track) {
+  const kinds = ["metered", "estimate"] as const satisfies readonly PricedKind[];
+  return kinds.flatMap((kind) => {
+    const ids = pricedTasks(track).flatMap(({ id, cost }) => (cost.kind === kind ? [id] : []));
+    return ids.length > 0 ? [{ kind, ids, source: costKinds[kind].source }] : [];
+  });
+}

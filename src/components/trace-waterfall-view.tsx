@@ -164,7 +164,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
   const [kind, setKind] = useState<TraceKind>("cold");
   const provider = pick === "all" ? undefined : usable.find((p) => p.id === pick);
   const activeKind = provider && !hasTrace(track, kind, provider.id) ? (traceKinds.find((k) => hasTrace(track, k, provider.id)) ?? kind) : kind;
-  const trace = useMemo(() => (provider ? buildTrace({ track, provider: provider.id, kind: activeKind, costUsd: provider.costUsd }) : null), [track, provider, activeKind]);
+  const trace = useMemo(() => (provider ? buildTrace({ track, provider: provider.id, kind: activeKind }) : null), [track, provider, activeKind]);
 
   const [collapsedFor, setCollapsedFor] = useState<{ key: string; ids: ReadonlySet<string> } | null>(null);
   const key = `${pick}:${activeKind}`;
@@ -217,10 +217,13 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
   if (!provider || !trace) return null;
   const color = providerColor(provider.id);
-  const { max, ticks } = axis(trace.total);
+  // A breakdown has no shared clock: scale to its longest bar, drop the root row and the playhead.
+  const breakdown = trace.layout === "breakdown";
+  const { max, ticks } = axis(breakdown ? Math.max(...trace.root.children.map((c) => c.ms)) : trace.total);
   const pct = (ms: number) => `${(ms / max) * 100}%`;
-  const slowest = leaves(trace.root).reduce<Span | undefined>((a, s) => (!a || s.ms > a.ms ? s : a), undefined);
-  const rows = flatten(trace.root, collapsed, slowest);
+  // Sequential steps get a SLOWEST badge; the replay breakdown is already sorted by time.
+  const slowest = trace.kind === "replay" ? undefined : leaves(trace.root).reduce<Span | undefined>((a, s) => (!a || s.ms > a.ms ? s : a), undefined);
+  const rows = breakdown ? trace.root.children.map((span) => ({ span, depth: 0, open: false, strip: false })) : flatten(trace.root, collapsed, slowest);
   const ours = trace.total - trace.providerMs;
   const failures = provider.failures[activeKind];
   const playhead = trace.total;
@@ -255,7 +258,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
         <div className="relative">
         <div ref={scroller} className="peer max-h-[560px] overflow-auto overscroll-x-contain [--span-col:132px] [--wf-indent:8px] sm:[--span-col:280px] sm:[--wf-indent:14px]">
-          <div className="relative grid min-w-[640px] grid-cols-[var(--span-col)_1fr] sm:min-w-0">
+          <div className={`relative grid grid-cols-[var(--span-col)_1fr] sm:min-w-0 ${breakdown ? "" : "min-w-[640px]"}`}>
             {/* Time axis */}
             <div className="sticky top-0 left-0 z-30 flex h-9 items-center border-r border-b border-[var(--wf-line)] bg-[var(--wf-card)] pl-4 text-[10.5px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase sm:pl-5">Span</div>
             <div className="sticky top-0 z-20 h-9 border-b border-[var(--wf-line)] bg-[var(--wf-card)]">
@@ -264,7 +267,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
                   {tickLabel(t, max)}
                 </span>
               ))}
-              <span aria-hidden className="absolute bottom-[-4px] z-10 size-[7px] -translate-x-1/2 rounded-full" style={{ left: pct(playhead), background: color }} />
+              {breakdown ? null : <span aria-hidden className="absolute bottom-[-4px] z-10 size-[7px] -translate-x-1/2 rounded-full" style={{ left: pct(playhead), background: color }} />}
             </div>
 
             {/* Gridlines and playhead, under the rows */}
@@ -272,7 +275,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
               {ticks.map((t) => (
                 <span key={t} className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.05)]" style={{ left: pct(t) }} />
               ))}
-              <span className="absolute inset-y-0 z-10 w-px" style={{ left: pct(playhead), background: `color-mix(in oklch, ${color} 70%, transparent)` }} />
+              {breakdown ? null : <span className="absolute inset-y-0 z-10 w-px" style={{ left: pct(playhead), background: `color-mix(in oklch, ${color} 70%, transparent)` }} />}
             </div>
 
             <ul key={key} className="contents">
@@ -298,7 +301,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 const footnote = {
   cold: "Medians. Not drawn: our ownership check between create() and the first command, which no number includes.",
   pause: "Medians of each step.",
-  replay: "$ per call is the task's cost split by time.",
+  replay: "Time per kind of call, added up over the median run, longest first.",
 } as const satisfies Record<TraceKind, string>;
 
 /** Every provider's trace as one stacked bar on a shared axis; a row opens that provider's tree. */

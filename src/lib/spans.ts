@@ -28,6 +28,8 @@ export interface Span {
 
 export interface Trace {
   kind: TraceKind;
+  /** A timeline lays steps end to end; a breakdown starts every bar at zero. */
+  layout: "timeline" | "breakdown";
   title: string;
   /** What a sample is, for the stat strip: "median of 100 starts". */
   basis: string;
@@ -65,7 +67,7 @@ const opInfo = {
   test: { name: "test", sub: "run tests" },
 } as const satisfies Record<ReplayOp, { name: string; sub: string }>;
 
-export function buildTrace({ track, provider, kind, costUsd }: { track: TrackId; provider: ProviderId; kind: TraceKind; costUsd: number | null }): Trace | null {
+export function buildTrace({ track, provider, kind }: { track: TrackId; provider: ProviderId; kind: TraceKind }): Trace | null {
   const t = providerTrace(track, provider);
   if (!t) return null;
   switch (kind) {
@@ -85,6 +87,7 @@ export function buildTrace({ track, provider, kind, costUsd }: { track: TrackId;
       const total = sumMs(children);
       return {
         kind,
+        layout: "timeline",
         title: "Cold start",
         basis: `median of ${t.cold.n} starts`,
         total,
@@ -104,6 +107,7 @@ export function buildTrace({ track, provider, kind, costUsd }: { track: TrackId;
       const total = sumMs(children);
       return {
         kind,
+        layout: "timeline",
         title: "Pause + resume",
         basis: `median of ${t.pause.n} cycles`,
         total,
@@ -114,27 +118,25 @@ export function buildTrace({ track, provider, kind, costUsd }: { track: TrackId;
     }
     case "replay": {
       if (!t.replay) return null;
-      const calls = chain(
-        0,
-        t.replay.sample.map((s, i) => ({ id: `call-${i}`, name: `${opInfo[s.op].name} #${i + 1}`, sub: opInfo[s.op].sub, icon: s.op, owner: "provider", ms: s.ms })),
-      );
-      const total = sumMs(calls);
-      const share = (ms: number) => (costUsd === null || total === 0 ? null : (costUsd * ms) / total);
-      const priced = calls.map((c) => ({ ...c, usd: share(c.ms) }));
+      // One bar per kind of call: the time the median run spent on it, all
+      // calls of that kind added up. The per-call timeline was too busy to read.
+      const sample = t.replay.sample;
       const groups: Span[] = replayOps.flatMap((op) => {
-        const mine = priced.filter((c) => c.icon === op);
+        const mine = sample.filter((s) => s.op === op);
         if (mine.length === 0) return [];
-        const ms = sumMs(mine);
-        return [{ id: op, name: opInfo[op].name, sub: opInfo[op].sub, icon: op, owner: "provider", start: extent(mine).start, ms, usd: share(ms), children: mine }];
+        const ms = mine.reduce((sum, s) => sum + s.ms, 0);
+        return [leaf({ id: op, name: opInfo[op].name, sub: `${mine.length} call${mine.length === 1 ? "" : "s"}`, icon: op, owner: "provider", start: 0, ms })];
       });
+      const total = sumMs(groups);
       return {
         kind,
+        layout: "breakdown",
         title: "Tool replay",
         basis: `median of ${t.replay.n} runs`,
         total,
         providerMs: total,
-        calls: calls.length,
-        root: { id: "root", name: "Tool replay", sub: `${calls.length} calls`, icon: "trace", owner: "provider", start: 0, ms: total, usd: costUsd, children: groups },
+        calls: sample.length,
+        root: { id: "root", name: "Tool replay", sub: `${sample.length} calls`, icon: "trace", owner: "provider", start: 0, ms: total, usd: null, children: [...groups].sort((x, y) => y.ms - x.ms) },
       };
     }
     default: {
@@ -166,7 +168,7 @@ export interface CompareRow {
 export function compareTrace(track: TrackId, kind: TraceKind, providers: readonly ProviderId[]): CompareRow[] {
   return providers
     .flatMap((provider) => {
-      const trace = buildTrace({ track, provider, kind, costUsd: null });
+      const trace = buildTrace({ track, provider, kind });
       if (!trace) return [];
       const steps = trace.root.children.map((c) => ({ id: c.id, name: c.name, owner: c.owner, ms: c.ms }));
       return [{ provider, providerMs: trace.providerMs, total: trace.total, steps }];

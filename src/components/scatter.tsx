@@ -1,7 +1,4 @@
-import type { CSSProperties } from "react";
-
-import { costKinds, formatPerThousand, perPriceLabel, pricedKinds } from "@/lib/cost";
-import type { PricedKind } from "@/lib/cost";
+import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -12,33 +9,9 @@ export interface ScatterPoint {
   x: number;
   /** US dollars per task. */
   y: number;
-  /** Where the cost came from; each kind has its own marker shape. */
-  kind: PricedKind;
-  /** Extra context after the name, such as the machine the time was measured on. */
-  tag?: string;
+  /** Hover-card lines after the name and the two values, such as the machine it ran on. */
+  detail: readonly string[];
 }
-
-/** Filled circle for billed, filled diamond for metered, hollow ring for estimates: shape, not only colour, tells them apart. */
-function markerStyle(kind: PricedKind, color: string): CSSProperties {
-  switch (kind) {
-    case "billed":
-      return { backgroundColor: color, borderRadius: 9999 };
-    case "metered":
-      return { backgroundColor: color, rotate: "45deg", scale: "0.85" };
-    case "estimate":
-      return { border: `2px solid ${color}`, borderRadius: 9999, backgroundColor: "var(--surface)" };
-    default: {
-      const _exhaustive: never = kind;
-      return _exhaustive;
-    }
-  }
-}
-
-export const Marker = ({ kind, color }: { kind: PricedKind; color: string }) => (
-  <span aria-hidden className="relative inline-block size-3 shrink-0">
-    <span className="absolute top-1/2 left-1/2 size-[10px] -translate-x-1/2 -translate-y-1/2" style={markerStyle(kind, color)} />
-  </span>
-);
 
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
@@ -90,7 +63,7 @@ export function Scatter({
   const mx = fx(median(points.map((p) => p.x)));
   const my = fy(median(points.map((p) => p.y)));
   const summary = points
-    .map((p) => `${providerName(p.provider)}${p.tag ? ` (${p.tag})` : ""}: ${formatValue(p.x, "s")}, ${costKinds[p.kind].label.toLowerCase()} ${formatPerThousand(p.y)} ${perPriceLabel}`)
+    .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
 
   return (
@@ -100,12 +73,6 @@ export function Scatter({
           <span aria-hidden className="size-3 rounded-[2px] border" style={{ backgroundColor: `color-mix(in oklch, ${QUADRANT} 16%, transparent)`, borderColor: `color-mix(in oklch, ${QUADRANT} 45%, transparent)` }} />
           Faster and cheaper than the median
         </span>
-        {pricedKinds.filter((k) => points.some((p) => p.kind === k)).map((k) => (
-          <span key={k} className="flex items-center gap-1.5">
-            <Marker kind={k} color="var(--foreground)" />
-            {costKinds[k].label}
-          </span>
-        ))}
       </div>
 
       <div className="flex">
@@ -114,8 +81,9 @@ export function Scatter({
             {yTitle}
           </span>
         </div>
-        <div className="relative h-[340px] min-w-0 flex-1 sm:h-[420px]" aria-hidden>
+        <div className="relative h-[340px] min-w-0 flex-1 sm:h-[420px]">
           <div
+            aria-hidden
             className="absolute"
             style={{
               left: along(0, "x"),
@@ -128,51 +96,76 @@ export function Scatter({
             }}
           />
           {yTicks.map((t) => (
-            <div key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-dotted border-[var(--grid)]" style={{ top: along(fy(t), "y") }}>
+            <div aria-hidden key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-dotted border-[var(--grid)]" style={{ top: along(fy(t), "y") }}>
               <span className="absolute -left-2 -translate-x-full -translate-y-1/2 font-mono text-[11px] text-[var(--muted)] tabular-nums">
                 {formatPerThousand(t)}
               </span>
             </div>
           ))}
           {xs.map((t) => (
-            <div key={`x${t}`} className="absolute top-[14px] bottom-[30px] border-l border-dotted border-[var(--grid)]" style={{ left: along(fx(t), "x") }}>
+            <div aria-hidden key={`x${t}`} className="absolute top-[14px] bottom-[30px] border-l border-dotted border-[var(--grid)]" style={{ left: along(fx(t), "x") }}>
               <span className="absolute -bottom-6 -translate-x-1/2 font-mono whitespace-nowrap text-[11px] text-[var(--muted)] tabular-nums">
                 {t} s
               </span>
             </div>
           ))}
-          <div className="absolute right-[18px] bottom-[30px] left-[56px] border-t border-[var(--axis)]" />
-          <div className="absolute top-[14px] bottom-[30px] left-[56px] border-l border-[var(--axis)]" />
+          <div aria-hidden className="absolute right-[18px] bottom-[30px] left-[56px] border-t border-[var(--axis)]" />
+          <div aria-hidden className="absolute top-[14px] bottom-[30px] left-[56px] border-l border-[var(--axis)]" />
           {points.map((p) => {
             const px = fx(p.x);
+            const py = fy(p.y);
             // Labels point away from the right edge, and inside the quadrant toward the side
             // with more room, so they never run over its dashed edge.
-            const inside = px < mx && fy(p.y) < my;
+            const inside = px < mx && py < my;
             const flip = px > 0.62 || (inside && mx - px < px);
             // Two points at nearly the same price print their labels on one line, and on a
             // narrow plot they collide whatever the gap: the dearer label moves above, the cheaper below,
             // so neither runs over the other's dot. At exactly one price the further-right one moves below.
             // Only a neighbour close enough across to share the label's line counts.
             const twin = points
-              .filter((q) => q !== p && Math.abs(fy(q.y) - fy(p.y)) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
-              .sort((a, b) => Math.abs(fy(a.y) - fy(p.y)) - Math.abs(fy(b.y) - fy(p.y)))[0];
+              .filter((q) => q !== p && Math.abs(fy(q.y) - py) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
+              .sort((a, b) => Math.abs(fy(a.y) - py) - Math.abs(fy(b.y) - py))[0];
             const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
             const nudge = twin ? (above ? -15 : 15) : 0;
+            const color = providerColor(p.provider);
+            const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (
-              <div key={p.provider} className="absolute" style={{ left: along(px, "x"), top: along(fy(p.y), "y") }}>
+              <div
+                key={p.provider}
+                tabIndex={0}
+                role="img"
+                aria-label={`${providerName(p.provider)}: ${lines.join(", ")}`}
+                className="group/pt absolute size-0 outline-none hover:z-20 focus:z-20"
+                style={{ left: along(px, "x"), top: along(py, "y") }}
+              >
                 <span
-                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 ring-[3px] ring-[var(--surface)]"
-                  style={markerStyle(p.kind, providerColor(p.provider))}
+                  aria-hidden
+                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-[3px] ring-[var(--surface)] transition-[scale] duration-150 group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-[var(--brand)] motion-reduce:transition-none"
+                  style={{ backgroundColor: color }}
                 />
+                {/* A wider invisible target than the 12px dot. */}
+                <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
+                  aria-hidden
                   className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
-                  style={{ color: providerColor(p.provider), top: nudge }}
+                  style={{ color, top: nudge }}
                 >
                   {providerName(p.provider)}
-                  <span className="ml-1.5 hidden font-mono text-[11px] font-normal text-[var(--muted)] sm:inline">
-                    {p.tag ? `${p.tag} · ` : ""}
-                    {formatValue(p.x, "s")} · {formatPerThousand(p.y)}
+                </span>
+                <span
+                  aria-hidden
+                  className={`pointer-events-none absolute w-max max-w-[min(250px,65vw)] rounded-md border border-[var(--line)] bg-[var(--popover)] px-2.5 py-2 text-left text-[12px] leading-snug opacity-0 shadow-lg transition-opacity duration-150 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none left-0 ${py > 0.5 ? "top-3" : "bottom-3"}`}
+                  // Slide the card along its own width as the dot moves right, so it stays inside the plot at any width.
+                  style={{ translate: `${-px * 100}% 0` }}
+                >
+                  <span className="block font-medium" style={{ color }}>
+                    {providerName(p.provider)}
                   </span>
+                  {lines.map((line) => (
+                    <span key={line} className="block font-mono text-[11px] text-[var(--muted)] tabular-nums">
+                      {line}
+                    </span>
+                  ))}
                 </span>
               </div>
             );

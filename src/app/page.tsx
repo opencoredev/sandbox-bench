@@ -4,7 +4,7 @@ import { Allocations } from "@/components/allocations";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
-import { CostPerTaskChart, NoCostResults, costColumns, taskDefinition } from "@/components/cost";
+import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
@@ -24,7 +24,7 @@ import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, hasTaskCosts, pricedTasks } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, hasTaskCosts, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
 import { formatGiB, formatMoney } from "@/lib/format";
@@ -122,8 +122,8 @@ const per = (k: PriceKey) => (k === "hourly" ? "an hour" : "per vCPU-hour");
 
 /** Dollar prices of the machine each provider ran in this track, cheapest first. Euro prices are converted and marked. */
 function PriceChart({ track }: { track: Track }) {
-  const title = track.id === "default" ? "Price of each default sandbox" : "Price of the machine each provider ran";
-  const what = track.id === "default" ? "The machine each provider gives you by default, so sizes differ" : "The machine measured inside, at published rates";
+  const title = track.id === "default" ? "Price per hour of each default sandbox" : "Price per hour of the machine each provider ran";
+  const what = track.id === "default" ? "The sandbox you get without choosing a size, so sizes differ" : "The machine we measured inside";
   const priced = track.providers.flatMap((p) => {
     const price = usdPrice(p, "hourly");
     return price ? [{ p, ...price }] : [];
@@ -140,13 +140,13 @@ function PriceChart({ track }: { track: Track }) {
   const unpriced = track.providers.filter((p) => !usdPrice(p, "hourly"));
   return (
     <>
-      <ChartHead title={title} sub={`${what} · US dollars · Lower is better`} />
+      <ChartHead title={title} sub={`${what} · From each provider's price list · US dollars · Lower is better`} />
       <Columns columns={columns} label={title} />
       <Footnotes
         items={[
           ...priced.filter((x) => x.converted).map(({ p, original }) => ({ mark: 1, text: <><Who id={p.id} /> {conversionNote(original, per("hourly"))}</> })),
           ...(unpriced.length > 0 ? [{ text: <>No price for {unpriced.map((p, i) => <span key={p.id}>{i > 0 ? ", " : ""}<Who id={p.id} /></span>)}: its measured machine did not match a priced size.</> }] : []),
-          { text: "Compute-only list prices for the machine measured inside, not invoices. Boat is a flat rate per size. Upstash and boxd are upper bounds: they bill for less than the full allocation." },
+          { text: "CPU and memory only, at list price. Boat charges a flat rate per size. Upstash and boxd may cost less: they bill only part of the machine." },
           ...trackFootnotes(track),
         ]}
       />
@@ -170,12 +170,12 @@ function CommonPriceChart({ track }: { track: Track }) {
     }));
   return (
     <>
-      <ChartHead title={`Price of a ${commonSize.label} sandbox`} sub="Per hour at each provider's published rates · US dollars · Lower is better" />
+      <ChartHead title={`Price per hour of a ${commonSize.label} sandbox`} sub="The same size everywhere · From each provider's price list · US dollars · Lower is better" />
       <Columns columns={columns} label={`Price of a ${commonSize.label} sandbox`} />
       <Footnotes
         items={[
           ...track.providers.filter((p) => commonPrice(p) === null).map((p) => ({ text: <><Who id={p.id} /> does not list a {commonSize.label} machine, so no price is shown.</> })),
-          { text: "Compute only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash charges a rate per box size but only while the CPU is busy, so its figure is an upper bound. Boat charges a flat rate per size." },
+          { text: "CPU and memory only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash bills only while the CPU is busy, so it may cost less. Boat charges a flat rate per size." },
         ]}
       />
     </>
@@ -185,17 +185,17 @@ function CommonPriceChart({ track }: { track: Track }) {
 /** Ticks counted per 1,000 tasks, back on the per-task scale the points use. */
 const perTask = ([first, ...rest]: readonly [number, ...number[]]): readonly [number, ...number[]] => [first / TASKS_PER_PRICE, ...rest.map((t) => t / TASKS_PER_PRICE)];
 
-/** The quadrant: agent work time across, cost per task up, each point shaped by where its cost came from. */
+/** The quadrant: agent work time across, cost per task up, one plain dot per provider. */
 function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
   const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, kind: cost.kind, tag: m ? `${m.cpu} vCPU` : undefined }];
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
-  const head = <ChartHead title="Agent work vs cost" sub="Median tool replay time against what 1,000 tool replay tasks cost · Both lower is better" />;
+  const head = <ChartHead title="Agent work vs cost" sub="Time for 100 tool calls against cost per 1,000 tasks · Lower left is faster and cheaper" />;
   if (!hasTaskCosts(track))
     return (
       <>
@@ -211,16 +211,14 @@ function CostQuadrant({ track }: { track: Track }) {
         xTicks={logTicks(Math.min(...xs, 10), Math.max(...xs, 20))}
         // Ticks fall on round amounts per 1,000 tasks, the unit the axis prints.
         yTicks={perTask(linearTicks(Math.max(...points.map((p) => p.y), 0) * TASKS_PER_PRICE))}
-        xTitle="Median tool replay, seconds (log scale)"
+        xTitle="Median time for 100 tool calls, seconds (log scale)"
         yTitle="Cost per 1,000 tasks (USD)"
       />
+      <NotFromBill track={track} />
       <Footnotes
         items={[
-          { text: `${taskDefinition} Time is the median tool replay from the main tests. Labels show the vCPUs it ran on.` },
+          { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
-          ...points.flatMap((p) => (p.kind === "estimate" ? [p.provider] : [])).slice(0, 1).map(() => ({
-            text: <>Hollow points are list-price estimates, not billing: {points.filter((p) => p.kind === "estimate").map((p, i) => <span key={p.provider}>{i > 0 ? ", " : ""}<Who id={p.provider} /></span>)}.</>,
-          })),
           { text: <><Who id="boat" /> and <Who id="boxd" /> run in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
@@ -318,7 +316,6 @@ function Headlines({ track }: { track: Track }) {
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
-            <p className="mt-2 text-[11px] leading-snug text-[var(--muted)]">Plain: billed. Hatched: metered. Dotted: list-price estimate.</p>
           </>
         ) : (
           <NoCostResults compact />
@@ -357,63 +354,67 @@ function SetAside() {
   );
 }
 
-const methodRows: readonly (readonly [string, ReactNode])[] = [
-  [
-    "This release",
-    "Default-machine timings come from one run on one harness commit. Snapshots, bursts, the same-machine track and cost per task come from runs on a later harness commit whose changes only touched cleanup. Tenki's same-machine run stopped early at 78 of 100 cold starts; each chart shows its attempt count. A burst size is published for a provider only when all three of its bursts finished, and a chart names the reason for any provider it leaves out. Failures caused by our own code are set aside, not counted. Boat will be added in the next update.",
-  ],
-  [
-    "One SDK",
-    "Every provider ran through Sandbox SDK, our own TypeScript SDK. Version 0.2.0 is public on npm, and the 1.0 used here will be published soon. Each adapter calls the provider's official SDK or API and uses its native path for commands and files where one exists.",
-  ],
-  [
-    "Cold start",
-    "Timed from create() until a bare true command succeeds in the new sandbox: the provider's own time. Our SDK's setup after that point is timed separately and shown as Ready through Sandbox SDK. It is never part of cold start or bursts.",
-  ],
-  [
-    "Superserve",
-    "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled. Superserve offers a Node template (node-22) and a Python template (python-3.11), but our tests need both in one sandbox; before this template, our setup installed Python on every create.",
-  ],
-  [
-    "Two tracks",
-    <>
-      Default machines: each provider&apos;s default sandbox, so sizes differ. E2B&apos;s default base template is 2 vCPU and 512 MB, though its pricing page says 4 GB. Same machine: every provider asked for 4 vCPU and 8 GB, Boat&apos;s default. boxd has no such size and ran 4 vCPU, 16 GB, its nearest. Superserve is left out because its account caps templates at 2 vCPU. Machines that differ from the track are marked on every chart.
-    </>,
-  ],
-  [
-    "Billing",
-    "Cost per task comes from a separate cost run: 10 sandboxes per provider, each created, running the 100-call tool replay once and deleted, so one sandbox's charge is the cost of one task. The main benchmark sandboxes are not priced, because providers ran different mixes of tests in them. Billed is the provider's own per-sandbox charge (Upstash Box; Daytona, whose bill can still change for up to 48 hours). Metered is the provider's own recorded usage times its published rates (E2B and boxd usage meters; Tenki's server-recorded session start and end). Estimates use the provider's published per-second rates and billing rules on our measured create-to-delete time, because there is no per-sandbox billing data (Freestyle has no billing API; Superserve reports usage only per account). Credits, tax and plan minimums are left out. One task costs a fraction of a cent, so charts show the cost of 1,000 tasks; results.json and results.md keep the per-task amount too.",
-  ],
-  [
-    "One location",
-    "Every run started from one server in Florida, US. Distance to each provider's region affects every call; the Hardware tab under Machines shows where each sandbox ran.",
-  ],
-  [
-    "Plans and limits",
-    "We used each provider's self-serve account. Where a plan or account limit changed what we could test, the chart says so: Superserve's plan caps templates at 2 vCPU, so it is not in the 4 vCPU track; Boat's plan allows 200 creates a day; Daytona's account quota of 10 vCPU kept its 4 vCPU snapshot and burst tests from running. A paid plan or a quota increase may lift these, and we will add the results when it does.",
-  ],
-  [
-    "Attempts",
-    "100 runs per quick test, 30 per agent task and 30 per snapshot test. Bursts: 3 of each size, each timed until every sandbox in it runs a command.",
-  ],
-  [
-    "Independent",
-    "No provider paid for these results or had any say in them. Some may have seen an early copy to check for errors. We may work with some of these companies; that did not change how tests ran or how results are reported.",
-  ],
-  [
-    "Failures",
-    <>
-      Only failures the provider caused count against it. We set aside failures our own code caused and ones we can&apos;t pin on either side, such as our SDK timing out while waiting. Attempts blocked by our own plan limits were rerun. Set aside:
-      <SetAside />
-    </>,
-  ],
-  ["Ties", "Medians within each other's 95% confidence intervals are effectively tied. Focus or hover a bar for its interval and attempt count."],
-  [
-    "Left out",
-    <>
-      Download speed, because the public test host rate-limited several providers.
-    </>,
-  ],
+/** Method in rows: a label, one sentence anyone can read, and the detail behind a disclosure. */
+const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] = [
+  {
+    term: "Our SDK",
+    line: "Every provider ran through Sandbox SDK, which we make; version 0.2.0 is public on npm.",
+    more: "The 1.0 used here will be published soon. Each adapter calls the provider's official SDK or API, and uses its native path for commands and files where one exists.",
+  },
+  {
+    term: "One location",
+    line: "Every test ran from one server in Florida, US.",
+    more: "Distance to each provider's region affects every call. The Hardware tab under Machines shows where each sandbox ran.",
+  },
+  {
+    term: "Two tracks",
+    line: "Default machines compares each provider's default sandbox; Same machine asks every provider for 4 vCPU and 8 GB.",
+    more: (
+      <>
+        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve is left out of Same machine because its account caps templates at 2 vCPU. Every chart marks a machine that differs from its track.
+      </>
+    ),
+  },
+  {
+    term: "Cold start",
+    line: "Timed from create() until a first command runs; our SDK's own setup is timed separately.",
+    more: "The command is a bare true. Setup after that point is shown as Ready through Sandbox SDK and is never part of cold start or bursts.",
+  },
+  {
+    term: "Runs",
+    line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Tenki's Same machine run stopped at 78 of 100 cold starts; each chart shows its attempt count. Default timings come from one run; snapshots, bursts, Same machine and cost come from a later run whose code changes touched only cleanup. Download speed is left out because the test host rate-limited several providers. Boat joins in the next update.",
+  },
+  {
+    term: "Cost",
+    line: "One task per sandbox, 10 per provider, priced from each provider's bill wherever it gives one.",
+    more: "Upstash Box and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+  },
+  {
+    term: "Failures",
+    line: "Only failures the provider caused count against it; ones caused by us are set aside.",
+    more: (
+      <>
+        That includes failures we can&apos;t pin on either side, such as our SDK timing out while waiting. Attempts blocked by our own plan limits were rerun. Set aside:
+        <SetAside />
+      </>
+    ),
+  },
+  {
+    term: "Plan limits",
+    line: "We used self-serve accounts, and a chart names any limit that changed its result.",
+    more: "Superserve caps templates at 2 vCPU, so it is not in Same machine. Boat allows 200 creates a day. Daytona's 10 vCPU quota stopped its 4 vCPU snapshot and burst tests. We will add results if a paid plan or quota increase lifts these.",
+  },
+  {
+    term: "Superserve",
+    line: "Superserve ran a custom template we built with Node 22 and Python 3.11.",
+    more: "Its stock templates offer one or the other, and our tests need both. Before this template, our setup installed Python on every create.",
+  },
+  {
+    term: "Independent",
+    line: "No provider paid for these results or decided how they were tested.",
+    more: "Some may have seen an early copy to check for errors. When a provider pointed out a mistake of ours, we fixed it the same way for every provider. We may work with some of these companies; that did not change how tests ran or how results are reported.",
+  },
 ];
 
 // The same-machine switch appears only once that track has results; until then it would lead to empty sections.
@@ -662,16 +663,16 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="cost" title="Cost" lede="What one tool replay task cost, read from each provider's billing where it reports one, and published prices for comparison.">
+        <Section id="cost" title="Cost" lede="What the same agent task cost on each provider, and what each charges per hour.">
           <PerTrack>
             {(track) => (
               <>
                 <TabCard
                   label="Cost" section="cost"
                   tabs={[
-                    { id: "task", label: "Cost per task", content: <CostPerTaskChart track={track} /> },
-                    { id: "common", label: `Price, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
-                    { id: "hour", label: track.id === "default" ? "Price, default sandbox" : "Price, machine it ran", content: <PriceChart track={track} /> },
+                    { id: "task", label: "Cost per 1,000 tasks", content: <CostPerTaskChart track={track} /> },
+                    { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
+                    { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
                   ]}
                 />
                 <Card className="mt-4">
@@ -684,14 +685,30 @@ export default function Page() {
 
         <Section id="method" title="Method" lede="How the numbers were made, and what could bias them.">
           <Card>
-            <dl className="grid gap-x-12 gap-y-5 text-[14px] leading-relaxed md:grid-cols-2">
-              {methodRows.map(([term, text]) => (
-                <div key={term}>
-                  <dt className="font-medium">{term}</dt>
-                  <dd className="mt-1 text-[var(--muted)]">{text}</dd>
-                </div>
+            <ul className="-my-1">
+              {methodRows.map(({ term, line, more }) => (
+                <li key={term} className="border-b border-[var(--line)] last:border-b-0">
+                  <details className="group/row">
+                    <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-md py-3 text-[14px] leading-snug outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] sm:grid-cols-[9rem_1fr_auto] [&::-webkit-details-marker]:hidden">
+                      <span className="font-medium">{term}</span>
+                      <span aria-hidden className="col-start-2 row-start-1 self-start pt-0.5 text-[11px] text-[var(--muted)] transition-transform duration-150 group-open/row:rotate-90 motion-reduce:transition-none sm:col-start-3">
+                        ▶
+                      </span>
+                      <span className="col-span-2 text-pretty text-[var(--muted)] transition-colors duration-150 group-hover/row:text-[var(--foreground)] motion-reduce:transition-none sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                        {line}
+                      </span>
+                    </summary>
+                    <div className="max-w-[72ch] pb-4 text-[13px] leading-relaxed text-[var(--muted)] sm:pl-[calc(9rem+1rem)]">{more}</div>
+                  </details>
+                </li>
               ))}
-            </dl>
+            </ul>
+            <p className="mt-4 border-t border-[var(--line)] pt-3 text-[12px] text-[var(--muted)]">
+              Every number with its full method:{" "}
+              <a className="-my-2 inline-block py-2 underline decoration-dotted underline-offset-4 hover:text-[var(--foreground)]" href="results.md">
+                results.md
+              </a>
+            </p>
           </Card>
         </Section>
       </main>
