@@ -712,7 +712,7 @@ export default function Page() {
       </main>
 
       <footer className="mx-auto mt-24 max-w-[1200px] px-4 sm:px-6">
-        <p className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--line)] py-8 text-[12px] text-[var(--muted)]">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--line)] py-8 text-[12px] text-[var(--muted)]">
           <span>
             Sandbox bench · <Tracked>{(track) => (hasResults(track) ? dayRange(track.window) : "not published yet")}</Tracked>
           </span>
@@ -728,7 +728,7 @@ export default function Page() {
               </span>
             ))}
           </span>
-        </p>
+        </div>
       </footer>
     </>
   );
