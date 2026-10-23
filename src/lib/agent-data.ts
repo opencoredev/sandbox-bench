@@ -4,7 +4,7 @@ import type { Metric, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
-import { absentNote, allocationNotes, measuredText, noRealPause, requestedText } from "@/lib/notes";
+import { absentNote, allocationNotes, costNotes, measuredText, noRealPause, requestedText, sentence } from "@/lib/notes";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised, sizeOf } from "@/lib/sizes";
@@ -301,7 +301,11 @@ function trackMarkdown(id: TrackId) {
     ),
     "",
     ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),
-    ...d.providers.flatMap((p) => ("basis" in p.costPerTask ? [`Cost on ${p.name}: ${p.costPerTask.basis}.`] : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}).`])),
+    ...d.providers.flatMap((p) => {
+      const caveat = costNotes[p.id];
+      const extra = caveat ? ` ${sentence(caveat.charAt(0).toUpperCase() + caveat.slice(1))}` : "";
+      return "basis" in p.costPerTask ? [`Cost on ${p.name}: ${p.costPerTask.basis}.${extra}`] : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}).`];
+    }),
     "",
   );
   for (const g of groups) {
