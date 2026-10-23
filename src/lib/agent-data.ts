@@ -265,7 +265,7 @@ export function agentData() {
     howToRead,
     task: "A task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox.",
     commonSize: commonSize.label,
-    comingNextUpdate: ["Boat", "Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
+    comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
   };
 }
@@ -372,7 +372,7 @@ The page shows one track at a time: \`/\` opens the same-machine track and \`/?t
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, and any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Daytona's billed cost can still change for up to 48 hours. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither gives a per-sandbox bill. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Daytona's billed cost can still change for up to 48 hours. Freestyle, Tenki and Boat costs are list-price estimates on our measured sandbox lifetime, because none gives a per-sandbox bill (Boat drops it when a sandbox is deleted). A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
