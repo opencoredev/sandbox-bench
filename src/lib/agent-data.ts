@@ -186,7 +186,7 @@ function hardwareOf(id: ProviderId) {
     region: h.region,
     runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
     hidden: h.hidden,
-    probed: probeDate,
+    probed: "probed" in h ? h.probed : probeDate,
   };
 }
 

@@ -30,6 +30,8 @@ export interface HardwareDetail {
   hidden: readonly string[];
   /** How the 4 vCPU, 8 GB sandbox differed, when it did. */
   sameSpec: string | null;
+  /** When this row's evidence was gathered, for a provider outside the shared probe. */
+  probed?: string;
 }
 
 export const probeDate = "Oct 22, 2026";
@@ -223,5 +225,6 @@ export const hardware = {
       "About 7.75 GB of the 8 GB is usable inside; the kernel keeps the rest.",
     ],
     sameSpec: "The default size is already 4 vCPU, 8 GB, so both tracks ran the same machine.",
+    probed: "Oct 23, 2026, from the benchmark's fingerprints",
   },
 } as const satisfies Record<ProviderId, HardwareDetail>;
