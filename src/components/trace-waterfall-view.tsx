@@ -381,11 +381,11 @@ function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: n
         aria-label={`${providerName(row.provider)}: ${formatMs(row.providerMs)} provider time${ours > 0 ? `, plus ${formatMs(ours)} of our SDK setup` : ""}. Open its full trace.`}
         className="group col-span-2 grid grid-cols-subgrid text-left focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-[var(--foreground)]"
       >
-        <span className="sticky left-0 z-10 flex h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
+        <span className="sticky left-0 z-10 flex min-h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
           <ProviderLogo id={row.provider} size={16} />
-          <span className="min-w-0 truncate text-[13.5px] font-medium">{providerName(row.provider)}</span>
+          <span className="min-w-0 py-1 text-[13.5px] leading-[1.15] font-medium">{providerName(row.provider)}</span>
         </span>
-        <span className="relative h-10 group-hover:bg-[var(--wf-hover)]">
+        <span className="relative min-h-10 group-hover:bg-[var(--wf-hover)]">
           <span className="waterfall-bar absolute top-1/2 flex h-[16px] -translate-y-1/2 gap-px overflow-hidden rounded-full" style={{ left: 0, width: pct(row.total), animationDelay: `${index * 15}ms` }}>
             {row.steps.map((s) => {
               const width = `${(s.ms / row.total) * 100}%`;

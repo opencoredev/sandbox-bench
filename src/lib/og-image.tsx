@@ -80,8 +80,9 @@ export async function renderOgImage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, fontFamily: "Geist Mono", fontSize: 18, color: muted }}>
-            <span>E2B · Daytona · Upstash Box · boxd</span>
-            <span>Freestyle · Tenki · Superserve</span>
+            <span>E2B · Daytona · boxd · Freestyle</span>
+            <span>Tenki · Superserve</span>
+            <span>Upstash Box · Upstash Ephemeral Box</span>
             <span style={{ color: brand, marginTop: 8 }}>aisandboxbench.com</span>
           </div>
         </div>

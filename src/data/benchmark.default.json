@@ -139,6 +139,35 @@
    }
   },
   {
+   "provider": "upstash",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 5
+    }
+   },
+   "measured": [
+    {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 5
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
    "provider": "daytona",
    "track": "default",
    "requested": {
@@ -168,7 +197,7 @@
    }
   },
   {
-   "provider": "upstash",
+   "provider": "upstash-ephemeral",
    "track": "default",
    "requested": {
     "size": null,
@@ -209,7 +238,7 @@
   "start": "2026-10-22T18:05:53.908Z",
   "end": "2026-10-23T00:16:11.176Z"
  },
- "observations": 20107,
+ "observations": 22996,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -220,6 +249,16 @@
    "id": "sbx53-default-burst-r8c2",
    "suite": "burst",
    "samples": 852
+  },
+  {
+   "id": "sbx53-default-burst-r8u",
+   "suite": "burst",
+   "samples": 123
+  },
+  {
+   "id": "sbx53-default-burst25-r8u",
+   "suite": "burst",
+   "samples": 303
   },
   {
    "id": "sbx53-default-cost-r8b2",
@@ -237,6 +276,11 @@
    "samples": 50
   },
   {
+   "id": "sbx53-default-cost-r8u",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
    "id": "sbx53-default-main-r8b3",
    "suite": "main",
    "samples": 6250
@@ -247,6 +291,11 @@
    "samples": 4366
   },
   {
+   "id": "sbx53-default-main-r8u",
+   "suite": "main",
+   "samples": 2083
+  },
+  {
    "id": "sbx53-default-snapshot-r8b2",
    "suite": "snapshot",
    "samples": 988
@@ -255,6 +304,11 @@
    "id": "sbx53-default-snapshot-r8c2",
    "suite": "snapshot",
    "samples": 660
+  },
+  {
+   "id": "sbx53-default-snapshot-r8u",
+   "suite": "snapshot",
+   "samples": 330
   },
   {
    "id": "sbx53-default-burst-r8y-1",
@@ -869,6 +923,122 @@
    }
   },
   {
+   "id": "upstash",
+   "costPerTask": {
+    "usd": 0.00016523398611111112,
+    "kind": "billed",
+    "source": "https://us-east-1.box.upstash.com/v2/box/{id}",
+    "confidence": "high",
+    "n": 10,
+    "settled": true
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 5
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 5
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.1,
+   "commonHourly": 0.2,
+   "perVcpuHour": 0.05,
+   "pricingAllocation": {
+    "cpu": 2,
+    "memoryGiB": 4
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": null,
+    "memoryGiBHour": 0,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4,
+      "hourly": 0.1
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8,
+      "hourly": 0.2
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16,
+      "hourly": 0.4
+     }
+    ],
+    "offeredSizes": null
+   },
+   "pricingSource": "https://upstash.com/pricing/box",
+   "pricingNotes": "PAYG ACTIVE CPU billing: Small $0.10, Medium $0.20, Large $0.40 per active box-hour; tier price \u00d7 wall time is an upper-bound estimate, not metered usage. Disk allocated capacity is an upper bound for written data. 30-day month. No RAM fee listed. Increment/minimum unspecified.",
+   "reliability": {
+    "successes": 2889,
+    "failures": 0,
+    "raw": 1.0,
+    "adjusted": 1.0,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 2,
+    "visibleCpus": [
+     64
+    ],
+    "cpuQuota": 2,
+    "memoryGiB": 4,
+    "diskGiB": 5,
+    "cpuModels": [],
+    "vendor": "Arm",
+    "arch": "arm64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": "m8g.16xlarge",
+    "kernel": "7.0.0-1011-aws",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 0.7307477690000087,
+    "resume": 0.5890358970002271,
+    "n": 100
+   }
+  },
+  {
    "id": "daytona",
    "costPerTask": {
     "usd": 0.0006357408200000001,
@@ -974,7 +1144,7 @@
    "pauseSplit": null
   },
   {
-   "id": "upstash",
+   "id": "upstash-ephemeral",
    "costPerTask": {
     "usd": 0.0001266366111111111,
     "kind": "billed",
@@ -1208,6 +1378,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 2.626015518000117,
+     "p95": 12.974240530999843,
+     "min": 2.573650277000037,
+     "ciLow": 2.615373370999936,
+     "ciHigh": 2.705055690000765,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 1.467070342999883,
@@ -1221,7 +1404,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 100,
      "p50": 0.6828989650000004,
      "p95": 0.8128853780000355,
@@ -1311,6 +1494,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 0.32287911999970675,
+     "p95": 0.41347509999992327,
+     "min": 0.29622924100002274,
+     "ciLow": 0.3186953879999928,
+     "ciHigh": 0.32608098500035704,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 0.13817888100002892,
@@ -1324,7 +1520,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 98,
      "p50": 0.3114019859999535,
      "p95": 0.3907311189998873,
@@ -1414,6 +1610,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 0.3565466730000335,
+     "p95": 1.091219413000159,
+     "min": 0.2892509770002216,
+     "ciLow": 0.35422021299996415,
+     "ciHigh": 0.3618240119996481,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 0.17710944500006737,
@@ -1427,7 +1636,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 98,
      "p50": 0.29755168200004845,
      "p95": 0.32861357800010593,
@@ -1517,6 +1726,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 2.8851731239999645,
+     "p95": 7.501583393000066,
+     "min": 2.6099779469999485,
+     "ciLow": 2.8116799929998817,
+     "ciHigh": 3.051592877000105,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 1.1841479379999802,
@@ -1530,7 +1752,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 98,
      "p50": 2.6341343890000135,
      "p95": 10.955899884000013,
@@ -1620,6 +1842,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 0.6040263759996742,
+     "p95": 0.7576228600000031,
+     "min": 0.5389511460000649,
+     "ciLow": 0.5930064480002039,
+     "ciHigh": 0.6417642859999906,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 0.31284343999996783,
@@ -1633,7 +1868,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 0.5309178200000897,
      "p95": 0.6047105980000924,
@@ -1679,6 +1914,19 @@
      "ciLow": null,
      "ciHigh": null,
      "successes": 0,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 1.7354413000000641,
+     "p95": 12.986538109000307,
+     "min": 0.7302617780002766,
+     "ciLow": 1.3364726439998484,
+     "ciHigh": 2.7716726539996452,
+     "successes": 100,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -1813,6 +2061,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 0.9609401540001854,
+     "p95": 7.836488067999948,
+     "min": 0.3533262200001627,
+     "ciLow": 0.8023595209999476,
+     "ciHigh": 1.2352883079999593,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 0.9580007439998445,
@@ -1826,7 +2087,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 100,
      "p50": 0.27455951600009576,
      "p95": 0.42402454099999887,
@@ -1916,6 +2177,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 2.1392492239999994,
+     "p95": 16.607898056000007,
+     "min": 2.1277045030000155,
+     "ciLow": 2.133724932000012,
+     "ciHigh": 4.199489532999985,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 10.140999410999939,
@@ -1929,7 +2203,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 30,
      "p50": 2.122684454000002,
      "p95": 2.129811992999981,
@@ -2019,6 +2293,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.818388768000005,
+     "p95": 15.142648703000043,
+     "min": 2.720406925999967,
+     "ciLow": 2.8355009439999996,
+     "ciHigh": 4.8451071259998715,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 2.6154444129997865,
@@ -2032,7 +2319,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 30,
      "p50": 1.0787549090000101,
      "p95": 1.3035005959999981,
@@ -2122,6 +2409,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.6968999000000767,
+     "p95": 1.2538437319999793,
+     "min": 0.6323199709999608,
+     "ciLow": 0.6778274169999641,
+     "ciHigh": 0.7670748379998841,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 0.6157864249999402,
@@ -2135,7 +2435,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 29,
      "p50": 0.6143949500001036,
      "p95": 0.6724067300000461,
@@ -2225,6 +2525,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 1.0769127910000098,
+     "p95": 1.1821727519999259,
+     "min": 1.0442416239999874,
+     "ciLow": 1.0712561389999464,
+     "ciHigh": 1.0990737789999694,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 1.204096531999996,
@@ -2238,7 +2551,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 29,
      "p50": 1.0084171239999122,
      "p95": 1.0738782769999997,
@@ -2328,6 +2641,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 4.147135021999944,
+     "p95": 4.985935486000032,
+     "min": 3.7928730229999927,
+     "ciLow": 4.002747233000002,
+     "ciHigh": 4.383641227999935,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 4.5884318940000375,
@@ -2341,7 +2667,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 29,
      "p50": 4.315021244000062,
      "p95": 5.416207181999925,
@@ -2431,6 +2757,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 3.7929734309999623,
+     "p95": 4.7849457709999985,
+     "min": 3.556110117999837,
+     "ciLow": 3.717797362000012,
+     "ciHigh": 3.8188990879999474,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 2.764427705000009,
@@ -2444,7 +2783,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 28,
      "p50": 3.1923964560000457,
      "p95": 3.4546646889999977,
@@ -2534,6 +2873,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.29601565099996513,
+     "p95": 0.43200518400012516,
+     "min": 0.27113310799997997,
+     "ciLow": 0.2866044809999876,
+     "ciHigh": 0.30747315500001426,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 0.2802923230000306,
@@ -2547,7 +2899,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 28,
      "p50": 0.28993556200002785,
      "p95": 0.3890351559999399,
@@ -2637,6 +2989,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 0.42923233299999264,
+     "p95": 1.1168377029998229,
+     "min": 0.3860070060000289,
+     "ciLow": 0.4187584620000562,
+     "ciHigh": 0.4423534010001458,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 0.3441691189999983,
@@ -2650,7 +3015,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 28,
      "p50": 0.3628280050000176,
      "p95": 0.39648375499993566,
@@ -2740,6 +3105,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 30,
+     "p50": 26.809830266999956,
+     "p95": 30.80539104800008,
+     "min": 25.392090754000005,
+     "ciLow": 26.321653486999974,
+     "ciHigh": 27.515639729000046,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 30,
      "p50": 14.688678530999926,
@@ -2753,7 +3131,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 28,
      "p50": 22.905555044999986,
      "p95": 23.656988763,
@@ -2843,6 +3221,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 3,
+     "p50": 5.02180207,
+     "p95": 6.752009070000001,
+     "min": 2.773628036000002,
+     "ciLow": 2.773628036000002,
+     "ciHigh": 6.752009070000001,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 3,
      "p50": 1.9952571080000003,
@@ -2856,7 +3247,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 3,
      "p50": 0.7481848230000014,
      "p95": 1.0827778760000002,
@@ -2948,6 +3339,19 @@
     {
      "provider": "upstash",
      "n": 3,
+     "p50": 15.393520336999995,
+     "p95": 17.395228465,
+     "min": 9.005611623999998,
+     "ciLow": 9.005611623999998,
+     "ciHigh": 17.395228465,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "upstash-ephemeral",
+     "n": 3,
      "p50": 1.0443100850000047,
      "p95": 1.1283300579999995,
      "min": 0.972075576999996,
@@ -3036,6 +3440,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 13725720.472867869,
+     "p95": 13765771.867801841,
+     "min": 13268946.219164325,
+     "ciLow": 13709300.180445768,
+     "ciHigh": 13732476.430510653,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 9085949.894001195,
@@ -3049,7 +3466,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 13715680.634034472,
      "p95": 13767875.505812196,
@@ -3139,6 +3556,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 24961217.098453484,
+     "p95": 25777210.702832196,
+     "min": 22210267.292647608,
+     "ciLow": 24580630.622339834,
+     "ciHigh": 25385928.128302485,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 6939456.4827652,
@@ -3152,7 +3582,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 26048807.55232187,
      "p95": 26476930.139135446,
@@ -3242,6 +3672,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 35283.95817500801,
+     "p95": 40131.437652501474,
+     "min": 25690.77927035998,
+     "ciLow": 33908.704042470556,
+     "ciHigh": 36153.26480114764,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 31039.441816217277,
@@ -3255,7 +3698,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 41093.438784690785,
      "p95": 44096.85555035521,
@@ -3345,6 +3788,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 1734.7202130500125,
+     "p95": 2195.0411930604996,
+     "min": 73.41839488320721,
+     "ciLow": 1513.004113235193,
+     "ciHigh": 1913.5457414691061,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 1215.4084330019732,
@@ -3358,7 +3814,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 2377.5419130133732,
      "p95": 2933.84484360684,
@@ -3448,6 +3904,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 20767.906155076224,
+     "p95": 22827.011673947396,
+     "min": 17203.046907425352,
+     "ciLow": 20362.40815640523,
+     "ciHigh": 21124.92796526318,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 16184.480042838406,
@@ -3461,7 +3930,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 23036.16057498589,
      "p95": 24036.295831077154,
@@ -3551,6 +4020,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 439.10134985523956,
+     "p95": 556.2470095657446,
+     "min": 120.13121378594631,
+     "ciLow": 379.39377435030116,
+     "ciHigh": 480.70179117814877,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 20227.98357258581,
@@ -3564,7 +4046,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 43322.62662193155,
      "p95": 46514.1150031669,
@@ -3654,6 +4136,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 505216.90222191997,
+     "p95": 527276.9432436372,
+     "min": 13637.329842478413,
+     "ciLow": 501561.7485895293,
+     "ciHigh": 509105.7557170189,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 342378.51616246166,
@@ -3667,7 +4162,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 543848.5311427277,
      "p95": 577571.6652882837,
@@ -3768,6 +4263,19 @@
      "limitFailures": 0
     },
     {
+     "provider": "upstash",
+     "n": 100,
+     "p50": 0.3764387220144272,
+     "p95": 0.42257923632860184,
+     "min": 0.34981686621904373,
+     "ciLow": 0.37028491497039795,
+     "ciHigh": 0.3803204745054245,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
      "provider": "daytona",
      "n": 100,
      "p50": 0.4505336284637451,
@@ -3781,7 +4289,7 @@
      "limitFailures": 0
     },
     {
-     "provider": "upstash",
+     "provider": "upstash-ephemeral",
      "n": 99,
      "p50": 0.33941660076379776,
      "p95": 0.3616834059357643,
@@ -4307,6 +4815,108 @@
    0.931,
    1.45
   ],
+  "upstash": [
+   2.574,
+   2.584,
+   2.585,
+   2.585,
+   2.586,
+   2.588,
+   2.59,
+   2.591,
+   2.591,
+   2.593,
+   2.593,
+   2.594,
+   2.596,
+   2.597,
+   2.598,
+   2.598,
+   2.598,
+   2.6,
+   2.6,
+   2.6,
+   2.602,
+   2.602,
+   2.602,
+   2.603,
+   2.604,
+   2.605,
+   2.606,
+   2.607,
+   2.608,
+   2.608,
+   2.609,
+   2.609,
+   2.61,
+   2.61,
+   2.611,
+   2.611,
+   2.612,
+   2.613,
+   2.614,
+   2.615,
+   2.615,
+   2.616,
+   2.616,
+   2.617,
+   2.617,
+   2.619,
+   2.62,
+   2.625,
+   2.625,
+   2.626,
+   2.635,
+   2.646,
+   2.652,
+   2.672,
+   2.682,
+   2.686,
+   2.691,
+   2.702,
+   2.705,
+   2.706,
+   2.709,
+   2.716,
+   2.738,
+   2.758,
+   2.759,
+   3.099,
+   3.156,
+   4.649,
+   4.665,
+   4.665,
+   4.666,
+   4.667,
+   4.671,
+   4.673,
+   4.676,
+   4.679,
+   4.689,
+   4.695,
+   4.712,
+   4.729,
+   4.754,
+   4.756,
+   4.769,
+   4.775,
+   4.799,
+   5.042,
+   6.705,
+   6.72,
+   6.755,
+   6.758,
+   6.809,
+   6.826,
+   6.831,
+   12.925,
+   12.974,
+   15.027,
+   15.115,
+   17.082,
+   21.317,
+   25.343
+  ],
   "daytona": [
    0.769,
    0.815,
@@ -4409,7 +5019,7 @@
    3.252,
    4.383
   ],
-  "upstash": [
+  "upstash-ephemeral": [
    0.649,
    0.653,
    0.653,
