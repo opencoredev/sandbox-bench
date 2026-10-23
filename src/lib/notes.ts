@@ -1,5 +1,5 @@
 import type { Allocation, Provider, Track, TrackId } from "@/lib/data";
-import { formatGiB } from "@/lib/format";
+import { formatGiB, formatValue } from "@/lib/format";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -126,4 +126,17 @@ export function mergeNotes(...maps: readonly Notes[]): Notes {
       out[id] = before ? `${sentence(before)} ${sentence(opening(note.trim()))}` : note;
     }
   return out;
+}
+
+/**
+ * One line for a track that shows both Upstash products, so the two rows read
+ * as separate products. The start time is Ephemeral Box's cold-start median in
+ * this track; with no result it is left out.
+ */
+export function upstashTwinNote(t: Track): string | null {
+  const has = (id: ProviderId) => t.providers.some((p) => p.id === id);
+  if (!has("upstash") || !has("upstash-ephemeral")) return null;
+  const cold = t.metric("cold").values.find((v) => v.provider === "upstash-ephemeral");
+  const start = cold && cold.n > 0 && cold.p50 !== null ? ` starts in ${formatValue(cold.p50, "s")} but` : "";
+  return `Upstash appears twice: Box can pause; Ephemeral Box${start} can't pause.`;
 }

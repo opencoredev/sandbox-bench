@@ -29,7 +29,7 @@ import type { Provider, Track } from "@/lib/data";
 import { formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
-import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote } from "@/lib/notes";
+import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote, upstashTwinNote } from "@/lib/notes";
 import { providerColor, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
@@ -465,6 +465,7 @@ export default function Page() {
 
         <div className="pb-3">
           <PerTrack>{(track) => <StatStrip track={track} />}</PerTrack>
+          <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-2.5 text-[12.5px] leading-snug text-[var(--muted)]">{note}</p> : null; }}</Tracked>
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
@@ -488,7 +489,7 @@ export default function Page() {
                     content: (
                       <>
                         <ChartHead title="Every cold start" sub="Each successful cold start, one ridge per provider · Log scale · Further left is faster" />
-                        <Ridgelines samples={track.coldSamples} />
+                        <Ridgelines track={track.id} samples={track.coldSamples} />
                       </>
                     ),
                   },

@@ -1,3 +1,4 @@
+import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
@@ -150,7 +151,7 @@ export function Scatter({
                   className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
                   style={{ color, top: nudge }}
                 >
-                  {providerName(p.provider)}
+                  <ProviderName id={p.provider} />
                 </span>
                 <span
                   aria-hidden
@@ -159,7 +160,7 @@ export function Scatter({
                   style={{ translate: `${-px * 100}% 0` }}
                 >
                   <span className="block font-medium" style={{ color }}>
-                    {providerName(p.provider)}
+                    <ProviderName id={p.provider} />
                   </span>
                   {lines.map((line) => (
                     <span key={line} className="block font-mono text-[11px] text-[var(--muted)] tabular-nums">
