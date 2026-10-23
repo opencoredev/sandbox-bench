@@ -27,14 +27,12 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
 const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
-const daytonaNotYet = "not-run: not run yet; coming in the next update";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
     "burst-25": {
       boxd: "stopped-early: one of its three bursts of 25 was cut short by our own ownership check (16 creates and 5 deletes failed on our side), so it is not counted; coming in the next update",
       upstash: "stopped-early: two of its three bursts of 25 never started, because our harness still had two of its own sandboxes open and Upstash's 25-sandbox account cap left no room; not counted; coming in the next update",
-      daytona: daytonaNotYet,
     },
   },
   "same-spec": {
@@ -43,12 +41,10 @@ const handNotRun: NotRun = {
     "burst-10": {
       superserve: superserveJoins,
       boxd: "stopped-early: one of its three bursts of 10 was cut short by our own ownership check (1 create failed on our side), so it is not counted; coming in the next update",
-      daytona: daytonaNotYet,
     },
     "burst-25": {
       superserve: superserveJoins,
       upstash: "stopped-early: its third burst of 25 never started, because our harness still had one of its own sandboxes open and Upstash's 25-sandbox account cap left no room; not counted; coming in the next update",
-      daytona: daytonaNotYet,
     },
   },
 };
@@ -376,7 +372,7 @@ The page shows one track at a time: \`/\` opens the same-machine track and \`/?t
 ${picks.join("\n")}
 ## Coming in the next update
 
-Boat, and any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona's billed cost can still change for up to 48 hours. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither gives a per-sandbox bill. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Boat, and any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Daytona's billed cost can still change for up to 48 hours. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither gives a per-sandbox bill. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
