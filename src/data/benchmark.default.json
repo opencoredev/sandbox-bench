@@ -231,14 +231,68 @@
      "Restored allocation differs from source"
     ]
    }
+  },
+  {
+   "provider": "boat",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "documentedDisk": {
+      "value": 50,
+      "unit": "GB",
+      "scope": "User files; excludes operating system and pre-installed tools",
+      "source": "https://docs.boat.dev/machines"
+     }
+    }
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750949859619141,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750942230224609,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750946044921875,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750938415527344,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750953674316406,
+     "diskGiB": 68.57810974121094
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-10-23T00:16:11.176Z"
+  "end": "2026-10-23T23:39:32.627Z"
  },
- "observations": 22996,
+ "observations": 25555,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -359,6 +413,46 @@
    "id": "sbx53-default-burst-r8e",
    "suite": "burst",
    "samples": 426
+  },
+  {
+   "id": "sbx53-default-main-r8boat2",
+   "suite": "main",
+   "samples": 2083
+  },
+  {
+   "id": "sbx53-default-cost-r8boat2",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx53-default-burst-r8boat2-1",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbx53-default-burst25-r8boat2-1",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbx53-default-burst-r8boat2-2",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbx53-default-burst25-r8boat2-2",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbx53-default-burst-r8boat2-3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbx53-default-burst25-r8boat2-3",
+   "suite": "burst",
+   "samples": 101
   }
  ],
  "excluded": [
@@ -1299,6 +1393,165 @@
    ],
    "ourFailures": [],
    "pauseSplit": null
+  },
+  {
+   "id": "boat",
+   "costPerTask": {
+    "usd": 0.000495,
+    "kind": "estimate",
+    "source": "https://docs.boat.dev/machines",
+    "confidence": "low",
+    "n": 10,
+    "settled": true
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "documentedDisk": {
+      "value": 50,
+      "unit": "GB",
+      "scope": "User files; excludes operating system and pre-installed tools",
+      "source": "https://docs.boat.dev/machines"
+     }
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750949859619141,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750942230224609,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750946044921875,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750938415527344,
+     "diskGiB": 68.57810974121094
+    },
+    {
+     "cpu": 4,
+     "memoryGiB": 7.750953674316406,
+     "diskGiB": 68.57810974121094
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.036,
+   "commonHourly": 0.036,
+   "perVcpuHour": 0.009,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": null,
+    "memoryGiBHour": 0,
+    "fixed": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 50
+    },
+    "fixedHour": 0.036,
+    "tiers": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4,
+      "hourly": 0.018
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8,
+      "hourly": 0.036
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16,
+      "hourly": 0.072
+     },
+     {
+      "cpu": 16,
+      "memoryGiB": 32,
+      "hourly": 0.2
+     }
+    ],
+    "offeredSizes": null
+   },
+   "pricingSource": "https://docs.boat.dev/machines",
+   "pricingNotes": "Default VM $0.036/hour (4 vCPU, 8 GB, 50 GB). Flat rate for each size; Small, Large and Xlarge are also offered. $20 monthly minimum/packs excluded; billed per second.",
+   "reliability": {
+    "successes": 2559,
+    "failures": 0,
+    "raw": 1.0,
+    "adjusted": 1.0,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.750949859619141,
+    "diskGiB": 68.57810974121094,
+    "cpuModels": [
+     {
+      "value": "AMD Ryzen 9 9950X 16-Core Processor",
+      "count": 100
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "kvm",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "7.0.0-38-generic",
+    "location": [
+     {
+      "value": "Lille, FR",
+      "count": 70
+     },
+     {
+      "value": "Gravelines, FR",
+      "count": 29
+     },
+     {
+      "value": "Roubaix, FR",
+      "count": 1
+     }
+    ],
+    "network": [
+     {
+      "value": "AS16276 OVH SAS",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": null
   }
  ],
  "metrics": [
@@ -1411,6 +1664,19 @@
      "min": 0.6491407419999596,
      "ciLow": 0.6794961439999752,
      "ciHigh": 0.6869740719999827,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 1.1655663110003807,
+     "p95": 1.4476834050002507,
+     "min": 0.8640571680003777,
+     "ciLow": 1.1253656589994208,
+     "ciHigh": 1.1835937759997324,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -1531,6 +1797,19 @@
      "failures": 2,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 0.3327694580000825,
+     "p95": 0.45223704699985684,
+     "min": 0.30921884800004773,
+     "ciLow": 0.3306273430003785,
+     "ciHigh": 0.33763075699983164,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1645,6 +1924,19 @@
      "ciHigh": 0.30122441600007005,
      "successes": 98,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 0.8034476910000667,
+     "p95": 1.0010944469999523,
+     "min": 0.7361919680000283,
+     "ciLow": 0.7909371519996785,
+     "ciHigh": 0.8130897880000993,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -1763,6 +2055,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 7.368916451000143,
+     "p95": 20.376450929000043,
+     "min": 5.481131137000047,
+     "ciLow": 6.9877615189999345,
+     "ciHigh": 7.686802951000165,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1877,6 +2182,19 @@
      "ciHigh": 0.5332875609998592,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 0.6830807159999386,
+     "p95": 0.9301752959997394,
+     "min": 0.634251894999994,
+     "ciLow": 0.6792468879995868,
+     "ciHigh": 0.6930114890001714,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -2094,6 +2412,19 @@
      "min": 0.23011974600004031,
      "ciLow": 0.27145055700000376,
      "ciHigh": 0.2846506939998362,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 0.1846622929996811,
+     "p95": 0.24539425900019707,
+     "min": 0.16455133399995975,
+     "ciLow": 0.18281061200000112,
+     "ciHigh": 0.18641469000000507,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2446,6 +2777,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 2.122392230000114,
+     "p95": 4.283004409000016,
+     "min": 1.3742242760001682,
+     "ciLow": 2.1119323829999193,
+     "ciHigh": 2.130867707000114,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2559,6 +2903,19 @@
      "ciLow": 1.0013512309999788,
      "ciHigh": 1.0159793329999958,
      "successes": 29,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 0.8631943679999968,
+     "p95": 4.180501266999985,
+     "min": 0.8137441769998986,
+     "ciLow": 0.8421656750000548,
+     "ciHigh": 1.8442891850000014,
+     "successes": 30,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2678,6 +3035,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 3.9679702410001774,
+     "p95": 6.361320781999966,
+     "min": 2.894699170000007,
+     "ciLow": 3.7327689419998786,
+     "ciHigh": 4.325666772000026,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2794,6 +3164,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 4.0922364479999525,
+     "p95": 5.37280456599989,
+     "min": 3.810884990999941,
+     "ciLow": 4.002415890000062,
+     "ciHigh": 4.277799941000063,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2907,6 +3290,19 @@
      "ciLow": 0.2805858040000312,
      "ciHigh": 0.3001677630000049,
      "successes": 28,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 0.8540862999998499,
+     "p95": 1.1944745220000004,
+     "min": 0.5526059169997461,
+     "ciLow": 0.7281280600000173,
+     "ciHigh": 0.9874396220000053,
+     "successes": 30,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3026,6 +3422,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 1.139732321999967,
+     "p95": 1.4926841649999842,
+     "min": 1.0570297009998466,
+     "ciLow": 1.1269574510001112,
+     "ciHigh": 1.1885966469999985,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3140,6 +3549,19 @@
      "ciHigh": 23.10281779100001,
      "successes": 28,
      "failures": 2,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 30,
+     "p50": 43.401421611000025,
+     "p95": 50.504119926000016,
+     "min": 39.56710286600003,
+     "ciLow": 42.8185821130001,
+     "ciHigh": 45.714006674,
+     "successes": 30,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -3258,6 +3680,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 3,
+     "p50": 2.298792469,
+     "p95": 2.382337628,
+     "min": 2.087528862,
+     "ciLow": 2.087528862,
+     "ciHigh": 2.382337628,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3357,6 +3792,19 @@
      "min": 0.972075576999996,
      "ciLow": 0.972075576999996,
      "ciHigh": 1.1283300579999995,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 3,
+     "p50": 3.958517948,
+     "p95": 4.5834542769999995,
+     "min": 3.2009133030000005,
+     "ciLow": 3.2009133030000005,
+     "ciHigh": 4.5834542769999995,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -3477,6 +3925,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 18806868.56178407,
+     "p95": 21684871.58619314,
+     "min": 10276053.855568742,
+     "ciLow": 17832135.5161061,
+     "ciHigh": 19094245.376327362,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3591,6 +4052,19 @@
      "ciHigh": 26119308.43620679,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 51673262.26339997,
+     "p95": 71527831.62233354,
+     "min": 25632593.996402133,
+     "ciLow": 48624230.28296741,
+     "ciHigh": 53718569.2483315,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -3709,6 +4183,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 32147.397666679164,
+     "p95": 48200.78181256703,
+     "min": 4583.131975623479,
+     "ciLow": 27340.707661063516,
+     "ciHigh": 35814.551822547925,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3823,6 +4310,19 @@
      "ciHigh": 2436.3469263533575,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 482.10833083579024,
+     "p95": 786.6945531611944,
+     "min": 26.331018372971688,
+     "ciLow": 433.1250619025435,
+     "ciHigh": 522.2078137321822,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -3941,6 +4441,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 20511.448216380948,
+     "p95": 28865.008316813663,
+     "min": 3622.995043730212,
+     "ciLow": 17864.417662335658,
+     "ciHigh": 21822.764673386686,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4057,6 +4570,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 5333.093677437882,
+     "p95": 9275.8543422948,
+     "min": 153.26056484597063,
+     "ciLow": 4523.972823576559,
+     "ciHigh": 6234.912911178178,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4171,6 +4697,19 @@
      "ciHigh": 557065.6290726919,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 772620.2692704225,
+     "p95": 1063069.9466121197,
+     "min": 271487.83819249814,
+     "ciLow": 697471.6652397893,
+     "ciHigh": 845068.5628176571,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -4298,6 +4837,19 @@
      "ciHigh": 0.3408735617995262,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "boat",
+     "n": 100,
+     "p50": 5.9034565999979804,
+     "p95": 15.750326200020481,
+     "min": 4.796017000001029,
+     "ciLow": 5.774473999991869,
+     "ciHigh": 6.08687260000238,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -5120,6 +5672,108 @@
    1.053,
    1.357,
    1.681
+  ],
+  "boat": [
+   0.864,
+   0.866,
+   0.87,
+   0.878,
+   0.882,
+   0.889,
+   0.892,
+   0.898,
+   0.903,
+   0.909,
+   0.917,
+   0.923,
+   0.934,
+   0.951,
+   0.954,
+   0.964,
+   0.975,
+   0.985,
+   0.987,
+   0.993,
+   0.994,
+   0.999,
+   1.002,
+   1.012,
+   1.02,
+   1.026,
+   1.041,
+   1.043,
+   1.044,
+   1.048,
+   1.054,
+   1.057,
+   1.08,
+   1.093,
+   1.109,
+   1.112,
+   1.113,
+   1.115,
+   1.122,
+   1.125,
+   1.133,
+   1.134,
+   1.139,
+   1.146,
+   1.147,
+   1.148,
+   1.156,
+   1.157,
+   1.165,
+   1.166,
+   1.166,
+   1.169,
+   1.169,
+   1.175,
+   1.176,
+   1.178,
+   1.178,
+   1.179,
+   1.183,
+   1.184,
+   1.186,
+   1.193,
+   1.196,
+   1.198,
+   1.199,
+   1.199,
+   1.201,
+   1.213,
+   1.22,
+   1.224,
+   1.25,
+   1.254,
+   1.266,
+   1.269,
+   1.279,
+   1.281,
+   1.31,
+   1.313,
+   1.316,
+   1.318,
+   1.319,
+   1.322,
+   1.327,
+   1.328,
+   1.333,
+   1.344,
+   1.35,
+   1.368,
+   1.37,
+   1.371,
+   1.393,
+   1.407,
+   1.417,
+   1.426,
+   1.448,
+   1.449,
+   1.497,
+   1.669,
+   1.866,
+   2.597
   ]
  },
  "missing": {

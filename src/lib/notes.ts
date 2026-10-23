@@ -43,11 +43,8 @@ const sameSpecWhy: Notes = {
 
 /** Why a provider is missing from a track. */
 export const absentWhy: Record<TrackId, Notes> = {
-  default: {
-    boat: "coming in the next update. Our Boat plan allows 200 creates a day, and this run used them up; a higher plan or quota may lift that.",
-  },
+  default: {},
   "same-spec": {
-    boat: "coming in the next update. Our Boat plan allows 200 creates a day, and this run used them up; a higher plan or quota may lift that.",
     superserve: "not in this track: our Superserve plan caps templates at 2 vCPU, so there was no 4 vCPU machine to test. A paid plan may lift this; we will add it if it does.",
   },
 };
