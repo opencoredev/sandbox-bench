@@ -387,7 +387,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Upstash Box and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Upstash Box (Ephemeral) and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -402,7 +402,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash ran on Ephemeral Box, Upstash's short-lived box for agent jobs, on Oct 22. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",

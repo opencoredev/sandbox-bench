@@ -62,7 +62,7 @@ export function StatStrip({ track }: { track: Track }) {
             <span className="text-[11px] font-medium tracking-[0.06em] text-[var(--muted)] uppercase">{s.label}</span>
             <span className="font-mono text-[26px] leading-none tracking-tight tabular-nums sm:text-[30px]">{s.value}</span>
             <span className="flex items-center justify-between gap-2 text-[12.5px]">
-              <span className="min-w-0 truncate">
+              <span className="min-w-0 line-clamp-2">
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
                   {providerName(s.provider)}
                 </span>

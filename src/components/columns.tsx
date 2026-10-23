@@ -211,9 +211,9 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
             key={column.provider}
             aria-label={describe(column, bar, still)}
             {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
-            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "h-6" : "h-8"}`}
+            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="truncate text-[13px] leading-none font-medium sm:text-[12px]" style={{ color }}>
+            <span aria-hidden className="line-clamp-2 text-[13px] leading-[1.1] font-medium sm:text-[12px]" style={{ color }}>
               {providerName(column.provider)}
               <Mark column={column} />
             </span>

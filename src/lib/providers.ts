@@ -10,7 +10,7 @@
 export const providerInfo = {
   e2b: { name: "E2B", color: "oklch(0.75 0.17 58)" },
   daytona: { name: "Daytona", color: "oklch(0.8 0.08 225)" },
-  upstash: { name: "Upstash Box", color: "oklch(0.82 0.15 163)" },
+  upstash: { name: "Upstash Box (Ephemeral)", color: "oklch(0.82 0.15 163)" },
   boat: { name: "Boat", color: "oklch(0.9 0.02 270)" },
   boxd: { name: "boxd", color: "oklch(0.68 0.15 12)" },
   freestyle: { name: "Freestyle", color: "oklch(0.72 0.1 298)" },
