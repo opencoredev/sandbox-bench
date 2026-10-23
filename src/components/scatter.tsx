@@ -67,6 +67,22 @@ export function Scatter({
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
 
+  // Points at nearly the same price print their labels on one line, and on a narrow plot they
+  // collide whatever the gap. Each group of such neighbours stacks its labels: the dearest moves
+  // above its dot, the rest step down one line each, cheapest last, so no label runs over another
+  // or over a neighbour's dot. At exactly one price the further-right one sits lower. Only a
+  // neighbour close enough across to share the label's line counts.
+  const near = (a: ScatterPoint, b: ScatterPoint) => Math.abs(fy(a.y) - fy(b.y)) < 0.08 && Math.abs(fx(a.x) - fx(b.x)) < 0.3;
+  const nudges = new Map<ScatterPoint["provider"], number>();
+  for (const p of points) {
+    if (nudges.has(p.provider)) continue;
+    const group = [p];
+    // for…of also visits points pushed while it runs, so the group gathers neighbours of neighbours.
+    for (const g of group) for (const q of points) if (!group.includes(q) && near(g, q)) group.push(q);
+    if (group.length < 2) continue;
+    group.sort((a, b) => b.y - a.y || a.x - b.x).forEach((q, rank) => nudges.set(q.provider, rank === 0 ? -15 : 15 * rank));
+  }
+
   return (
     <figure aria-label={`${yTitle} against ${xTitle}. ${summary}.`}>
       <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-[var(--muted)]">
@@ -116,18 +132,11 @@ export function Scatter({
             const px = fx(p.x);
             const py = fy(p.y);
             // Labels point away from the right edge, and inside the quadrant toward the side
-            // with more room, so they never run over its dashed edge.
+            // with more room, so they never run over its dashed edge. Up to 0.72 across, a phone
+            // still has about 85px on the right (plot plus its 18px inset), enough for "Upstash Box".
             const inside = px < mx && py < my;
-            const flip = px > 0.62 || (inside && mx - px < px);
-            // Two points at nearly the same price print their labels on one line, and on a
-            // narrow plot they collide whatever the gap: the dearer label moves above, the cheaper below,
-            // so neither runs over the other's dot. At exactly one price the further-right one moves below.
-            // Only a neighbour close enough across to share the label's line counts.
-            const twin = points
-              .filter((q) => q !== p && Math.abs(fy(q.y) - py) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
-              .sort((a, b) => Math.abs(fy(a.y) - py) - Math.abs(fy(b.y) - py))[0];
-            const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
-            const nudge = twin ? (above ? -15 : 15) : 0;
+            const flip = px > 0.72 || (inside && mx - px < px);
+            const nudge = nudges.get(p.provider) ?? 0;
             const color = providerColor(p.provider);
             const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (
