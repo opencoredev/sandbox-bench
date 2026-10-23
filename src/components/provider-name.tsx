@@ -7,7 +7,8 @@ import type { ProviderId } from "@/lib/providers";
  * full name. The tag drops under the short name only where a column is too
  * narrow for both. Both are inline, not flex, so a wrapped tag follows the
  * parent's text-align: centred under a chart column, left in a table. The
- * space between them collapses at the wrap. Colour comes from the
+ * space between them collapses at the wrap. The pill has no vertical margin,
+ * so a one-line name is no taller than plain text. Colour comes from the
  * surrounding text.
  */
 export function ProviderName({ id }: { id: ProviderId }) {
@@ -20,7 +21,7 @@ export function ProviderName({ id }: { id: ProviderId }) {
         <span className="relative">
           {label.short}{" "}
           <span
-            className="my-0.5 inline-block rounded-full px-1.5 py-px align-middle text-[11px] leading-[1.35] font-medium whitespace-nowrap"
+            className="inline-block rounded-full px-1.5 py-px align-middle text-[11px] leading-[1.35] font-medium whitespace-nowrap"
             style={{ color: providerColor(id), background: `color-mix(in oklch, ${providerColor(id)} 16%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${providerColor(id)} 45%, transparent)` }}
           >
             {label.tag}
