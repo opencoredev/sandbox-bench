@@ -17,6 +17,8 @@ export interface ScatterPoint {
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
 const QUADRANT = "oklch(0.8 0.17 152)";
+/** Plot height in px between the insets on a phone (h-[340px]). */
+const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
 
 /** The x axis starts here instead of at the first tick when no point sits below it. */
 const X_FLOOR = 2.5;
@@ -63,6 +65,14 @@ export function Scatter({
   const fy = (y: number) => (y - y0) / (y1 - y0);
   const mx = fx(median(points.map((p) => p.x)));
   const my = fy(median(points.map((p) => p.y)));
+  // Whether p's label, `nudge` px below its dot on the `flip` side, crosses another dot. Measured on the
+  // phone plot, the shortest, where a label spans up to about 0.4 of the width.
+  const runsOver = ({ p, flip, nudge }: { p: ScatterPoint; flip: boolean; nudge: number }) =>
+    points.some((q) => {
+      if (q === p) return false;
+      const dx = fx(q.x) - fx(p.x);
+      return (flip ? dx < 0 : dx > 0) && Math.abs(dx) < 0.4 && Math.abs((fy(q.y) - fy(p.y)) * PHONE_PLOT_PX + nudge) < 10;
+    });
   const summary = points
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
@@ -127,7 +137,10 @@ export function Scatter({
               .filter((q) => q !== p && Math.abs(fy(q.y) - py) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
               .sort((a, b) => Math.abs(fy(a.y) - py) - Math.abs(fy(b.y) - py))[0];
             const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
-            const nudge = twin ? (above ? -15 : 15) : 0;
+            // Moving off the line can put the label on a third dot's line instead; then it stays put,
+            // as long as its own line is clear of every other dot.
+            const moved = twin ? (above ? -15 : 15) : 0;
+            const nudge = moved !== 0 && runsOver({ p, flip, nudge: moved }) && !runsOver({ p, flip, nudge: 0 }) ? 0 : moved;
             const color = providerColor(p.provider);
             const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (
