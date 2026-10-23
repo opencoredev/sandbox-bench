@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
+import { ProviderName } from "@/components/provider-name";
 import { fillStyle } from "@/lib/dither";
 import type { ColdPhases, PausePhases } from "@/lib/inputs";
-import { isProviderId, providerColor, providerInfo, providerName } from "@/lib/providers";
+import { isProviderId, providerColor, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace, isTraceKind, providerTrace, replayOps, traces } from "@/lib/traces";
 import type { ReplayOp, ReplayTrace, TraceKind } from "@/lib/traces";
@@ -154,7 +155,7 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
               Where the time goes · {trackInfo[track].short}
             </p>
             <h2 id="trace-title" className="mt-0.5 text-[20px] font-medium tracking-tight">
-              <span style={{ color }}>{providerName(provider)}</span>
+              <span style={{ color }}><ProviderName id={provider} /></span>
               <span className="text-[var(--muted)]"> · {kindLabel[kind]}</span>
             </h2>
           </div>
@@ -181,7 +182,7 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
           <div className="-mx-5 mt-2 flex gap-1 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Provider">
             {others.map((p) => (
               <Chip key={p} pressed={p === provider} color={providerColor(p)} onClick={() => onChange({ ...open, provider: p })}>
-                {providerName(p)}
+                <ProviderName id={p} />
               </Chip>
             ))}
           </div>
@@ -193,7 +194,7 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
         {kind === "replay" && trace?.replay ? <ReplayView data={trace.replay} /> : null}
         <p className="mt-8 border-t border-[var(--line)] pt-4 text-[11.5px] leading-snug text-[var(--muted)]">
           From run {traces[track].generatedFrom}. Every call runs from our server through Sandbox SDK&apos;s adapter for{" "}
-          {providerName(provider)}, so each includes the network round trip.
+          <ProviderName id={provider} />, so each includes the network round trip.
         </p>
       </div>
     </div>

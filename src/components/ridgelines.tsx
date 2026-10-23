@@ -1,11 +1,46 @@
+import { ProviderName } from "@/components/provider-name";
 import { FillPattern } from "@/lib/dither";
 import { formatValue } from "@/lib/format";
 import { isProviderId, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import type { TrackId } from "@/lib/data";
 
-const MIN_S = 1;
+// Axis stops run 1, 2, 5 × 10ⁿ. The plot spans the closest stops around every
+// sample, at least one step wide and never past MAX_S.
 const MAX_S = 50;
-const TICKS = [1, 2, 5, 10, 20, 50];
+
+/** A log axis with 0 < min < max; build it only through domainOf. */
+interface Domain {
+  min: number;
+  max: number;
+}
+
+const stopAtOrBelow = (s: number) => {
+  const decade = 10 ** Math.floor(Math.log10(s));
+  return [5, 2, 1].map((m) => m * decade).find((t) => t <= s * (1 + 1e-9)) ?? decade;
+};
+const stopAbove = (s: number) => {
+  const decade = 10 ** Math.floor(Math.log10(s));
+  return [1, 2, 5, 10].map((m) => m * decade).find((t) => t > s * (1 + 1e-9)) ?? 10 * decade;
+};
+const stopBelow = (s: number) => {
+  const decade = 10 ** Math.floor(Math.log10(s * (1 - 1e-9)));
+  return [5, 2, 1, 0.5].map((m) => m * decade).find((t) => t < s * (1 - 1e-9)) ?? decade / 2;
+};
+
+function domainOf(values: readonly [number, ...number[]]): Domain {
+  const min = stopAtOrBelow(Math.min(...values));
+  const hi = Math.max(...values);
+  const max = Math.min(MAX_S, hi <= min ? stopAbove(min) : stopAtOrBelow(hi) < hi ? stopAbove(hi) : hi);
+  // Every sample past MAX_S: keep one step below it so the axis still has width.
+  return min < max ? { min, max } : { min: stopBelow(max), max };
+}
+
+function ticksOf({ min, max }: Domain): number[] {
+  const ticks = [min];
+  for (let t = stopAbove(min); t <= max * (1 + 1e-9); t = stopAbove(t)) ticks.push(t);
+  return ticks;
+}
 
 interface Layout {
   W: number;
@@ -14,20 +49,21 @@ interface Layout {
   TOP: number;
 }
 // Rows sit about two thirds of a peak apart, so each ridge overlaps the next one only a little.
+// On phones the plot draws at about half scale, so rows sit further apart to leave room for a two-line name.
 const desktop: Layout = { W: 1000, ROW: 66, PEAK: 96, TOP: 104 };
-const phone: Layout = { W: 400, ROW: 78, PEAK: 70, TOP: 78 };
+const phone: Layout = { W: 400, ROW: 112, PEAK: 92, TOP: 112 };
 
-const toX = (s: number, W: number) =>
-  ((Math.log(s) - Math.log(MIN_S)) / (Math.log(MAX_S) - Math.log(MIN_S))) * W;
+const toX = (s: number, W: number, { min, max }: Domain) =>
+  ((Math.log(s) - Math.log(min)) / (Math.log(max) - Math.log(min))) * W;
 
 /** Gaussian kernel density in log-seconds, sampled across the plot. */
-function density(values: readonly number[], steps = 160) {
+function density(values: readonly number[], { min, max }: Domain, steps = 160) {
   const logs = values.map((v) => Math.log(v));
   const mean = logs.reduce((a, b) => a + b, 0) / logs.length;
   const sd = Math.sqrt(logs.reduce((a, b) => a + (b - mean) ** 2, 0) / logs.length) || 0.1;
   const h = 0.9 * sd * logs.length ** -0.2;
   const points = Array.from({ length: steps + 1 }, (_, i) => {
-    const x = Math.log(MIN_S) + ((Math.log(MAX_S) - Math.log(MIN_S)) * i) / steps;
+    const x = Math.log(min) + ((Math.log(max) - Math.log(min)) * i) / steps;
     const y = logs.reduce((sum, l) => sum + Math.exp(-0.5 * ((x - l) / h) ** 2), 0);
     return { s: Math.exp(x), y };
   });
@@ -39,11 +75,11 @@ const median = (xs: readonly number[]) => xs[Math.floor((xs.length - 1) / 2)] ??
 
 /**
  * Every successful cold start as a ridge: one row per provider, fastest at the
- * top, on a log time axis. The tick is the median. Starts slower than the
- * axis are counted at the right end of their ridge. Each fill is sparse and half see-through
+ * top, on a log time axis fitted to the samples. The tick is the median.
+ * Starts slower than MAX_S are counted at the right end of their ridge. Each fill is sparse and half see-through
  * so the ridge behind still shows.
  */
-export function Ridgelines({ samples }: { samples: Partial<Record<ProviderId, readonly number[]>> }) {
+export function Ridgelines({ track, samples }: { track: TrackId; samples: Partial<Record<ProviderId, readonly number[]>> }) {
   const rows = Object.entries(samples)
     .flatMap(([provider, values]) =>
       isProviderId(provider) && values && values.length > 0
@@ -51,13 +87,17 @@ export function Ridgelines({ samples }: { samples: Partial<Record<ProviderId, re
         : [],
     )
     .sort((a, b) => a.p50 - b.p50);
+  const [first, ...rest] = rows.flatMap((r) => r.values);
+  if (first === undefined) return null;
+  const domain = domainOf([first, ...rest]);
+  const ticks = ticksOf(domain);
   return (
     <>
       <div className="sm:hidden">
-        <Plot rows={rows} layout={phone} ticks={TICKS} id="p" />
+        <Plot rows={rows} layout={phone} domain={domain} ticks={ticks} id={`${track}-p`} />
       </div>
       <div className="hidden sm:block">
-        <Plot rows={rows} layout={desktop} ticks={TICKS} id="d" />
+        <Plot rows={rows} layout={desktop} domain={domain} ticks={ticks} id={`${track}-d`} />
       </div>
     </>
   );
@@ -65,11 +105,11 @@ export function Ridgelines({ samples }: { samples: Partial<Record<ProviderId, re
 
 type Row = { provider: ProviderId; values: readonly number[]; p50: number };
 
-const over = (row: Row) => row.values.filter((v) => v > MAX_S).length;
+const over = (row: Row, { max }: Domain) => row.values.filter((v) => v > max).length;
 
-function Plot({ rows, layout, ticks, id }: { rows: Row[]; layout: Layout; ticks: number[]; id: string }) {
+function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout; domain: Domain; ticks: number[]; id: string }) {
   const { W, ROW, PEAK, TOP } = layout;
-  const lx = (s: number) => toX(s, W);
+  const lx = (s: number) => toX(s, W, domain);
   const height = TOP + ROW * (rows.length - 1) + 30;
   return (
     <figure className="grid grid-cols-[6.75rem_1fr] gap-x-3 sm:grid-cols-[9.5rem_1fr] sm:gap-x-5">
@@ -81,7 +121,7 @@ function Plot({ rows, layout, ticks, id }: { rows: Row[]; layout: Layout; ticks:
             style={{ top: `${((TOP + i * ROW) / height) * 100}%` }}
           >
             <span className="text-[12px] font-medium sm:text-[14px]" style={{ color: providerColor(row.provider) }}>
-              {providerName(row.provider)}
+              <ProviderName id={row.provider} />
             </span>
             <span className="font-mono text-[11px] whitespace-nowrap text-[var(--muted)] tabular-nums sm:text-[12px]">
               {formatValue(row.p50, "s")}
@@ -124,7 +164,7 @@ function Plot({ rows, layout, ticks, id }: { rows: Row[]; layout: Layout; ticks:
           ))}
           {rows.map((row, i) => {
             const base = TOP + i * ROW;
-            const pts = density(row.values).map((p) => [lx(p.s), base - p.y * PEAK] as const);
+            const pts = density(row.values, domain).map((p) => [lx(p.s), base - p.y * PEAK] as const);
             const line = pts.map(([x, y], j) => `${j ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join("");
             const area = `${line}L${W},${base}L0,${base}Z`;
             const color = providerColor(row.provider);
@@ -150,14 +190,14 @@ function Plot({ rows, layout, ticks, id }: { rows: Row[]; layout: Layout; ticks:
           ))}
         </svg>
         {rows.map((row, i) =>
-          over(row) > 0 ? (
+          over(row, domain) > 0 ? (
             <span
               key={row.provider}
               className="absolute right-0 -translate-y-[calc(100%+3px)] rounded-[3px] bg-[var(--surface)] px-1 font-mono text-[11px] whitespace-nowrap text-[var(--muted)] tabular-nums"
               // The tick row below the plot is 1.25rem tall.
               style={{ top: `calc((100% - 1.25rem) * ${(TOP + i * ROW) / height})` }}
             >
-              {over(row)} over {MAX_S} s →
+              {over(row, domain)} over {Number(domain.max.toPrecision(3))} s →
             </span>
           ) : null,
         )}
@@ -168,7 +208,7 @@ function Plot({ rows, layout, ticks, id }: { rows: Row[]; layout: Layout; ticks:
               className="absolute -translate-x-1/2 font-mono text-[11px] whitespace-nowrap text-[var(--muted)]"
               style={{ left: `${(lx(t) / W) * 100}%` }}
             >
-              {t}
+              {Number(t.toPrecision(3))}
               {t === ticks.at(-1) ? " s" : ""}
             </span>
           ))}

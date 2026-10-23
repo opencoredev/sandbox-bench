@@ -1,8 +1,9 @@
 import { JumpLink } from "@/components/jump";
+import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, pricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { providerColor, providerName } from "@/lib/providers";
+import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 interface Stat {
@@ -64,7 +65,7 @@ export function StatStrip({ track }: { track: Track }) {
             <span className="flex items-center justify-between gap-2 text-[12.5px]">
               <span className="min-w-0 line-clamp-2">
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
-                  {providerName(s.provider)}
+                  <ProviderName id={s.provider} />
                 </span>
                 {s.note ? <span className="text-[var(--muted)]"> · {s.note}</span> : null}
               </span>

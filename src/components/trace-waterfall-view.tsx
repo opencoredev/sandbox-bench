@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { ProviderLogo } from "@/components/provider-logo";
+import { ProviderName } from "@/components/provider-name";
 import { useScrollFade } from "@/components/tabs";
 
 import { formatTaskCost } from "@/lib/cost";
@@ -124,7 +125,7 @@ function flatten(root: Span, collapsed: ReadonlySet<string>, slowest: Span | und
 
 const defaultCollapsed = (trace: Trace) => new Set(trace.kind === "replay" ? trace.root.children.map((c) => c.id) : []);
 
-function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "bad" }) {
+function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: ReactNode; tone?: "bad" }) {
   return (
     <div className="min-w-0 border-[var(--wf-line)] px-4 py-3 sm:px-5 [&:not(:first-child)]:sm:border-l max-sm:[&:nth-child(even)]:border-l max-sm:[&:nth-child(n+3)]:border-t">
       <div className="text-[11px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase">{label}</div>
@@ -194,7 +195,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
             label: (
               <>
                 <ProviderLogo id={p.id} />
-                {providerName(p.id)}
+                <ProviderName id={p.id} />
               </>
             ),
           })),
@@ -245,7 +246,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
           </span>
           <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px]" style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 40%, transparent)` }}>
             <ProviderLogo id={provider.id} size={12} />
-            {providerName(provider.id)}
+            <ProviderName id={provider.id} />
           </span>
         </div>
 
@@ -289,7 +290,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
-          <Legend style={barStyle({ ...trace.root, owner: "provider" }, color, false)}>{providerName(provider.id)}&apos;s time</Legend>
+          <Legend style={barStyle({ ...trace.root, owner: "provider" }, color, false)}><ProviderName id={provider.id} />&apos;s time</Legend>
           {ours > 0 ? <Legend style={barStyle({ ...trace.root, owner: "ours" }, color, false)} hatched>Ours: Sandbox SDK</Legend> : null}
         </div>
       </div>
@@ -322,14 +323,14 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
       </div>
 
       <div className="grid grid-cols-2 border-b border-[var(--wf-line)] sm:grid-cols-4">
-        <Stat label="Fastest" value={formatMs(first.providerMs)} sub={`${providerName(first.provider)} · provider time`} />
-        <Stat label="Slowest" value={formatMs(last.providerMs)} sub={`${providerName(last.provider)} · provider time`} />
+        <Stat label="Fastest" value={formatMs(first.providerMs)} sub={<><ProviderName id={first.provider} /> · provider time</>} />
+        <Stat label="Slowest" value={formatMs(last.providerMs)} sub={<><ProviderName id={last.provider} /> · provider time</>} />
         <Stat label="Spread" value={`${(last.providerMs / first.providerMs).toFixed(1)}×`} sub="slowest vs fastest" />
         <Stat label="Failures" value={failed.toLocaleString("en-US")} sub={`of ${attempts.toLocaleString("en-US")} attempts`} tone={failed > 0 ? "bad" : undefined} />
       </div>
 
       <div className="relative">
-        <div ref={scroller} className="peer overflow-x-auto overscroll-x-contain [--span-col:124px] sm:[--span-col:200px]">
+        <div ref={scroller} className="peer overflow-x-auto overscroll-x-contain [--span-col:180px] sm:[--span-col:200px]">
           <div className="relative grid min-w-[560px] grid-cols-[var(--span-col)_1fr] sm:min-w-0">
             <div className="sticky top-0 left-0 z-30 flex h-9 items-center border-r border-b border-[var(--wf-line)] bg-[var(--wf-card)] pl-4 text-[10.5px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase sm:pl-5">Provider</div>
             <div className="sticky top-0 z-20 h-9 border-b border-[var(--wf-line)] bg-[var(--wf-card)]">
@@ -381,11 +382,11 @@ function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: n
         aria-label={`${providerName(row.provider)}: ${formatMs(row.providerMs)} provider time${ours > 0 ? `, plus ${formatMs(ours)} of our SDK setup` : ""}. Open its full trace.`}
         className="group col-span-2 grid grid-cols-subgrid text-left focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-[var(--foreground)]"
       >
-        <span className="sticky left-0 z-10 flex min-h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
+        <span className="sticky left-0 z-10 flex h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
           <ProviderLogo id={row.provider} size={16} />
-          <span className="min-w-0 py-1 text-[13.5px] leading-[1.15] font-medium">{providerName(row.provider)}</span>
+          <span className="min-w-0 truncate text-[13.5px] font-medium"><ProviderName id={row.provider} /></span>
         </span>
-        <span className="relative min-h-10 group-hover:bg-[var(--wf-hover)]">
+        <span className="relative h-10 group-hover:bg-[var(--wf-hover)]">
           <span className="waterfall-bar absolute top-1/2 flex h-[16px] -translate-y-1/2 gap-px overflow-hidden rounded-full" style={{ left: 0, width: pct(row.total), animationDelay: `${index * 15}ms` }}>
             {row.steps.map((s) => {
               const width = `${(s.ms / row.total) * 100}%`;

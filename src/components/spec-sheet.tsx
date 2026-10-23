@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 
+import { ProviderName } from "@/components/provider-name";
 import type { Provider, TrackId } from "@/lib/data";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import type { HardwareDetail } from "@/lib/hardware";
-import { providerColor, providerName } from "@/lib/providers";
+import { providerColor } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
 
 /** Shared by the header and every row, so the columns line up. */
@@ -49,7 +50,7 @@ function Row({ p, h, track }: { p: Provider; h: HardwareDetail; track: TrackId }
           className={`${grid} relative grid cursor-pointer list-none grid-cols-2 gap-x-4 rounded-md py-3.5 pr-8 outline-none hover:bg-[var(--band)]/60 focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60 sm:items-start sm:pr-0 [&::-webkit-details-marker]:hidden`}
         >
           <span className="col-span-2 block text-[14px] font-medium sm:col-span-1 sm:text-[13px]" style={{ color: providerColor(p.id) }}>
-            {providerName(p.id)}
+            <ProviderName id={p.id} />
           </span>
           <Cell label="Chip" main={h.chip} sub={`${h.family} · ${chipBasisLabel[h.chipBasis]}`} />
           <Cell label="Memory" main={memory.main} sub={memory.sub} />

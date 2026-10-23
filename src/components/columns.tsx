@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 
+import { ProviderName } from "@/components/provider-name";
 import { fillStyle } from "@/lib/dither";
 import type { FillEdge, FillVariant } from "@/lib/dither";
 import { providerColor, providerName } from "@/lib/providers";
@@ -109,7 +110,7 @@ const Card = ({ column, className, style }: { column: Column; className: string;
     className={`pointer-events-none absolute z-10 w-max max-w-[220px] rounded-md border border-[var(--line)] bg-[var(--popover)] px-2.5 py-2 text-left text-[12px] leading-snug opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
   >
     <span className="block font-medium" style={{ color: providerColor(column.provider) }}>
-      {providerName(column.provider)}
+      <ProviderName id={column.provider} />
     </span>
     {column.detail.map((line) => (
       <span key={line} className="block font-mono text-[11px] text-[var(--muted)] tabular-nums">
@@ -185,7 +186,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             className={`block min-w-0 flex-1 px-0.5 text-center leading-tight font-medium ${still ? "text-[11px]" : "text-[12px]"}`}
             style={{ color: providerColor(column.provider) }}
           >
-            {providerName(column.provider)}
+            <ProviderName id={column.provider} />
             <Mark column={column} />
           </span>
         ))}
@@ -213,8 +214,8 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
             {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
             className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="line-clamp-3 text-[13px] leading-[1.1] font-medium sm:text-[12px]" style={{ color }}>
-              {providerName(column.provider)}
+            <span aria-hidden className="line-clamp-2 text-[13px] leading-[1.1] font-medium sm:text-[12px]" style={{ color }}>
+              <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
             <div aria-hidden className="relative flex h-3.5 items-stretch border-l border-[var(--axis)] sm:h-3">

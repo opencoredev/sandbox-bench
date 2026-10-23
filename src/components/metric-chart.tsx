@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 
 import { Columns } from "@/components/columns";
+import { ProviderName } from "@/components/provider-name";
 import type { Column } from "@/components/columns";
 import type { Metric, MetricValue, Track } from "@/lib/data";
 import { formatCount, formatShort, formatValue, unitName } from "@/lib/format";
 import { absentNote, allocationNotes, mergeNotes, sentence } from "@/lib/notes";
 import type { Notes } from "@/lib/notes";
-import { isProviderId, providerColor, providerName } from "@/lib/providers";
+import { isProviderId, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace } from "@/lib/traces";
 import type { TraceKind } from "@/lib/traces";
@@ -213,6 +214,6 @@ export const ComingNext = ({ compact = false, children }: { compact?: boolean; c
 
 export const Who = ({ id }: { id: ProviderId }) => (
   <span className="font-medium" style={{ color: providerColor(id) }}>
-    {providerName(id)}
+    <ProviderName id={id} />
   </span>
 );

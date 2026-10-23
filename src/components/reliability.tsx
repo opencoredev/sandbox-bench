@@ -1,6 +1,7 @@
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead } from "@/components/metric-chart";
+import { ProviderName } from "@/components/provider-name";
 import type { Provider, Track } from "@/lib/data";
 import { formatCount } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
@@ -81,7 +82,7 @@ export function Reliability({ track }: { track: Track }) {
               : [
                   <li key={p.id} className="px-4 py-3">
                     <p className="text-[13.5px] font-medium" style={{ color: providerColor(p.id) }}>
-                      {providerName(p.id)}
+                      <ProviderName id={p.id} />
                     </p>
                     <ul className="mt-1.5 flex flex-col gap-2">
                       {p.failureReasons.map((f) => (
@@ -112,7 +113,7 @@ export function Reliability({ track }: { track: Track }) {
               {rows.map(({ p, f, first }) => (
                 <tr key={`${p.id}${f.reason}`} className={first ? "border-t border-[var(--line)]" : ""}>
                   <th scope="row" className="px-4 py-1.5 align-top font-medium whitespace-nowrap" style={{ color: providerColor(p.id) }}>
-                    {first ? providerName(p.id) : <span className="sr-only">{providerName(p.id)}</span>}
+                    {first ? <ProviderName id={p.id} /> : <span className="sr-only">{providerName(p.id)}</span>}
                   </th>
                   <td className="px-4 py-1.5 align-top font-mono tabular-nums">{f.runs}</td>
                   <td className="px-4 py-1.5 align-top">
