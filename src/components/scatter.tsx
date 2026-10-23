@@ -68,9 +68,10 @@ export function Scatter({
     .join("; ");
 
   // Points at nearly the same price print their labels on one line, and on a narrow plot they
-  // collide whatever the gap. Each group of such neighbours stacks its labels: the dearest moves
-  // above its dot, the rest step down one line each, cheapest last, so no label runs over another
-  // or over a neighbour's dot. At exactly one price the further-right one sits lower. Only a
+  // collide whatever the gap. Each group of such neighbours stacks its labels: the cheapest moves
+  // one line below its dot, the rest step up one line each, dearest highest, so no label runs over
+  // another or over a neighbour's dot, and a cheap group never pushes a label onto the x-axis. A pair
+  // is one above, one below. At exactly one price the further-right one sits lower. Only a
   // neighbour close enough across to share the label's line counts.
   const near = (a: ScatterPoint, b: ScatterPoint) => Math.abs(fy(a.y) - fy(b.y)) < 0.08 && Math.abs(fx(a.x) - fx(b.x)) < 0.3;
   const nudges = new Map<ScatterPoint["provider"], number>();
@@ -80,7 +81,7 @@ export function Scatter({
     // for…of also visits points pushed while it runs, so the group gathers neighbours of neighbours.
     for (const g of group) for (const q of points) if (!group.includes(q) && near(g, q)) group.push(q);
     if (group.length < 2) continue;
-    group.sort((a, b) => b.y - a.y || a.x - b.x).forEach((q, rank) => nudges.set(q.provider, rank === 0 ? -15 : 15 * rank));
+    group.sort((a, b) => b.y - a.y || a.x - b.x).forEach((q, rank) => nudges.set(q.provider, rank === group.length - 1 ? 15 : -15 * (group.length - 1 - rank)));
   }
 
   return (
