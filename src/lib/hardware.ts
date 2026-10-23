@@ -205,4 +205,23 @@ export const hardware = {
     ],
     sameSpec: null,
   },
+  sandboxer: {
+    chip: "AMD Ryzen 9 7950X3D",
+    family: "Zen 4 (Raphael) with 3D V-Cache, 4.2 GHz base, up to 5.7 GHz",
+    chipBasis: "named",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory the chip takes" },
+    cloud: "Hetzner (AS24940)",
+    region: "eu-central, Helsinki, Finland",
+    runsAs: "Cloud Hypervisor microVM",
+    runsAsDetail: "on a desktop-class chip",
+    storage: "50 GB for your files (56 GB disk measured inside)",
+    kernel: "Linux 6.18 (Sandboxer build)",
+    hidden: [
+      "Sandboxer joined after our Oct 22 hardware probe. These rows come from the benchmark's own fingerprints: the CPU name, kernel, hypervisor, network and egress location.",
+      "A desktop chip with a high boost clock, so single-thread results depend on boost and neighbours.",
+      "Sandboxer runs only in eu-central, so every call from our Florida server crosses the Atlantic.",
+      "About 7.75 GB of the 8 GB is usable inside; the kernel keeps the rest.",
+    ],
+    sameSpec: "The default size is already 4 vCPU, 8 GB, so both tracks ran the same machine.",
+  },
 } as const satisfies Record<ProviderId, HardwareDetail>;

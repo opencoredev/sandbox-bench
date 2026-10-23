@@ -12,7 +12,7 @@ import "./globals.css";
 
 const title = "Sandbox bench: cloud sandboxes for agents, measured";
 const description =
-  "8 cloud sandbox providers for AI agents (E2B, Daytona, Upstash Box and Ephemeral Box, Boat, boxd, Freestyle, Tenki, Superserve) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GB machine.";
+  "9 cloud sandbox providers for AI agents (E2B, Daytona, Upstash Box and Ephemeral Box, Boat, boxd, Freestyle, Tenki, Superserve, Sandboxer) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GB machine.";
 
 export const metadata: Metadata = {
   title,
