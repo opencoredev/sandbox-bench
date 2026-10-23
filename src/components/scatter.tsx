@@ -161,7 +161,7 @@ export function Scatter({
                   className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
                   style={{ color, top: nudge }}
                 >
-                  <ProviderName id={p.provider} />
+                  <ProviderName id={p.provider} layout="stacked" />
                 </span>
                 <span
                   aria-hidden
