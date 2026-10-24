@@ -3,11 +3,20 @@ import type { ProviderId } from "@/lib/providers";
 
 /**
  * How a tagged name lays out. `flow` keeps the tag beside the short name and
- * drops it under only where a column is too narrow for both. `stacked` always
- * puts it underneath, for labels with no width of their own, like a scatter
- * point's.
+ * drops it under only where there is no room for both. `centered` does the
+ * same under a chart column, and keeps each line centred even when the tag is
+ * wider than the column: flex centring spills the overflow evenly on both
+ * sides, where centred inline text would spill it all to the right. `stacked`
+ * always puts the tag underneath, for labels with no width of their own, like
+ * a scatter point's.
  */
-type Layout = "flow" | "stacked";
+type Layout = "flow" | "centered" | "stacked";
+
+const wrapper: Record<Layout, string> = {
+  flow: "relative",
+  centered: "relative inline-flex max-w-full flex-wrap items-center justify-center gap-x-1 gap-y-0.5 align-middle",
+  stacked: "relative inline-flex flex-col items-start gap-y-0.5 align-middle",
+};
 
 /**
  * A provider's name as shown on the page. A tagged product renders its short
@@ -26,7 +35,7 @@ export function ProviderName({ id, layout = "flow" }: { id: ProviderId; layout?:
       return <>{label.name}</>;
     case "tagged":
       return (
-        <span className={layout === "stacked" ? "relative inline-flex flex-col items-start gap-y-0.5 align-middle" : "relative"}>
+        <span className={wrapper[layout]}>
           {label.short}{" "}
           <span
             className="inline-block rounded-full px-1.5 py-px align-text-bottom text-[11px] leading-[1.35] font-medium whitespace-nowrap"

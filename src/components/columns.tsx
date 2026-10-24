@@ -186,7 +186,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             className={`block min-w-0 flex-1 px-0.5 text-center leading-tight font-medium ${still ? "text-[11px]" : "text-[12px]"}`}
             style={{ color: providerColor(column.provider) }}
           >
-            <ProviderName id={column.provider} />
+            <ProviderName id={column.provider} layout="centered" />
             <Mark column={column} />
           </span>
         ))}
@@ -254,8 +254,8 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
 }
 
 /**
- * One value per provider in the order given. Wide screens get columns;
- * phones (and compact charts below lg) get horizontal bars, so names never
+ * One value per provider in the order given. Wide charts get columns;
+ * charts too narrow for every name (phones, small cards) get horizontal bars, so names never
  * rotate. Compact charts are short read-only columns: no focus stops, hover cards or breakdowns.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
@@ -271,28 +271,16 @@ export function Columns({
   const max = axisMax(columns);
   const cut = columns.some((c) => total(c) > max);
   return (
-    <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative">
-      {compact ? (
-        // Compact charts sit inside a headline card that is itself a link, so their columns are not controls.
-        // Below lg a card is too narrow for seven names under columns, so it gets bars.
-        <>
-          <div className="lg:hidden">
-            <Horizontal columns={columns} max={max} still />
-          </div>
-          <div className="hidden lg:block">
-            <Vertical columns={columns} max={max} still />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="sm:hidden">
-            <Horizontal columns={columns} max={max} />
-          </div>
-          <div className="hidden sm:block">
-            <Vertical columns={columns} max={max} />
-          </div>
-        </>
-      )}
+    <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative @container">
+      {/* Nine names need about 63px a column (Superserve is 59px), so a chart narrower than
+          566px gets bars: phones, the headline cards below 1280px, the Machines size charts.
+          Compact charts sit inside a headline card that is itself a link, so their columns are not controls. */}
+      <div className="@min-[566px]:hidden">
+        <Horizontal columns={columns} max={max} still={compact} />
+      </div>
+      <div className="hidden @min-[566px]:block">
+        <Vertical columns={columns} max={max} still={compact} />
+      </div>
     </figure>
   );
 }
