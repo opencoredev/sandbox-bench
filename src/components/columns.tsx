@@ -186,7 +186,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             className={`block min-w-0 flex-1 px-0.5 text-center leading-tight font-medium ${still ? "text-[11px]" : "text-[12px]"}`}
             style={{ color: providerColor(column.provider) }}
           >
-            <ProviderName id={column.provider} />
+            <ProviderName id={column.provider} layout="centered" />
             <Mark column={column} />
           </span>
         ))}
