@@ -255,7 +255,7 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
 
 /**
  * One value per provider in the order given. Wide screens get columns;
- * phones (and compact charts below lg) get horizontal bars, so names never
+ * phones (and compact charts below xl) get horizontal bars, so names never
  * rotate. Compact charts are short read-only columns: no focus stops, hover cards or breakdowns.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
@@ -274,12 +274,13 @@ export function Columns({
     <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative">
       {compact ? (
         // Compact charts sit inside a headline card that is itself a link, so their columns are not controls.
-        // Below lg a card is too narrow for seven names under columns, so it gets bars.
+        // Below xl a card is too narrow for nine names under columns (Superserve runs into
+        // its neighbour at 1024px), so it gets bars.
         <>
-          <div className="lg:hidden">
+          <div className="xl:hidden">
             <Horizontal columns={columns} max={max} still />
           </div>
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <Vertical columns={columns} max={max} still />
           </div>
         </>
