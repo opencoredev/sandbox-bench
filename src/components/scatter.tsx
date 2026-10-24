@@ -17,6 +17,10 @@ export interface ScatterPoint {
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
 const QUADRANT = "oklch(0.8 0.17 152)";
+/** Plot height in px between the insets on a phone (h-[340px]). */
+const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
+/** The plot's drawing width on a 390px phone, between its insets. */
+const PHONE_PLOT_W = 222;
 
 /** The x axis starts here instead of at the first tick when no point sits below it. */
 const X_FLOOR = 2.5;
@@ -67,21 +71,43 @@ export function Scatter({
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
 
-  // Points at nearly the same price print their labels on one line, and on a narrow plot they
-  // collide whatever the gap. Each group of such neighbours stacks its labels: the cheapest moves
-  // one line below its dot, the rest step up one line each, dearest highest, so no label runs over
-  // another or over a neighbour's dot, and a cheap group never pushes a label onto the x-axis. A pair
-  // is one above, one below. At exactly one price the further-right one sits lower. Only a
-  // neighbour close enough across to share the label's line counts.
-  const near = (a: ScatterPoint, b: ScatterPoint) => Math.abs(fy(a.y) - fy(b.y)) < 0.08 && Math.abs(fx(a.x) - fx(b.x)) < 0.3;
-  const nudges = new Map<ScatterPoint["provider"], number>();
-  for (const p of points) {
-    if (nudges.has(p.provider)) continue;
-    const group = [p];
-    // for…of also visits points pushed while it runs, so the group gathers neighbours of neighbours.
-    for (const g of group) for (const q of points) if (!group.includes(q) && near(g, q)) group.push(q);
-    if (group.length < 2) continue;
-    group.sort((a, b) => b.y - a.y || a.x - b.x).forEach((q, rank) => nudges.set(q.provider, rank === group.length - 1 ? 15 : -15 * (group.length - 1 - rank)));
+  // Labels point away from the right edge, and inside the quadrant toward the side with more room,
+  // so they never run over its dashed edge. Up to 0.72 across, a phone still has about 85px on the
+  // right (plot plus its 18px inset), enough for "Upstash Box".
+  const flipOf = (p: ScatterPoint) => {
+    const px = fx(p.x);
+    return px > 0.72 || (px < mx && fy(p.y) < my && mx - px < px);
+  };
+  // Label placement, worked out on the phone plot, the tightest it gets (wider plots only add room).
+  // Each label tries its dot's line first, then one line up or down, then two, on its preferred
+  // side and then the other, and takes the first spot that crosses no dot, overlaps no label placed
+  // before it, and stays inside the plot, clear of the x-axis. Labels are placed bottom to top.
+  type Box = { l: number; r: number; t: number; b: number };
+  const hit = (a: Box, c: Box) => a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b;
+  const at = (p: ScatterPoint) => ({ x: fx(p.x) * PHONE_PLOT_W, y: (1 - fy(p.y)) * PHONE_PLOT_PX });
+  const dots = points.map((p) => { const { x, y } = at(p); return { p, box: { l: x - 7, r: x + 7, t: y - 7, b: y + 7 } }; });
+  const labelBox = (p: ScatterPoint, flip: boolean, nudge: number): Box => {
+    const { x, y } = at(p);
+    const stacked = p.provider === "upstash-ephemeral";
+    const w = stacked ? 70 : providerName(p.provider).length * 7.4 + 2;
+    const h = stacked ? 34 : 14;
+    const l = flip ? x - 12 - w : x + 12;
+    return { l, r: l + w, t: y + nudge - h / 2, b: y + nudge + h / 2 };
+  };
+  const placed = new Map<ScatterPoint["provider"], { flip: boolean; nudge: number; box: Box }>();
+  for (const p of [...points].sort((a, b) => a.y - b.y || b.x - a.x)) {
+    const preferred = flipOf(p);
+    const fits = (box: Box) =>
+      box.t >= -INSET.top && box.b <= PHONE_PLOT_PX - 2 && box.l >= -INSET.left + 8 && box.r <= PHONE_PLOT_W + INSET.right &&
+      !dots.some((d) => d.p !== p && hit(box, d.box)) && ![...placed.values()].some((o) => hit(box, o.box));
+    let choice = { flip: preferred, nudge: 0, box: labelBox(p, preferred, 0) };
+    search: for (const nudge of [0, -15, 15, -30, 30]) {
+      for (const flip of [preferred, !preferred]) {
+        const box = labelBox(p, flip, nudge);
+        if (fits(box)) { choice = { flip, nudge, box }; break search; }
+      }
+    }
+    placed.set(p.provider, choice);
   }
 
   return (
@@ -132,12 +158,7 @@ export function Scatter({
           {points.map((p) => {
             const px = fx(p.x);
             const py = fy(p.y);
-            // Labels point away from the right edge, and inside the quadrant toward the side
-            // with more room, so they never run over its dashed edge. Up to 0.72 across, a phone
-            // still has about 85px on the right (plot plus its 18px inset), enough for "Upstash Box".
-            const inside = px < mx && py < my;
-            const flip = px > 0.72 || (inside && mx - px < px);
-            const nudge = nudges.get(p.provider) ?? 0;
+            const { flip, nudge } = placed.get(p.provider) ?? { flip: flipOf(p), nudge: 0 };
             const color = providerColor(p.provider);
             const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (

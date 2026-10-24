@@ -382,7 +382,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Sandboxer was added on Oct 23 from its own runs of the same tests on that SDK (harness commits 4450887 and bd86c3c), pause and resume included. Boat joins in the next update.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Sandboxer was added on Oct 23 from its own runs of the same tests on that SDK (harness commits 4450887 and bd86c3c), pause and resume included.",
   },
   {
     term: "Cost",
@@ -402,7 +402,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat allows 200 creates a day. Sandboxer allows 24 active sandboxes, so it has no burst of 25. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Sandboxer allows 24 active sandboxes, so it has no burst of 25. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",
