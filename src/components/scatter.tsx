@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
@@ -19,8 +20,8 @@ const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
 const QUADRANT = "oklch(0.8 0.17 152)";
 /** Plot height in px between the insets on a phone (h-[340px]). */
 const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
-/** The plot's drawing width on a 390px phone, between its insets. */
-const PHONE_PLOT_W = 222;
+/** The plot's drawing width between its insets at 390px and 360px viewports: one label layout for each. */
+const PLOT_W = { wide: 222, narrow: 192 } as const;
 
 /** The x axis starts here instead of at the first tick when no point sits below it. */
 const X_FLOOR = 2.5;
@@ -78,37 +79,51 @@ export function Scatter({
     const px = fx(p.x);
     return px > 0.72 || (px < mx && fy(p.y) < my && mx - px < px);
   };
-  // Label placement, worked out on the phone plot, the tightest it gets (wider plots only add room).
-  // Each label tries its dot's line first, then one line up or down, then two, on its preferred
-  // side and then the other, and takes the first spot that crosses no dot, overlaps no label placed
-  // before it, and stays inside the plot, clear of the x-axis. Labels are placed bottom to top.
+  // Label placement, worked out on a phone plot, the tightest it gets (wider plots only add room
+  // across): one layout at 390px that holds from there up, one at 360px for narrower phones. Each
+  // label tries its dot's line first, then one line up or down, then two, on its preferred side and
+  // then the other, and takes the first spot that crosses no dot, overlaps no label placed before
+  // it, and stays inside the plot, clear of the x-axis. When none is clear it takes the spot with
+  // the fewest clashes. Labels are placed bottom to top.
   type Box = { l: number; r: number; t: number; b: number };
+  type Spot = { flip: boolean; nudge: number };
   const hit = (a: Box, c: Box) => a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b;
-  const at = (p: ScatterPoint) => ({ x: fx(p.x) * PHONE_PLOT_W, y: (1 - fy(p.y)) * PHONE_PLOT_PX });
-  const dots = points.map((p) => { const { x, y } = at(p); return { p, box: { l: x - 7, r: x + 7, t: y - 7, b: y + 7 } }; });
-  const labelBox = (p: ScatterPoint, flip: boolean, nudge: number): Box => {
-    const { x, y } = at(p);
-    const stacked = p.provider === "upstash-ephemeral";
-    const w = stacked ? 70 : providerName(p.provider).length * 7.4 + 2;
-    const h = stacked ? 34 : 14;
-    const l = flip ? x - 12 - w : x + 12;
-    return { l, r: l + w, t: y + nudge - h / 2, b: y + nudge + h / 2 };
-  };
-  const placed = new Map<ScatterPoint["provider"], { flip: boolean; nudge: number; box: Box }>();
-  for (const p of [...points].sort((a, b) => a.y - b.y || b.x - a.x)) {
-    const preferred = flipOf(p);
-    const fits = (box: Box) =>
-      box.t >= -INSET.top && box.b <= PHONE_PLOT_PX - 2 && box.l >= -INSET.left + 8 && box.r <= PHONE_PLOT_W + INSET.right &&
-      !dots.some((d) => d.p !== p && hit(box, d.box)) && ![...placed.values()].some((o) => hit(box, o.box));
-    let choice = { flip: preferred, nudge: 0, box: labelBox(p, preferred, 0) };
-    search: for (const nudge of [0, -15, 15, -30, 30]) {
-      for (const flip of [preferred, !preferred]) {
-        const box = labelBox(p, flip, nudge);
-        if (fits(box)) { choice = { flip, nudge, box }; break search; }
+  const layout = (plotW: number) => {
+    const at = (p: ScatterPoint) => ({ x: fx(p.x) * plotW, y: (1 - fy(p.y)) * PHONE_PLOT_PX });
+    const dots = points.map((p) => { const { x, y } = at(p); return { p, box: { l: x - 7, r: x + 7, t: y - 7, b: y + 7 } }; });
+    const labelBox = (p: ScatterPoint, { flip, nudge }: Spot): Box => {
+      const { x, y } = at(p);
+      const stacked = p.provider === "upstash-ephemeral";
+      const w = stacked ? 70 : providerName(p.provider).length * 7.4 + 2;
+      const h = stacked ? 34 : 14;
+      const l = flip ? x - 12 - w : x + 12;
+      return { l, r: l + w, t: y + nudge - h / 2, b: y + nudge + h / 2 };
+    };
+    const placed = new Map<ScatterPoint["provider"], Spot & { box: Box }>();
+    for (const p of [...points].sort((a, b) => a.y - b.y || b.x - a.x)) {
+      const preferred = flipOf(p);
+      // A label over another label hides a name, so it counts double; one over a dot's edge only crowds it.
+      const clashes = (box: Box) =>
+        (box.t < -INSET.top || box.b > PHONE_PLOT_PX + 2 || box.l < -INSET.left + 8 || box.r > plotW + INSET.right ? 1 : 0) +
+        dots.filter((d) => d.p !== p && hit(box, d.box)).length +
+        2 * [...placed.values()].filter((o) => hit(box, o.box)).length;
+      let choice = { flip: preferred, nudge: 0, box: labelBox(p, { flip: preferred, nudge: 0 }) };
+      let fewest = Infinity;
+      search: for (const nudge of [0, -15, 15, -30, 30]) {
+        for (const flip of [preferred, !preferred]) {
+          const box = labelBox(p, { flip, nudge });
+          const n = clashes(box);
+          if (n < fewest) { fewest = n; choice = { flip, nudge, box }; }
+          if (n === 0) break search;
+        }
       }
+      placed.set(p.provider, choice);
     }
-    placed.set(p.provider, choice);
-  }
+    return placed;
+  };
+  const wide = layout(PLOT_W.wide);
+  const narrow = layout(PLOT_W.narrow);
+  const spot = (p: ScatterPoint, from: Map<ScatterPoint["provider"], Spot>): Spot => from.get(p.provider) ?? { flip: flipOf(p), nudge: 0 };
 
   return (
     <figure aria-label={`${yTitle} against ${xTitle}. ${summary}.`}>
@@ -158,7 +173,8 @@ export function Scatter({
           {points.map((p) => {
             const px = fx(p.x);
             const py = fy(p.y);
-            const { flip, nudge } = placed.get(p.provider) ?? { flip: flipOf(p), nudge: 0 };
+            const big = spot(p, wide);
+            const small = spot(p, narrow);
             const color = providerColor(p.provider);
             const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (
@@ -179,8 +195,8 @@ export function Scatter({
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
                   aria-hidden
-                  className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
-                  style={{ color, top: nudge }}
+                  className={`absolute top-(--nudge) -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap max-[389px]:top-(--nudge-narrow) ${big.flip ? "right-3" : "left-3"} ${small.flip === big.flip ? "" : small.flip ? "max-[389px]:left-auto max-[389px]:right-3" : "max-[389px]:right-auto max-[389px]:left-3"}`}
+                  style={{ color, "--nudge": `${big.nudge}px`, "--nudge-narrow": `${small.nudge}px` } as CSSProperties}
                 >
                   <ProviderName id={p.provider} layout="stacked" />
                 </span>
