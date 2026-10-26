@@ -15,7 +15,9 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@graphical": ["./components/graphical/index.ts"],
+      "@graphical/*": ["./components/graphical/*"]
     },
     "plugins": [
       {

@@ -28,12 +28,12 @@ const providersOf = (track: Track): WaterfallProvider[] =>
 /** The trace waterfall section: median timings per provider, step by step. Follows the track switch. */
 export function TraceWaterfall() {
   return (
-    <section id="trace" aria-labelledby="trace-title" className="scroll-mt-20 pt-16 sm:pt-24 lg:scroll-mt-28">
-      <h2 id="trace-title" className="flex items-center gap-3 font-pixel text-[28px] leading-none tracking-tight sm:text-[34px]">
-        <span aria-hidden className="size-3.5 shrink-0 bg-[var(--foreground)]" />
+    <section id="trace" aria-labelledby="trace-title" className="scroll-mt-24 pt-xxl sm:pt-[calc(var(--space-xxl)*1.5)]">
+      <h2 id="trace-title" className="flex items-center gap-s font-brand text-l font-medium">
+        <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
         Where the time goes
       </h2>
-      <p className="mt-3 mb-6 max-w-[72ch] text-[14px] leading-relaxed text-[var(--muted)]">
+      <p className="mt-xs mb-l max-w-[72ch] text-m text-neutral-8">
         Step by step, from median timings, in each provider&apos;s own time.
       </p>
       <Tracked>{(track) => (hasResults(track) ? <TraceWaterfallView track={track.id} providers={providersOf(track)} /> : null)}</Tracked>

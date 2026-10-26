@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from "react";
 import type { MouseEvent } from "react";
 
+import { themePart } from "@graphical/components/library/component-theme";
+
 import { landingTrack, linkedTrack, trackFromParam, trackIds, trackInfo, trackStyle } from "@/lib/tracks";
 import type { TrackId } from "@/lib/tracks";
 
@@ -51,6 +53,9 @@ function select(event: MouseEvent<HTMLAnchorElement>, id: TrackId) {
   window.dispatchEvent(new Event(EVENT));
 }
 
+// The theme's toggle group: a segment per track, the current one pressed. Links, not toggles, so they work without scripts.
+const Segment = themePart("a", "toggle-group", "control", "ui-button");
+
 /**
  * The one control that picks which results every chart shows. Plain links
  * underneath, so it works before scripts load and in a new tab.
@@ -59,19 +64,21 @@ export function TrackSwitch({ size = "large" }: { size?: "large" | "small" }) {
   const active = useSyncExternalStore(subscribe, current, (): TrackId => landingTrack);
   const large = size === "large";
   return (
-    <nav aria-label="Machines compared" className={large ? "w-full sm:w-auto" : ""}>
-      <ul className={`flex rounded-lg border border-[var(--line)] bg-[var(--band)] p-1 ${large ? "w-full sm:w-auto" : ""}`}>
+    <nav aria-label="Machines compared" className={large ? "w-full sm:w-fit" : "w-fit"}>
+      <ul className={`surface flex gap-xxs p-xxs ${large ? "w-full sm:w-fit" : ""}`}>
         {trackIds.map((id) => {
           const on = id === active;
           return (
             <li key={id} className={large ? "flex-1 sm:flex-none" : ""}>
-              <a
+              <Segment
                 href={hrefFor(id)}
-                onClick={(event) => select(event, id)}
+                onClick={(event: MouseEvent<HTMLAnchorElement>) => select(event, id)}
                 aria-current={on ? "page" : undefined}
-                className={`flex items-center justify-center rounded-md whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60 motion-reduce:transition-none ${
-                  large ? "h-11 px-4 text-[14px] sm:h-10" : "h-8 px-2.5 text-[12.5px]"
-                } ${on ? "bg-[var(--foreground)] font-medium text-[var(--background)]" : "text-[var(--muted)] hover:bg-[var(--chip)] hover:text-[var(--foreground)]"}`}
+                // Short labels fit the header; the full one is the tooltip and the accessible name.
+                title={large ? undefined : trackInfo[id].label}
+                aria-label={large ? undefined : trackInfo[id].label}
+                data-pressed={on ? "" : undefined}
+                className={`w-full ${on ? "" : "text-neutral-7"}`}
               >
                 {large ? (
                   <>
@@ -81,7 +88,7 @@ export function TrackSwitch({ size = "large" }: { size?: "large" | "small" }) {
                 ) : (
                   trackInfo[id].short
                 )}
-              </a>
+              </Segment>
             </li>
           );
         })}

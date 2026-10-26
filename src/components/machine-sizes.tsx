@@ -22,7 +22,7 @@ const measured = (p: Provider, key: Part) =>
  */
 export function MachineSizes({ providers }: { providers: readonly Provider[] }) {
   return (
-    <div className="grid gap-x-6 gap-y-8 md:grid-cols-3">
+    <div className="grid gap-x-l gap-y-xl md:grid-cols-3">
       {parts.map((part) => {
         const columns: Column[] = providers
           .flatMap((p) => {
@@ -35,16 +35,16 @@ export function MachineSizes({ providers }: { providers: readonly Provider[] }) 
           .map(({ p, value, inside }) => ({
             provider: p.id,
             label: part.format(value),
-            segments: [{ value, color: providerColor(p.id), variant: "gradient" }],
+            segments: [{ value, color: providerColor(p.id), fill: "solid" }],
             detail: [
-              advertised[p.id][part.key] == null ? "not advertised; measured" : `advertised ${part.format(value)}`,
-              ...(inside == null ? [] : [`measured inside ${part.format(inside)}`]),
+              advertised[p.id][part.key] == null ? "Not advertised; measured" : (["Advertised", part.format(value)] as const),
+              ...(inside == null ? [] : [["Measured inside", part.format(inside)] as const]),
             ],
           }));
         return (
           <div key={part.key}>
-            <h4 className="text-[14px] font-medium">{part.title}</h4>
-            <p className="mt-0.5 mb-2 text-[12px] text-[var(--muted)]">Default sandbox · Higher is better</p>
+            <h4 className="text-s font-medium">{part.title}</h4>
+            <p className="mt-0.5 mb-xs text-xs text-neutral-7">Default sandbox · Higher is better</p>
             <Columns columns={columns} label={`${part.title} by provider`} compact />
           </div>
         );

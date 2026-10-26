@@ -1,14 +1,17 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+
+import { Button, Toggle, ToggleGroup } from "@graphical";
 
 import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import { useScrollFade } from "@/components/tabs";
 
 import { formatTaskCost } from "@/lib/cost";
-import { fillStyle } from "@/lib/dither";
+import { markFill } from "@/lib/marks";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { buildTrace, compareTrace, leaves, spanExtent } from "@/lib/spans";
@@ -69,7 +72,7 @@ function Icon({ icon, color }: { icon: SpanIcon; color: string }) {
     test: <path d="M6 2.8h4M6.8 2.8v3.6L3.6 12.2a.7.7 0 0 0 .6 1h7.6a.7.7 0 0 0 .6-1L9.2 6.4V2.8" />,
   };
   return (
-    <span aria-hidden className="grid size-5 shrink-0 place-items-center rounded-[5px] border border-[var(--wf-line)] bg-[#0a0a0a]">
+    <span aria-hidden className="grid size-5 shrink-0 place-items-center rounded-s bg-neutral-1">
       <svg viewBox="0 0 16 16" className="size-3" fill="none" stroke={color} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
         {paths[icon]}
       </svg>
@@ -79,7 +82,7 @@ function Icon({ icon, color }: { icon: SpanIcon; color: string }) {
 
 function Chevron({ open }: { open: boolean }) {
   return (
-    <svg aria-hidden viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-150 ease-out motion-reduce:transition-none ${open ? "rotate-90" : ""}`} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden viewBox="0 0 16 16" className={`size-3.5 transition-transform duration-[var(--motion-duration)] ease-[var(--motion-easing)] motion-reduce:transition-none ${open ? "rotate-90" : ""}`} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 4l4 4-4 4" />
     </svg>
   );
@@ -87,12 +90,12 @@ function Chevron({ open }: { open: boolean }) {
 
 /** How a bar is painted: provider colour, or grey for our time. */
 function barStyle(span: Span, color: string, group: boolean): CSSProperties {
-  if (group) return { background: "linear-gradient(90deg, oklch(0.3 0 0), oklch(0.26 0 0))", boxShadow: "inset 0 0 0 1px oklch(0.36 0 0)" };
+  if (group) return { background: "linear-gradient(90deg, var(--neutral-4), var(--neutral-3))", boxShadow: "inset 0 0 0 1px var(--neutral-5)" };
   switch (span.owner) {
     case "provider":
       return { background: `color-mix(in oklch, ${color} 34%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 70%, transparent)` };
     case "ours":
-      return { background: "rgba(255,255,255,0.05)", boxShadow: "inset 0 0 0 1px oklch(0.48 0 0)" };
+      return { background: "var(--neutral-3-transparent)", boxShadow: "inset 0 0 0 1px var(--neutral-6)" };
     default: {
       const _exhaustive: never = span.owner;
       return _exhaustive;
@@ -127,30 +130,34 @@ const defaultCollapsed = (trace: Trace) => new Set(trace.kind === "replay" ? tra
 
 function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: ReactNode; tone?: "bad" }) {
   return (
-    <div className="min-w-0 border-[var(--wf-line)] px-4 py-3 sm:px-5 [&:not(:first-child)]:sm:border-l max-sm:[&:nth-child(even)]:border-l max-sm:[&:nth-child(n+3)]:border-t">
-      <div className="text-[11px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase">{label}</div>
-      <div className={`mt-1 font-mono text-[22px] leading-tight tabular-nums ${tone === "bad" ? "text-[var(--bad)]" : ""}`}>{value}</div>
-      {sub ? <div className="mt-0.5 truncate text-[11.5px] text-[var(--muted)]">{sub}</div> : null}
+    <div className="min-w-0 px-m py-s sm:px-l">
+      <div className="text-s text-neutral-7">{label}</div>
+      <div className={`mt-xxs font-mono text-l tabular-nums ${tone === "bad" ? "text-error" : ""}`}>{value}</div>
+      {sub ? <div className="mt-0.5 truncate text-xs text-neutral-7">{sub}</div> : null}
     </div>
   );
 }
 
+/** One of a few options, on the theme's toggle group. Pressing the current option again keeps it. */
 function Segmented<T extends string>({ label, items, value, onChange }: { label: string; items: readonly { id: T; label: ReactNode; disabled?: boolean }[]; value: T; onChange: (id: T) => void }) {
+  const scroller = useScrollFade<HTMLDivElement>();
   return (
-    <div role="group" aria-label={label} className="scroll-fade flex max-w-full gap-1 overflow-x-auto rounded-full border border-[var(--wf-line)] bg-[var(--wf-card)] p-1 [scrollbar-width:none]">
+    <ToggleGroup
+      ref={scroller}
+      aria-label={label}
+      value={[value]}
+      onValueChange={(next) => {
+        const id = items.find((it) => next.includes(it.id))?.id;
+        if (id !== undefined) onChange(id);
+      }}
+      className="surface scroll-fade max-w-full overflow-x-auto p-xxs [scrollbar-width:none]"
+    >
       {items.map((it) => (
-        <button
-          key={it.id}
-          type="button"
-          aria-pressed={it.id === value}
-          disabled={it.disabled}
-          onClick={() => onChange(it.id)}
-          className="flex h-7 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] whitespace-nowrap text-[var(--muted)] transition-colors duration-150 hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-35 aria-pressed:bg-[var(--chip)] aria-pressed:text-[var(--foreground)]"
-        >
+        <Toggle key={it.id} value={it.id} disabled={it.disabled} className={`shrink-0 whitespace-nowrap text-s ${it.id === value ? "" : "text-neutral-7"}`}>
           {it.label}
-        </button>
+        </Toggle>
       ))}
-    </div>
+    </ToggleGroup>
   );
 }
 
@@ -179,7 +186,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
   const scroller = useScrollFade<HTMLDivElement>();
 
   const controls = (
-    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-s flex flex-col gap-xs sm:flex-row sm:items-center sm:justify-between">
       <Segmented
         label="Trace"
         items={traceKinds.map((k) => ({ id: k, label: kindLabel[k], disabled: provider ? !hasTrace(track, k, provider.id) : !usable.some((p) => hasTrace(track, k, p.id)) }))}
@@ -208,7 +215,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
   if (pick === "all") {
     return (
-      <div className="[--wf-card:#111111] [--wf-hover:#181818] [--wf-line:rgba(255,255,255,0.08)]">
+      <div className="[--wf-card:var(--neutral-2)] [--wf-hover:var(--neutral-3)]">
         <style>{motionCss}</style>
         {controls}
         <CompareCard key={activeKind} kind={activeKind} track={track} providers={usable} onPick={setPick} />
@@ -230,27 +237,27 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
   const playhead = trace.total;
 
   return (
-    <div className="[--wf-card:#111111] [--wf-hover:#181818] [--wf-line:rgba(255,255,255,0.08)]">
+    <div className="[--wf-card:var(--neutral-2)] [--wf-hover:var(--neutral-3)]">
       <style>{motionCss}</style>
       {controls}
 
-      <div className="overflow-hidden rounded-xl border border-[var(--wf-line)] bg-[var(--wf-card)]">
-        <div className="flex items-center gap-2.5 border-b border-[var(--wf-line)] px-4 py-3 sm:px-5">
-          <button type="button" onClick={() => setPick("all")} className="-my-1 flex h-7 shrink-0 items-center gap-1 rounded-full pr-2.5 pl-1.5 text-[12.5px] text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--chip)] hover:text-[var(--foreground)] focus-visible:outline-1 focus-visible:outline-[var(--foreground)]">
-            <svg aria-hidden viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"><path d="M10 4L6 8l4 4" /></svg>
+      <div className="surface overflow-hidden">
+        <div className="flex items-center gap-xs px-m pt-m pb-xs sm:px-l">
+          <Button variant="ghost" onClick={() => setPick("all")} className="-my-xxs shrink-0 pl-xs text-neutral-7">
+            <ChevronLeft aria-hidden />
             All
-          </button>
-          <span className="text-[14px] font-medium">Trace</span>
-          <span className="min-w-0 truncate text-[14px] text-[var(--muted)]">
+          </Button>
+          <span className="text-s font-medium">Trace</span>
+          <span className="min-w-0 truncate text-s text-neutral-7">
             {trace.title} · {trace.kind === "replay" ? "median run" : "median of each step"}
           </span>
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px]" style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 40%, transparent)` }}>
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs" style={{ color, background: `color-mix(in oklch, ${color} 14%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 40%, transparent)` }}>
             <ProviderLogo id={provider.id} size={12} />
             <ProviderName id={provider.id} />
           </span>
         </div>
 
-        <div className="grid grid-cols-2 border-b border-[var(--wf-line)] sm:grid-cols-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4">
           <Stat label="Total time" value={formatMs(trace.total)} sub={ours > 0 ? `${formatMs(trace.providerMs)} provider · ${formatMs(ours)} ours` : trace.basis} />
           <Stat label="Cost per task" value={provider.costUsd === null ? "n/a" : formatTaskCost(provider.costUsd)} sub="create, replay, delete" />
           <Stat label="Calls" value={String(trace.calls)} sub={trace.basis} />
@@ -261,10 +268,10 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
         <div ref={scroller} className="peer max-h-[560px] overflow-auto overscroll-x-contain [--span-col:132px] [--wf-indent:8px] sm:[--span-col:280px] sm:[--wf-indent:14px]">
           <div className={`relative grid grid-cols-[var(--span-col)_1fr] sm:min-w-0 ${breakdown ? "" : "min-w-[640px]"}`}>
             {/* Time axis */}
-            <div className="sticky top-0 left-0 z-30 flex h-9 items-center border-r border-b border-[var(--wf-line)] bg-[var(--wf-card)] pl-4 text-[10.5px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase sm:pl-5">Span</div>
-            <div className="sticky top-0 z-20 h-9 border-b border-[var(--wf-line)] bg-[var(--wf-card)]">
+            <div className="sticky top-0 left-0 z-30 flex h-9 items-center bg-[var(--wf-card)] pl-m text-s text-neutral-7 sm:pl-l">Span</div>
+            <div className="sticky top-0 z-20 h-9 bg-[var(--wf-card)]">
               {ticks.map((t) => (
-                <span key={t} className="absolute top-1/2 -translate-y-1/2 pl-1.5 font-mono text-[11px] text-[var(--muted)] tabular-nums" style={{ left: pct(t) }}>
+                <span key={t} className="absolute top-1/2 -translate-y-1/2 pl-1.5 font-mono text-xxs text-neutral-7 tabular-nums" style={{ left: pct(t) }}>
                   {tickLabel(t, max)}
                 </span>
               ))}
@@ -274,7 +281,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
             {/* Gridlines and playhead, under the rows */}
             <div aria-hidden className="pointer-events-none absolute top-9 right-0 bottom-0 left-[var(--span-col)]">
               {ticks.map((t) => (
-                <span key={t} className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.05)]" style={{ left: pct(t) }} />
+                <span key={t} className="absolute inset-y-0 w-px bg-neutral-3" style={{ left: pct(t) }} />
               ))}
               {breakdown ? null : <span className="absolute inset-y-0 z-10 w-px" style={{ left: pct(playhead), background: `color-mix(in oklch, ${color} 70%, transparent)` }} />}
             </div>
@@ -286,10 +293,10 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
             </ul>
           </div>
         </div>
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-40 w-8 bg-gradient-to-l from-[var(--wf-card)] to-transparent opacity-0 transition-opacity duration-150 peer-data-[fade-end]:opacity-100" />
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-40 w-8 bg-gradient-to-l from-[var(--wf-card)] to-transparent opacity-0 transition-opacity duration-[var(--motion-duration)] peer-data-[fade-end]:opacity-100" />
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-m gap-y-xs px-m py-s text-xs text-neutral-7 sm:px-l">
           <Legend style={barStyle({ ...trace.root, owner: "provider" }, color, false)}><ProviderName id={provider.id} />&apos;s time</Legend>
           {ours > 0 ? <Legend style={barStyle({ ...trace.root, owner: "ours" }, color, false)} hatched>Ours: Sandbox SDK</Legend> : null}
         </div>
@@ -313,16 +320,16 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
   const hasOurs = first.steps.some((s) => s.owner === "ours");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--wf-line)] bg-[var(--wf-card)]">
-      <div className="flex items-center gap-2.5 border-b border-[var(--wf-line)] px-4 py-3 sm:px-5">
-        <Icon icon="trace" color="var(--brand)" />
-        <span className="text-[14px] font-medium">Trace</span>
-        <span className="min-w-0 truncate text-[14px] text-[var(--muted)]">
+    <div className="surface overflow-hidden">
+      <div className="flex items-center gap-xs px-m pt-m pb-xs sm:px-l">
+        <Icon icon="trace" color="var(--color-1)" />
+        <span className="text-s font-medium">Trace</span>
+        <span className="min-w-0 truncate text-s text-neutral-7">
           {kindLabel[kind]} · every provider, {kind === "replay" ? "median run" : "median of each step"}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 border-b border-[var(--wf-line)] sm:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4">
         <Stat label="Fastest" value={formatMs(first.providerMs)} sub={<><ProviderName id={first.provider} /> · provider time</>} />
         <Stat label="Slowest" value={formatMs(last.providerMs)} sub={<><ProviderName id={last.provider} /> · provider time</>} />
         <Stat label="Spread" value={`${(last.providerMs / first.providerMs).toFixed(1)}×`} sub="slowest vs fastest" />
@@ -332,17 +339,17 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
       <div className="relative">
         <div ref={scroller} className="peer overflow-x-auto overscroll-x-contain [--span-col:180px] sm:[--span-col:200px]">
           <div className="relative grid min-w-[560px] grid-cols-[var(--span-col)_1fr] sm:min-w-0">
-            <div className="sticky top-0 left-0 z-30 flex h-9 items-center border-r border-b border-[var(--wf-line)] bg-[var(--wf-card)] pl-4 text-[10.5px] font-medium tracking-[0.08em] text-[var(--muted)] uppercase sm:pl-5">Provider</div>
-            <div className="sticky top-0 z-20 h-9 border-b border-[var(--wf-line)] bg-[var(--wf-card)]">
+            <div className="sticky top-0 left-0 z-30 flex h-9 items-center bg-[var(--wf-card)] pl-m text-s text-neutral-7 sm:pl-l">Provider</div>
+            <div className="sticky top-0 z-20 h-9 bg-[var(--wf-card)]">
               {ticks.map((t) => (
-                <span key={t} className="absolute top-1/2 -translate-y-1/2 pl-1.5 font-mono text-[11px] text-[var(--muted)] tabular-nums" style={{ left: pct(t) }}>
+                <span key={t} className="absolute top-1/2 -translate-y-1/2 pl-1.5 font-mono text-xxs text-neutral-7 tabular-nums" style={{ left: pct(t) }}>
                   {tickLabel(t, max)}
                 </span>
               ))}
             </div>
             <div aria-hidden className="pointer-events-none absolute top-9 right-0 bottom-0 left-[var(--span-col)]">
               {ticks.map((t) => (
-                <span key={t} className="absolute inset-y-0 w-px bg-[rgba(255,255,255,0.05)]" style={{ left: pct(t) }} />
+                <span key={t} className="absolute inset-y-0 w-px bg-neutral-3" style={{ left: pct(t) }} />
               ))}
             </div>
             <ul className="contents">
@@ -352,14 +359,14 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
             </ul>
           </div>
         </div>
-        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-40 w-8 bg-gradient-to-l from-[var(--wf-card)] to-transparent opacity-0 transition-opacity duration-150 peer-data-[fade-end]:opacity-100" />
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-40 w-8 bg-gradient-to-l from-[var(--wf-card)] to-transparent opacity-0 transition-opacity duration-[var(--motion-duration)] peer-data-[fade-end]:opacity-100" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[var(--wf-line)] px-4 py-2.5 text-[11.5px] text-[var(--muted)] sm:px-5">
+      <div className="flex flex-wrap items-center gap-x-m gap-y-xs px-m py-s text-xs text-neutral-7 sm:px-l">
         {first.steps
           .filter((s) => s.owner === "provider")
           .map((s, i) => (
-            <Legend key={s.id} style={{ background: `color-mix(in oklch, oklch(0.9 0 0) ${stepMix[i % stepMix.length]}%, transparent)` }}>
+            <Legend key={s.id} style={{ background: `color-mix(in oklch, var(--neutral-9) ${stepMix[i % stepMix.length]}%, transparent)` }}>
               {s.name}
             </Legend>
           ))}
@@ -380,11 +387,11 @@ function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: n
         type="button"
         onClick={() => onPick(row.provider)}
         aria-label={`${providerName(row.provider)}: ${formatMs(row.providerMs)} provider time${ours > 0 ? `, plus ${formatMs(ours)} of our SDK setup` : ""}. Open its full trace.`}
-        className="group col-span-2 grid grid-cols-subgrid text-left focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-[var(--foreground)]"
+        className="group col-span-2 grid grid-cols-subgrid text-left focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-neutral-10"
       >
-        <span className="sticky left-0 z-10 flex h-10 min-w-0 items-center gap-2 border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 pl-4 group-hover:bg-[var(--wf-hover)] sm:pl-5">
+        <span className="sticky left-0 z-10 flex h-10 min-w-0 items-center gap-xs bg-[var(--wf-card)] pr-s pl-m group-hover:bg-[var(--wf-hover)] sm:pl-5">
           <ProviderLogo id={row.provider} size={16} />
-          <span className="min-w-0 truncate text-[13.5px] font-medium"><ProviderName id={row.provider} /></span>
+          <span className="min-w-0 truncate text-s font-medium"><ProviderName id={row.provider} /></span>
         </span>
         <span className="relative h-10 group-hover:bg-[var(--wf-hover)]">
           <span className="waterfall-bar absolute top-1/2 flex h-[16px] -translate-y-1/2 gap-px overflow-hidden rounded-full" style={{ left: 0, width: pct(row.total), animationDelay: `${index * 15}ms` }}>
@@ -401,9 +408,9 @@ function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: n
               return <span key={s.id} className="h-full shrink-0" style={{ width, background: `color-mix(in oklch, ${color} ${mix}%, transparent)` }} />;
             })}
           </span>
-          <span className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 pl-1.5 font-mono text-[12px] whitespace-nowrap tabular-nums" style={{ left: pct(row.total) }}>
-            <span className="rounded-[3px] bg-[var(--surface)] px-1 text-[var(--foreground)]">{formatMs(row.providerMs)}</span>
-            {ours > 0 ? <span className="text-[var(--muted)]">+ {formatMs(ours)} SDK</span> : null}
+          <span className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-1.5 pl-1.5 font-mono text-xs whitespace-nowrap tabular-nums" style={{ left: pct(row.total) }}>
+            <span className="rounded-[3px] bg-neutral-2 px-xxs text-neutral-10">{formatMs(row.providerMs)}</span>
+            {ours > 0 ? <span className="text-neutral-7">+ {formatMs(ours)} SDK</span> : null}
           </span>
         </span>
       </button>
@@ -412,7 +419,7 @@ function CompareRowView({ row, index, pct, onPick }: { row: CompareRow; index: n
 }
 
 /** Grey hatching inside a pill, for time that is ours. */
-const Hatch = () => <span aria-hidden className="absolute inset-0" style={fillStyle("hatched", { color: "oklch(0.6 0 0)" })} />;
+const Hatch = () => <span aria-hidden className="absolute inset-0" style={markFill("striped", "var(--neutral-6)")} />;
 
 function Legend({ style, hatched = false, children }: { style: CSSProperties; hatched?: boolean; children: ReactNode }) {
   return (
@@ -434,14 +441,14 @@ function SpanRow({ row, index, color, pct, onToggle }: { row: Row; index: number
   const delay = { animationDelay: `${Math.min(index, 20) * 15}ms` };
   return (
     <li className="group contents">
-      <div className="sticky left-0 z-10 flex h-[34px] min-w-0 items-center gap-1.5 overflow-hidden border-r border-[var(--wf-line)] bg-[var(--wf-card)] pr-3 group-hover:bg-[var(--wf-hover)]" style={{ paddingLeft: `calc(${depth} * var(--wf-indent) + 10px)` }}>
+      <div className="sticky left-0 z-10 flex h-[34px] min-w-0 items-center gap-1.5 overflow-hidden bg-[var(--wf-card)] pr-s group-hover:bg-[var(--wf-hover)]" style={{ paddingLeft: `calc(${depth} * var(--wf-indent) + 10px)` }}>
         {isGroup ? (
           <button
             type="button"
             aria-expanded={open}
             aria-label={`${open ? "Collapse" : "Expand"} ${span.name}`}
             onClick={() => onToggle(span.id)}
-            className="-m-1 grid size-6 shrink-0 place-items-center rounded-[4px] text-[var(--muted)] hover:text-[var(--foreground)] focus-visible:outline-1 focus-visible:outline-[var(--foreground)]"
+            className="-m-xxs grid size-6 shrink-0 place-items-center rounded-[4px] text-neutral-7 hover:text-neutral-10 focus-visible:outline-1 focus-visible:outline-neutral-10"
           >
             <Chevron open={open} />
           </button>
@@ -449,11 +456,11 @@ function SpanRow({ row, index, color, pct, onToggle }: { row: Row; index: number
           <span aria-hidden className="w-4 shrink-0" />
         )}
         <span className="hidden sm:contents">
-          <Icon icon={span.icon} color={span.owner === "provider" ? color : "var(--muted)"} />
+          <Icon icon={span.icon} color={span.owner === "provider" ? color : "var(--neutral-7)"} />
         </span>
-        <span className={`min-w-0 truncate text-[13px] sm:shrink-0 sm:text-[13.5px] ${depth === 0 || isGroup ? "font-medium" : ""}`}>{span.name}</span>
-        <span className="hidden min-w-0 truncate text-[12.5px] text-[var(--muted)] sm:block">{span.sub}</span>
-        {strip ? <span className="ml-auto shrink-0 rounded-[4px] sm:ml-0 bg-[var(--chip)] px-1.5 font-mono text-[11px] leading-[18px] text-[var(--muted)] tabular-nums">+{hidden.length}</span> : null}
+        <span className={`min-w-0 truncate text-s sm:shrink-0 sm:text-s ${depth === 0 || isGroup ? "font-medium" : ""}`}>{span.name}</span>
+        <span className="hidden min-w-0 truncate text-xs text-neutral-7 sm:block">{span.sub}</span>
+        {strip ? <span className="ml-auto shrink-0 rounded-[4px] sm:ml-0 bg-neutral-4 px-1.5 font-mono text-xxs leading-[18px] text-neutral-7 tabular-nums">+{hidden.length}</span> : null}
       </div>
       <div className="relative h-[34px] group-hover:bg-[var(--wf-hover)]">
         <div
@@ -466,15 +473,15 @@ function SpanRow({ row, index, color, pct, onToggle }: { row: Row; index: number
                 <span
                   key={c.id}
                   className="absolute inset-y-[3px] rounded-full"
-                  style={{ left: `${((c.start - start) / ms) * 100}%`, width: `max(1.5px, ${(c.ms / ms) * 100}%)`, background: c.owner === "provider" ? color : "oklch(0.6 0 0)", opacity: 0.85 }}
+                  style={{ left: `${((c.start - start) / ms) * 100}%`, width: `max(1.5px, ${(c.ms / ms) * 100}%)`, background: c.owner === "provider" ? color : "var(--neutral-6)", opacity: 0.85 }}
                 />
               ))
             : null}
         </div>
-        <span className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-2 pl-1 font-mono text-[12px] whitespace-nowrap text-[var(--muted)] tabular-nums" style={{ left: pct(start + ms) }}>
+        <span className="pointer-events-none absolute top-1/2 z-20 flex -translate-y-1/2 items-center gap-xs pl-xxs font-mono text-xs whitespace-nowrap text-neutral-7 tabular-nums" style={{ left: pct(start + ms) }}>
           {/* Opaque backing so the playhead line passes behind the label, not through it */}
-          <span className={`rounded-[3px] bg-[var(--surface)] px-1 ${isGroup ? "" : "text-[var(--foreground)]"}`}>{label}</span>
-          {slowest ? <span className="rounded-[4px] border border-[color-mix(in_oklch,var(--warn)_45%,transparent)] bg-[color-mix(in_oklch,var(--warn)_16%,transparent)] px-1.5 font-sans text-[10px] leading-[17px] font-semibold tracking-[0.06em] text-[var(--warn)]">{slowest === "group" ? "SLOWEST CALL" : "SLOWEST"}</span> : null}
+          <span className={`rounded-[3px] bg-neutral-2 px-xxs ${isGroup ? "" : "text-neutral-10"}`}>{label}</span>
+          {slowest ? <span className="rounded-[4px] border border-[color-mix(in_oklch,var(--warning)_45%,transparent)] bg-[color-mix(in_oklch,var(--warning)_16%,transparent)] px-1.5 font-sans text-xxs leading-[17px] font-medium tracking-xl text-warning">{slowest === "group" ? "SLOWEST CALL" : "SLOWEST"}</span> : null}
         </span>
       </div>
     </li>

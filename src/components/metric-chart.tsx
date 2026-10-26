@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { Disclosure } from "@/components/disclosure";
+import type { DetailLine } from "@/components/hover-card";
 import { Columns } from "@/components/columns";
 import { ProviderName } from "@/components/provider-name";
 import type { Column } from "@/components/columns";
@@ -20,9 +22,9 @@ const traceOf: Partial<Record<string, TraceKind>> = { cold: "cold", "tool-replay
 /** A chart's title and its one-line "what and which way" subtitle, as Artificial Analysis writes them. */
 export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
   return (
-    <div className="mb-4">
-      <h3 className="text-[17px] font-medium tracking-tight">{title}</h3>
-      <p className="mt-1 text-[12.5px] text-[var(--muted)]">{sub}</p>
+    <div className="mb-m">
+      <h3 className="text-m font-medium">{title}</h3>
+      <p className="mt-xxs text-xs text-neutral-7">{sub}</p>
     </div>
   );
 }
@@ -31,20 +33,16 @@ export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
 export function Footnotes({ items }: { items: readonly { mark?: number; text: ReactNode }[] }) {
   if (items.length === 0) return null;
   return (
-    <details className="group/notes mt-4 border-t border-[var(--line)] pt-3 text-[12px] leading-snug text-[var(--muted)]">
-      <summary className="flex h-8 w-fit cursor-pointer list-none items-center gap-1.5 rounded-md text-[12.5px] transition-colors duration-150 outline-none select-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
-        <span aria-hidden className="inline-block text-[11px] transition-transform duration-150 group-open/notes:rotate-90 motion-reduce:transition-none">▶</span>
-        Notes ({items.length})
-      </summary>
-      <ul className="mt-2 flex flex-col gap-1.5">
+    <Disclosure className="mt-m gap-xs" triggerClassName="w-fit justify-start text-s text-neutral-7 hover:text-neutral-10" summary={`Notes (${items.length})`}>
+      <ul className="flex flex-col gap-xs text-xs text-neutral-7">
         {items.map((item, i) => (
-          <li key={i} className="flex gap-2">
+          <li key={i} className="flex gap-xs">
             {item.mark === undefined ? null : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
             <span className="max-w-[90ch]">{item.text}</span>
           </li>
         ))}
       </ul>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -54,11 +52,11 @@ const isMeasured = (v: MetricValue): v is Measured => v.p50 !== null;
 const missingReason = (v: MetricValue | undefined) =>
   !v ? "not supported" : v.limitFailures > 0 ? "stopped by our plan's limit" : v.failures > 0 ? "failed every attempt" : "not supported";
 
-/** "100 attempts" or "30 attempts, 1 failed": every attempt counts, failed ones included. */
-export const attemptsLine = (v: Pick<MetricValue, "n" | "failures">) => {
-  const attempts = v.n + v.failures;
-  return `${formatCount(attempts)} ${attempts === 1 ? "attempt" : "attempts"}${v.failures ? `, ${formatCount(v.failures)} failed` : ""}`;
-};
+/** Attempts "100" or "30, 1 failed": every attempt counts, failed ones included. */
+const attemptsRow = (v: Pick<MetricValue, "n" | "failures">): DetailLine => [
+  "Attempts",
+  `${formatCount(v.n + v.failures)}${v.failures ? `, ${formatCount(v.failures)} failed` : ""}`,
+];
 
 const better = (m: Metric) => (m.better === "lower" ? "Lower is better" : "Higher is better");
 
@@ -137,12 +135,12 @@ export function MetricChart({
     label: formatShort(v.p50, metric.unit),
     mark: marks.get(v.provider),
     trace: kind && hasTrace(track.id, kind, v.provider) ? kind : undefined,
-    segments: [{ value: v.p50, color: providerColor(v.provider), variant: "gradient" }],
+    segments: [{ value: v.p50, color: providerColor(v.provider), fill: "solid" }],
     detail: [
-      `median ${formatValue(v.p50, metric.unit)}`,
-      ...(v.p95 === null ? [] : [`p95 ${formatValue(v.p95, metric.unit)}`]),
-      ...(v.ciLow === null || v.ciHigh === null ? [] : [`95% CI ${formatValue(v.ciLow, metric.unit)}–${formatValue(v.ciHigh, metric.unit)}`]),
-      attemptsLine(v),
+      ["Median", formatValue(v.p50, metric.unit)],
+      ...(v.p95 === null ? [] : [["p95", formatValue(v.p95, metric.unit)] as const]),
+      ...(v.ciLow === null || v.ciHigh === null ? [] : [["95% CI", `${formatValue(v.ciLow, metric.unit)}–${formatValue(v.ciHigh, metric.unit)}`] as const]),
+      attemptsRow(v),
     ],
   }));
 
@@ -190,7 +188,7 @@ export function MetricChart({
 export function CompactNotes({ items }: { items: readonly { mark: number | undefined; id: ProviderId; note: string }[] }) {
   if (items.length === 0) return null;
   return (
-    <ul className="mt-3 flex flex-col gap-1 text-[11px] leading-snug text-[var(--muted)]">
+    <ul className="mt-s flex flex-col gap-xxs text-xxs text-neutral-7">
       {items.map(({ mark, id, note }) => (
         <li key={id} className="flex gap-1.5">
           <span className="w-2.5 shrink-0 font-mono">{mark}</span>
@@ -206,9 +204,9 @@ export function CompactNotes({ items }: { items: readonly { mark: number | undef
 /** Stands in for a result this release does not have yet. */
 export const ComingNext = ({ compact = false, children }: { compact?: boolean; children?: ReactNode }) => (
   <p
-    className={`text-[13px] leading-snug text-[var(--muted)] ${compact ? "" : "rounded-lg border border-dashed border-[var(--line)] px-4 py-6 text-center"}`}
+    className={`text-s text-neutral-7 ${compact ? "" : "rounded-m border border-dashed border-neutral-3 px-m py-l text-center"}`}
   >
-    <span className="font-medium text-[var(--foreground)]">Coming in the next update.</span> {children}
+    <span className="font-medium text-neutral-10">Coming in the next update.</span> {children}
   </p>
 );
 
