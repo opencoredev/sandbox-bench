@@ -168,6 +168,13 @@
 .ui-tabs-list[data-tab-style="underline"]::before {
   content: none;
 }
+/*
+ * Unselected tabs rest on Neutral 6, 3.6:1 on a Neutral 2 card; Neutral 7 reads at 4.5:1 and up.
+ * Unlayered so it beats the theme's hoisted class rule that sets the variable.
+ */
+.ui-tabs-list > .ui-tab {
+  --ui-rest-color: var(--neutral-7);
+}
 /* The same for the rule the Untitled accordion draws between its items. */
 .ui-accordion-item {
   box-shadow: none;

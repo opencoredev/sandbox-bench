@@ -53,7 +53,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Without scripts the themed disclosures cannot open, so show every panel, undoing its closed and
             starting styles. In the base layer: important declarations in an earlier layer beat the theme's. */}
         <noscript>
-          <style>{`@layer base { :is([data-ui-component="collapsible"], [data-ui-component="accordion"])[data-ui-part="panel"][hidden] { display: block !important; height: auto !important; opacity: 1 !important; grid-template-rows: 1fr !important; } }`}</style>
+          <style>{`@layer base { :is([data-ui-component="collapsible"], [data-ui-component="accordion"])[data-ui-part="panel"][hidden] { display: block !important; height: auto !important; opacity: 1 !important; grid-template-rows: 1fr !important; content-visibility: visible !important; } }`}</style>
         </noscript>
       </head>
       <body>
