@@ -9,14 +9,14 @@ import type { ProviderId } from "@/lib/providers";
 
 /** A location's name as a small outlined chip. */
 export const Place = ({ children }: { children: ReactNode }) => (
-  <span className="inline-block rounded px-1 text-[10.5px] leading-[1.45] whitespace-nowrap text-[var(--muted)] shadow-[inset_0_0_0_1px_var(--line)]">{children}</span>
+  <span className="inline-block rounded-xs bg-neutral-3 px-1.5 py-0.5 text-xxs whitespace-nowrap text-neutral-7">{children}</span>
 );
 
 /** Where a provider's sandboxes run, from the hardware probe; the full text on hover. */
 export function RunsIn({ id }: { id: ProviderId }) {
   const h = hardware[id];
   return (
-    <span className="mt-1 block text-[11px] leading-tight font-normal text-[var(--muted)] sm:whitespace-nowrap" title={`Where its sandboxes run: ${h.region}`}>
+    <span className="mt-0.5 block text-xs font-normal text-neutral-7 sm:whitespace-nowrap" title={`Where its sandboxes run: ${h.region}`}>
       {h.regionShort === null ? "Location not shown" : `Runs in ${h.regionShort}`}
     </span>
   );
@@ -24,17 +24,17 @@ export function RunsIn({ id }: { id: ProviderId }) {
 
 /** A provider's name in its colour, with where it runs underneath. */
 export const ProviderLabel = ({ id }: { id: ProviderId }) => (
-  <span className="block text-[13px] font-medium" style={{ color: providerColor(id) }}>
+  <span className="block text-s font-medium" style={{ color: providerColor(id) }}>
     <ProviderName id={id} />
     <RunsIn id={id} />
   </span>
 );
 
-const sticky = "sticky left-0 z-10 bg-[var(--surface)]";
+const sticky = "sticky left-0 z-10 bg-neutral-2";
 
 /** A row's heading cell, pinned so it stays put while a wide table scrolls. */
 export const RowHead = ({ children }: { children: ReactNode }) => (
-  <th scope="row" className={`${sticky} py-2.5 pr-4 text-left align-top text-[12.5px] leading-snug font-normal`}>
+  <th scope="row" className={`${sticky} py-2.5 pr-m text-left align-top text-xs font-normal`}>
     {children}
   </th>
 );
@@ -54,10 +54,10 @@ export const ProviderCell = ({ id }: { id: ProviderId }) => (
 export function Grid({ label, corner, head, children, first = 13, col = 8.5 }: { label: string; corner: string; head: readonly { key: string; cell: ReactNode }[]; children: ReactNode; /** rem */ first?: number; /** rem */ col?: number }) {
   return (
     <div
-      className="-mx-5 overflow-x-auto px-5 [--col:var(--col-phone)] [--first:8.25rem] sm:-mx-7 sm:px-7 sm:[--col:var(--col-wide)] sm:[--first:var(--first-wide)]"
+      className="-mx-m overflow-x-auto px-m [--col:var(--col-phone)] [--first:8.25rem] sm:-mx-l sm:px-l sm:[--col:var(--col-wide)] sm:[--first:var(--first-wide)]"
       style={{ "--first-wide": `${first}rem`, "--col-wide": `${col}rem`, "--col-phone": `${Math.min(col, 8.5)}rem` }}
     >
-      <table aria-label={label} className="table-fixed border-collapse text-left text-[12.5px]" style={{ width: `calc(var(--first) + ${head.length} * var(--col))` }}>
+      <table aria-label={label} className="table-fixed border-collapse text-left text-xs" style={{ width: `calc(var(--first) + ${head.length} * var(--col))` }}>
         <colgroup>
           <col style={{ width: "var(--first)" }} />
           {head.map((h) => (
@@ -65,21 +65,21 @@ export function Grid({ label, corner, head, children, first = 13, col = 8.5 }: {
           ))}
         </colgroup>
         <thead>
-          <tr className="text-[11.5px] text-[var(--muted)]">
-            <th scope="col" className={`${sticky} pr-4 pb-2.5 align-top font-normal`}>
+          <tr className="text-xs text-neutral-7">
+            <th scope="col" className={`${sticky} pr-m pb-2.5 align-top font-normal`}>
               {corner}
             </th>
             {head.map((h) => (
-              <th key={h.key} scope="col" className="px-3 pb-2.5 align-top leading-snug font-normal">
+              <th key={h.key} scope="col" className="px-s pb-2.5 align-top font-normal">
                 {h.cell}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="[&>tr]:border-t [&>tr]:border-[var(--line)]">{children}</tbody>
+        <tbody>{children}</tbody>
       </table>
     </div>
   );
 }
 
-export const Empty = () => <span className="text-[11.5px] text-[var(--muted)]">Not measured</span>;
+export const Empty = () => <span className="text-xs text-neutral-7">Not measured</span>;

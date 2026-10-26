@@ -1,7 +1,8 @@
+import { Disclosure } from "@/components/disclosure";
 import { Empty, Grid, Place } from "@/components/location-table";
 import { ChartHead, ComingNext, Who } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
-import { TabCard } from "@/components/tabs";
+import { Card, TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
 import { dayRange, formatCount, formatValue } from "@/lib/format";
@@ -23,7 +24,7 @@ import type { RegionCell, RegionId, RegionMetric, Vantage } from "@/lib/regions"
  *   by default with a one-line quiet note.
  * - Tiny gray +/- cell deltas are dropped in favour of visual bars and chips.
  * - Fewer tabs: All locations / EU-Central / US-East / US-West (soon), with an
- *   optional <details> expander for the full network-sensitive table.
+ *   optional Disclosure expander for the full network-sensitive table.
  */
 
 const HEADLINE_IDS = ["cold", "command", "files-10mb", "tool-replay"] as const;
@@ -79,12 +80,12 @@ function ProviderLocationRow({
   })();
 
   return (
-    <div className="grid grid-cols-1 gap-3 py-3 sm:grid-cols-[11rem_1fr_11.5rem] sm:items-center sm:gap-5">
+    <div className="grid grid-cols-1 gap-s py-s sm:grid-cols-[11rem_1fr_11.5rem] sm:items-center sm:gap-5">
       <div>
-        <span className="block text-[13.5px] font-medium" style={{ color }}>
+        <span className="block text-s font-medium" style={{ color }}>
           <ProviderName id={provider} />
         </span>
-        <span className="mt-0.5 block text-[11.5px] text-[var(--muted)]">
+        <span className="mt-0.5 block text-xs text-neutral-7">
           {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
         </span>
       </div>
@@ -95,17 +96,17 @@ function ProviderLocationRow({
           const isFastest = standing ? standing.fastest.includes(r.id) : false;
           const pct = cell && maxP50 > 0 ? Math.max(4, Math.min(100, (cell.p50 / maxP50) * 100)) : 0;
           return (
-            <div key={r.id} className="grid grid-cols-[5.5rem_1fr_4.5rem] items-center gap-2.5 text-[12px]">
-              <span className={`truncate ${isFastest ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)]"}`}>
+            <div key={r.id} className="grid grid-cols-[5.5rem_1fr_4.5rem] items-center gap-2.5 text-xs">
+              <span className={`truncate ${isFastest ? "font-medium text-neutral-10" : "text-neutral-7"}`}>
                 {r.label}
               </span>
-              <div className="h-2 overflow-hidden rounded-sm bg-[var(--band)]">
+              <div className="h-2 overflow-hidden rounded-xs bg-neutral-3">
                 {cell ? (
                   <div
-                    className="h-full rounded-sm"
+                    className="h-full rounded-xs"
                     style={{
                       width: `${pct}%`,
-                      backgroundColor: isFastest ? color : "var(--axis)",
+                      backgroundColor: isFastest ? color : "var(--neutral-6)",
                       opacity: isFastest ? 0.9 : 0.45,
                     }}
                     title={cellTip(cell, metric)}
@@ -113,8 +114,8 @@ function ProviderLocationRow({
                 ) : null}
               </div>
               <span
-                className={`text-right font-mono text-[12.5px] tabular-nums ${
-                  cell ? (isFastest ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)]") : "text-[var(--muted)]/50"
+                className={`text-right font-mono text-xs tabular-nums ${
+                  cell ? (isFastest ? "font-medium text-neutral-10" : "text-neutral-7") : "text-neutral-7/50"
                 }`}
                 title={cell ? cellTip(cell, metric) : undefined}
               >
@@ -128,10 +129,8 @@ function ProviderLocationRow({
       <div className="flex sm:justify-end">
         {badge ? (
           <span
-            className={`inline-flex items-center rounded-md px-2 py-1 font-mono text-[11.5px] tabular-nums ${
-              badge.fast
-                ? "bg-[var(--band)] text-[var(--foreground)] shadow-[inset_0_0_0_1px_var(--line)]"
-                : "text-[var(--muted)]"
+            className={`inline-flex items-center rounded-s px-2 py-1 font-mono text-xs tabular-nums ${
+              badge.fast ? "bg-neutral-3 text-neutral-10" : "text-neutral-7"
             }`}
           >
             {badge.text}
@@ -173,26 +172,26 @@ function OverviewPanel() {
         meta={sampleLine()}
       />
 
-      <div className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
+      <div className="flex flex-col">
         {providers.map((id) => (
           <ProviderLocationRow key={id} provider={id} metric={primary} regions={regions} maxP50={maxPrimary} />
         ))}
       </div>
 
       {secondary.length > 0 ? (
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mt-l grid grid-cols-1 gap-s sm:grid-cols-3">
           {secondary.map((m) => (
-            <div key={m.id} className="rounded-lg border border-[var(--line)] bg-[var(--band)]/45 p-3.5">
-              <div className="flex items-baseline justify-between gap-2">
-                <h4 className="text-[13px] font-medium">{m.label}</h4>
-                <span className="text-[11px] text-[var(--muted)]">fastest location</span>
+            <div key={m.id} className="rounded-m bg-neutral-3/60 p-m">
+              <div className="flex items-baseline justify-between gap-xs">
+                <h4 className="text-s font-medium">{m.label}</h4>
+                <span className="text-xxs text-neutral-7">fastest location</span>
               </div>
-              <dl className="mt-2.5 flex flex-col gap-1.5 text-[12px]">
+              <dl className="mt-2.5 flex flex-col gap-1.5 text-xs">
                 {providers.map((id) => {
                   const row = rowOf(regional, id, m.id);
                   const s = row ? standingOf(row, m) : null;
                   return (
-                    <div key={id} className="flex items-baseline justify-between gap-2">
+                    <div key={id} className="flex items-baseline justify-between gap-xs">
                       <dt className="truncate">
                         <Who id={id} />
                       </dt>
@@ -202,11 +201,11 @@ function OverviewPanel() {
                             <span>{formatValue(s.cell.p50, m.unit)}</span>
                             <Place>{s.fastest.length > 1 ? "tie" : labelOf(s.fastest[0])}</Place>
                             {s.spread !== null && s.fastest.length === 1 ? (
-                              <span className="text-[11px] text-[var(--muted)]">×{s.spread.toFixed(1)}</span>
+                              <span className="text-xxs text-neutral-7">×{s.spread.toFixed(1)}</span>
                             ) : null}
                           </>
                         ) : (
-                          <span className="font-sans text-[11px] text-[var(--muted)]">—</span>
+                          <span className="font-sans text-xxs text-neutral-7">—</span>
                         )}
                       </dd>
                     </div>
@@ -220,7 +219,7 @@ function OverviewPanel() {
 
       <DetailsExpander metrics={vantageMetrics} />
 
-      <p className="mt-3 text-[12px] text-[var(--muted)]">
+      <p className="mt-s text-xs text-neutral-7">
         In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
@@ -260,7 +259,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
         sub={`Median cold start and HTTPS first byte from ${region.network ?? region.label} · Lower is better`}
       />
 
-      <div className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
+      <div className="flex flex-col">
         {sorted.map(({ id, cell, standing, firstByteMs }) => {
           const hw = hardware[id];
           const color = providerColor(id);
@@ -278,45 +277,43 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
           })();
 
           return (
-            <div key={id} className="grid grid-cols-1 gap-2.5 py-3 sm:grid-cols-[11rem_1fr_7rem_11.5rem] sm:items-center sm:gap-4">
+            <div key={id} className="grid grid-cols-1 gap-2.5 py-s sm:grid-cols-[11rem_1fr_7rem_11.5rem] sm:items-center sm:gap-m">
               <div>
-                <span className="block text-[13.5px] font-medium" style={{ color }}>
+                <span className="block text-s font-medium" style={{ color }}>
                   <ProviderName id={id} />
                 </span>
-                <span className="mt-0.5 block text-[11.5px] text-[var(--muted)]">
+                <span className="mt-0.5 block text-xs text-neutral-7">
                   {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
                 </span>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="h-2.5 flex-1 overflow-hidden rounded-sm bg-[var(--band)]">
+              <div className="flex items-center gap-s">
+                <div className="h-2.5 flex-1 overflow-hidden rounded-xs bg-neutral-3">
                   {cell && primary ? (
                     <div
-                      className="h-full rounded-sm"
+                      className="h-full rounded-xs"
                       style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.9 }}
                       title={cellTip(cell, primary)}
                     />
                   ) : null}
                 </div>
                 <span
-                  className="w-14 shrink-0 text-right font-mono text-[13px] font-medium tabular-nums"
+                  className="w-14 shrink-0 text-right font-mono text-s font-medium tabular-nums"
                   title={cell && primary ? cellTip(cell, primary) : undefined}
                 >
-                  {cell && primary ? formatValue(cell.p50, primary.unit) : <span className="font-normal text-[var(--muted)]">—</span>}
+                  {cell && primary ? formatValue(cell.p50, primary.unit) : <span className="font-normal text-neutral-7">—</span>}
                 </span>
               </div>
 
-              <div className="font-mono text-[12px] text-[var(--muted)] tabular-nums sm:text-right">
+              <div className="font-mono text-xs text-neutral-7 tabular-nums sm:text-right">
                 {firstByteMs !== null ? `${formatValue(firstByteMs, "ms")} 1st byte` : "—"}
               </div>
 
               <div className="flex sm:justify-end">
                 {chip ? (
                   <span
-                    className={`inline-flex items-center rounded-md px-2 py-1 font-mono text-[11.5px] tabular-nums ${
-                      chip.highlight
-                        ? "bg-[var(--band)] text-[var(--foreground)] shadow-[inset_0_0_0_1px_var(--line)]"
-                        : "text-[var(--muted)]"
+                    className={`inline-flex items-center rounded-s px-2 py-1 font-mono text-xs tabular-nums ${
+                      chip.highlight ? "bg-neutral-3 text-neutral-10" : "text-neutral-7"
                     }`}
                   >
                     {chip.text}
@@ -330,75 +327,71 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
 
       <DetailsExpander metrics={vantageMetrics} onlyRegion={region} />
 
-      <p className="mt-3 text-[12px] text-[var(--muted)]">
+      <p className="mt-s text-xs text-neutral-7">
         In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
   );
 }
 
-/** Quiet <details> expander for the full network-sensitive table when a reader wants every test. */
+/** Quiet Disclosure expander for the full network-sensitive table when a reader wants every test. */
 function DetailsExpander({ metrics, onlyRegion }: { metrics: readonly RegionMetric[]; onlyRegion?: Vantage }) {
   const { regions, providers } = regional;
   const labelOf = (id: RegionId) => regions.find((r) => r.id === id)?.label ?? id;
 
   return (
-    <details className="group/details mt-5 border-t border-[var(--line)] pt-3 text-[12.5px]">
-      <summary className="flex h-8 w-fit cursor-pointer list-none items-center gap-1.5 rounded-md text-[12.5px] text-[var(--muted)] transition-colors duration-150 outline-none select-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] [&::-webkit-details-marker]:hidden">
-        <span aria-hidden className="inline-block text-[11px] transition-transform duration-150 group-open/details:rotate-90">
-          ▶
-        </span>
-        Details ({metrics.length} network-sensitive tests)
-      </summary>
-      <div className="mt-3">
-        <Grid
-          label="All network-sensitive tests"
-          corner="Test"
-          first={12}
-          col={8.5}
-          head={providers.map((id) => ({
-            key: id,
-            cell: (
-              <span className="font-medium" style={{ color: providerColor(id) }}>
-                <ProviderName id={id} />
-              </span>
-            ),
-          }))}
-        >
-          {metrics.map((m) => (
-            <tr key={m.id}>
-              <th scope="row" className="sticky left-0 z-10 bg-[var(--surface)] py-2 pr-4 text-left align-top text-[12px] font-normal text-[var(--muted)]">
-                {m.label}
-              </th>
-              {providers.map((id) => {
-                const row = rowOf(regional, id, m.id);
-                if (onlyRegion) {
-                  const cell = row?.cells.get(onlyRegion.id);
-                  return (
-                    <td key={id} className="px-3 py-2 align-top font-mono text-[12px] tabular-nums" title={cell ? cellTip(cell, m) : undefined}>
-                      {cell ? formatValue(cell.p50, m.unit) : <Empty />}
-                    </td>
-                  );
-                }
-                const s = row ? standingOf(row, m) : null;
+    <Disclosure
+      className="mt-l gap-s"
+      triggerClassName="w-fit justify-start text-s text-neutral-7 hover:text-neutral-10"
+      summary={`Details (${metrics.length} network-sensitive tests)`}
+    >
+      <Grid
+        label="All network-sensitive tests"
+        corner="Test"
+        first={12}
+        col={8.5}
+        head={providers.map((id) => ({
+          key: id,
+          cell: (
+            <span className="font-medium" style={{ color: providerColor(id) }}>
+              <ProviderName id={id} />
+            </span>
+          ),
+        }))}
+      >
+        {metrics.map((m) => (
+          <tr key={m.id}>
+            <th scope="row" className="sticky left-0 z-10 bg-neutral-2 py-xs pr-m text-left align-top text-xs font-normal text-neutral-7">
+              {m.label}
+            </th>
+            {providers.map((id) => {
+              const row = rowOf(regional, id, m.id);
+              if (onlyRegion) {
+                const cell = row?.cells.get(onlyRegion.id);
                 return (
-                  <td key={id} className="px-3 py-2 align-top font-mono text-[12px] tabular-nums" title={s ? cellTip(s.cell, m) : undefined}>
-                    {s ? (
-                      <div className="flex flex-wrap items-baseline gap-1.5">
-                        <span>{formatValue(s.cell.p50, m.unit)}</span>
-                        <Place>{s.fastest.length > 1 ? "tie" : labelOf(s.fastest[0])}</Place>
-                      </div>
-                    ) : (
-                      <Empty />
-                    )}
+                  <td key={id} className="px-s py-xs align-top font-mono text-xs tabular-nums" title={cell ? cellTip(cell, m) : undefined}>
+                    {cell ? formatValue(cell.p50, m.unit) : <Empty />}
                   </td>
                 );
-              })}
-            </tr>
-          ))}
-        </Grid>
-      </div>
-    </details>
+              }
+              const s = row ? standingOf(row, m) : null;
+              return (
+                <td key={id} className="px-s py-xs align-top font-mono text-xs tabular-nums" title={s ? cellTip(s.cell, m) : undefined}>
+                  {s ? (
+                    <div className="flex flex-wrap items-baseline gap-1.5">
+                      <span>{formatValue(s.cell.p50, m.unit)}</span>
+                      <Place>{s.fastest.length > 1 ? "tie" : labelOf(s.fastest[0])}</Place>
+                    </div>
+                  ) : (
+                    <Empty />
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </Grid>
+    </Disclosure>
   );
 }
 
@@ -414,11 +407,11 @@ export function ByLocation() {
     <Tracked>
       {(track) =>
         track.id !== regional.track ? (
-          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-7">
+          <Card>
             <ComingNext compact>
               Multi-location runs currently measure each provider’s default sandbox. Switch to Default sandbox above to compare {regions.map((r) => r.label).join(" and ")}.
             </ComingNext>
-          </div>
+          </Card>
         ) : (
           <TabCard label="By location" section="locations" tabs={tabs} />
         )

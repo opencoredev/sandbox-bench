@@ -11,3 +11,7 @@ bun run build    # static site in out/
 ```
 
 Pushes to `main` deploy to production on Vercel.
+
+## License
+
+MIT. See [LICENSE](LICENSE). Geist and Geist Mono in `public/fonts` are under the SIL Open Font License (`public/fonts/Geist-OFL.txt`).

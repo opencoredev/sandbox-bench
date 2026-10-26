@@ -13,10 +13,10 @@ export function Mark({ className }: { className?: string }) {
 /** Mark plus wordmark, sized to the header. */
 export function Lockup() {
   return (
-    <span className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight whitespace-nowrap">
-      <Mark className="size-[18px] text-[var(--brand)]" />
+    <span className="flex items-center gap-2.5 text-m font-medium whitespace-nowrap">
+      <Mark className="size-[18px] text-accent" />
       <span>
-        Sandbox <span className="font-normal text-[var(--muted)]">bench</span>
+        Sandbox <span className="font-normal text-neutral-7">bench</span>
       </span>
     </span>
   );

@@ -14,7 +14,7 @@ type Layout = "flow" | "centered" | "stacked";
 
 const wrapper: Record<Layout, string> = {
   flow: "relative",
-  centered: "relative inline-flex max-w-full flex-wrap items-center justify-center gap-x-1 gap-y-0.5 align-middle",
+  centered: "relative inline-flex max-w-full flex-wrap items-center justify-center gap-x-xxs gap-y-0.5 align-middle",
   stacked: "relative inline-flex flex-col items-start gap-y-0.5 align-middle",
 };
 
@@ -38,7 +38,7 @@ export function ProviderName({ id, layout = "flow" }: { id: ProviderId; layout?:
         <span className={wrapper[layout]}>
           {label.short}{" "}
           <span
-            className="inline-block rounded-full px-1.5 py-px align-text-bottom text-[11px] leading-[1.35] font-medium whitespace-nowrap"
+            className="inline-block rounded-full px-1.5 py-px align-text-bottom text-xxs leading-[1.35] font-medium whitespace-nowrap"
             style={{ color: providerColor(id), background: `color-mix(in oklch, ${providerColor(id)} 16%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${providerColor(id)} 45%, transparent)` }}
           >
             {label.tag}

@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+
 import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, pricedTasks } from "@/lib/cost";
@@ -52,26 +54,27 @@ export function StatStrip({ track }: { track: Track }) {
   const cells = stats(track);
   if (cells.length === 0) return null;
   return (
-    <ul className="grid grid-cols-2 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] lg:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-s lg:grid-cols-5">
       {cells.map((s) => (
-        <li key={s.label} className="-mt-px -ml-px border-t border-l border-[var(--line)] last:odd:col-span-2 lg:last:odd:col-span-1">
+        <li key={s.label} className="last:odd:col-span-2 lg:last:odd:col-span-1">
           <JumpLink
             section={s.section}
             tab={s.tab}
-            className="group flex h-full flex-col gap-1.5 px-4 py-3.5 transition-colors duration-150 outline-none hover:bg-[var(--band)] focus-visible:bg-[var(--band)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] focus-visible:ring-inset motion-reduce:transition-none sm:px-5"
+            className="surface group focus-ring flex h-full flex-col gap-xs px-m py-s transition-colors duration-[var(--motion-duration)] ease-[var(--motion-easing)] hover:bg-neutral-3 motion-reduce:transition-none"
           >
-            <span className="text-[11px] font-medium tracking-[0.06em] text-[var(--muted)] uppercase">{s.label}</span>
-            <span className="font-mono text-[26px] leading-none tracking-tight tabular-nums sm:text-[30px]">{s.value}</span>
-            <span className="flex items-center justify-between gap-2 text-[12.5px]">
+            <span className="text-s text-neutral-7">{s.label}</span>
+            <span className="font-mono text-l tabular-nums sm:text-xl">{s.value}</span>
+            <span className="flex items-center justify-between gap-xs text-s">
               <span className="min-w-0 line-clamp-2">
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
                   <ProviderName id={s.provider} />
                 </span>
-                {s.note ? <span className="text-[var(--muted)]"> · {s.note}</span> : null}
+                {s.note ? <span className="text-neutral-7"> · {s.note}</span> : null}
               </span>
-              <span aria-hidden className="text-[var(--muted)] transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-[var(--brand)] motion-reduce:transition-none">
-                →
-              </span>
+              <ArrowRight
+                aria-hidden
+                className="size-4 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:text-accent motion-reduce:transition-none"
+              />
             </span>
           </JumpLink>
         </li>
