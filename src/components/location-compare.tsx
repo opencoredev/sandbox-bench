@@ -21,7 +21,7 @@ type CompareMetric = Pick<RegionMetric, "id" | "label" | "sensitivity" | "better
 const groupLabel = { vantage: "Crosses the network", invariant: "Runs inside the sandbox" } as const satisfies Record<RegionMetric["sensitivity"], string>;
 
 /** Every location side by side for one test, picked from a menu, with the gap between the first two. */
-export function LocationCompare({ metrics, regions, rows, providers }: { metrics: readonly CompareMetric[]; regions: readonly string[]; rows: readonly CompareRow[]; providers: readonly ProviderId[] }) {
+export function LocationCompare({ metrics, regions, rows, providers, sample }: { metrics: readonly CompareMetric[]; regions: readonly string[]; rows: readonly CompareRow[]; providers: readonly ProviderId[]; /** When and how many runs, shown under the heading. */ sample: string }) {
   const [metricId, setMetricId] = useState(metrics[0]?.id ?? "");
   const pickId = useId();
   const metric = metrics.find((m) => m.id === metricId);
@@ -31,7 +31,12 @@ export function LocationCompare({ metrics, regions, rows, providers }: { metrics
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <ChartHead
           title={`${metric?.label ?? "Test"} from each location`}
-          sub={`Median · ${first} − ${second}: negative means ${first} ${metric?.better === "higher" ? "did less" : "was faster"} · Spread: slowest location ÷ fastest`}
+          sub={
+            metric?.better === "higher"
+              ? `Median · ${first} − ${second}: positive means ${first} did more · Spread: highest throughput ÷ lowest · Higher is better`
+              : `Median · ${first} − ${second}: negative means ${first} was faster · Spread: slowest ÷ fastest · Lower is better`
+          }
+          meta={sample}
         />
         <label htmlFor={pickId} className="mb-4 flex items-center gap-2 text-[12.5px] text-[var(--muted)]">
           Test
@@ -73,7 +78,7 @@ export function LocationCompare({ metrics, regions, rows, providers }: { metrics
                 );
               })}
               <td className={`px-3 py-2.5 align-top font-mono text-[13px] tabular-nums ${row?.delta?.favoursFirst ? "" : "text-[var(--muted)]"}`}>{row?.delta ? row.delta.text : <Empty />}</td>
-              <td className="px-3 py-2.5 align-top font-mono text-[13px] tabular-nums">{row?.spread ? `×${row.spread.toFixed(1)}` : <Empty />}</td>
+              <td className="px-3 py-2.5 align-top font-mono text-[13px] tabular-nums">{row?.spread ? `×${row.spread.toFixed(1)}` : row?.cells.filter((c) => c !== null).length === 1 ? <span className="font-sans text-[11.5px] text-[var(--muted)]">1 location</span> : <Empty />}</td>
             </tr>
           );
         })}

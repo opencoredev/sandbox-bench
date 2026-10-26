@@ -6,7 +6,8 @@
     "build": "next build",
     "dev": "next dev",
     "typecheck": "next typegen && tsc --noEmit",
-    "lint": "oxlint src"
+    "lint": "oxlint src",
+    "test": "bun test src"
   },
   "dependencies": {
     "clsx": "^2.1.1",

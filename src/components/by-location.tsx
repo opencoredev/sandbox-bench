@@ -7,8 +7,8 @@ import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
 import { tracks } from "@/lib/data";
 import { dayRange, formatValue } from "@/lib/format";
-import { deltaFavoursFirst, deltaOf, formatDelta, median, regional, rowOf, sampleRange, spreadOf } from "@/lib/regions";
-import type { RegionCell, RegionMetric, RegionalData, Sensitivity, Vantage } from "@/lib/regions";
+import { TIE_RATIO, deltaFavoursFirst, deltaOf, formatDelta, median, regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
+import type { RegionCell, RegionMetric, RegionalData, Sensitivity, Standing, Vantage } from "@/lib/regions";
 import { trackInfo } from "@/lib/tracks";
 
 // Direction: the same quiet tables as Reliability and Hardware, so this reads
@@ -60,33 +60,59 @@ function Unmeasured({ data }: { data: RegionalData }) {
   );
 }
 
-/** For each provider, the network-sensitive tests at their best location, and how much worse the worst location was. */
-function Combined({ data }: { data: RegionalData }) {
+const listFormat = new Intl.ListFormat("en-US", { type: "conjunction" });
+
+const tiePercent = `${Math.round((TIE_RATIO - 1) * 100)}%`;
+
+/** The best location's chip, "Tied" when another location is within TIE_RATIO, then the spread or why there is none. */
+function StandingNote({ data, standing }: { data: RegionalData; standing: Standing }) {
+  const names = standing.fastest.map((r) => regionLabel(data, r));
+  const tied = names.length > 1;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+      <span title={tied ? `Tied, within ${tiePercent} of each other: ${names.join(", ")}` : `Best observed: ${names[0] ?? ""}`}>
+        <Place>{tied ? "Tied" : names[0]}</Place>
+      </span>
+      {standing.spread !== null ? (
+        <span className="font-mono text-[11px] text-[var(--muted)] tabular-nums">×{standing.spread.toFixed(1)}</span>
+      ) : (
+        <span className="text-[11px] text-[var(--muted)]">{standing.locations === 1 ? "1 location" : "no spread"}</span>
+      )}
+    </span>
+  );
+}
+
+/** For each provider, the network-sensitive tests at their best observed location, and how far the worst location was behind it. */
+function Combined({ data, sample }: { data: RegionalData; sample: string }) {
   const metrics = data.metrics.filter((m) => m.sensitivity === "vantage");
+  const allLower = metrics.every((m) => m.better === "lower");
+  const allHigher = metrics.every((m) => m.better === "higher");
+  const how = allLower
+    ? "Median at the fastest location, then how many times slower the slowest was"
+    : allHigher
+      ? "Median at the location with the highest throughput, then how many times higher it was than the lowest"
+      : "Median at the best location, then how many times worse the worst was";
   return (
     <>
       <ChartHead
-        title="Best location for each provider"
-        sub={`Tests that cross the network · Median from the fastest of ${data.regions.map((r) => r.label).join(" and ")}, then how many times slower the slowest was · Lower is better`}
+        title={`${allLower ? "Fastest" : "Best"} observed location for each provider`}
+        sub={`Tests that cross the network, from ${listFormat.format(data.regions.map((r) => r.label))} · ${how} · Tied: within ${tiePercent}`}
+        meta={sample}
       />
-      <Grid label="Best location per provider" corner="Test" head={providerHead(data)}>
+      <Grid label="Best observed location per provider" corner="Test" head={providerHead(data)}>
         {metrics.map((m) => (
           <tr key={m.id}>
             <RowHead>{m.label}</RowHead>
             {data.providers.map((id) => {
               const row = rowOf(data, id, m.id);
-              const spread = row ? spreadOf(row, m) : null;
-              const best = spread ? row?.cells.get(spread.best) : undefined;
+              const standing = row ? standingOf(row, m) : null;
               const titles = row ? [...row.cells].map(([r, c]) => cellTitle(m, regionLabel(data, r), c)).join("\n") : undefined;
               return (
                 <td key={id} className="px-3 py-2.5 align-top" title={titles}>
-                  {spread && best ? (
+                  {standing ? (
                     <>
-                      <span className="block font-mono text-[13px] tabular-nums">{formatValue(best.p50, m.unit)}</span>
-                      <span className="mt-1 flex items-center gap-1.5">
-                        <Place>{regionLabel(data, spread.best)}</Place>
-                        <span className="font-mono text-[11px] text-[var(--muted)] tabular-nums">×{spread.ratio.toFixed(1)}</span>
-                      </span>
+                      <span className="block font-mono text-[13px] tabular-nums">{formatValue(standing.cell.p50, m.unit)}</span>
+                      <StandingNote data={data} standing={standing} />
                     </>
                   ) : (
                     <Empty />
@@ -107,19 +133,19 @@ function typicalGap(data: RegionalData, metrics: readonly RegionMetric[]) {
   const ratios = metrics.flatMap((m) =>
     data.rows.flatMap((r) => {
       if (r.metric !== m.id) return [];
-      const s = spreadOf(r, m);
-      return s ? [s.ratio] : [];
+      const spread = standingOf(r, m)?.spread ?? null;
+      return spread === null ? [] : [spread];
     }),
   );
   return median(ratios);
 }
 
 /** One location's results, network tests first, each with its difference from the next location in the data. */
-function Location({ data, here }: { data: RegionalData; here: Vantage }) {
+function Location({ data, here, sample }: { data: RegionalData; here: Vantage; sample: string }) {
   const other = data.regions.find((r) => r.id !== here.id);
   return (
     <>
-      <ChartHead title={`Measured from ${here.label}`} sub={caption(here)} />
+      <ChartHead title={`Measured from ${here.label}`} sub={caption(here)} meta={sample} />
       <div className="flex flex-col gap-8">
         {groupOrder.map((g) => {
           const metrics = data.metrics.filter((m) => m.sensitivity === g);
@@ -179,12 +205,12 @@ function Location({ data, here }: { data: RegionalData; here: Vantage }) {
 }
 
 /** Runner-to-provider-API round trips from the preflight check: the distance every network test pays. */
-function Distance({ data }: { data: RegionalData }) {
+function Distance({ data, sample }: { data: RegionalData; sample: string }) {
   const providers = data.providers.filter((id) => data.rtt.some((r) => r.provider === id));
   const max = Math.max(1, ...data.rtt.map((r) => r.tcpMs ?? 0));
   return (
     <>
-      <ChartHead title="Network distance to each provider" sub="Median round trip from each runner to the provider's API, before any test · TCP connect, then first byte of a request · Lower is closer" />
+      <ChartHead title="Network distance to each provider" sub="Median round trip from each runner to the provider's API, before any test · TCP connect, then first byte of a request · Lower is closer" meta={sample} />
       <Grid label="Network distance" corner="Provider" head={data.regions.map((r) => ({ key: r.id, cell: r.label }))} col={13}>
         {providers.map((id) => (
           <tr key={id}>
@@ -235,7 +261,7 @@ function compareRows(data: RegionalData, first: Vantage, second: Vantage): Compa
           return c ? { text: formatValue(c.p50, m.unit), title: cellTitle(m, v.label, c) } : null;
         }),
         delta: delta ? { text: formatDelta(delta), favoursFirst: deltaFavoursFirst(m, delta) } : null,
-        spread: spreadOf(r, m)?.ratio ?? null,
+        spread: standingOf(r, m)?.spread ?? null,
       },
     ];
   });
@@ -248,16 +274,18 @@ function compareRows(data: RegionalData, first: Vantage, second: Vantage): Compa
 export function ByLocation({ data = regional }: { data?: RegionalData }) {
   const sample = sampleRange(data);
   const [first, second] = data.regions;
+  const runs = sample ? (sample.min === sample.max ? `${sample.max}` : `${sample.min} to ${sample.max}`) : "no";
+  const sampleLine = `${dayRange(data.window)} · ${runs} ${sample?.max === 1 ? "run" : "runs"} per test from each location · Small samples, so only large gaps mean much`;
   const notes = [
     {
-      text: `A separate, smaller collection than the rest of the page: ${sample ? (sample.min === sample.max ? sample.max : `${sample.min} to ${sample.max}`) : "no"} runs per test from each location, ${dayRange(data.window)}. Medians this small can move between runs, so read large gaps, not small ones. Hover a value for its p95 and run count.`,
+      text: `A separate, smaller collection than the rest of the page. Locations within ${tiePercent} of each other count as tied: at this sample size a smaller gap is within run-to-run noise. Hover a value for its p95 and run count.`,
     },
     { text: "Runs in is where each provider's sandboxes ran in our hardware probe, not where our runner was." },
     { text: `${trackInfo[data.track].label} only. Batch ${data.batchId}, benchmark commit ${data.commit.slice(0, 7)}.` },
   ];
   const tabs: Tab[] = [
-    { id: "combined", label: "Combined", content: <Combined data={data} /> },
-    ...data.regions.map((r) => ({ id: r.id, label: r.label, content: <Location data={data} here={r} /> })),
+    { id: "combined", label: "Combined", content: <Combined data={data} sample={sampleLine} /> },
+    ...data.regions.map((r) => ({ id: r.id, label: r.label, content: <Location data={data} here={r} sample={sampleLine} /> })),
     ...data.planned.map((r) => ({ id: r.id, label: r.label, unavailable: "not measured yet" })),
     ...(first && second
       ? [
@@ -270,12 +298,13 @@ export function ByLocation({ data = regional }: { data?: RegionalData }) {
                 regions={data.regions.map((r) => r.label)}
                 rows={compareRows(data, first, second)}
                 providers={data.providers}
+                sample={sampleLine}
               />
             ),
           },
         ]
       : []),
-    ...(data.rtt.length > 0 ? [{ id: "distance", label: "Network distance", content: <Distance data={data} /> }] : []),
+    ...(data.rtt.length > 0 ? [{ id: "distance", label: "Network distance", content: <Distance data={data} sample={sampleLine} /> }] : []),
   ];
   return (
     <>
