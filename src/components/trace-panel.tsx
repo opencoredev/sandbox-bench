@@ -1,10 +1,13 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
+import { Button, Toggle, ToggleGroup } from "@graphical";
+
 import { ProviderName } from "@/components/provider-name";
-import { fillStyle } from "@/lib/dither";
+import { markFill } from "@/lib/marks";
 import type { ColdPhases, PausePhases } from "@/lib/inputs";
 import { isProviderId, providerColor, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -15,8 +18,8 @@ import type { TrackId } from "@/lib/tracks";
 
 /*
  * Direction: a network-panel waterfall (Chrome DevTools, the trace view in
- * flohoeller's post) drawn in the page's own dithered fills. Provider time is
- * the provider's colour, our time is grey hatching, everywhere, so nobody
+ * flohoeller's post) drawn in the page's own flat marks. Provider time is
+ * the provider's colour, our time is grey stripes, everywhere, so nobody
  * reads our overhead as theirs. One panel per page: columns carry
  * data-trace="<kind>:<provider>" and this listens on the document.
  */
@@ -118,13 +121,14 @@ export function TracePanel() {
         if (event.target === event.currentTarget) close();
       }}
       className={[
-        "fixed m-0 max-h-none max-w-none overflow-hidden border-[var(--line)] bg-[var(--surface)] p-0 text-[var(--foreground)] shadow-2xl backdrop:bg-black/60",
+        // The theme's Drawer: Neutral 2 with a Neutral 4 transparent edge, L elevation, a Neutral 1 transparent backdrop.
+        "fixed m-0 max-h-none max-w-none overflow-hidden bg-neutral-2 p-0 text-neutral-10 shadow-[inset_0_0_0_var(--border-s)_var(--neutral-4-transparent),var(--shadow-l)] backdrop:bg-[var(--neutral-1-transparent)]",
         // Phones: a bottom sheet. Wider screens: a panel down the right edge.
-        "inset-x-0 top-auto bottom-0 h-[min(88dvh,820px)] w-full rounded-t-2xl border-t",
-        "sm:inset-y-0 sm:right-0 sm:left-auto sm:h-dvh sm:w-[min(600px,100vw)] sm:rounded-none sm:border-t-0 sm:border-l",
-        "transition-[translate,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+        "inset-x-0 top-auto bottom-0 h-[min(88dvh,820px)] w-full rounded-t-m",
+        "sm:inset-y-0 sm:right-0 sm:left-auto sm:h-dvh sm:w-[min(600px,100vw)] sm:rounded-none",
+        "transition-[translate,opacity] duration-[var(--motion-large-duration)] ease-[var(--motion-large-easing)] motion-reduce:transition-none",
         "starting:open:translate-y-8 starting:open:opacity-0 sm:starting:open:translate-x-8 sm:starting:open:translate-y-0",
-        "data-closing:translate-y-4 data-closing:opacity-0 data-closing:duration-150 sm:data-closing:translate-x-4 sm:data-closing:translate-y-0",
+        "data-closing:translate-y-4 data-closing:opacity-0 data-closing:duration-[var(--motion-duration)] sm:data-closing:translate-x-4 sm:data-closing:translate-y-0",
       ].join(" ")}
     >
       {open ? <Panel open={open} onChange={setOpen} onClose={close} /> : null}
@@ -147,52 +151,44 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
 
   return (
     <div className="flex h-full flex-col">
-      <header className="shrink-0 border-b border-[var(--line)] bg-[var(--band)] px-5 pt-3 pb-3 sm:px-6 sm:pt-5">
-        <div aria-hidden className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--chip)] sm:hidden" />
-        <div className="flex items-start justify-between gap-4">
+      <header className="shrink-0 px-m pt-s pb-xs sm:px-l sm:pt-l">
+        <div aria-hidden className="mx-auto mb-s h-1 w-10 rounded-full bg-neutral-4 sm:hidden" />
+        <div className="flex items-start justify-between gap-m">
           <div className="min-w-0">
-            <p className="text-[12px] text-[var(--muted)]">
+            <p className="text-xs text-neutral-7">
               Where the time goes · {trackInfo[track].short}
             </p>
-            <h2 id="trace-title" className="mt-0.5 text-[20px] font-medium tracking-tight">
+            <h2 id="trace-title" className="mt-0.5 text-l font-medium">
               <span style={{ color }}><ProviderName id={provider} /></span>
-              <span className="text-[var(--muted)]"> · {kindLabel[kind]}</span>
+              <span className="text-neutral-7"> · {kindLabel[kind]}</span>
             </h2>
           </div>
-          <button
-            type="button"
-            autoFocus
-            onClick={onClose}
-            aria-label="Close"
-            className="-mr-2 grid size-10 shrink-0 place-items-center rounded-md text-[var(--muted)] outline-none hover:bg-[var(--chip)] hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60"
-          >
-            <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" />
-            </svg>
-          </button>
+          <Button variant="ghost" autoFocus onClick={onClose} aria-label="Close" className="-mr-xs shrink-0 px-xs text-neutral-7">
+            <X aria-hidden />
+          </Button>
         </div>
-        <div className="mt-3 flex flex-wrap gap-1" role="group" aria-label="Breakdown">
+        <ToggleGroup className="mt-s flex-wrap" aria-label="Breakdown" value={[kind]}>
           {kinds.map((k) => (
-            <Chip key={k} pressed={k === kind} onClick={() => onChange({ ...open, kind: k })}>
+            <Chip key={k} value={k} pressed={k === kind} onClick={() => onChange({ ...open, kind: k })}>
               {kindLabel[k]}
             </Chip>
           ))}
-        </div>
+        </ToggleGroup>
         {others.length > 1 ? (
-          <div className="-mx-5 mt-2 flex gap-1 overflow-x-auto px-5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Provider">
+          <ToggleGroup className="-mx-m mt-xs overflow-x-auto px-m [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0" aria-label="Provider" value={[provider]}>
             {others.map((p) => (
-              <Chip key={p} pressed={p === provider} color={providerColor(p)} onClick={() => onChange({ ...open, provider: p })}>
+              <Chip key={p} value={p} pressed={p === provider} color={providerColor(p)} onClick={() => onChange({ ...open, provider: p })}>
                 <ProviderName id={p} />
               </Chip>
             ))}
-          </div>
+          </ToggleGroup>
         ) : null}
       </header>
-      <div ref={body} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+      <div ref={body} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-m py-m sm:px-l">
         {kind === "cold" && trace?.cold ? <ColdView data={trace.cold} provider={provider} /> : null}
         {kind === "pause" && trace?.pause ? <PauseView data={trace.pause} provider={provider} /> : null}
         {kind === "replay" && trace?.replay ? <ReplayView data={trace.replay} /> : null}
-        <p className="mt-8 border-t border-[var(--line)] pt-4 text-[11.5px] leading-snug text-[var(--muted)]">
+        <p className="mt-xl text-xs text-neutral-7">
           From run {traces[track].generatedFrom}. Every call runs from our server through Sandbox SDK&apos;s adapter for{" "}
           <ProviderName id={provider} />, so each includes the network round trip.
         </p>
@@ -201,19 +197,17 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
   );
 }
 
-function Chip({ pressed, color, onClick, children }: { pressed: boolean; color?: string; onClick: () => void; children: ReactNode }) {
+/** One option in the panel's pickers, on the theme's toggle. A provider's option takes its colour when pressed. */
+function Chip({ value, pressed, color, onClick, children }: { value: string; pressed: boolean; color?: string; onClick: () => void; children: ReactNode }) {
   return (
-    <button
-      type="button"
-      aria-pressed={pressed}
+    <Toggle
+      value={value}
       onClick={onClick}
       style={pressed && color ? { color } : undefined}
-      className={`shrink-0 rounded-md px-2.5 py-1.5 text-[12.5px] whitespace-nowrap outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/60 motion-reduce:transition-none sm:py-1 ${
-        pressed ? "bg-[var(--chip)] font-medium text-[var(--foreground)]" : "text-[var(--muted)] hover:text-[var(--foreground)]"
-      }`}
+      className={`shrink-0 whitespace-nowrap text-s ${pressed ? "" : "text-neutral-7"}`}
     >
       {children}
-    </button>
+    </Toggle>
   );
 }
 
@@ -228,19 +222,19 @@ interface Step {
   counted: boolean;
 }
 
-const ownerFill = (owner: Owner, color: string, edge: "left" | "right" = "left"): CSSProperties =>
-  owner === "provider" ? fillStyle("gradient", { color, edge, length: 18, to: 0.35 }) : fillStyle("hatched", { color: "var(--muted)" });
+const ownerFill = (owner: Owner, color: string): CSSProperties =>
+  owner === "provider" ? markFill("solid", color) : markFill("striped", "var(--neutral-7)");
 
 function Legend({ color, ours }: { color: string; ours: boolean }) {
   return (
-    <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-[12px] text-[var(--muted)]">
-      <span className="flex items-center gap-2">
-        <span aria-hidden className="inline-block size-3" style={fillStyle("solid", { color })} />
+    <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-neutral-7">
+      <span className="flex items-center gap-xs">
+        <span aria-hidden className="inline-block size-3 rounded-[2px]" style={markFill("solid", color)} />
         The provider&apos;s time
       </span>
       {ours ? (
-        <span className="flex items-center gap-2">
-          <span aria-hidden className="inline-block size-3" style={fillStyle("hatched", { color: "var(--muted)" })} />
+        <span className="flex items-center gap-xs">
+          <span aria-hidden className="inline-block size-3 rounded-[2px]" style={markFill("striped", "var(--neutral-7)")} />
           Our benchmark or SDK, not the provider
         </span>
       ) : null}
@@ -251,9 +245,9 @@ function Legend({ color, ours }: { color: string; ours: boolean }) {
 function Headline({ value, label, sub }: { value: string; label: string; sub: ReactNode }) {
   return (
     <div className="mb-5">
-      <p className="text-[12px] text-[var(--muted)]">{label}</p>
-      <p className="mt-1 font-mono text-[28px] leading-none tracking-tight tabular-nums">{value}</p>
-      <p className="mt-2 text-[12.5px] leading-snug text-[var(--muted)]">{sub}</p>
+      <p className="text-xs text-neutral-7">{label}</p>
+      <p className="mt-xxs font-mono text-xl leading-none tabular-nums">{value}</p>
+      <p className="mt-xs text-xs text-neutral-7">{sub}</p>
     </div>
   );
 }
@@ -268,23 +262,23 @@ function Waterfall({ steps, color }: { steps: readonly Step[]; color: string }) 
         const start = at;
         at += s.ms;
         return (
-          <li key={s.label} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 border-t border-[var(--line)] py-2.5 first:border-t-0">
+          <li key={s.label} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-s py-2.5">
             <div className="min-w-0">
-              <p className="flex items-baseline gap-2 text-[13px]">
-                <span className={s.owner === "provider" ? "font-medium" : "text-[var(--muted)]"}>{s.label}</span>
-                <span className="text-[11px] text-[var(--muted)]">
+              <p className="flex items-baseline gap-xs text-s">
+                <span className={s.owner === "provider" ? "font-medium" : "text-neutral-7"}>{s.label}</span>
+                <span className="text-xxs text-neutral-7">
                   {s.owner === "provider" ? (s.counted ? "provider" : "provider, not counted") : s.counted ? "ours" : "ours, excluded"}
                 </span>
               </p>
-              <p className="mt-0.5 text-[12px] leading-snug text-[var(--muted)]">{s.what}</p>
-              <div aria-hidden className="relative mt-2 h-2.5 border-l border-[var(--axis)]">
+              <p className="mt-0.5 text-xs text-neutral-7">{s.what}</p>
+              <div aria-hidden className="relative mt-xs h-2.5 border-l border-neutral-5">
                 <div
                   className="absolute inset-y-0"
                   style={{ left: `${(start / total) * 100}%`, width: `max(${(s.ms / total) * 100}%, 2px)`, ...ownerFill(s.owner, color) }}
                 />
               </div>
             </div>
-            <span className="pt-px text-right font-mono text-[12.5px] tabular-nums">{formatMs(s.ms)}</span>
+            <span className="pt-px text-right font-mono text-xs tabular-nums">{formatMs(s.ms)}</span>
           </li>
         );
       })}
@@ -295,7 +289,7 @@ function Waterfall({ steps, color }: { steps: readonly Step[]; color: string }) 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-7 first:mt-0">
-      <h3 className="mb-3 text-[13px] font-medium">{title}</h3>
+      <h3 className="mb-s text-s font-medium">{title}</h3>
       {children}
     </section>
   );
@@ -349,12 +343,12 @@ function PauseView({ data, provider }: { data: { n: number; median: PausePhases 
 }
 
 const opInfo = {
-  write: { label: "Write", what: "Write a small file", color: "var(--dither-color-blue)" },
-  read: { label: "Read", what: "Read it back", color: "var(--dither-color-green)" },
-  edit: { label: "Edit", what: "Find and replace: our SDK reads, then writes, so two calls", color: "var(--dither-color-purple)" },
-  ls: { label: "List", what: "List /workspace", color: "var(--dither-color-grey)" },
-  grep: { label: "Grep", what: "Run grep through the shell", color: "var(--dither-color-orange)" },
-  test: { label: "Test", what: "Run node --test on a small app", color: "var(--dither-color-pink)" },
+  write: { label: "Write", what: "Write a small file", color: "var(--series-blue)" },
+  read: { label: "Read", what: "Read it back", color: "var(--series-green)" },
+  edit: { label: "Edit", what: "Find and replace: our SDK reads, then writes, so two calls", color: "var(--series-purple)" },
+  ls: { label: "List", what: "List /workspace", color: "var(--series-grey)" },
+  grep: { label: "Grep", what: "Run grep through the shell", color: "var(--series-orange)" },
+  test: { label: "Test", what: "Run node --test on a small app", color: "var(--series-pink)" },
 } as const satisfies Record<ReplayOp, { label: string; what: string; color: string }>;
 
 /** Calls slower than this many times their operation's median are flagged. */
@@ -376,16 +370,16 @@ function ReplayView({ data }: { data: ReplayTrace }) {
       />
 
       <Section title="The median run, call by call">
-        <div aria-hidden className="flex h-5 w-full overflow-hidden rounded-[3px] bg-[var(--band)]">
+        <div aria-hidden className="flex h-5 w-full overflow-hidden rounded-[3px] bg-neutral-3">
           {data.sample.map((s, i) => (
             <span
               key={i}
-              className="h-full border-r border-[var(--surface)] last:border-r-0"
+              className="h-full border-r border-neutral-2 last:border-r-0"
               style={{ width: `${(s.ms / runTotal) * 100}%`, backgroundColor: opInfo[s.op].color }}
             />
           ))}
         </div>
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-[12px] text-[var(--muted)]">
+        <ul className="mt-s flex flex-wrap gap-x-m gap-y-1.5 text-xs text-neutral-7">
           {replayOps.map((op) => (
             <li key={op} className="flex items-center gap-1.5">
               <span aria-hidden className="inline-block size-2.5 rounded-[2px]" style={{ backgroundColor: opInfo[op].color }} />
@@ -397,13 +391,13 @@ function ReplayView({ data }: { data: ReplayTrace }) {
 
       <Section title="Median per call">
         <div className="overflow-x-auto">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[11.5px] text-[var(--muted)]">
-                <th className="pb-2 font-normal">Operation</th>
-                <th className="pb-2 text-right font-normal">Calls</th>
-                <th className="pb-2 text-right font-normal">Median</th>
-                <th className="pb-2 text-right font-normal">p95</th>
+              <tr className="text-left text-xs text-neutral-7">
+                <th className="pb-xs font-normal">Operation</th>
+                <th className="pb-xs text-right font-normal">Calls</th>
+                <th className="pb-xs text-right font-normal">Median</th>
+                <th className="pb-xs text-right font-normal">p95</th>
               </tr>
             </thead>
             <tbody>
@@ -411,36 +405,36 @@ function ReplayView({ data }: { data: ReplayTrace }) {
                 const o = byOp.get(op);
                 if (!o) return null;
                 return (
-                  <tr key={op} className="border-t border-[var(--line)] align-top">
-                    <td className="py-2 pr-3">
-                      <span className="flex items-center gap-2 font-medium">
+                  <tr key={op} className="align-top">
+                    <td className="py-xs pr-s">
+                      <span className="flex items-center gap-xs font-medium">
                         <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-[2px]" style={{ backgroundColor: opInfo[op].color }} />
                         {opInfo[op].label}
                       </span>
-                      <span className="mt-0.5 block pl-[18px] text-[12px] leading-snug text-[var(--muted)]">{opInfo[op].what}</span>
+                      <span className="mt-0.5 block pl-[18px] text-xs text-neutral-7">{opInfo[op].what}</span>
                     </td>
-                    <td className="py-2 text-right font-mono tabular-nums text-[var(--muted)]">{counts.get(op)}</td>
-                    <td className="py-2 pl-3 text-right font-mono whitespace-nowrap tabular-nums">{formatMs(o.p50)}</td>
-                    <td className="py-2 pl-3 text-right font-mono whitespace-nowrap tabular-nums text-[var(--muted)]">{formatMs(o.p95)}</td>
+                    <td className="py-xs text-right font-mono tabular-nums text-neutral-7">{counts.get(op)}</td>
+                    <td className="py-xs pl-s text-right font-mono whitespace-nowrap tabular-nums">{formatMs(o.p50)}</td>
+                    <td className="py-xs pl-s text-right font-mono whitespace-nowrap tabular-nums text-neutral-7">{formatMs(o.p95)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-[11.5px] text-[var(--muted)]">Median and p95 over every call of that kind in all {data.n} runs.</p>
+        <p className="mt-xs text-xs text-neutral-7">Median and p95 over every call of that kind in all {data.n} runs.</p>
       </Section>
 
       <Section title="Every call in the median run">
-        <ol className="flex flex-col text-[12.5px]">
+        <ol className="flex flex-col text-xs">
           {data.sample.map((s, i) => {
             const start = at;
             at += s.ms;
             const typical = byOp.get(s.op)?.p50 ?? s.ms;
             const slow = s.ms > SLOW * typical;
             return (
-              <li key={i} className="grid h-7 grid-cols-[2rem_3.25rem_minmax(0,1fr)_4.5rem] items-center gap-x-2 border-t border-[var(--line)] first:border-t-0">
-                <span className="font-mono text-[11px] text-[var(--muted)] tabular-nums">{i + 1}</span>
+              <li key={i} className="grid h-7 grid-cols-[2rem_3.25rem_minmax(0,1fr)_4.5rem] items-center gap-x-xs">
+                <span className="font-mono text-xxs text-neutral-7 tabular-nums">{i + 1}</span>
                 <span className="flex items-center gap-1.5">
                   <span aria-hidden className="inline-block size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: opInfo[s.op].color }} />
                   {opInfo[s.op].label}
@@ -452,7 +446,7 @@ function ReplayView({ data }: { data: ReplayTrace }) {
                     style={{ width: `max(${(s.ms / slowest) * 100}%, 2px)`, backgroundColor: opInfo[s.op].color, opacity: slow ? 1 : 0.7 }}
                   />
                 </span>
-                <span className={`text-right font-mono tabular-nums ${slow ? "text-[var(--warn)]" : ""}`}>
+                <span className={`text-right font-mono tabular-nums ${slow ? "text-warning" : ""}`}>
                   {formatMs(s.ms)}
                   {slow ? <span className="sr-only">, over {SLOW} times the median {opInfo[s.op].label.toLowerCase()}</span> : null}
                 </span>
@@ -460,8 +454,8 @@ function ReplayView({ data }: { data: ReplayTrace }) {
             );
           })}
         </ol>
-        <p className="mt-2 text-[11.5px] text-[var(--muted)]">
-          Bars are scaled to the slowest call. Times in <span className="text-[var(--warn)]">amber</span> took over {SLOW}× their operation&apos;s median.
+        <p className="mt-xs text-xs text-neutral-7">
+          Bars are scaled to the slowest call. Times in <span className="text-warning">amber</span> took over {SLOW}× their operation&apos;s median.
         </p>
       </Section>
     </>

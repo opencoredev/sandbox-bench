@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, ComingNext, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
-import { costSource, formatPerThousand, hasTaskCosts, notFromBill, perPriceLabel, pricedTasks, unpricedTasks } from "@/lib/cost";
+import { costSource, formatPerThousand, hasTaskCosts, notFromBill, pricedTasks, unpricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { allocationNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
@@ -26,7 +26,7 @@ export function NotFromBill({ track }: { track: Track }) {
   const parts: ReactNode[] = groups.map(({ kind, ids, source }, i) => (
     <span key={kind}>{i > 0 ? "; " : ""}{names(ids)}: {source}</span>
   ));
-  return <p className="mt-3 text-[12px] leading-snug text-pretty text-[var(--muted)]">Not from a bill yet. {parts}.</p>;
+  return <p className="mt-s text-xs text-pretty text-neutral-7">Not from a bill yet. {parts}.</p>;
 }
 
 /** Columns of cost per task, cheapest first, all drawn alike. */
@@ -38,8 +38,8 @@ export function costColumns(track: Track) {
     provider: id,
     label: formatPerThousand(cost.usd),
     mark: marks.get(id),
-    segments: [{ value: cost.usd, color: providerColor(id), variant: "gradient" }],
-    detail: [`${formatPerThousand(cost.usd)} ${perPriceLabel}`, costSource(id, cost)],
+    segments: [{ value: cost.usd, color: providerColor(id), fill: "solid" }],
+    detail: [["Per 1,000 tasks", formatPerThousand(cost.usd)], costSource(id, cost)],
   }));
   return { columns, marks };
 }

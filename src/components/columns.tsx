@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 
+import { HoverCard, detailText } from "@/components/hover-card";
+import type { DetailLine } from "@/components/hover-card";
 import { ProviderName } from "@/components/provider-name";
-import { fillStyle } from "@/lib/dither";
-import type { FillEdge, FillVariant } from "@/lib/dither";
+import { markFill } from "@/lib/marks";
+import type { MarkFill } from "@/lib/marks";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TraceKind } from "@/lib/traces";
@@ -10,7 +12,7 @@ import type { TraceKind } from "@/lib/traces";
 export interface Segment {
   value: number;
   color: string;
-  variant: FillVariant;
+  fill: MarkFill;
 }
 
 export interface Column {
@@ -20,7 +22,7 @@ export interface Column {
   /** Printed above the column. */
   label: string;
   /** Lines of the hover and focus card. */
-  detail: readonly string[];
+  detail: readonly DetailLine[];
   /** Footnote number shown beside the provider name. */
   mark?: number;
   /** The time breakdown the column opens on click or Enter (components/trace-panel.tsx). */
@@ -65,13 +67,8 @@ function layout(column: Column, max: number): Bar {
   };
 }
 
-const segmentStyle = (s: Segment, edge: FillEdge, length: number): CSSProperties =>
-  s.variant === "gradient"
-    ? fillStyle("gradient", { color: s.color, edge, length, to: 0.2 })
-    : fillStyle(s.variant, { color: s.color });
-
 const describe = (column: Column, bar: Bar, still = false) =>
-  `${providerName(column.provider)}: ${column.detail.join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace && !still ? ". Press Enter for the time breakdown" : ""}`;
+  `${providerName(column.provider)}: ${column.detail.map(detailText).join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace && !still ? ". Press Enter for the time breakdown" : ""}`;
 
 /**
  * What makes a column a button that opens its breakdown. The panel listens on
@@ -90,7 +87,7 @@ function Break({ color, along }: { color: string; along: "x" | "y" }) {
   return (
     <span
       aria-hidden
-      className={`absolute bg-[var(--surface)] ${
+      className={`absolute bg-neutral-2 ${
         along === "y"
           ? "-inset-x-1.5 top-3 h-[11px] -skew-y-[14deg] border-y-2"
           : "-inset-y-1 right-3 w-[10px] -skew-x-[20deg] border-x-2"
@@ -101,40 +98,27 @@ function Break({ color, along }: { color: string; along: "x" | "y" }) {
 }
 
 const Mark = ({ column }: { column: Column }) =>
-  column.mark === undefined ? null : <sup className="ml-px text-[11px] leading-none text-[var(--muted)]">{column.mark}</sup>;
+  column.mark === undefined ? null : <sup className="ml-px text-xxs leading-none text-neutral-7">{column.mark}</sup>;
 
 const Card = ({ column, className, style }: { column: Column; className: string; style?: CSSProperties }) => (
-  <div
-    role="presentation"
+  <HoverCard
+    provider={column.provider}
+    detail={column.detail}
+    hint={column.trace ? "Click for where the time goes" : undefined}
     style={style}
-    className={`pointer-events-none absolute z-10 w-max max-w-[220px] rounded-md border border-[var(--line)] bg-[var(--popover)] px-2.5 py-2 text-left text-[12px] leading-snug opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
-  >
-    <span className="block font-medium" style={{ color: providerColor(column.provider) }}>
-      <ProviderName id={column.provider} />
-    </span>
-    {column.detail.map((line) => (
-      <span key={line} className="block font-mono text-[11px] text-[var(--muted)] tabular-nums">
-        {line}
-      </span>
-    ))}
-    {column.trace ? (
-      <span className="mt-1.5 flex items-center gap-1 border-t border-[var(--line)] pt-1.5 text-[11px] text-[var(--foreground)]">
-        Click for where the time goes
-        <span aria-hidden>→</span>
-      </span>
-    ) : null}
-  </div>
+    className={`opacity-0 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
+  />
 );
 
 /**
  * Vertical columns in the order given, one per provider, as Artificial
- * Analysis draws them: value on top, name underneath. Each column is a
- * dithered fade that is densest at its top edge.
+ * Analysis draws them: value on top, name underneath. Flat marks in the
+ * provider's colour, rounded at the data end and square on the baseline.
  */
 function Vertical({ columns, max, still = false }: { columns: readonly Column[]; max: number; still?: boolean }) {
   return (
     <>
-      <div role={still ? "list" : undefined} className={`relative flex items-end border-b border-[var(--axis)] ${still ? "h-[200px] pt-5" : "h-[260px] pt-6"}`}>
+      <div role={still ? "list" : undefined} className={`relative flex items-end border-b border-neutral-4 ${still ? "h-[200px] pt-5" : "h-[260px] pt-l"}`}>
         {columns.map((column, index) => {
           const bar = layout(column, max);
           const color = providerColor(column.provider);
@@ -148,26 +132,24 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
               {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
               className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace ? "cursor-pointer" : ""}`}
             >
-              <span className="mb-1.5 shrink-0 font-mono text-[11px] whitespace-nowrap sm:text-[12px] text-[var(--foreground)] tabular-nums">
+              <span className="mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
                 {column.label}
               </span>
+              {/* Stacked parts sit 2px apart in the card colour; only the top one is rounded. */}
               <div
-                className="relative flex w-[min(60px,66%)] shrink-0 flex-col-reverse"
+                className="relative flex w-[min(36px,60%)] shrink-0 flex-col-reverse gap-[2px] transition-opacity duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:opacity-85 motion-reduce:transition-none"
                 style={{ height: `${bar.length * 100}%`, minHeight: 2 }}
               >
                 {column.segments.map((s, i) => (
                   <div
                     key={i}
                     aria-hidden
-                    className="relative w-full"
-                    style={{ height: `${((bar.shares[i] ?? 0) / bar.length) * 100}%`, ...segmentStyle(s, "top", 34) }}
+                    className={`relative w-full ${i === column.segments.length - 1 ? "rounded-t-xs" : ""}`}
+                    style={{ height: `${((bar.shares[i] ?? 0) / bar.length) * 100}%`, ...markFill(s.fill, s.color) }}
                   >
                     {bar.broken === i ? <Break color={s.color} along="y" /> : null}
                   </div>
                 ))}
-                {column.segments.length === 1 ? (
-                  <div aria-hidden className="absolute inset-x-0 top-0 h-[3px]" style={{ backgroundColor: color }} />
-                ) : null}
               </div>
               {still ? null : <Card column={column} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />}
               <span
@@ -183,8 +165,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
         {columns.map((column) => (
           <span
             key={column.provider}
-            className={`block min-w-0 flex-1 px-0.5 text-center leading-tight font-medium ${still ? "text-[11px]" : "text-[12px]"}`}
-            style={{ color: providerColor(column.provider) }}
+            className={`block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
           >
             <ProviderName id={column.provider} layout="centered" />
             <Mark column={column} />
@@ -203,49 +184,41 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
   // Values sit in one right-aligned column wide enough for the longest label.
   const valueWidth = `${Math.max(...columns.map((c) => c.label.length), 3) + 0.5}ch`;
   return (
-    <div className="flex flex-col gap-1" role={still ? "list" : undefined}>
+    <div className="flex flex-col gap-xxs" role={still ? "list" : undefined}>
       {columns.map((column) => {
         const bar = layout(column, max);
-        const color = providerColor(column.provider);
         return (
           <div
             key={column.provider}
             aria-label={describe(column, bar, still)}
             {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
-            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-[var(--band)] sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
+            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-neutral-3 sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="line-clamp-2 text-[13px] leading-[1.1] font-medium sm:text-[12px]" style={{ color }}>
+            <span aria-hidden className="line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
-            <div aria-hidden className="relative flex h-3.5 items-stretch border-l border-[var(--axis)] sm:h-3">
-              <div className="relative flex" style={{ width: `${bar.length * 100}%`, minWidth: 2 }}>
+            <div aria-hidden className="relative flex h-3.5 items-stretch border-l border-neutral-4 sm:h-3">
+              <div className="relative flex gap-[2px]" style={{ width: `${bar.length * 100}%`, minWidth: 2 }}>
                 {column.segments.map((s, i) => (
-                  <div key={i} className="relative h-full" style={{ width: `${((bar.shares[i] ?? 0) / bar.length) * 100}%` }}>
-                    {/* Phones get a solid bar: at this size the dither fade reads as a dotted line. */}
-                    <div
-                      className={`absolute inset-0 ${s.variant === "gradient" ? "hidden sm:block" : ""}`}
-                      style={segmentStyle(s, "right", 20)}
-                    />
-                    {s.variant === "gradient" ? (
-                      <div className="absolute inset-0 rounded-r-[2px] sm:hidden" style={{ backgroundColor: s.color }} />
-                    ) : null}
+                  <div
+                    key={i}
+                    className={`relative h-full ${i === column.segments.length - 1 ? "rounded-r-xs" : ""}`}
+                    style={{ width: `${((bar.shares[i] ?? 0) / bar.length) * 100}%`, ...markFill(s.fill, s.color) }}
+                  >
                     {bar.broken === i ? <Break color={s.color} along="x" /> : null}
                   </div>
                 ))}
-                {column.segments.length === 1 ? (
-                  <div className="absolute inset-y-0 right-0 w-[3px]" style={{ backgroundColor: color }} />
-                ) : null}
               </div>
             </div>
             <span
               aria-hidden
-              className="text-right font-mono text-[12px] text-[var(--foreground)] tabular-nums sm:text-[11px]"
+              className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
               style={{ width: valueWidth }}
             >
               {column.label}
             </span>
-            {still ? null : <Card column={column} className="top-full right-0 mt-1" />}
+            {still ? null : <Card column={column} className="top-full right-0 mt-xxs" />}
           </div>
         );
       })}

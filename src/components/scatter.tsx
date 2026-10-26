@@ -1,3 +1,5 @@
+import { HoverCard, detailText } from "@/components/hover-card";
+import type { DetailLine } from "@/components/hover-card";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
@@ -11,12 +13,13 @@ export interface ScatterPoint {
   /** US dollars per task. */
   y: number;
   /** Hover-card lines after the name and the two values, such as the machine it ran on. */
-  detail: readonly string[];
+  detail: readonly DetailLine[];
 }
 
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
-const QUADRANT = "oklch(0.8 0.17 152)";
+// The attractive quadrant: the theme's success colour.
+const QUADRANT = "var(--success)";
 /** Plot height in px between the insets on a phone (h-[340px]). */
 const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
 
@@ -79,8 +82,8 @@ export function Scatter({
 
   return (
     <figure aria-label={`${yTitle} against ${xTitle}. ${summary}.`}>
-      <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-[var(--muted)]">
-        <span className="flex items-center gap-2">
+      <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-xs text-xs text-neutral-7">
+        <span className="flex items-center gap-xs">
           <span aria-hidden className="size-3 rounded-[2px] border" style={{ backgroundColor: `color-mix(in oklch, ${QUADRANT} 16%, transparent)`, borderColor: `color-mix(in oklch, ${QUADRANT} 45%, transparent)` }} />
           Faster and cheaper than the median
         </span>
@@ -88,7 +91,7 @@ export function Scatter({
 
       <div className="flex">
         <div className="relative w-5 shrink-0">
-          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 text-[12px] whitespace-nowrap text-[var(--muted)]">
+          <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 text-xs whitespace-nowrap text-neutral-7">
             {yTitle}
           </span>
         </div>
@@ -107,21 +110,21 @@ export function Scatter({
             }}
           />
           {yTicks.map((t) => (
-            <div aria-hidden key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-dotted border-[var(--grid)]" style={{ top: along(fy(t), "y") }}>
-              <span className="absolute -left-2 -translate-x-full -translate-y-1/2 font-mono text-[11px] text-[var(--muted)] tabular-nums">
+            <div aria-hidden key={`y${t}`} className="absolute right-[18px] left-[56px] border-t border-neutral-3" style={{ top: along(fy(t), "y") }}>
+              <span className="absolute -left-2 -translate-x-full -translate-y-1/2 font-mono text-xxs text-neutral-7 tabular-nums">
                 {formatPerThousand(t)}
               </span>
             </div>
           ))}
           {xs.map((t) => (
-            <div aria-hidden key={`x${t}`} className="absolute top-[14px] bottom-[30px] border-l border-dotted border-[var(--grid)]" style={{ left: along(fx(t), "x") }}>
-              <span className="absolute -bottom-6 -translate-x-1/2 font-mono whitespace-nowrap text-[11px] text-[var(--muted)] tabular-nums">
+            <div aria-hidden key={`x${t}`} className="absolute top-[14px] bottom-[30px] border-l border-neutral-3" style={{ left: along(fx(t), "x") }}>
+              <span className="absolute -bottom-6 -translate-x-1/2 font-mono whitespace-nowrap text-xxs text-neutral-7 tabular-nums">
                 {t} s
               </span>
             </div>
           ))}
-          <div aria-hidden className="absolute right-[18px] bottom-[30px] left-[56px] border-t border-[var(--axis)]" />
-          <div aria-hidden className="absolute top-[14px] bottom-[30px] left-[56px] border-l border-[var(--axis)]" />
+          <div aria-hidden className="absolute right-[18px] bottom-[30px] left-[56px] border-t border-neutral-5" />
+          <div aria-hidden className="absolute top-[14px] bottom-[30px] left-[56px] border-l border-neutral-5" />
           {points.map((p) => {
             const px = fx(p.x);
             const py = fy(p.y);
@@ -142,51 +145,43 @@ export function Scatter({
             const moved = twin ? (above ? -15 : 15) : 0;
             const nudge = moved !== 0 && runsOver({ p, flip, nudge: moved }) && !runsOver({ p, flip, nudge: 0 }) ? 0 : moved;
             const color = providerColor(p.provider);
-            const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
+            const lines: DetailLine[] = [["Cost per 1,000 tasks", formatPerThousand(p.y)], ["100 tool calls", formatValue(p.x, "s")], ...p.detail];
             return (
               <div
                 key={p.provider}
                 tabIndex={0}
                 role="img"
-                aria-label={`${providerName(p.provider)}: ${lines.join(", ")}`}
+                aria-label={`${providerName(p.provider)}: ${lines.map(detailText).join(", ")}`}
                 className="group/pt absolute size-0 outline-none hover:z-20 focus:z-20"
                 style={{ left: along(px, "x"), top: along(py, "y") }}
               >
                 <span
                   aria-hidden
-                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-[3px] ring-[var(--surface)] transition-[scale] duration-150 group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-[var(--brand)] motion-reduce:transition-none"
+                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-neutral-2 transition-[scale] duration-[var(--motion-duration)] group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-accent motion-reduce:transition-none"
                   style={{ backgroundColor: color }}
                 />
                 {/* A wider invisible target than the 12px dot. */}
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
                   aria-hidden
-                  className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
-                  style={{ color, top: nudge }}
+                  className={`absolute -translate-y-1/2 text-xs leading-none whitespace-nowrap text-neutral-8 ${flip ? "right-3" : "left-3"}`}
+                  style={{ top: nudge }}
                 >
                   <ProviderName id={p.provider} layout="stacked" />
                 </span>
-                <span
-                  aria-hidden
-                  className={`pointer-events-none absolute w-max max-w-[min(250px,65vw)] rounded-md border border-[var(--line)] bg-[var(--popover)] px-2.5 py-2 text-left text-[12px] leading-snug opacity-0 shadow-lg transition-opacity duration-150 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none left-0 ${py > 0.5 ? "top-3" : "bottom-3"}`}
+                <HoverCard
+                  provider={p.provider}
+                  detail={lines}
+                  className={`left-0 opacity-0 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none ${py > 0.5 ? "top-3" : "bottom-3"}`}
                   // Slide the card along its own width as the dot moves right, so it stays inside the plot at any width.
                   style={{ translate: `${-px * 100}% 0` }}
-                >
-                  <span className="block font-medium" style={{ color }}>
-                    <ProviderName id={p.provider} />
-                  </span>
-                  {lines.map((line) => (
-                    <span key={line} className="block font-mono text-[11px] text-[var(--muted)] tabular-nums">
-                      {line}
-                    </span>
-                  ))}
-                </span>
+                />
               </div>
             );
           })}
         </div>
       </div>
-      <p className="mt-3 pl-5 text-center text-[12px] text-[var(--muted)]">{xTitle}</p>
+      <p className="mt-s pl-5 text-center text-xs text-neutral-7">{xTitle}</p>
     </figure>
   );
 }

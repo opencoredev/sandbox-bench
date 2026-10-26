@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Allocations } from "@/components/allocations";
@@ -6,6 +7,7 @@ import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
+import { MethodList } from "@/components/method-list";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -34,17 +36,15 @@ import { providerColor, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
 
-// Reference: Artificial Analysis for structure (a compact two-row header that
-// marks the section you are in, a short hero that leads with clickable
-// highlight cards, then one bordered card per topic with a tab band, every
-// chart titled with what it measures and which way is better, an
-// attractive-quadrant scatter). scrapingbench and dithercn for the look
-// (black page, one hue per provider, dithered fills with a solid cap).
-// Palette: page oklch(0.13 0 0), cards oklch(0.16 0 0), ink oklch(0.96 0 0),
-// muted oklch(0.7 0 0), Sandbox SDK amber only for "you are here", one fixed
-// colour per provider, red only for failures.
-// Type: Geist Pixel for page and section titles, Geist Sans for labels, Geist Mono for numbers.
-// Signature: vertical dithered columns, densest at the top, value printed above.
+// Reference: Artificial Analysis for structure (a floating header with the logo
+// and one bar of section links, a hero with the title on the left and a short
+// list on the right, highlight cards, then one card per topic with its tabs
+// along the top, every chart titled with what it measures and which way is
+// better, an attractive-quadrant scatter). No divider lines anywhere.
+// Look: the Untitled Graphical theme (components/graphical, GUI.md): black page,
+// Neutral 2 cards, Neutral 7 for secondary text, its green (color-1) only for
+// "you are here", Geist and Geist Mono. One fixed colour per provider, red only for failures.
+// Signature: flat columns in each provider's colour, rounded at the top, value printed above.
 // Layout move: one global machine switch; every chart follows it, and a
 // machine that differs from the track's carries a mark. Each headline card
 // opens its section on the matching tab.
@@ -83,12 +83,12 @@ const ranOn = (p: Provider | undefined) => {
 
 function Section({ id, title, lede, children }: { id: string; title: string; lede: ReactNode; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-20 pt-14 sm:pt-20 lg:scroll-mt-28">
-      <h2 id={`${id}-title`} className="flex items-center gap-2.5 text-[22px] leading-none font-semibold tracking-tight sm:text-[24px]">
-        <span aria-hidden className="size-2.5 shrink-0 bg-[var(--foreground)]" />
+    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 pt-xxl sm:pt-[calc(var(--space-xxl)*1.5)]">
+      <h2 id={`${id}-title`} className="flex items-center gap-s font-brand text-l font-medium">
+        <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
         {title}
       </h2>
-      <p className="mt-2.5 mb-5 max-w-[72ch] text-[13.5px] leading-relaxed text-pretty text-[var(--muted)]">{lede}</p>
+      <p className="mt-xs mb-l max-w-[72ch] text-m text-neutral-8">{lede}</p>
       {children}
     </section>
   );
@@ -96,8 +96,8 @@ function Section({ id, title, lede, children }: { id: string; title: string; led
 
 /** Stands in for a section's charts in a track with no published results yet. */
 const Pending = ({ track }: { track: Track }) => (
-  <Card className="text-[13.5px] text-[var(--muted)]">
-    <span className="font-medium text-[var(--foreground)]">{trackInfo[track.id].label}: coming in the next update.</span> Switch to{" "}
+  <Card className="text-s text-neutral-7">
+    <span className="font-medium text-neutral-10">{trackInfo[track.id].label}: coming in the next update.</span> Switch to{" "}
     {`${trackInfo[track.id === "default" ? "same-spec" : "default"].label.toLowerCase()} for this release's results.`}
   </Card>
 );
@@ -133,7 +133,7 @@ function PriceChart({ track }: { track: Track }) {
       provider: p.id,
       label: formatMoney(usd, "USD"),
       mark: converted ? 1 : undefined,
-      segments: [{ value: usd, color: providerColor(p.id), variant: "gradient" }],
+      segments: [{ value: usd, color: providerColor(p.id), fill: "solid" }],
       detail: [`${formatMoney(usd, "USD")} ${per("hourly")}${converted ? ` (${original})` : ""}`, ranOn(p)],
     }));
   const unpriced = track.providers.filter((p) => !usdPrice(p, "hourly"));
@@ -164,8 +164,8 @@ function CommonPriceChart({ track }: { track: Track }) {
     .map(({ p, usd }) => ({
       provider: p.id,
       label: formatMoney(usd, "USD"),
-      segments: [{ value: usd, color: providerColor(p.id), variant: "gradient" }],
-      detail: [`${formatMoney(usd, "USD")} an hour`, commonSize.label],
+      segments: [{ value: usd, color: providerColor(p.id), fill: "solid" }],
+      detail: [["Per hour", formatMoney(usd, "USD")], commonSize.label],
     }));
   return (
     <>
@@ -280,16 +280,17 @@ function Headline({
     <JumpLink
       section={section}
       tab={tab}
-      className="group flex min-w-0 flex-col rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 transition-[border-color,background-color] duration-150 outline-none hover:border-[var(--axis)] hover:bg-[var(--band)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none sm:p-5"
+      className="surface group focus-ring flex min-w-0 flex-col p-m transition-colors duration-[var(--motion-duration)] ease-[var(--motion-easing)] hover:bg-neutral-3 motion-reduce:transition-none sm:p-l"
     >
-      <h2 className="flex items-center gap-2 text-[15px] leading-tight font-medium tracking-tight">
-        <span aria-hidden className="size-2.5 shrink-0" style={{ backgroundColor: marker }} />
+      <h2 className="flex items-center gap-xs font-brand text-l font-medium">
+        <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
         <span className="min-w-0 truncate">{title}</span>
-        <span aria-hidden className="ml-auto text-[var(--muted)] transition-[color,transform] duration-150 ease-out group-hover:translate-x-0.5 group-hover:text-[var(--brand)] motion-reduce:transition-none">
-          →
-        </span>
+        <ArrowUpRight
+          aria-hidden
+          className="ml-auto size-5 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent motion-reduce:transition-none"
+        />
       </h2>
-      <p className="mt-1 mb-3 truncate text-[12px] text-[var(--muted)]">{sub}</p>
+      <p className="mt-xxs mb-m truncate text-s text-neutral-7">{sub}</p>
       {children}
     </JumpLink>
   );
@@ -303,14 +304,14 @@ function Headlines({ track }: { track: Track }) {
   const machine = allocationNotes(track);
   const short = "Median s · lower is better";
   return (
-    <div className="grid gap-3 md:grid-cols-2">
-      <Headline marker="var(--dither-color-blue)" title="Cold start" sub={short} section="startup" tab="cold">
+    <div className="grid gap-m md:grid-cols-2">
+      <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
         <MetricChart track={track} metric={cold} what="" compact />
       </Headline>
-      <Headline marker="var(--dither-color-orange)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
+      <Headline marker="var(--color-3)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
-      <Headline marker="var(--dither-color-green)" title="Cost per 1,000 tasks" sub="USD · lower is better" section="cost" tab="task">
+      <Headline marker="var(--color-1)" title="Cost per 1,000 tasks" sub="USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
@@ -320,7 +321,7 @@ function Headlines({ track }: { track: Track }) {
           <NoCostResults compact />
         )}
       </Headline>
-      <Headline marker="var(--dither-color-purple)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
+      <Headline marker="var(--color-4)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
         <MetricChart track={track} metric={restore} what="" compact notes={blockedNotes(track, "create-from-snapshot")} />
       </Headline>
     </div>
@@ -333,7 +334,7 @@ function Facts({ track }: { track: Track }) {
   const facts = hasResults(track)
     ? [dayRange(track.window), `${track.providers.length} providers${next.length ? ` (${next.join(" and ")} next)` : ""}`, "Florida, US", "100 runs per test, 30 per agent task"]
     : ["Coming in the next update", "Florida, US"];
-  return <p className="text-[14px] text-pretty text-[var(--muted)]">{facts.join(" · ")}</p>;
+  return <p className="text-m text-neutral-7">{facts.join(" · ")}</p>;
 }
 
 /** Failures set aside in each track, for the Method section. */
@@ -343,10 +344,10 @@ function SetAside() {
   );
   if (rows.length === 0) return <>No failures were set aside.</>;
   return (
-    <ul className="mt-1 flex flex-col gap-1">
+    <ul className="mt-xxs flex flex-col gap-xxs">
       {rows.map(({ track, p, f }) => (
         <li key={`${track}${p.id}${f.reason}`}>
-          <span className="text-[var(--foreground)]">{trackInfo[track].tab}</span>, <Who id={p.id} />: {f.runs} {f.runs === 1 ? "run" : "runs"}, {f.count} {f.count === 1 ? "test" : "tests"}. {sentence(f.reason)}
+          <span className="text-neutral-10">{trackInfo[track].tab}</span>, <Who id={p.id} />: {f.runs} {f.runs === 1 ? "run" : "runs"}, {f.count} {f.count === 1 ? "test" : "tests"}. {sentence(f.reason)}
         </li>
       ))}
     </ul>
@@ -422,50 +423,50 @@ const showSwitch = trackIds.every((id) => tracks[id].providers.length > 0);
 export default function Page() {
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--background)_85%,transparent)] backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-5 px-4 sm:px-6">
-          <a href="#top" className="-my-2 shrink-0 py-2.5" aria-label="Sandbox bench, back to top">
+      {/* As on Artificial Analysis: no bar behind the header, just the logo and one bar of section links floating over the page.
+          A fade from the page colour keeps them readable over the cards scrolling underneath. */}
+      <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
+        {/* Wide screens: logo, then the section bar centred on the page between two equal columns. */}
+        <div className="mx-auto flex max-w-[1440px] items-center gap-s xl:grid xl:grid-cols-[1fr_minmax(0,auto)_1fr]">
+          <a href="#top" className="surface focus-ring flex h-12 shrink-0 items-center justify-self-start px-m" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <div className="hidden min-w-0 flex-1 self-stretch lg:flex">
+          <div className="hidden min-w-0 xl:block">
             <SectionLinks sections={sections} />
           </div>
-          <div className="ml-auto hidden shrink-0 items-center gap-2.5 lg:flex">
-            {showSwitch ? <TrackSwitch size="small" /> : null}
-            <a
-              href="llms.txt"
-              className="flex h-8 items-center rounded-md px-2.5 text-[13px] whitespace-nowrap text-[var(--muted)] transition-colors duration-150 outline-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] motion-reduce:transition-none"
-            >
-              For agents ↗
-            </a>
-          </div>
-          <div className="ml-auto lg:hidden">
-            <SectionMenu sections={sections} extra={{ href: "llms.txt", label: "For agents ↗" }} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
+          {/* The machine switch on the right, where Artificial Analysis keeps its buttons, once there is room for it. */}
+          {showSwitch ? (
+            <div className="hidden justify-self-end min-[1440px]:block">
+              <TrackSwitch size="small" />
+            </div>
+          ) : null}
+          <div className="ml-auto min-w-0 xl:hidden">
+            <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
           </div>
         </div>
       </header>
 
       {isPreview ? (
-        <p role="note" className="border-b border-[var(--warn)]/40 bg-[color-mix(in_oklch,var(--warn)_14%,transparent)] px-4 py-2 text-center font-mono text-[12px] text-[var(--warn)]">
+        <p role="note" className="mx-m mt-xs rounded-s bg-warning-transparent px-m py-xs text-center font-mono text-xs text-warning sm:mx-l">
           Preview fixture: made-up numbers for layout checks. Not benchmark results.
         </p>
       ) : null}
 
-      <main id="top" className="mx-auto max-w-[1280px] px-4 sm:px-6">
-        <div className="flex flex-col gap-2 pt-8 pb-5 sm:pt-10">
-          <h1 className="font-pixel text-[32px] leading-none tracking-tight text-balance sm:text-[44px]">Cloud sandboxes, measured</h1>
+      <main id="top" className="mx-auto max-w-[1440px] px-m sm:px-l">
+        <div className="flex flex-col gap-s pt-l pb-xl lg:pt-xxl">
+          <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
           {showSwitch ? (
-            // Wide screens carry the switch in the header; phones get it here as well as in the menu.
-            <div className="mt-2 lg:hidden">
+            // Wide screens carry the switch in the header.
+            <div className="mt-m min-[1440px]:hidden">
               <TrackSwitch />
             </div>
           ) : null}
         </div>
 
-        <div className="pb-3">
+        <div className="pb-m">
           <PerTrack>{(track) => <StatStrip track={track} />}</PerTrack>
-          <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-2.5 text-[12.5px] leading-snug text-[var(--muted)]">{note}</p> : null; }}</Tracked>
+          <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
@@ -489,7 +490,7 @@ export default function Page() {
                     content: (
                       <>
                         <ChartHead title="Every cold start" sub="Each successful cold start, one ridge per provider · Log scale · Further left is faster" />
-                        <Ridgelines track={track.id} samples={track.coldSamples} />
+                        <Ridgelines samples={track.coldSamples} />
                       </>
                     ),
                   },
@@ -674,7 +675,7 @@ export default function Page() {
                     { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
                   ]}
                 />
-                <Card className="mt-4">
+                <Card className="mt-m">
                   <CostQuadrant track={track} />
                 </Card>
               </>
@@ -684,27 +685,10 @@ export default function Page() {
 
         <Section id="method" title="Method" lede="How the numbers were made, and what could bias them.">
           <Card>
-            <ul className="-my-1">
-              {methodRows.map(({ term, line, more }) => (
-                <li key={term} className="border-b border-[var(--line)] last:border-b-0">
-                  <details className="group/row">
-                    <summary className="grid cursor-pointer list-none grid-cols-[1fr_auto] gap-x-4 gap-y-1 rounded-md py-3 text-[14px] leading-snug outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)] sm:grid-cols-[9rem_1fr_auto] [&::-webkit-details-marker]:hidden">
-                      <span className="font-medium">{term}</span>
-                      <span aria-hidden className="col-start-2 row-start-1 self-start pt-0.5 text-[11px] text-[var(--muted)] transition-transform duration-150 group-open/row:rotate-90 motion-reduce:transition-none sm:col-start-3">
-                        ▶
-                      </span>
-                      <span className="col-span-2 text-pretty text-[var(--muted)] transition-colors duration-150 group-hover/row:text-[var(--foreground)] motion-reduce:transition-none sm:col-span-1 sm:col-start-2 sm:row-start-1">
-                        {line}
-                      </span>
-                    </summary>
-                    <div className="max-w-[72ch] pb-4 text-[13px] leading-relaxed text-[var(--muted)] sm:pl-[calc(9rem+1rem)]">{more}</div>
-                  </details>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 border-t border-[var(--line)] pt-3 text-[12px] text-[var(--muted)]">
+            <MethodList rows={methodRows} />
+            <p className="mt-m text-s text-neutral-7">
               Every number with its full method:{" "}
-              <a className="-my-2 inline-block py-2 underline decoration-dotted underline-offset-4 hover:text-[var(--foreground)]" href="results.md">
+              <a className="focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="results.md">
                 results.md
               </a>
             </p>
@@ -712,8 +696,8 @@ export default function Page() {
         </Section>
       </main>
 
-      <footer className="mx-auto mt-24 max-w-[1200px] px-4 sm:px-6">
-        <div className="flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--line)] py-8 text-[12px] text-[var(--muted)]">
+      <footer className="mx-auto mt-xxl max-w-[1440px] px-m sm:px-l">
+        <div className="flex flex-wrap gap-x-s gap-y-xxs py-xl text-s text-neutral-7">
           <span>
             Sandbox bench · <Tracked>{(track) => (hasResults(track) ? dayRange(track.window) : "not published yet")}</Tracked>
           </span>
@@ -723,7 +707,7 @@ export default function Page() {
             {["llms.txt", "results.json", "results.md"].map((f, i) => (
               <span key={f}>
                 {i > 0 ? " · " : ""}
-                <a className="-my-2 inline-block py-2 underline decoration-dotted underline-offset-4 hover:text-[var(--foreground)]" href={f}>
+                <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
                   {f}
                 </a>
               </span>

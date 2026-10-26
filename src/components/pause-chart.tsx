@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
-import { fillStyle } from "@/lib/dither";
+import { markFill } from "@/lib/marks";
 import type { Provider, Track } from "@/lib/data";
 import { formatShort, formatValue } from "@/lib/format";
 import { allocationNotes, noRealPause } from "@/lib/notes";
@@ -54,8 +54,8 @@ const markMachines = (track: Track, ids: readonly ProviderId[]) => {
 };
 
 /**
- * Pause and resume as two parts of one column: hatched resume at the
- * bottom, dithered pause on top, so a slow pause and a slow resume look
+ * Pause and resume as two parts of one column: striped resume at the
+ * bottom, solid pause on top, so a slow pause and a slow resume look
  * different. Providers whose "pause" is a restart are listed as not supported.
  */
 export function PauseChart({ track }: { track: Track }) {
@@ -72,25 +72,25 @@ export function PauseChart({ track }: { track: Track }) {
     trace: hasTrace(track.id, "pause", p.id) ? "pause" : undefined,
     segments: parts
       ? [
-          { value: parts.resume, color: providerColor(p.id), variant: "hatched" },
-          { value: parts.pause, color: providerColor(p.id), variant: "gradient" },
+          { value: parts.resume, color: providerColor(p.id), fill: "striped" },
+          { value: parts.pause, color: providerColor(p.id), fill: "solid" },
         ]
-      : [{ value: sum, color: providerColor(p.id), variant: "gradient" }],
+      : [{ value: sum, color: providerColor(p.id), fill: "solid" }],
     detail: parts
-      ? [`pause ${formatValue(parts.pause, "s")}`, `resume ${formatValue(parts.resume, "s")}`, `${parts.n} attempts`]
-      : [`median ${formatValue(sum, "s")}`, "pause and resume not recorded apart"],
+      ? [["Pause", formatValue(parts.pause, "s")], ["Resume", formatValue(parts.resume, "s")], ["Attempts", String(parts.n)]]
+      : [["Median", formatValue(sum, "s")], "Pause and resume not recorded apart"],
   }));
 
   return (
     <>
       <ChartHead title="Pause + resume" sub={`${what} · Median of each part, seconds · Lower is better`} />
-      <div className="mb-5 flex gap-5 text-[12px] text-[var(--muted)]">
-        <span className="flex items-center gap-2">
-          <span aria-hidden className="inline-block size-3" style={fillStyle("solid", { color: "var(--muted)" })} />
+      <div className="mb-5 flex gap-5 text-xs text-neutral-7">
+        <span className="flex items-center gap-xs">
+          <span aria-hidden className="inline-block size-3 rounded-[2px]" style={markFill("solid", "var(--neutral-7)")} />
           Pause
         </span>
-        <span className="flex items-center gap-2">
-          <span aria-hidden className="inline-block size-3" style={fillStyle("hatched", { color: "var(--muted)" })} />
+        <span className="flex items-center gap-xs">
+          <span aria-hidden className="inline-block size-3 rounded-[2px]" style={markFill("striped", "var(--neutral-7)")} />
           Resume until a command runs
         </span>
       </div>
@@ -121,8 +121,8 @@ export function PausePart({ track, part }: { track: Track; part: keyof typeof pa
     label: formatShort(value, "s"),
     mark: marks.get(p.id),
     trace: hasTrace(track.id, "pause", p.id) ? "pause" : undefined,
-    segments: [{ value, color: providerColor(p.id), variant: "gradient" }],
-    detail: [`median ${formatValue(value, "s")}`, `${n} attempts`],
+    segments: [{ value, color: providerColor(p.id), fill: "solid" }],
+    detail: [["Median", formatValue(value, "s")], ["Attempts", String(n)]],
   }));
   return (
     <>

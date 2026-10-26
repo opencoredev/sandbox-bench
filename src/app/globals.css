@@ -1,87 +1,176 @@
 @import "tailwindcss";
+/* The Untitled theme's component styles. In the components layer so page utilities still win over its reset. */
+@import "../../components/graphical/styles.css" layer(components);
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --background: #0a0a0a;
-  --foreground: oklch(0.96 0 0);
-  --primary: oklch(0.96 0 0);
-  --muted: oklch(0.7 0 0);
-  --line: rgb(255 255 255 / 0.08);
-  /* Cards sit one step above the page; the tab band and selected tab a step above that. */
-  --surface: #111111;
-  --band: #161616;
-  --chip: oklch(0.28 0 0);
-  --popover: oklch(0.21 0 0);
-  --grid: oklch(0.3 0 0);
-  --axis: oklch(0.42 0 0);
-  /* Sandbox SDK amber, from apps/web. */
-  --brand: #e8a33c;
-  /* Status board. */
-  --ok: oklch(0.72 0.15 152);
-  --warn: oklch(0.8 0.15 80);
-  --bad: oklch(0.65 0.2 25);
+/*
+ * The theme's own values (--neutral-*, --color-*, --space-*, --size-*, --radius-* and the rest) come from
+ * components/graphical/theme.ts: layout.tsx writes them on <html>, and GraphicalProvider on its scope.
+ * This file only names them for Tailwind and never redefines a value.
+ */
+
+/* Geist and Geist Mono from Vercel's geist package (OFL, public/fonts/Geist-OFL.txt), under the theme's family names. */
+@font-face {
+  font-family: "Sidebar Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Sidebar Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-pixel: var(--font-geist-pixel-square), var(--font-geist-mono), monospace;
-  --color-dither-ink: var(--dither-ink);
-  --color-dither-paper: var(--dither-paper);
-  --color-dither-blue: var(--dither-color-blue);
-  --color-dither-purple: var(--dither-color-purple);
-  --color-dither-green: var(--dither-color-green);
-  --color-dither-pink: var(--dither-color-pink);
-  --color-dither-orange: var(--dither-color-orange);
-  --color-dither-red: var(--dither-color-red);
-  --color-dither-grey: var(--dither-color-grey);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-data);
+  --font-brand: var(--font-brand);
+
+  --font-weight-normal: var(--weight-ui-regular);
+  --font-weight-regular: var(--weight-ui-regular);
+  --font-weight-medium: var(--weight-ui-medium);
+  --font-weight-heavy: var(--weight-ui-heavy);
+
+  /* The theme's type steps, each with its line height and tracking. */
+  --text-*: initial;
+  --text-xxs: var(--size-xxs);
+  --text-xxs--line-height: var(--line-xxs);
+  --text-xxs--letter-spacing: var(--letter-spacing-xxs);
+  --text-xs: var(--size-xs);
+  --text-xs--line-height: var(--line-xs);
+  --text-xs--letter-spacing: var(--letter-spacing-xs);
+  --text-s: var(--size-s);
+  --text-s--line-height: var(--line-s);
+  --text-s--letter-spacing: var(--letter-spacing-s);
+  --text-m: var(--size-m);
+  --text-m--line-height: var(--line-m);
+  --text-m--letter-spacing: var(--letter-spacing-m);
+  --text-l: var(--size-l);
+  --text-l--line-height: var(--line-l);
+  --text-l--letter-spacing: var(--letter-spacing-l);
+  --text-xl: var(--size-xl);
+  --text-xl--line-height: var(--line-xl);
+  --text-xl--letter-spacing: var(--letter-spacing-xl);
+  --text-xxl: var(--size-xxl);
+  --text-xxl--line-height: var(--line-xxl);
+  --text-xxl--letter-spacing: var(--letter-spacing-xxl);
+
+  --tracking-*: initial;
+  --tracking-xs: var(--tracking-xs);
+  --tracking-s: var(--tracking-s);
+  --tracking-m: var(--tracking-m);
+  --tracking-l: var(--tracking-l);
+  --tracking-xl: var(--tracking-xl);
+
+  --spacing-xxs: var(--space-xxs);
+  --spacing-xs: var(--space-xs);
+  --spacing-s: var(--space-s);
+  --spacing-m: var(--space-m);
+  --spacing-l: var(--space-l);
+  --spacing-xl: var(--space-xl);
+  --spacing-xxl: var(--space-xxl);
+
+  --radius-*: initial;
+  --radius-xs: var(--radius-xs);
+  --radius-s: var(--radius-s);
+  --radius-m: var(--radius-m);
+  --radius-l: var(--radius-l);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-*: initial;
+  --shadow-s: var(--shadow-s);
+  --shadow-m: var(--shadow-m);
+  --shadow-l: var(--shadow-l);
+
+  --color-neutral-1: var(--neutral-1);
+  --color-neutral-2: var(--neutral-2);
+  --color-neutral-3: var(--neutral-3);
+  --color-neutral-4: var(--neutral-4);
+  --color-neutral-5: var(--neutral-5);
+  --color-neutral-6: var(--neutral-6);
+  --color-neutral-7: var(--neutral-7);
+  --color-neutral-8: var(--neutral-8);
+  --color-neutral-9: var(--neutral-9);
+  --color-neutral-10: var(--neutral-10);
+  --color-neutral-3-transparent: var(--neutral-3-transparent);
+  --color-neutral-4-transparent: var(--neutral-4-transparent);
+  /* The primary action colour: "you are here", focus and links. */
+  --color-accent: var(--color-1);
+  --color-accent-transparent: var(--color-1-transparent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-warning-transparent: var(--warning-transparent);
+  --color-error: var(--error);
 }
 
 @layer base {
+  /*
+   * The trace panel's six tool-replay steps need six hues and the theme has four, so they keep
+   * their own set (a theme gap). Provider colours live in lib/providers.ts for the same reason.
+   */
   :root {
-    --dither-ink: var(--primary);
-    --dither-paper: var(--background);
-    --dither-cell: 3px;
-    --dither-color-blue: oklch(0.56 0.18 248);
-    --dither-color-purple: oklch(0.53 0.22 302);
-    --dither-color-green: oklch(0.58 0.15 152);
-    --dither-color-pink: oklch(0.58 0.21 355);
-    --dither-color-orange: oklch(0.64 0.17 52);
-    --dither-color-red: oklch(0.55 0.21 27);
-    --dither-color-grey: oklch(0.55 0 0);
-    --dither-bloom: 0.6;
+    --series-blue: oklch(0.72 0.14 240);
+    --series-purple: oklch(0.7 0.18 304);
+    --series-green: oklch(0.78 0.17 152);
+    --series-pink: oklch(0.74 0.17 354);
+    --series-orange: oklch(0.79 0.15 62);
+    --series-grey: oklch(0.66 0 0);
   }
-  .dark {
-    --dither-ink: var(--primary);
-    --dither-paper: var(--background);
-    --dither-cell: 3px;
-    --dither-color-blue: oklch(0.72 0.14 240);
-    --dither-color-purple: oklch(0.7 0.18 304);
-    --dither-color-green: oklch(0.78 0.17 152);
-    --dither-color-pink: oklch(0.74 0.17 354);
-    --dither-color-orange: oklch(0.79 0.15 62);
-    --dither-color-red: oklch(0.68 0.2 25);
-    --dither-color-grey: oklch(0.66 0 0);
-    --dither-bloom: 1;
-  }
-}
 
-html {
-  background: var(--background);
-  color: var(--foreground);
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-}
-
-@media (prefers-reduced-motion: reduce) {
   html {
-    scroll-behavior: auto;
+    background: var(--neutral-1);
+    color: var(--neutral-10);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    font-family: var(--font-ui);
+    font-weight: var(--weight-ui-regular);
+    text-wrap: pretty;
   }
 }
 
-body {
-  font-family: var(--font-sans);
+/*
+ * A raised surface: cards, the nav pill, menus. The theme's panel treatment (Neutral 2 fill, a
+ * shadow-drawn Neutral 4 transparent edge, M corners) shared by every card on the page.
+ */
+@utility surface {
+  border-radius: var(--radius-m);
+  background: var(--neutral-2);
+  box-shadow: inset 0 0 0 var(--border-s) var(--neutral-4-transparent), var(--shadow-s);
+}
+
+/* Focus ring for custom links and controls, the same outline the themed components use. */
+@utility focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: var(--focus-ring-outline);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * This site draws no divider lines. The Untitled tab list paints a bottom rule
+ * under its tabs; the selected tab keeps its underline, the rule along the whole row goes.
+ */
+.ui-tabs-list[data-tab-style="underline"]::before {
+  content: none;
+}
+/* The same for the rule the Untitled accordion draws between its items. */
+.ui-accordion-item {
+  box-shadow: none;
 }
 
 /* A horizontal scroller that fades out at an edge with more content past it. useScrollFade sets the attributes. */

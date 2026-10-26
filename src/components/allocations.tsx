@@ -15,8 +15,8 @@ const rowNote = (track: Track, p: Provider) =>
   track.id === "same-spec" ? (allocationNotes(track)[p.id] ?? null) : advertised[p.id].note;
 
 const Verdict = ({ ok, text }: { ok: boolean; text: string }) => (
-  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap ${ok ? "" : "text-[var(--warn)]"}`}>
-    <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${ok ? "bg-[var(--ok)]" : "bg-[var(--warn)]"}`} />
+  <span className={`inline-flex items-center gap-1.5 whitespace-nowrap ${ok ? "" : "text-warning"}`}>
+    <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${ok ? "bg-success" : "bg-warning"}`} />
     {text}
   </span>
 );
@@ -38,30 +38,30 @@ export function Allocations({ track }: { track: Track }) {
   const verdicts = track.id === "same-spec";
   return (
     <>
-      <ul className="flex flex-col divide-y divide-[var(--line)] border-y border-[var(--line)] sm:hidden">
+      <ul className="flex flex-col gap-s sm:hidden">
         {rows.map(({ p, requested, measured, v, note }) => (
-          <li key={p.id} className="py-3 text-[13.5px] leading-snug">
-            <p className="flex items-baseline justify-between gap-3">
+          <li key={p.id} className="py-s text-s">
+            <p className="flex items-baseline justify-between gap-s">
               <Who id={p.id} />
               {verdicts ? (
-                <span className="text-[12.5px]">
+                <span className="text-xs">
                   <Verdict {...v} />
                 </span>
               ) : null}
             </p>
-            <p className="mt-1 text-[var(--muted)]">
-              Asked for <span className="text-[var(--foreground)]">{requested}</span>
+            <p className="mt-xxs text-neutral-7">
+              Asked for <span className="text-neutral-10">{requested}</span>
             </p>
-            <p className="text-[var(--muted)]">
-              Measured <span className="font-mono text-[12.5px] text-[var(--foreground)]">{measured}</span>
+            <p className="text-neutral-7">
+              Measured <span className="font-mono text-xs text-neutral-10">{measured}</span>
             </p>
-            {note ? <p className="mt-1.5 text-[12.5px] text-[var(--muted)]">{sentence(note.replace(/^ran /, "Ran "))}</p> : null}
+            {note ? <p className="mt-1.5 text-xs text-neutral-7">{sentence(note.replace(/^ran /, "Ran "))}</p> : null}
           </li>
         ))}
       </ul>
-      <table className="hidden w-full border-collapse text-left text-[13px] sm:table">
+      <table className="hidden w-full border-collapse text-left text-s sm:table">
         <thead>
-          <tr className="border-b border-[var(--line)] text-[12px] text-[var(--muted)]">
+          <tr className="text-xs text-neutral-7">
             {["Provider", "Asked for", "Measured inside", ...(verdicts ? ["4 vCPU, 8 GB?"] : [])].map((h) => (
               <th key={h} scope="col" className="py-2.5 pr-5 font-normal">
                 {h}
@@ -71,17 +71,17 @@ export function Allocations({ track }: { track: Track }) {
         </thead>
         <tbody>
           {rows.map(({ p, requested, measured, v, note }) => (
-            <tr key={p.id} className="border-b border-[var(--line)] align-top">
-              <th scope="row" className="py-3 pr-5 font-medium">
+            <tr key={p.id} className="align-top">
+              <th scope="row" className="py-s pr-5 font-medium">
                 <Who id={p.id} />
               </th>
-              <td className="py-3 pr-5">
+              <td className="py-s pr-5">
                 {requested}
-                {note ? <span className="mt-1 block max-w-[56ch] text-[11.5px] text-[var(--muted)]">{sentence(note.replace(/^ran /, "Ran "))}</span> : null}
+                {note ? <span className="mt-xxs block max-w-[56ch] text-xs text-neutral-7">{sentence(note.replace(/^ran /, "Ran "))}</span> : null}
               </td>
-              <td className="py-3 pr-5 font-mono text-[12.5px] whitespace-nowrap tabular-nums">{measured}</td>
+              <td className="py-s pr-5 font-mono text-xs whitespace-nowrap tabular-nums">{measured}</td>
               {verdicts ? (
-                <td className="py-3 pr-5">
+                <td className="py-s pr-5">
                   <Verdict {...v} />
                 </td>
               ) : null}
@@ -90,7 +90,7 @@ export function Allocations({ track }: { track: Track }) {
         </tbody>
       </table>
       {track.absent.length > 0 ? (
-        <ul className="mt-4 flex flex-col gap-1 text-[12px] text-[var(--muted)]">
+        <ul className="mt-m flex flex-col gap-xxs text-xs text-neutral-7">
           {track.absent.map((id) => (
             <li key={id}>
               <Who id={id} />: {absentNote(track, id)}

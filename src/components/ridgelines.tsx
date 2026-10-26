@@ -1,9 +1,7 @@
 import { ProviderName } from "@/components/provider-name";
-import { FillPattern } from "@/lib/dither";
 import { formatValue } from "@/lib/format";
 import { isProviderId, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import type { TrackId } from "@/lib/data";
 
 // Axis stops run 1, 2, 5 × 10ⁿ. The plot spans the closest stops around every
 // sample, at least one step wide and never past MAX_S.
@@ -76,10 +74,10 @@ const median = (xs: readonly number[]) => xs[Math.floor((xs.length - 1) / 2)] ??
 /**
  * Every successful cold start as a ridge: one row per provider, fastest at the
  * top, on a log time axis fitted to the samples. The tick is the median.
- * Starts slower than MAX_S are counted at the right end of their ridge. Each fill is sparse and half see-through
- * so the ridge behind still shows.
+ * Starts slower than MAX_S are counted at the right end of their ridge. Each ridge is a
+ * line over a light wash of its provider's colour.
  */
-export function Ridgelines({ track, samples }: { track: TrackId; samples: Partial<Record<ProviderId, readonly number[]>> }) {
+export function Ridgelines({ samples }: { samples: Partial<Record<ProviderId, readonly number[]>> }) {
   const rows = Object.entries(samples)
     .flatMap(([provider, values]) =>
       isProviderId(provider) && values && values.length > 0
@@ -94,10 +92,10 @@ export function Ridgelines({ track, samples }: { track: TrackId; samples: Partia
   return (
     <>
       <div className="sm:hidden">
-        <Plot rows={rows} layout={phone} domain={domain} ticks={ticks} id={`${track}-p`} />
+        <Plot rows={rows} layout={phone} domain={domain} ticks={ticks} />
       </div>
       <div className="hidden sm:block">
-        <Plot rows={rows} layout={desktop} domain={domain} ticks={ticks} id={`${track}-d`} />
+        <Plot rows={rows} layout={desktop} domain={domain} ticks={ticks} />
       </div>
     </>
   );
@@ -107,23 +105,24 @@ type Row = { provider: ProviderId; values: readonly number[]; p50: number };
 
 const over = (row: Row, { max }: Domain) => row.values.filter((v) => v > max).length;
 
-function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout; domain: Domain; ticks: number[]; id: string }) {
+function Plot({ rows, layout, domain, ticks }: { rows: Row[]; layout: Layout; domain: Domain; ticks: number[] }) {
   const { W, ROW, PEAK, TOP } = layout;
   const lx = (s: number) => toX(s, W, domain);
   const height = TOP + ROW * (rows.length - 1) + 30;
   return (
-    <figure className="grid grid-cols-[6.75rem_1fr] gap-x-3 sm:grid-cols-[9.5rem_1fr] sm:gap-x-5">
+    <figure className="grid grid-cols-[6.75rem_1fr] gap-x-s sm:grid-cols-[9.5rem_1fr] sm:gap-x-5">
       <div className="relative">
         {rows.map((row, i) => (
           <div
             key={row.provider}
-            className="absolute right-0 left-0 flex -translate-y-full flex-col items-end pb-0.5 text-right leading-tight"
+            className="absolute right-0 left-0 flex -translate-y-full flex-col items-end pb-0.5 text-right"
             style={{ top: `${((TOP + i * ROW) / height) * 100}%` }}
           >
-            <span className="text-[12px] font-medium sm:text-[14px]" style={{ color: providerColor(row.provider) }}>
+            <span className="flex items-center gap-xxs text-xs text-neutral-8 sm:text-s">
+              <span aria-hidden className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: providerColor(row.provider) }} />
               <ProviderName id={row.provider} />
             </span>
-            <span className="font-mono text-[11px] whitespace-nowrap text-[var(--muted)] tabular-nums sm:text-[12px]">
+            <span className="font-mono text-xxs whitespace-nowrap text-neutral-7 tabular-nums sm:text-xs">
               {formatValue(row.p50, "s")}
               {` · n = ${row.values.length}`}
             </span>
@@ -137,20 +136,6 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
           role="img"
           aria-label={`Cold start time distributions. Medians: ${rows.map((r) => `${providerName(r.provider)} ${formatValue(r.p50, "s")} (n = ${r.values.length})`).join(", ")}.`}
         >
-          <defs>
-            {rows.map((row, i) => (
-              <FillPattern
-                key={row.provider}
-                id={`ridge-${id}-${row.provider}`}
-                fill="gradient"
-                color={providerColor(row.provider)}
-                cell={3}
-                floor={0.03}
-                level={0.45}
-                ramp={{ edge: "top", at: TOP + i * ROW - PEAK, length: PEAK * 1.1 }}
-              />
-            ))}
-          </defs>
           {ticks.map((t) => (
             <line
               key={t}
@@ -158,8 +143,7 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
               x2={lx(t)}
               y1={0}
               y2={height - 22}
-              stroke="var(--line)"
-              strokeDasharray="2 4"
+              stroke="var(--neutral-3)"
             />
           ))}
           {rows.map((row, i) => {
@@ -170,10 +154,11 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
             const color = providerColor(row.provider);
             return (
               <g key={row.provider}>
-                <path d={area} fill="var(--surface)" fillOpacity={0.45} />
-                <path d={area} fill={`url(#ridge-${id}-${row.provider})`} />
-                <path d={line} fill="none" stroke={color} strokeWidth={1.5} />
-                <line x1={0} x2={W} y1={base} y2={base} stroke="var(--line)" />
+                {/* The card colour first, so a ridge hides the one behind it; then a light wash and a 2px line. */}
+                <path d={area} fill="var(--neutral-2)" />
+                <path d={area} fill={color} fillOpacity={0.14} />
+                <path d={line} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+                <line x1={0} x2={W} y1={base} y2={base} stroke="var(--neutral-3)" />
               </g>
             );
           })}
@@ -184,7 +169,7 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
               x2={lx(row.p50)}
               y1={TOP + i * ROW - 12}
               y2={TOP + i * ROW + 4}
-              stroke="var(--foreground)"
+              stroke="var(--neutral-10)"
               strokeWidth={2.5}
             />
           ))}
@@ -193,7 +178,7 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
           over(row, domain) > 0 ? (
             <span
               key={row.provider}
-              className="absolute right-0 -translate-y-[calc(100%+3px)] rounded-[3px] bg-[var(--surface)] px-1 font-mono text-[11px] whitespace-nowrap text-[var(--muted)] tabular-nums"
+              className="absolute right-0 -translate-y-[calc(100%+3px)] rounded-[3px] bg-neutral-2 px-xxs font-mono text-xxs whitespace-nowrap text-neutral-7 tabular-nums"
               // The tick row below the plot is 1.25rem tall.
               style={{ top: `calc((100% - 1.25rem) * ${(TOP + i * ROW) / height})` }}
             >
@@ -205,7 +190,7 @@ function Plot({ rows, layout, domain, ticks, id }: { rows: Row[]; layout: Layout
           {ticks.map((t) => (
             <span
               key={t}
-              className="absolute -translate-x-1/2 font-mono text-[11px] whitespace-nowrap text-[var(--muted)]"
+              className="absolute -translate-x-1/2 font-mono text-xxs whitespace-nowrap text-neutral-7"
               style={{ left: `${(lx(t) / W) * 100}%` }}
             >
               {Number(t.toPrecision(3))}
