@@ -2,6 +2,8 @@
   "name": "sandbox-bench",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
+  "repository": "github:opencoredev/sandbox-bench",
   "scripts": {
     "build": "next build",
     "dev": "next dev",

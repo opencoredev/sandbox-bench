@@ -701,7 +701,7 @@ export default function Page() {
           <span>
             Sandbox bench · <Tracked>{(track) => (hasResults(track) ? dayRange(track.window) : "not published yet")}</Tracked>
           </span>
-          <span aria-hidden>·</span>
+          <span aria-hidden className="hidden sm:inline">·</span>
           <span>
             Data for both tracks:{" "}
             {["llms.txt", "results.json", "results.md"].map((f, i) => (
@@ -713,6 +713,10 @@ export default function Page() {
               </span>
             ))}
           </span>
+          <span aria-hidden className="hidden sm:inline">·</span>
+          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
+            Source on GitHub
+          </a>
         </div>
       </footer>
     </>
