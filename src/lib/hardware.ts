@@ -22,6 +22,8 @@ export interface HardwareDetail {
   memory: MemoryType;
   cloud: string;
   region: string;
+  /** The region in a word or two, for a badge: "Virginia". Null where the sandbox does not show it. */
+  regionShort: string | null;
   runsAs: string;
   runsAsDetail: string;
   storage: string;
@@ -48,6 +50,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR4", basis: "inferred", detail: "DDR4-3200, the chip's memory type" },
     cloud: "Google Cloud",
     region: "us-west1, The Dalles, Oregon",
+    regionShort: "Oregon",
     runsAs: "Firecracker microVM",
     runsAsDetail: "nested inside a Google Cloud VM",
     storage: "23 GB virtio disk, ext4",
@@ -66,6 +69,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "measured", detail: "Registered DDR5, read from the memory controller on a 9254 host" },
     cloud: "Bare-metal servers",
     region: "Location not visible; control plane on AWS us-east-1",
+    regionShort: null,
     runsAs: "Docker container",
     runsAsDetail: "shares the host's kernel; cgroups set its CPU and RAM",
     storage: "3 GB container disk (10 GB at 4 vCPU) on the host's NVMe RAID",
@@ -85,6 +89,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5-5600, from AWS's Graviton4 spec" },
     cloud: "AWS EC2",
     region: "us-east-1, Ashburn, Virginia",
+    regionShort: "Virginia",
     runsAs: "Docker container",
     runsAsDetail: "on a shared m8g.16xlarge VM; cgroups set its CPU and RAM",
     storage: "5 GB overlay root and a 5 GB /workspace, on EBS",
@@ -104,6 +109,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5-5600, from AWS's Graviton4 spec" },
     cloud: "AWS EC2",
     region: "us-east-1, Ashburn, Virginia",
+    regionShort: "Virginia",
     runsAs: "Container",
     runsAsDetail: "Ephemeral Box, on a shared AWS m8gd.12xlarge host",
     storage: "5 GB at the small size, 20 GB at medium, as measured inside",
@@ -122,6 +128,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5-4800, the Genoa platform's memory" },
     cloud: "Latitude.sh bare metal",
     region: "Frankfurt, Germany",
+    regionShort: "Frankfurt",
     runsAs: "Firecracker microVM",
     runsAsDetail: "with Docker installed inside the VM",
     storage: "100 GB virtio disk, ext4",
@@ -141,6 +148,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR4", basis: "inferred", detail: "DDR4-3200, the Milan platform's memory" },
     cloud: "Freestyle's own network (AS36320)",
     region: "San Francisco Bay Area",
+    regionShort: "SF Bay Area",
     runsAs: "Firecracker microVM",
     runsAsDetail: "4 vCPU, 8 GB, no hyperthreads exposed",
     storage: "32 GB virtio disk, ext4",
@@ -159,6 +167,7 @@ export const hardware = {
     memory: { kind: "unknown", why: "No memory data inside the VM" },
     cloud: "Luxor (AS19538)",
     region: "Seattle",
+    regionShort: "Seattle",
     runsAs: "Cloud Hypervisor microVM",
     runsAsDetail: "with a container inside",
     storage: "5 GB virtio disk, ext4",
@@ -177,6 +186,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the Sapphire Rapids platform's memory" },
     cloud: "Google Cloud",
     region: "us-east4, Northern Virginia, from its IP range",
+    regionShort: "Virginia",
     runsAs: "Firecracker microVM",
     runsAsDetail: "likely inside a Google Cloud VM",
     storage: "4 GB virtio disk, ext4",
@@ -195,6 +205,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory the chip takes" },
     cloud: "OVHcloud dedicated servers",
     region: "Northern France",
+    regionShort: "Northern France",
     runsAs: "QEMU/KVM virtual machine",
     runsAsDetail: "on a desktop-class chip",
     storage: "70 GB virtio disk, ext4",

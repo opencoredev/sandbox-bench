@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "batchId": "sbx65-pilot2",
+  "commit": "fd9075fb5df3bcf0294527dd88963213d4b8ae66",
+  "track": "default",
+  "window": {
+    "start": "2026-10-24T18:12:48.346Z",
+    "end": "2026-10-24T18:17:13.220Z"
+  },
+  "regions": [
+    {
+      "id": "eu",
+      "label": "EU-Central",
+      "city": "Gravelines",
+      "country": "FR",
+      "network": "OVH SAS",
+      "host": {
+        "provider": "boat",
+        "location": "OVH Gravelines, FR",
+        "serverType": "small"
+      },
+      "runs": 2
+    },
+    {
+      "id": "us-east",
+      "label": "US-East",
+      "city": "Boca Raton",
+      "country": "US",
+      "network": "AT&T Enterprises, LLC",
+      "host": {
+        "provider": "home",
+        "location": "Boca Raton, FL",
+        "serverType": null
+      },
+      "runs": 2
+    }
+  ],
+  "plannedRegions": [
+    {
+      "id": "us-west",
+      "label": "US-West"
+    }
+  ],
+  "rtt": [
+    {
+      "region": "eu",
+      "provider": "boat",
+      "tcpMs": 0.3310000000000014,
+      "firstByteMs": 42.443000000000005
+    },
+    {
+      "region": "eu",
+      "provider": "e2b",
+      "tcpMs": 5.196,
+      "firstByteMs": 164.572
+    },
+    {
+      "region": "us-east",
+      "provider": "boat",
+      "tcpMs": 120.99,
+      "firstByteMs": 409.283
+    },
+    {
+      "region": "us-east",
+      "provider": "e2b",
+      "tcpMs": 22.758,
+      "firstByteMs": 148.839
+    }
+  ],
+  "metrics": [
+    {
+      "id": "cold",
+      "label": "Cold start",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "command",
+      "label": "Run a command",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "files-1kb",
+      "label": "Write + read 1 KB",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "files-10mb",
+      "label": "Write + read 10 MB",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "reconnect",
+      "label": "Reconnect",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "pause-resume",
+      "label": "Pause + resume",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "destroy",
+      "label": "Destroy",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "git-clone",
+      "label": "git clone",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "npm-install",
+      "label": "npm install",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "pip-install",
+      "label": "pip install",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "dev-server",
+      "label": "Dev server ready",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "preview-first-byte",
+      "label": "Preview URL first byte",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "edit-loop",
+      "label": "Edit, rebuild, reload",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "tool-replay",
+      "label": "Agent tool replay",
+      "unit": "s",
+      "better": "lower",
+      "scale": 0.001,
+      "sensitivity": "vantage"
+    },
+    {
+      "id": "cpu-single",
+      "label": "CPU, one core",
+      "unit": "ops/s",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "cpu-all",
+      "label": "CPU, all cores",
+      "unit": "ops/s",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "memory",
+      "label": "Memory bandwidth",
+      "unit": "MB/s",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "disk-write",
+      "label": "Disk write",
+      "unit": "MB/s",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "disk-read",
+      "label": "Disk read",
+      "unit": "MB/s",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "iops-write",
+      "label": "4K random write",
+      "unit": "IOPS",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "iops-read",
+      "label": "4K random read",
+      "unit": "IOPS",
+      "better": "higher",
+      "scale": 1,
+      "sensitivity": "invariant"
+    },
+    {
+      "id": "tcp",
+      "label": "TCP connect",
+      "unit": "ms",
+      "better": "lower",
+      "scale": 1,
+      "sensitivity": "invariant"
+    }
+  ],
+  "rows": [
+    {
+      "provider": "boat",
+      "metric": "cold",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 673.523543000003,
+          "p95": 732.7781165000001
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 1163.9763610000082,
+          "p95": 1489.6444489000005
+        }
+      },
+      "best": "eu",
+      "spread": 1.7281895682746802
+    },
+    {
+      "provider": "e2b",
+      "metric": "cold",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 687.893974999999,
+          "p95": 1739.9912011999998
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 477.181147999996,
+          "p95": 851.5287166999997
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4415782724928705
+    },
+    {
+      "provider": "boat",
+      "metric": "command",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 87.39667099999997,
+          "p95": 91.73849419999947
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 316.925086999996,
+          "p95": 399.2291492000033
+        }
+      },
+      "best": "eu",
+      "spread": 3.626283282574872
+    },
+    {
+      "provider": "e2b",
+      "metric": "command",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 165.104886000001,
+          "p95": 170.02623899999452
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 120.67955299999994,
+          "p95": 125.3664658999949
+        }
+      },
+      "best": "us-east",
+      "spread": 1.3681264298352271
+    },
+    {
+      "provider": "boat",
+      "metric": "files-1kb",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 322.1328429999994,
+          "p95": 325.3409911000068
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 759.4936490000036,
+          "p95": 1089.6760594999964
+        }
+      },
+      "best": "eu",
+      "spread": 2.357703244186142
+    },
+    {
+      "provider": "e2b",
+      "metric": "files-1kb",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 305.86780200000067,
+          "p95": 306.4605878999988
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 197.2048810000124,
+          "p95": 224.18201110000373
+        }
+      },
+      "best": "us-east",
+      "spread": 1.55101537268736
+    },
+    {
+      "provider": "boat",
+      "metric": "files-10mb",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 1545.081849999995,
+          "p95": 3954.016836100005
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 6215.612922,
+          "p95": 8259.590811600005
+        }
+      },
+      "best": "eu",
+      "spread": 4.022837315705974
+    },
+    {
+      "provider": "e2b",
+      "metric": "files-10mb",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 2497.086234000002,
+          "p95": 2631.642911999997
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 1300.0973879999947,
+          "p95": 1311.333177899997
+        }
+      },
+      "best": "us-east",
+      "spread": 1.9206916782145034
+    },
+    {
+      "provider": "boat",
+      "metric": "tool-replay",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 23343.217099999998,
+          "p95": 24230.0405105
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 40120.9024395,
+          "p95": 40358.88857145
+        }
+      },
+      "best": "eu",
+      "spread": 1.7187392066665912
+    },
+    {
+      "provider": "e2b",
+      "metric": "tool-replay",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 20755.2167215,
+          "p95": 20978.61997615
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 14372.002461,
+          "p95": 14617.558301699999
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4441423022172137
+    },
+    {
+      "provider": "boat",
+      "metric": "reconnect",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 207.2720479999989,
+          "p95": 247.81330489999817
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 635.2392540000001,
+          "p95": 679.7257139999813
+        }
+      },
+      "best": "eu",
+      "spread": 3.064760830654809
+    },
+    {
+      "provider": "e2b",
+      "metric": "reconnect",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 602.4878089999984,
+          "p95": 978.6114053000056
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 414.82465900000534,
+          "p95": 418.7582134000022
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4523915006701438
+    },
+    {
+      "provider": "boat",
+      "metric": "preview-first-byte",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 85.40785750000032,
+          "p95": 87.21467185000056
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1251.4210295000066,
+          "p95": 1380.307731350012
+        }
+      },
+      "best": "eu",
+      "spread": 14.652293900476334
+    },
+    {
+      "provider": "e2b",
+      "metric": "preview-first-byte",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 211.53861099999904,
+          "p95": 215.44879239999946
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 212.787178999999,
+          "p95": 218.22269119999837
+        }
+      },
+      "best": "eu",
+      "spread": 1.00590231728429
+    },
+    {
+      "provider": "boat",
+      "metric": "tcp",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 5.770249400006833,
+          "p95": 5.940750620010249
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 5.422783599999548,
+          "p95": 192.9016406799917
+        }
+      },
+      "best": "us-east",
+      "spread": 1.0640751734971157
+    },
+    {
+      "provider": "e2b",
+      "metric": "tcp",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 0.7275868000002461,
+          "p95": 0.9250379800008979
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 0.7532948000012141,
+          "p95": 0.8812708400000702
+        }
+      },
+      "best": "eu",
+      "spread": 1.0353332413410459
+    },
+    {
+      "provider": "boat",
+      "metric": "destroy",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 58.93902000000526,
+          "p95": 65.35651049999869
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 175.0764349999954,
+          "p95": 188.02107829998423
+        }
+      },
+      "best": "eu",
+      "spread": 2.970467357617751
+    },
+    {
+      "provider": "e2b",
+      "metric": "destroy",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 159.12648099999933,
+          "p95": 160.07979430000705
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 115.64205999999831,
+          "p95": 119.10854050000053
+        }
+      },
+      "best": "us-east",
+      "spread": 1.3760259978073865
+    },
+    {
+      "provider": "boat",
+      "metric": "cpu-all",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 56559448.05218849,
+          "p95": 50753492.492010474
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 63096851.85357571,
+          "p95": 59547093.384843275
+        }
+      },
+      "best": "us-east",
+      "spread": 1.1155846463592611
+    },
+    {
+      "provider": "e2b",
+      "metric": "cpu-all",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 14875471.035509123,
+          "p95": 11985313.878632337
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 12308533.75693216,
+          "p95": 10951464.54162316
+        }
+      },
+      "best": "eu",
+      "spread": 1.2085493958312674
+    },
+    {
+      "provider": "boat",
+      "metric": "cpu-single",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 19010051.203385573,
+          "p95": 17692089.772218004
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 21043088.649006773,
+          "p95": 19012096.55245506
+        }
+      },
+      "best": "us-east",
+      "spread": 1.106945395563118
+    },
+    {
+      "provider": "e2b",
+      "metric": "cpu-single",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 10000527.227795584,
+          "p95": 9128682.031578569
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 9121844.00046783,
+          "p95": 9055357.598844282
+        }
+      },
+      "best": "eu",
+      "spread": 1.0963273683788815
+    },
+    {
+      "provider": "boat",
+      "metric": "dev-server",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1289.001540499999,
+          "p95": 1317.5715684499999
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 4960.249708000007,
+          "p95": 5871.1906309
+        }
+      },
+      "best": "eu",
+      "spread": 3.8481332660595142
+    },
+    {
+      "provider": "e2b",
+      "metric": "dev-server",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 3684.1406304999973,
+          "p95": 4588.83123835
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 2478.3914714999996,
+          "p95": 2607.1992982499996
+        }
+      },
+      "best": "us-east",
+      "spread": 1.486504724078251
+    },
+    {
+      "provider": "boat",
+      "metric": "iops-read",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 671174.3715508038,
+          "p95": 595791.8274213267
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 925433.8874918042,
+          "p95": 740644.6545501914
+        }
+      },
+      "best": "us-east",
+      "spread": 1.378827807971143
+    },
+    {
+      "provider": "e2b",
+      "metric": "iops-read",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 406035.97859404975,
+          "p95": 302250.222742798
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 387208.79931983247,
+          "p95": 231536.3286002986
+        }
+      },
+      "best": "eu",
+      "spread": 1.0486228084364015
+    },
+    {
+      "provider": "boat",
+      "metric": "iops-write",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 6289.093718994879,
+          "p95": 5180.0430476430365
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 8925.206110374244,
+          "p95": 6215.469511792275
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4191561629011098
+    },
+    {
+      "provider": "e2b",
+      "metric": "iops-write",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 6741.4605379522045,
+          "p95": 6375.702393078391
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 6048.397004682526,
+          "p95": 5585.80695761315
+        }
+      },
+      "best": "eu",
+      "spread": 1.1145863164625478
+    },
+    {
+      "provider": "boat",
+      "metric": "disk-read",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 15310.504151012949,
+          "p95": 10723.669103913937
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 20902.3528082183,
+          "p95": 13538.853922735148
+        }
+      },
+      "best": "us-east",
+      "spread": 1.3652295575672073
+    },
+    {
+      "provider": "e2b",
+      "metric": "disk-read",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 6533.335812623546,
+          "p95": 5682.772405333269
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 5528.551940557938,
+          "p95": 3294.575063520219
+        }
+      },
+      "best": "eu",
+      "spread": 1.1817444934711432
+    },
+    {
+      "provider": "boat",
+      "metric": "disk-write",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 498.9387465333287,
+          "p95": 469.9242150727666
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 469.30158336545463,
+          "p95": 436.37473999030425
+        }
+      },
+      "best": "eu",
+      "spread": 1.0631516368543659
+    },
+    {
+      "provider": "e2b",
+      "metric": "disk-write",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 991.5288669139036,
+          "p95": 950.8049926980154
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 1104.5188803178723,
+          "p95": 1061.995650120351
+        }
+      },
+      "best": "us-east",
+      "spread": 1.1139553442913326
+    },
+    {
+      "provider": "boat",
+      "metric": "edit-loop",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 433.4459539999966,
+          "p95": 455.6232373999996
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1109.9525864999941,
+          "p95": 1112.9058991500003
+        }
+      },
+      "best": "eu",
+      "spread": 2.560763519089171
+    },
+    {
+      "provider": "e2b",
+      "metric": "edit-loop",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 641.1492054999981,
+          "p95": 818.2049261499967
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 295.03246450000006,
+          "p95": 300.8077901500001
+        }
+      },
+      "best": "us-east",
+      "spread": 2.173147984194119
+    },
+    {
+      "provider": "boat",
+      "metric": "git-clone",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1897.0348840000024,
+          "p95": 1900.4884143999966
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 2109.450195500005,
+          "p95": 2113.326491450004
+        }
+      },
+      "best": "eu",
+      "spread": 1.111972274886223
+    },
+    {
+      "provider": "e2b",
+      "metric": "git-clone",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1041.2363860000041,
+          "p95": 1066.6312198000073
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 1006.0206990000006,
+          "p95": 1009.6726353000006
+        }
+      },
+      "best": "us-east",
+      "spread": 1.0350049328358835
+    },
+    {
+      "provider": "boat",
+      "metric": "memory",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 33200.01047567628,
+          "p95": 24843.733229115875
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 37016.009584833984,
+          "p95": 25682.335773310893
+        }
+      },
+      "best": "us-east",
+      "spread": 1.1149396959363451
+    },
+    {
+      "provider": "e2b",
+      "metric": "memory",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 12648.992560592229,
+          "p95": 9612.106773316797
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 9067.729356057927,
+          "p95": 7423.925876234027
+        }
+      },
+      "best": "eu",
+      "spread": 1.3949459742247101
+    },
+    {
+      "provider": "boat",
+      "metric": "npm-install",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 602.9200005000025,
+          "p95": 608.84928915
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 845.6178325000001,
+          "p95": 859.1450795500008
+        }
+      },
+      "best": "eu",
+      "spread": 1.402537371125071
+    },
+    {
+      "provider": "e2b",
+      "metric": "npm-install",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 2086.505975999999,
+          "p95": 2119.1611773
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 2032.5391670000004,
+          "p95": 2064.059444
+        }
+      },
+      "best": "us-east",
+      "spread": 1.0265514238919453
+    },
+    {
+      "provider": "e2b",
+      "metric": "pause-resume",
+      "cells": {
+        "eu": {
+          "n": 3,
+          "failures": 0,
+          "p50": 1202.923981,
+          "p95": 1715.5593388000002
+        },
+        "us-east": {
+          "n": 3,
+          "failures": 0,
+          "p50": 853.7117429999998,
+          "p95": 864.0131600999891
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4090516979101693
+    },
+    {
+      "provider": "boat",
+      "metric": "pip-install",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 3784.2362669999966,
+          "p95": 3857.8263347999996
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 2698.2943674999915,
+          "p95": 2767.383236049988
+        }
+      },
+      "best": "us-east",
+      "spread": 1.4024549406394624
+    },
+    {
+      "provider": "e2b",
+      "metric": "pip-install",
+      "cells": {
+        "eu": {
+          "n": 2,
+          "failures": 0,
+          "p50": 4890.037411999998,
+          "p95": 4901.4140978000005
+        },
+        "us-east": {
+          "n": 2,
+          "failures": 0,
+          "p50": 5275.560105000002,
+          "p95": 5323.0709502000045
+        }
+      },
+      "best": "eu",
+      "spread": 1.078838393353381
+    }
+  ]
+}

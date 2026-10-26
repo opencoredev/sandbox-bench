@@ -53,3 +53,15 @@ export function formatGiB(value: number) {
   if (value < 1) return `${Math.round(value * 1024)} MB`;
   return `${value < 10 ? value.toFixed(1).replace(/\.0$/, "") : Math.round(value)} GB`;
 }
+
+const shortDate = (d: Date, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: "UTC" });
+
+/** "Oct 19, 2026", or "Oct 19–21, 2026" when runs span several days in one month. */
+export function dayRange(window: { start: string; end: string }) {
+  const start = new Date(window.start);
+  const end = new Date(window.end);
+  if (start.toISOString().slice(0, 10) === end.toISOString().slice(0, 10)) return shortDate(start, { month: "short", day: "numeric", year: "numeric" });
+  if (start.getUTCMonth() === end.getUTCMonth())
+    return `${shortDate(start, { month: "short", day: "numeric" })}–${shortDate(end, { day: "numeric" })}, ${start.getUTCFullYear()}`;
+  return `${shortDate(start, { month: "short", day: "numeric" })} – ${shortDate(end, { month: "short", day: "numeric", year: "numeric" })}`;
+}

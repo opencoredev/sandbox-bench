@@ -4,6 +4,7 @@ import { Allocations } from "@/components/allocations";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
+import { ByLocation } from "@/components/by-location";
 import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
@@ -26,7 +27,7 @@ import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costSource, hasTaskCosts, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
-import { formatGiB, formatMoney } from "@/lib/format";
+import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote, upstashTwinNote } from "@/lib/notes";
@@ -52,6 +53,7 @@ import { advertised } from "@/lib/sizes";
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 const sections = [
+  ["locations", "By location", "combined"],
   ["startup", "Start-up", "cold"],
   ["agent", "Agent work", "tool-replay"],
   ["everyday", "Everyday"],
@@ -62,18 +64,6 @@ const sections = [
   ["cost", "Cost", "task"],
   ["method", "Method"],
 ] as const;
-
-const short = (d: Date, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: "UTC" });
-
-/** "Oct 19, 2026", or "Oct 19–21, 2026" when runs span several days in one month. */
-function dayRange(window: Track["window"]) {
-  const start = new Date(window.start);
-  const end = new Date(window.end);
-  if (start.toISOString().slice(0, 10) === end.toISOString().slice(0, 10)) return short(start, { month: "short", day: "numeric", year: "numeric" });
-  if (start.getUTCMonth() === end.getUTCMonth())
-    return `${short(start, { month: "short", day: "numeric" })}–${short(end, { day: "numeric" })}, ${start.getUTCFullYear()}`;
-  return `${short(start, { month: "short", day: "numeric" })} – ${short(end, { month: "short", day: "numeric", year: "numeric" })}`;
-}
 
 /** The machine a provider ran on in a track, for hover cards: "4 vCPU, 8 GB RAM". */
 const ranOn = (p: Provider | undefined) => {
@@ -469,6 +459,14 @@ export default function Page() {
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
+
+        <Section
+          id="locations"
+          title="By location"
+          lede="Every call to a provider crosses the network from wherever the benchmark runs, so a provider far from our runner looks slow. Here the same tests ran from more than one place. The results above all come from Florida."
+        >
+          <ByLocation />
+        </Section>
 
         <TraceWaterfall />
 
