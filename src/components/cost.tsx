@@ -5,7 +5,7 @@ import type { Column } from "@/components/columns";
 import { ChartHead, ComingNext, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import { costSource, formatPerThousand, hasTaskCosts, notFromBill, perPriceLabel, pricedTasks, unpricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
-import { allocationNotes } from "@/lib/notes";
+import { allocationNotes, costNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -69,6 +69,7 @@ export function CostPerTaskChart({ track }: { track: Track }) {
           ...(missing.length > 0
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),
+          ...pricedTasks(track).flatMap(({ id }) => { const note = costNotes[id]; return note ? [{ text: <><Who id={id} />: {note}</> }] : []; }),
           { text: "Usage charges only: credits, tax and plan minimums are left out." },
           ...trackFootnotes(track, "cost"),
         ]}

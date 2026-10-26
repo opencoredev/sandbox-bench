@@ -4,7 +4,7 @@ import type { Metric, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
-import { absentNote, allocationNotes, measuredText, noRealPause, requestedText } from "@/lib/notes";
+import { absentNote, allocationNotes, costNotes, measuredText, noRealPause, requestedText, sentence } from "@/lib/notes";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised, sizeOf } from "@/lib/sizes";
@@ -27,12 +27,14 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
 const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
+const sandboxerLimit = "not-run: our Sandboxer plan allows 24 active sandboxes, so a burst of 25 can't start";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
     "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume" },
     "burst-25": {
       boxd: "stopped-early: one of its three bursts of 25 was cut short by our own ownership check (16 creates and 5 deletes failed on our side), so it is not counted; coming in the next update",
+      sandboxer: sandboxerLimit,
     },
   },
   "same-spec": {
@@ -45,6 +47,7 @@ const handNotRun: NotRun = {
     },
     "burst-25": {
       superserve: superserveJoins,
+      sandboxer: sandboxerLimit,
     },
   },
 };
@@ -183,7 +186,7 @@ function hardwareOf(id: ProviderId) {
     region: h.region,
     runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
     hidden: h.hidden,
-    probed: probeDate,
+    probed: "probed" in h ? h.probed : probeDate,
   };
 }
 
@@ -298,7 +301,11 @@ function trackMarkdown(id: TrackId) {
     ),
     "",
     ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),
-    ...d.providers.flatMap((p) => ("basis" in p.costPerTask ? [`Cost on ${p.name}: ${p.costPerTask.basis}.`] : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}).`])),
+    ...d.providers.flatMap((p) => {
+      const caveat = costNotes[p.id];
+      const extra = caveat ? ` ${sentence(caveat.charAt(0).toUpperCase() + caveat.slice(1))}` : "";
+      return "basis" in p.costPerTask ? [`Cost on ${p.name}: ${p.costPerTask.basis}.${extra}`] : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}).`];
+    }),
     "",
   );
   for (const g of groups) {
@@ -372,7 +379,7 @@ The page shows one track at a time: \`/\` opens the same-machine track and \`/?t
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Daytona's billed cost can still change for up to 48 hours. Freestyle, Tenki and Boat costs are list-price estimates on our measured sandbox lifetime, because none gives a per-sandbox bill (Boat drops it when a sandbox is deleted). A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Sandboxer was added on Oct 23 from its own runs with the same tests (harness commits 4450887 for the main tests, bd86c3c for snapshots, cost and bursts), pause and resume included; its plan allows 24 active sandboxes, so it has no burst of 25. Daytona's billed cost can still change for up to 48 hours. Freestyle, Tenki and Boat costs are list-price estimates on our measured sandbox lifetime, because none gives a per-sandbox bill (Boat drops it when a sandbox is deleted). Sandboxer's cost is its own per-sandbox usage record, read just before delete, so it leaves out the delete call itself, about 0.35 s or 1% of a task. A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
@@ -383,7 +390,7 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ${howToRead}
 
-Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so providers hosted in Europe (Boat in France, boxd in Germany) pay a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
+Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so providers hosted in Europe (Boat in France, boxd in Germany, Sandboxer in Finland) pay a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
 
 ## Metrics
 

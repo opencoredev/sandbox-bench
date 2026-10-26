@@ -179,7 +179,8 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
   const scroller = useScrollFade<HTMLDivElement>();
 
   const controls = (
-    <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    // Stacked at every width: with nine providers the chips need the card's full width.
+    <div className="mb-3 flex flex-col items-start gap-2">
       <Segmented
         label="Trace"
         items={traceKinds.map((k) => ({ id: k, label: kindLabel[k], disabled: provider ? !hasTrace(track, k, provider.id) : !usable.some((p) => hasTrace(track, k, p.id)) }))}

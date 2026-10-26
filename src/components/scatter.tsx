@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
@@ -19,6 +20,8 @@ const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
 const QUADRANT = "oklch(0.8 0.17 152)";
 /** Plot height in px between the insets on a phone (h-[340px]). */
 const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
+/** The plot's drawing width between its insets at 390px and 360px viewports: one label layout for each. */
+const PLOT_W = { wide: 222, narrow: 192 } as const;
 
 /** The x axis starts here instead of at the first tick when no point sits below it. */
 const X_FLOOR = 2.5;
@@ -65,17 +68,62 @@ export function Scatter({
   const fy = (y: number) => (y - y0) / (y1 - y0);
   const mx = fx(median(points.map((p) => p.x)));
   const my = fy(median(points.map((p) => p.y)));
-  // Whether p's label, `nudge` px below its dot on the `flip` side, crosses another dot. Measured on the
-  // phone plot, the shortest, where a label spans up to about 0.4 of the width.
-  const runsOver = ({ p, flip, nudge }: { p: ScatterPoint; flip: boolean; nudge: number }) =>
-    points.some((q) => {
-      if (q === p) return false;
-      const dx = fx(q.x) - fx(p.x);
-      return (flip ? dx < 0 : dx > 0) && Math.abs(dx) < 0.4 && Math.abs((fy(q.y) - fy(p.y)) * PHONE_PLOT_PX + nudge) < 10;
-    });
   const summary = points
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
+
+  // Labels point away from the right edge, and inside the quadrant toward the side with more room,
+  // so they never run over its dashed edge. Up to 0.72 across, a phone still has about 85px on the
+  // right (plot plus its 18px inset), enough for "Upstash Box".
+  const flipOf = (p: ScatterPoint) => {
+    const px = fx(p.x);
+    return px > 0.72 || (px < mx && fy(p.y) < my && mx - px < px);
+  };
+  // Label placement, worked out on a phone plot, the tightest it gets (wider plots only add room
+  // across): one layout at 390px that holds from there up, one at 360px for narrower phones. Each
+  // label tries its dot's line first, then one line up or down, then two, on its preferred side and
+  // then the other, and takes the first spot that crosses no dot, overlaps no label placed before
+  // it, and stays inside the plot, clear of the x-axis. When none is clear it takes the spot with
+  // the fewest clashes. Labels are placed bottom to top.
+  type Box = { l: number; r: number; t: number; b: number };
+  type Spot = { flip: boolean; nudge: number };
+  const hit = (a: Box, c: Box) => a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b;
+  const layout = (plotW: number) => {
+    const at = (p: ScatterPoint) => ({ x: fx(p.x) * plotW, y: (1 - fy(p.y)) * PHONE_PLOT_PX });
+    const dots = points.map((p) => { const { x, y } = at(p); return { p, box: { l: x - 7, r: x + 7, t: y - 7, b: y + 7 } }; });
+    const labelBox = (p: ScatterPoint, { flip, nudge }: Spot): Box => {
+      const { x, y } = at(p);
+      const stacked = p.provider === "upstash-ephemeral";
+      const w = stacked ? 70 : providerName(p.provider).length * 7.4 + 2;
+      const h = stacked ? 34 : 14;
+      const l = flip ? x - 12 - w : x + 12;
+      return { l, r: l + w, t: y + nudge - h / 2, b: y + nudge + h / 2 };
+    };
+    const placed = new Map<ScatterPoint["provider"], Spot & { box: Box }>();
+    for (const p of [...points].sort((a, b) => a.y - b.y || b.x - a.x)) {
+      const preferred = flipOf(p);
+      // A label over another label hides a name, so it counts double; one over a dot's edge only crowds it.
+      const clashes = (box: Box) =>
+        (box.t < -INSET.top || box.b > PHONE_PLOT_PX + 2 || box.l < -INSET.left + 8 || box.r > plotW + INSET.right ? 1 : 0) +
+        dots.filter((d) => d.p !== p && hit(box, d.box)).length +
+        2 * [...placed.values()].filter((o) => hit(box, o.box)).length;
+      let choice = { flip: preferred, nudge: 0, box: labelBox(p, { flip: preferred, nudge: 0 }) };
+      let fewest = Infinity;
+      search: for (const nudge of [0, -15, 15, -30, 30]) {
+        for (const flip of [preferred, !preferred]) {
+          const box = labelBox(p, { flip, nudge });
+          const n = clashes(box);
+          if (n < fewest) { fewest = n; choice = { flip, nudge, box }; }
+          if (n === 0) break search;
+        }
+      }
+      placed.set(p.provider, choice);
+    }
+    return placed;
+  };
+  const wide = layout(PLOT_W.wide);
+  const narrow = layout(PLOT_W.narrow);
+  const spot = (p: ScatterPoint, from: Map<ScatterPoint["provider"], Spot>): Spot => from.get(p.provider) ?? { flip: flipOf(p), nudge: 0 };
 
   return (
     <figure aria-label={`${yTitle} against ${xTitle}. ${summary}.`}>
@@ -125,22 +173,8 @@ export function Scatter({
           {points.map((p) => {
             const px = fx(p.x);
             const py = fy(p.y);
-            // Labels point away from the right edge, and inside the quadrant toward the side
-            // with more room, so they never run over its dashed edge.
-            const inside = px < mx && py < my;
-            const flip = px > 0.62 || (inside && mx - px < px);
-            // Two points at nearly the same price print their labels on one line, and on a
-            // narrow plot they collide whatever the gap: the dearer label moves above, the cheaper below,
-            // so neither runs over the other's dot. At exactly one price the further-right one moves below.
-            // Only a neighbour close enough across to share the label's line counts.
-            const twin = points
-              .filter((q) => q !== p && Math.abs(fy(q.y) - py) < 0.08 && Math.abs(fx(q.x) - px) < 0.3)
-              .sort((a, b) => Math.abs(fy(a.y) - py) - Math.abs(fy(b.y) - py))[0];
-            const above = twin && (twin.y === p.y ? fx(twin.x) > px : p.y > twin.y);
-            // Moving off the line can put the label on a third dot's line instead; then it stays put,
-            // as long as its own line is clear of every other dot.
-            const moved = twin ? (above ? -15 : 15) : 0;
-            const nudge = moved !== 0 && runsOver({ p, flip, nudge: moved }) && !runsOver({ p, flip, nudge: 0 }) ? 0 : moved;
+            const big = spot(p, wide);
+            const small = spot(p, narrow);
             const color = providerColor(p.provider);
             const lines = [`${formatPerThousand(p.y)} ${perPriceLabel}`, `${formatValue(p.x, "s")} for 100 tool calls`, ...p.detail];
             return (
@@ -161,8 +195,8 @@ export function Scatter({
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
                   aria-hidden
-                  className={`absolute -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap ${flip ? "right-3" : "left-3"}`}
-                  style={{ color, top: nudge }}
+                  className={`absolute top-(--nudge) -translate-y-1/2 text-[12.5px] leading-none font-medium whitespace-nowrap max-[389px]:top-(--nudge-narrow) ${big.flip ? "right-3" : "left-3"} ${small.flip === big.flip ? "" : small.flip ? "max-[389px]:left-auto max-[389px]:right-3" : "max-[389px]:right-auto max-[389px]:left-3"}`}
+                  style={{ color, "--nudge": `${big.nudge}px`, "--nudge-narrow": `${small.nudge}px` } as CSSProperties}
                 >
                   <ProviderName id={p.provider} layout="stacked" />
                 </span>
