@@ -225,6 +225,7 @@ export const hardware = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory the chip takes" },
     cloud: "Hetzner (AS24940)",
     region: "eu-central, Helsinki, Finland",
+    regionShort: "Helsinki",
     runsAs: "Cloud Hypervisor microVM",
     runsAsDetail: "on a desktop-class chip",
     storage: "50 GB for your files (56 GB disk measured inside)",
