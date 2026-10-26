@@ -463,7 +463,7 @@ export default function Page() {
         <Section
           id="locations"
           title="By location"
-          lede="Every call to a provider crosses the network from wherever the benchmark runs, so a provider far from our runner looks slow. Here the same tests ran from more than one place. The results above all come from Florida."
+          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
         >
           <ByLocation />
         </Section>

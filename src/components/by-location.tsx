@@ -1,323 +1,428 @@
-import { LocationCompare } from "@/components/location-compare";
-import type { CompareRow } from "@/components/location-compare";
-import { ChartHead, Footnotes } from "@/components/metric-chart";
-import { Empty, Grid, Place, ProviderCell, ProviderLabel, RowHead } from "@/components/location-table";
+import { Empty, Grid, Place } from "@/components/location-table";
+import { ChartHead, ComingNext, Who } from "@/components/metric-chart";
+import { ProviderName } from "@/components/provider-name";
 import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
-import { tracks } from "@/lib/data";
-import { dayRange, formatValue } from "@/lib/format";
-import { TIE_RATIO, deltaFavoursFirst, deltaOf, formatDelta, median, regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
-import type { RegionCell, RegionMetric, RegionalData, Sensitivity, Standing, Vantage } from "@/lib/regions";
-import { trackInfo } from "@/lib/tracks";
+import { dayRange, formatCount, formatValue } from "@/lib/format";
+import { hardware } from "@/lib/hardware";
+import { providerColor } from "@/lib/providers";
+import type { ProviderId } from "@/lib/providers";
+import { regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
+import type { RegionCell, RegionId, RegionMetric, Vantage } from "@/lib/regions";
 
-// Direction: the same quiet tables as Reliability and Hardware, so this reads
-// as one more card on the page, not a new product. Numbers in Geist Mono, the
-// location as a small outlined chip, the gap between locations as "×1.7".
-// One idea per view: Combined says how much location matters, each location
-// view splits tests into the ones that move with distance and the ones that
-// should not, Compare puts two locations side by side for one test.
+/**
+ * The section for SBX-66: how each provider performs when called from
+ * different client locations.
+ *
+ * Simplified per [t19u]:
+ * - Default view and single-region tabs each lead with ONE compact visual
+ *   (horizontal bars per provider + one headline number + one speed-multiplier
+ *   chip).
+ * - In-sandbox invariant metrics (CPU, memory, disk, npm, git) are omitted
+ *   by default with a one-line quiet note.
+ * - Tiny gray +/- cell deltas are dropped in favour of visual bars and chips.
+ * - Fewer tabs: All locations / EU-Central / US-East / US-West (soon), with an
+ *   optional <details> expander for the full network-sensitive table.
+ */
 
-const groups = {
-  vantage: { title: "Crosses the network on every call", sub: "Every call travels from our runner to the provider, so where the runner sits changes these" },
-  invariant: { title: "Runs inside the sandbox", sub: "The work happens on the provider's machine, so these should not change with location" },
-} as const satisfies Record<Sensitivity, { title: string; sub: string }>;
+const HEADLINE_IDS = ["cold", "command", "files-10mb", "tool-replay"] as const;
 
-const groupOrder = ["vantage", "invariant"] as const satisfies readonly Sensitivity[];
+const cellTip = (c: RegionCell, m: RegionMetric) => {
+  const attempts = c.n + c.failures;
+  return [
+    `median ${formatValue(c.p50, m.unit)}`,
+    ...(c.p95 === null ? [] : [`p95 ${formatValue(c.p95, m.unit)}`]),
+    `${formatCount(attempts)} ${attempts === 1 ? "attempt" : "attempts"}${c.failures ? `, ${formatCount(c.failures)} failed` : ""}`,
+  ].join(" · ");
+};
 
-const regionLabel = (data: RegionalData, id: string) => data.regions.find((r) => r.id === id)?.label ?? id;
+const sampleLine = () => {
+  const range = sampleRange(regional);
+  const runs = !range ? null : range.min === range.max ? `${range.min} runs per test` : `${range.min}–${range.max} runs per test`;
+  return [dayRange(regional.window), runs].filter(Boolean).join(" · ");
+};
 
-/** "Gravelines, FR · OVH SAS · OVH Gravelines, FR, small · 2 runs", from whatever the runner reported. */
-function caption(v: Vantage) {
-  const place = [v.city, v.country].filter((x) => x !== null).join(", ");
-  const host = v.host ? [v.host.location, v.host.serverType].filter((x) => x !== null).join(", ") : null;
-  return [place || null, v.network ? `${v.network} network` : null, host ? `Runner: ${host}` : null, `${v.runs} ${v.runs === 1 ? "run" : "runs"}`]
-    .filter((x) => x !== null)
-    .join(" · ");
-}
+/** Compact horizontal bar pair comparing EU-Central vs US-East for one provider and metric, plus a single winner chip. */
+function ProviderLocationRow({
+  provider,
+  metric,
+  regions,
+  maxP50,
+}: {
+  provider: ProviderId;
+  metric: RegionMetric;
+  regions: readonly Vantage[];
+  maxP50: number;
+}) {
+  const row = rowOf(regional, provider, metric.id);
+  const standing = row ? standingOf(row, metric) : null;
+  const labelOf = (id: RegionId) => regions.find((r) => r.id === id)?.label ?? id;
+  const hw = hardware[provider];
+  const color = providerColor(provider);
 
-/** "Cold start in EU-Central: median 0.67 s, p95 0.73 s, 3 runs". */
-const cellTitle = (m: RegionMetric, where: string, c: RegionCell) =>
-  `${m.label} from ${where}: median ${formatValue(c.p50, m.unit)}${c.p95 === null ? "" : `, p95 ${formatValue(c.p95, m.unit)}`}, ${c.n} ${c.n === 1 ? "run" : "runs"}${c.failures ? `, ${c.failures} failed` : ""}`;
+  const badge = (() => {
+    if (!standing || standing.locations < 2 || standing.spread === null) {
+      if (standing && standing.locations === 1) {
+        return { text: `${labelOf(standing.fastest[0])} only`, fast: false };
+      }
+      return null;
+    }
+    if (standing.fastest.length > 1) {
+      return { text: "Tied across locations", fast: false };
+    }
+    const winner = labelOf(standing.fastest[0]);
+    return {
+      text: `×${standing.spread.toFixed(1)} faster from ${winner}`,
+      fast: true,
+    };
+  })();
 
-const providerHead = (data: RegionalData) => data.providers.map((id) => ({ key: id, cell: <ProviderLabel id={id} /> }));
-
-/** Site providers this collection has no results for, in one line rather than a row each. */
-function Unmeasured({ data }: { data: RegionalData }) {
-  const others = tracks[data.track].providers.map((p) => p.id).filter((id) => !data.providers.includes(id));
-  if (others.length === 0) return null;
   return (
-    <div className="mt-5 border-t border-[var(--line)] pt-4">
-      <p className="text-[12px] text-[var(--muted)]">Not measured by location yet</p>
-      <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-3">
-        {others.map((id) => (
-          <li key={id}>
-            <ProviderLabel id={id} />
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+    <div className="grid grid-cols-1 gap-3 py-3 sm:grid-cols-[11rem_1fr_11.5rem] sm:items-center sm:gap-5">
+      <div>
+        <span className="block text-[13.5px] font-medium" style={{ color }}>
+          <ProviderName id={provider} />
+        </span>
+        <span className="mt-0.5 block text-[11.5px] text-[var(--muted)]">
+          {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+        </span>
+      </div>
 
-const listFormat = new Intl.ListFormat("en-US", { type: "conjunction" });
-
-const tiePercent = `${Math.round((TIE_RATIO - 1) * 100)}%`;
-
-/** The best location's chip, "Tied" when another location is within TIE_RATIO, then the spread or why there is none. */
-function StandingNote({ data, standing }: { data: RegionalData; standing: Standing }) {
-  const names = standing.fastest.map((r) => regionLabel(data, r));
-  const tied = names.length > 1;
-  return (
-    <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
-      <span title={tied ? `Tied, within ${tiePercent} of each other: ${names.join(", ")}` : `Best observed: ${names[0] ?? ""}`}>
-        <Place>{tied ? "Tied" : names[0]}</Place>
-      </span>
-      {standing.spread !== null ? (
-        <span className="font-mono text-[11px] text-[var(--muted)] tabular-nums">×{standing.spread.toFixed(1)}</span>
-      ) : (
-        <span className="text-[11px] text-[var(--muted)]">{standing.locations === 1 ? "1 location" : "no spread"}</span>
-      )}
-    </span>
-  );
-}
-
-/** For each provider, the network-sensitive tests at their best observed location, and how far the worst location was behind it. */
-function Combined({ data, sample }: { data: RegionalData; sample: string }) {
-  const metrics = data.metrics.filter((m) => m.sensitivity === "vantage");
-  const allLower = metrics.every((m) => m.better === "lower");
-  const allHigher = metrics.every((m) => m.better === "higher");
-  const how = allLower
-    ? "Median at the fastest location, then how many times slower the slowest was"
-    : allHigher
-      ? "Median at the location with the highest throughput, then how many times higher it was than the lowest"
-      : "Median at the best location, then how many times worse the worst was";
-  return (
-    <>
-      <ChartHead
-        title={`${allLower ? "Fastest" : "Best"} observed location for each provider`}
-        sub={`Tests that cross the network, from ${listFormat.format(data.regions.map((r) => r.label))} · ${how} · Tied: within ${tiePercent}`}
-        meta={sample}
-      />
-      <Grid label="Best observed location per provider" corner="Test" head={providerHead(data)}>
-        {metrics.map((m) => (
-          <tr key={m.id}>
-            <RowHead>{m.label}</RowHead>
-            {data.providers.map((id) => {
-              const row = rowOf(data, id, m.id);
-              const standing = row ? standingOf(row, m) : null;
-              const titles = row ? [...row.cells].map(([r, c]) => cellTitle(m, regionLabel(data, r), c)).join("\n") : undefined;
-              return (
-                <td key={id} className="px-3 py-2.5 align-top" title={titles}>
-                  {standing ? (
-                    <>
-                      <span className="block font-mono text-[13px] tabular-nums">{formatValue(standing.cell.p50, m.unit)}</span>
-                      <StandingNote data={data} standing={standing} />
-                    </>
-                  ) : (
-                    <Empty />
-                  )}
-                </td>
-              );
-            })}
-          </tr>
-        ))}
-      </Grid>
-      <Unmeasured data={data} />
-    </>
-  );
-}
-
-/** The middle gap between locations across every provider and test in a group: the number that says whether location matters. */
-function typicalGap(data: RegionalData, metrics: readonly RegionMetric[]) {
-  const ratios = metrics.flatMap((m) =>
-    data.rows.flatMap((r) => {
-      if (r.metric !== m.id) return [];
-      const spread = standingOf(r, m)?.spread ?? null;
-      return spread === null ? [] : [spread];
-    }),
-  );
-  return median(ratios);
-}
-
-/** One location's results, network tests first, each with its difference from the next location in the data. */
-function Location({ data, here, sample }: { data: RegionalData; here: Vantage; sample: string }) {
-  const other = data.regions.find((r) => r.id !== here.id);
-  return (
-    <>
-      <ChartHead title={`Measured from ${here.label}`} sub={caption(here)} meta={sample} />
-      <div className="flex flex-col gap-8">
-        {groupOrder.map((g) => {
-          const metrics = data.metrics.filter((m) => m.sensitivity === g);
-          if (metrics.length === 0) return null;
-          const gap = other ? typicalGap(data, metrics) : null;
+      <div className="flex flex-col gap-1.5">
+        {regions.map((r) => {
+          const cell = row?.cells.get(r.id);
+          const isFastest = standing ? standing.fastest.includes(r.id) : false;
+          const pct = cell && maxP50 > 0 ? Math.max(4, Math.min(100, (cell.p50 / maxP50) * 100)) : 0;
           return (
-            <div key={g}>
-              <div className="mb-3">
-                <h4 className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-[14px] font-medium">
-                  {groups[g].title}
-                  {gap !== null && other ? (
-                    <span className="text-[12px] font-normal text-[var(--muted)]">
-                      typical gap between locations <span className="font-mono text-[14px] text-[var(--foreground)] tabular-nums">×{gap.toFixed(1)}</span>
-                    </span>
-                  ) : null}
-                </h4>
-                <p className="mt-1 max-w-[72ch] text-[12px] leading-snug text-[var(--muted)]">
-                  {groups[g].sub}
-                  {other ? `. Beside each value: the difference from ${other.label}.` : "."}
-                </p>
+            <div key={r.id} className="grid grid-cols-[5.5rem_1fr_4.5rem] items-center gap-2.5 text-[12px]">
+              <span className={`truncate ${isFastest ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)]"}`}>
+                {r.label}
+              </span>
+              <div className="h-2 overflow-hidden rounded-sm bg-[var(--band)]">
+                {cell ? (
+                  <div
+                    className="h-full rounded-sm"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: isFastest ? color : "var(--axis)",
+                      opacity: isFastest ? 0.9 : 0.45,
+                    }}
+                    title={cellTip(cell, metric)}
+                  />
+                ) : null}
               </div>
-              <Grid label={`${groups[g].title}, from ${here.label}`} corner="Test" head={providerHead(data)}>
-                {metrics.map((m) => (
-                  <tr key={m.id}>
-                    <RowHead>{m.label}</RowHead>
-                    {data.providers.map((id) => {
-                      const row = rowOf(data, id, m.id);
-                      const cell = row?.cells.get(here.id);
-                      const there = other ? row?.cells.get(other.id) : undefined;
-                      const delta = cell && there ? deltaOf(m, cell, there) : null;
-                      return (
-                        <td key={id} className="px-3 py-2.5 align-top" title={cell ? cellTitle(m, here.label, cell) : undefined}>
-                          {cell ? (
-                            <span className="flex flex-wrap items-baseline gap-x-2">
-                              <span className="font-mono text-[13px] tabular-nums">{formatValue(cell.p50, m.unit)}</span>
-                              {delta && other ? (
-                                <span className={`font-mono text-[11px] tabular-nums ${deltaFavoursFirst(m, delta) ? "text-[var(--foreground)]/85" : "text-[var(--muted)]"}`}>
-                                  {formatDelta(delta)}
-                                </span>
-                              ) : null}
-                            </span>
-                          ) : (
-                            <Empty />
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </Grid>
+              <span
+                className={`text-right font-mono text-[12.5px] tabular-nums ${
+                  cell ? (isFastest ? "font-medium text-[var(--foreground)]" : "text-[var(--muted)]") : "text-[var(--muted)]/50"
+                }`}
+                title={cell ? cellTip(cell, metric) : undefined}
+              >
+                {cell ? formatValue(cell.p50, metric.unit) : "—"}
+              </span>
             </div>
           );
         })}
       </div>
-    </>
+
+      <div className="flex sm:justify-end">
+        {badge ? (
+          <span
+            className={`inline-flex items-center rounded-md px-2 py-1 font-mono text-[11.5px] tabular-nums ${
+              badge.fast
+                ? "bg-[var(--band)] text-[var(--foreground)] shadow-[inset_0_0_0_1px_var(--line)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            {badge.text}
+          </span>
+        ) : (
+          <Empty />
+        )}
+      </div>
+    </div>
   );
 }
 
-/** Runner-to-provider-API round trips from the preflight check: the distance every network test pays. */
-function Distance({ data, sample }: { data: RegionalData; sample: string }) {
-  const providers = data.providers.filter((id) => data.rtt.some((r) => r.provider === id));
-  const max = Math.max(1, ...data.rtt.map((r) => r.tcpMs ?? 0));
+/** Compact overview: 1 primary bar comparison (Cold start) + 3 compact headline cards + optional Details expander. */
+function OverviewPanel() {
+  const { regions, metrics, providers } = regional;
+  const vantageMetrics = metrics.filter((m) => m.sensitivity === "vantage");
+  const primary = vantageMetrics.find((m) => m.id === "cold") ?? vantageMetrics[0];
+  const secondary = HEADLINE_IDS.slice(1)
+    .map((id) => vantageMetrics.find((m) => m.id === id))
+    .filter((m): m is RegionMetric => m !== undefined);
+
+  if (!primary) return null;
+
+  const maxPrimary = Math.max(
+    0,
+    ...providers.flatMap((p) => {
+      const r = rowOf(regional, p, primary.id);
+      return r ? [...r.cells.values()].map((c) => c.p50) : [];
+    }),
+  );
+
+  const labelOf = (id: RegionId) => regions.find((r) => r.id === id)?.label ?? id;
+
   return (
     <>
-      <ChartHead title="Network distance to each provider" sub="Median round trip from each runner to the provider's API, before any test · TCP connect, then first byte of a request · Lower is closer" meta={sample} />
-      <Grid label="Network distance" corner="Provider" head={data.regions.map((r) => ({ key: r.id, cell: r.label }))} col={13}>
+      <ChartHead
+        title={`${primary.label} by caller location`}
+        sub="Median time from each caller location · Colored bar marks the faster location · Lower is better"
+        meta={sampleLine()}
+      />
+
+      <div className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
         {providers.map((id) => (
-          <tr key={id}>
-            <ProviderCell id={id} />
-            {data.regions.map((r) => {
-              const t = data.rtt.find((x) => x.provider === id && x.region === r.id);
-              return (
-                <td key={r.id} className="px-3 py-2.5 align-top">
-                  {t && t.tcpMs !== null ? (
-                    <>
-                      <span className="flex items-center gap-3">
-                        <span className="w-14 shrink-0 font-mono text-[13px] tabular-nums">{formatValue(t.tcpMs, "ms")}</span>
-                        <span aria-hidden className="h-1.5 min-w-0 flex-1 rounded-full bg-[var(--grid)]">
-                          <span className="block h-full rounded-full bg-[var(--foreground)]/70" style={{ width: `${Math.max(2, (t.tcpMs / max) * 100)}%` }} />
-                        </span>
-                      </span>
-                      <span className="mt-1 block text-[11px] text-[var(--muted)]">
-                        First byte {t.firstByteMs === null ? "not measured" : formatValue(t.firstByteMs, "ms")}
-                      </span>
-                    </>
-                  ) : (
-                    <Empty />
-                  )}
-                </td>
-              );
-            })}
-          </tr>
+          <ProviderLocationRow key={id} provider={id} metric={primary} regions={regions} maxP50={maxPrimary} />
         ))}
-      </Grid>
+      </div>
+
+      {secondary.length > 0 ? (
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {secondary.map((m) => (
+            <div key={m.id} className="rounded-lg border border-[var(--line)] bg-[var(--band)]/45 p-3.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <h4 className="text-[13px] font-medium">{m.label}</h4>
+                <span className="text-[11px] text-[var(--muted)]">fastest location</span>
+              </div>
+              <dl className="mt-2.5 flex flex-col gap-1.5 text-[12px]">
+                {providers.map((id) => {
+                  const row = rowOf(regional, id, m.id);
+                  const s = row ? standingOf(row, m) : null;
+                  return (
+                    <div key={id} className="flex items-baseline justify-between gap-2">
+                      <dt className="truncate">
+                        <Who id={id} />
+                      </dt>
+                      <dd className="flex shrink-0 items-baseline gap-1.5 font-mono tabular-nums">
+                        {s ? (
+                          <>
+                            <span>{formatValue(s.cell.p50, m.unit)}</span>
+                            <Place>{s.fastest.length > 1 ? "tie" : labelOf(s.fastest[0])}</Place>
+                            {s.spread !== null && s.fastest.length === 1 ? (
+                              <span className="text-[11px] text-[var(--muted)]">×{s.spread.toFixed(1)}</span>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="font-sans text-[11px] text-[var(--muted)]">—</span>
+                        )}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <DetailsExpander metrics={vantageMetrics} />
+
+      <p className="mt-3 text-[12px] text-[var(--muted)]">
+        In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+      </p>
     </>
   );
 }
 
-/** Rows for the Compare view, worked out here so the client gets plain values: one cell per location, the first-minus-second difference and the spread. */
-function compareRows(data: RegionalData, first: Vantage, second: Vantage): CompareRow[] {
-  return data.rows.flatMap((r) => {
-    const m = data.metrics.find((x) => x.id === r.metric);
-    if (!m) return [];
-    const a = r.cells.get(first.id);
-    const b = r.cells.get(second.id);
-    const delta = a && b ? deltaOf(m, a, b) : null;
-    return [
-      {
-        provider: r.provider,
-        metric: r.metric,
-        cells: data.regions.map((v) => {
-          const c = r.cells.get(v.id);
-          return c ? { text: formatValue(c.p50, m.unit), title: cellTitle(m, v.label, c) } : null;
-        }),
-        delta: delta ? { text: formatDelta(delta), favoursFirst: deltaFavoursFirst(m, delta) } : null,
-        spread: standingOf(r, m)?.spread ?? null,
-      },
-    ];
-  });
-}
+/** Single-region tab: ONE compact visual (Cold start bar + HTTPS first byte + speed chip vs other location) + optional Details expander. */
+function SingleLocationPanel({ region }: { region: Vantage }) {
+  const { regions, metrics, providers, rtt } = regional;
+  const vantageMetrics = metrics.filter((m) => m.sensitivity === "vantage");
+  const primary = vantageMetrics.find((m) => m.id === "cold") ?? vantageMetrics[0];
+  const place = [region.city, region.country].filter(Boolean).join(", ");
+  const labelOf = (id: RegionId) => regions.find((r) => r.id === id)?.label ?? id;
 
-/**
- * Results by the location the benchmark ran from. Its own collection, apart
- * from the headline run, so its numbers never enter the charts above.
- */
-export function ByLocation({ data = regional }: { data?: RegionalData }) {
-  const sample = sampleRange(data);
-  const [first, second] = data.regions;
-  const runs = sample ? (sample.min === sample.max ? `${sample.max}` : `${sample.min} to ${sample.max}`) : "no";
-  const sampleLine = `${dayRange(data.window)} · ${runs} ${sample?.max === 1 ? "run" : "runs"} per test from each location · Small samples, so only large gaps mean much`;
-  const notes = [
-    {
-      text: `A separate, smaller collection than the rest of the page. Locations within ${tiePercent} of each other count as tied: at this sample size a smaller gap is within run-to-run noise. Hover a value for its p95 and run count.`,
-    },
-    { text: "Runs in is where each provider's sandboxes ran in our hardware probe, not where our runner was." },
-    { text: `${trackInfo[data.track].label} only. Batch ${data.batchId}, benchmark commit ${data.commit.slice(0, 7)}.` },
-  ];
-  const tabs: Tab[] = [
-    { id: "combined", label: "Combined", content: <Combined data={data} sample={sampleLine} /> },
-    ...data.regions.map((r) => ({ id: r.id, label: r.label, content: <Location data={data} here={r} sample={sampleLine} /> })),
-    ...data.planned.map((r) => ({ id: r.id, label: r.label, unavailable: "not measured yet" })),
-    ...(first && second
-      ? [
-          {
-            id: "compare",
-            label: "Compare",
-            content: (
-              <LocationCompare
-                metrics={data.metrics.map((m) => ({ id: m.id, label: m.label, sensitivity: m.sensitivity, better: m.better }))}
-                regions={data.regions.map((r) => r.label)}
-                rows={compareRows(data, first, second)}
-                providers={data.providers}
-                sample={sampleLine}
-              />
-            ),
-          },
-        ]
-      : []),
-    ...(data.rtt.length > 0 ? [{ id: "distance", label: "Network distance", content: <Distance data={data} sample={sampleLine} /> }] : []),
-  ];
+  const entries = providers.map((id) => {
+    const row = primary ? rowOf(regional, id, primary.id) : undefined;
+    const cell = row?.cells.get(region.id) ?? null;
+    const standing = row && primary ? standingOf(row, primary) : null;
+    const probe = rtt.find((r) => r.region === region.id && r.provider === id);
+    return { id, cell, standing, firstByteMs: probe?.firstByteMs ?? null };
+  });
+
+  // Sort measured providers fastest-first for this location, unmeasured last.
+  const sorted = [...entries].sort((a, b) => {
+    if (a.cell && b.cell) return a.cell.p50 - b.cell.p50;
+    if (a.cell) return -1;
+    if (b.cell) return 1;
+    return (a.firstByteMs ?? 9999) - (b.firstByteMs ?? 9999);
+  });
+
+  const maxP50 = Math.max(0, ...sorted.map((e) => e.cell?.p50 ?? 0));
+
   return (
     <>
-      <Tracked>
-        {(track) =>
-          track.id === data.track ? null : (
-            <p className="mb-3 text-[12.5px] leading-snug text-[var(--muted)]">
-              This collection ran {trackInfo[data.track].label.toLowerCase()} only, so it shows those machines whichever track is selected.
-            </p>
-          )
-        }
-      </Tracked>
-      <TabCard label="Location" section="locations" tabs={tabs.map((t) => ("content" in t ? { ...t, content: <>{t.content}<Footnotes items={notes} /></> } : t))} />
+      <ChartHead
+        title={`Cold start from ${region.label}${place ? ` (${place})` : ""}`}
+        sub={`Median cold start and HTTPS first byte from ${region.network ?? region.label} · Lower is better`}
+      />
+
+      <div className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
+        {sorted.map(({ id, cell, standing, firstByteMs }) => {
+          const hw = hardware[id];
+          const color = providerColor(id);
+          const pct = cell && maxP50 > 0 ? Math.max(4, Math.min(100, (cell.p50 / maxP50) * 100)) : 0;
+
+          const chip = (() => {
+            if (!cell) return null;
+            if (!standing || standing.locations < 2 || standing.spread === null) return null;
+            if (standing.fastest.length > 1) return { text: "Tied across locations", highlight: false };
+            const winner = standing.fastest[0];
+            if (winner === region.id) {
+              return { text: `×${standing.spread.toFixed(1)} faster here`, highlight: true };
+            }
+            return { text: `×${standing.spread.toFixed(1)} faster from ${labelOf(winner)}`, highlight: false };
+          })();
+
+          return (
+            <div key={id} className="grid grid-cols-1 gap-2.5 py-3 sm:grid-cols-[11rem_1fr_7rem_11.5rem] sm:items-center sm:gap-4">
+              <div>
+                <span className="block text-[13.5px] font-medium" style={{ color }}>
+                  <ProviderName id={id} />
+                </span>
+                <span className="mt-0.5 block text-[11.5px] text-[var(--muted)]">
+                  {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-2.5 flex-1 overflow-hidden rounded-sm bg-[var(--band)]">
+                  {cell && primary ? (
+                    <div
+                      className="h-full rounded-sm"
+                      style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.9 }}
+                      title={cellTip(cell, primary)}
+                    />
+                  ) : null}
+                </div>
+                <span
+                  className="w-14 shrink-0 text-right font-mono text-[13px] font-medium tabular-nums"
+                  title={cell && primary ? cellTip(cell, primary) : undefined}
+                >
+                  {cell && primary ? formatValue(cell.p50, primary.unit) : <span className="font-normal text-[var(--muted)]">—</span>}
+                </span>
+              </div>
+
+              <div className="font-mono text-[12px] text-[var(--muted)] tabular-nums sm:text-right">
+                {firstByteMs !== null ? `${formatValue(firstByteMs, "ms")} 1st byte` : "—"}
+              </div>
+
+              <div className="flex sm:justify-end">
+                {chip ? (
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-1 font-mono text-[11.5px] tabular-nums ${
+                      chip.highlight
+                        ? "bg-[var(--band)] text-[var(--foreground)] shadow-[inset_0_0_0_1px_var(--line)]"
+                        : "text-[var(--muted)]"
+                    }`}
+                  >
+                    {chip.text}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <DetailsExpander metrics={vantageMetrics} onlyRegion={region} />
+
+      <p className="mt-3 text-[12px] text-[var(--muted)]">
+        In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+      </p>
     </>
+  );
+}
+
+/** Quiet <details> expander for the full network-sensitive table when a reader wants every test. */
+function DetailsExpander({ metrics, onlyRegion }: { metrics: readonly RegionMetric[]; onlyRegion?: Vantage }) {
+  const { regions, providers } = regional;
+  const labelOf = (id: RegionId) => regions.find((r) => r.id === id)?.label ?? id;
+
+  return (
+    <details className="group/details mt-5 border-t border-[var(--line)] pt-3 text-[12.5px]">
+      <summary className="flex h-8 w-fit cursor-pointer list-none items-center gap-1.5 rounded-md text-[12.5px] text-[var(--muted)] transition-colors duration-150 outline-none select-none hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--brand)] [&::-webkit-details-marker]:hidden">
+        <span aria-hidden className="inline-block text-[11px] transition-transform duration-150 group-open/details:rotate-90">
+          ▶
+        </span>
+        Details ({metrics.length} network-sensitive tests)
+      </summary>
+      <div className="mt-3">
+        <Grid
+          label="All network-sensitive tests"
+          corner="Test"
+          first={12}
+          col={8.5}
+          head={providers.map((id) => ({
+            key: id,
+            cell: (
+              <span className="font-medium" style={{ color: providerColor(id) }}>
+                <ProviderName id={id} />
+              </span>
+            ),
+          }))}
+        >
+          {metrics.map((m) => (
+            <tr key={m.id}>
+              <th scope="row" className="sticky left-0 z-10 bg-[var(--surface)] py-2 pr-4 text-left align-top text-[12px] font-normal text-[var(--muted)]">
+                {m.label}
+              </th>
+              {providers.map((id) => {
+                const row = rowOf(regional, id, m.id);
+                if (onlyRegion) {
+                  const cell = row?.cells.get(onlyRegion.id);
+                  return (
+                    <td key={id} className="px-3 py-2 align-top font-mono text-[12px] tabular-nums" title={cell ? cellTip(cell, m) : undefined}>
+                      {cell ? formatValue(cell.p50, m.unit) : <Empty />}
+                    </td>
+                  );
+                }
+                const s = row ? standingOf(row, m) : null;
+                return (
+                  <td key={id} className="px-3 py-2 align-top font-mono text-[12px] tabular-nums" title={s ? cellTip(s.cell, m) : undefined}>
+                    {s ? (
+                      <div className="flex flex-wrap items-baseline gap-1.5">
+                        <span>{formatValue(s.cell.p50, m.unit)}</span>
+                        <Place>{s.fastest.length > 1 ? "tie" : labelOf(s.fastest[0])}</Place>
+                      </div>
+                    ) : (
+                      <Empty />
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </Grid>
+      </div>
+    </details>
+  );
+}
+
+export function ByLocation() {
+  const { regions, planned } = regional;
+  const tabs: Tab[] = [
+    { id: "combined", label: "All locations", content: <OverviewPanel /> },
+    ...regions.map((r): Tab => ({ id: r.id, label: r.label, content: <SingleLocationPanel region={r} /> })),
+    ...planned.map((r): Tab => ({ id: r.id, label: r.label, unavailable: "soon" })),
+  ];
+
+  return (
+    <Tracked>
+      {(track) =>
+        track.id !== regional.track ? (
+          <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-7">
+            <ComingNext compact>
+              Multi-location runs currently measure each provider’s default sandbox. Switch to Default sandbox above to compare {regions.map((r) => r.label).join(" and ")}.
+            </ComingNext>
+          </div>
+        ) : (
+          <TabCard label="By location" section="locations" tabs={tabs} />
+        )
+      }
+    </Tracked>
   );
 }
