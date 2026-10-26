@@ -1,10 +1,9 @@
 import { Disclosure } from "@/components/disclosure";
 import { Empty, Grid, Place } from "@/components/location-table";
-import { ChartHead, ComingNext, Who } from "@/components/metric-chart";
+import { ChartHead, Who } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
-import { Card, TabCard } from "@/components/tabs";
+import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
-import { Tracked } from "@/components/track";
 import { dayRange, formatCount, formatValue } from "@/lib/format";
 import { hardware } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
@@ -403,19 +402,5 @@ export function ByLocation() {
     ...planned.map((r): Tab => ({ id: r.id, label: r.label, unavailable: "soon" })),
   ];
 
-  return (
-    <Tracked>
-      {(track) =>
-        track.id !== regional.track ? (
-          <Card>
-            <ComingNext compact>
-              Multi-location runs currently measure each provider’s default sandbox. Switch to Default sandbox above to compare {regions.map((r) => r.label).join(" and ")}.
-            </ComingNext>
-          </Card>
-        ) : (
-          <TabCard label="By location" section="locations" tabs={tabs} />
-        )
-      }
-    </Tracked>
-  );
+  return <TabCard label="By location" section="locations" tabs={tabs} />;
 }
