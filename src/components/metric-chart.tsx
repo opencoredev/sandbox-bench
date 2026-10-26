@@ -20,13 +20,11 @@ export type { Notes };
 const traceOf: Partial<Record<string, TraceKind>> = { cold: "cold", "tool-replay": "replay" };
 
 /** A chart's title and its one-line "what and which way" subtitle, as Artificial Analysis writes them. */
-/** `meta`: an optional second line, for when and how the data was collected. */
-export function ChartHead({ title, sub, meta }: { title: string; sub: ReactNode; meta?: ReactNode }) {
+export function ChartHead({ title, sub }: { title: string; sub: ReactNode }) {
   return (
     <div className="mb-m">
       <h3 className="text-m font-medium">{title}</h3>
       <p className="mt-xxs text-xs text-neutral-7">{sub}</p>
-      {meta === undefined ? null : <p className="mt-xxs text-xs text-neutral-7">{meta}</p>}
     </div>
   );
 }

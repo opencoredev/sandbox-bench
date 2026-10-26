@@ -35,7 +35,6 @@ export const advertised = {
     source: "https://docs.superserve.ai",
     note: "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled, at its default 1 vCPU, 1 GB RAM and 4 GB disk. Superserve's own templates have Node (node-22) or Python (python-3.11), not both, and our tests need both.",
   },
-  sandboxer: { vcpu: 4, memoryGiB: 8, diskGiB: 50, source: "https://sandboxer.com/docs/machines.md", note: null },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }

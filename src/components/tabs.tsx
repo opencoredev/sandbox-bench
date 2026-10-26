@@ -7,10 +7,11 @@ import { Tabs } from "@graphical";
 
 import { parseTabHash } from "@/components/jump";
 
-/** A tab with a panel, or one shown greyed out with why it has none, such as a location not measured yet. */
-export type Tab = { id: string; label: string; content: ReactNode } | { id: string; label: string; unavailable: string };
-
-const isOpenable = (tab: Tab): tab is Extract<Tab, { content: ReactNode }> => "content" in tab;
+export interface Tab {
+  id: string;
+  label: string;
+  content: ReactNode;
+}
 
 /**
  * Marks a horizontal scroller with `data-fade-start` and `data-fade-end`
@@ -45,13 +46,12 @@ export function useScrollFade<T extends HTMLElement>() {
  * page; arrow keys, Home and End move between tabs.
  */
 export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label: string; /** The section id a `#section/tab` hash names to open one of these tabs. */ section?: string }) {
-  const openable = tabs.filter(isOpenable);
-  const [active, setActive] = useState(openable[0]?.id);
+  const [active, setActive] = useState(tabs[0]?.id);
   useEffect(() => {
     if (!section) return;
     const open = () => {
       const request = parseTabHash(window.location.hash);
-      if (request?.section !== section || !tabs.some((t) => t.id === request.tab && isOpenable(t))) return;
+      if (request?.section !== section || !tabs.some((t) => t.id === request.tab)) return;
       setActive(request.tab);
       // No element has the combined id, so the browser does not scroll; do it here.
       document.getElementById(section)?.scrollIntoView();
@@ -71,20 +71,14 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
           // Phones wrap the tabs onto more lines so every one is visible; wider screens scroll with a fade.
           className="scroll-fade flex-wrap gap-x-l gap-y-0 sm:flex-nowrap sm:overflow-x-auto sm:[scrollbar-width:none]"
         >
-          {tabs.map((tab) =>
-            isOpenable(tab) ? (
-              <Tabs.Tab key={tab.id} value={tab.id} className="shrink-0 whitespace-nowrap">
-                {tab.label}
-              </Tabs.Tab>
-            ) : (
-              <Tabs.Tab key={tab.id} value={tab.id} disabled title={tab.unavailable} className="shrink-0 cursor-not-allowed whitespace-nowrap opacity-50">
-                {tab.label} <span className="ml-1 text-xxs text-neutral-7">{tab.unavailable}</span>
-              </Tabs.Tab>
-            ),
-          )}
+          {tabs.map((tab) => (
+            <Tabs.Tab key={tab.id} value={tab.id} className="shrink-0 whitespace-nowrap">
+              {tab.label}
+            </Tabs.Tab>
+          ))}
         </Tabs.List>
       </div>
-      {openable.map((tab) => (
+      {tabs.map((tab) => (
         <Tabs.Panel key={tab.id} value={tab.id} keepMounted className="mt-0 rounded-b-m p-m sm:p-l">
           {tab.content}
         </Tabs.Panel>

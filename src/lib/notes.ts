@@ -80,7 +80,6 @@ export const machineNotes = (t: Track): Notes => (t.id === "default" ? defaultMa
 export const farNotes: Notes = {
   boat: "runs in France, so every call from our Florida server crosses the Atlantic.",
   boxd: "runs in Germany, so every call from our Florida server crosses the Atlantic.",
-  sandboxer: "runs only in eu-central (Helsinki, Finland), so every call from our Florida server crosses the Atlantic.",
 };
 
 /**
@@ -98,16 +97,6 @@ export const execNotes: Notes = {};
 export const noRealPause: Notes = {
   daytona: "Daytona's container sandboxes have no pause: stop and start restarts the sandbox and ends every running process.",
   boat: "Boat has no pause: stop and start restarts the machine and ends every running process.",
-};
-
-/** How a provider's cost per task was read, where that leaves something out. */
-export const costNotes: Notes = {
-  sandboxer: "its usage record is read just before delete, so it leaves out the delete call itself, about 0.35 s or 1% of a task.",
-};
-
-/** What a provider's pause is, where its API calls it something else. */
-export const pauseHow: Notes = {
-  sandboxer: "pause is its stop and resume, which keep the sandbox's memory.",
 };
 
 /** The machine probe runs under Python multiprocessing; Superserve's VMs have no /dev/shm for its locks. */

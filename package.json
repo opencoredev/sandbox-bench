@@ -8,8 +8,7 @@
     "build": "next build",
     "dev": "next dev",
     "typecheck": "next typegen && tsc --noEmit",
-    "lint": "oxlint src",
-    "test": "bun test src"
+    "lint": "oxlint src"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

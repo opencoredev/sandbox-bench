@@ -5,7 +5,6 @@ import { Allocations } from "@/components/allocations";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
-import { ByLocation } from "@/components/by-location";
 import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
@@ -29,7 +28,7 @@ import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costSource, hasTaskCosts, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
-import { dayRange, formatGiB, formatMoney } from "@/lib/format";
+import { formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote, upstashTwinNote } from "@/lib/notes";
@@ -53,7 +52,6 @@ import { advertised } from "@/lib/sizes";
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 const sections = [
-  ["locations", "By location", "combined"],
   ["startup", "Start-up", "cold"],
   ["agent", "Agent work", "tool-replay"],
   ["everyday", "Everyday"],
@@ -64,6 +62,18 @@ const sections = [
   ["cost", "Cost", "task"],
   ["method", "Method"],
 ] as const;
+
+const short = (d: Date, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: "UTC" });
+
+/** "Oct 19, 2026", or "Oct 19–21, 2026" when runs span several days in one month. */
+function dayRange(window: Track["window"]) {
+  const start = new Date(window.start);
+  const end = new Date(window.end);
+  if (start.toISOString().slice(0, 10) === end.toISOString().slice(0, 10)) return short(start, { month: "short", day: "numeric", year: "numeric" });
+  if (start.getUTCMonth() === end.getUTCMonth())
+    return `${short(start, { month: "short", day: "numeric" })}–${short(end, { day: "numeric" })}, ${start.getUTCFullYear()}`;
+  return `${short(start, { month: "short", day: "numeric" })} – ${short(end, { month: "short", day: "numeric", year: "numeric" })}`;
+}
 
 /** The machine a provider ran on in a track, for hover cards: "4 vCPU, 8 GB RAM". */
 const ranOn = (p: Provider | undefined) => {
@@ -135,7 +145,7 @@ function PriceChart({ track }: { track: Track }) {
         items={[
           ...priced.filter((x) => x.converted).map(({ p, original }) => ({ mark: 1, text: <><Who id={p.id} /> {conversionNote(original, per("hourly"))}</> })),
           ...(unpriced.length > 0 ? [{ text: <>No price for {unpriced.map((p, i) => <span key={p.id}>{i > 0 ? ", " : ""}<Who id={p.id} /></span>)}: its measured machine did not match a priced size.</> }] : []),
-          { text: "CPU and memory only, at list price. Boat and Sandboxer charge a flat rate per size. Upstash and boxd may cost less: they bill only part of the machine." },
+          { text: "CPU and memory only, at list price. Boat charges a flat rate per size. Upstash and boxd may cost less: they bill only part of the machine." },
           ...trackFootnotes(track),
         ]}
       />
@@ -164,7 +174,7 @@ function CommonPriceChart({ track }: { track: Track }) {
       <Footnotes
         items={[
           ...track.providers.filter((p) => commonPrice(p) === null).map((p) => ({ text: <><Who id={p.id} /> does not list a {commonSize.label} machine, so no price is shown.</> })),
-          { text: "CPU and memory only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash bills only while the CPU is busy, so it may cost less. Boat and Sandboxer charge a flat rate per size." },
+          { text: "CPU and memory only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash bills only while the CPU is busy, so it may cost less. Boat charges a flat rate per size." },
         ]}
       />
     </>
@@ -208,7 +218,7 @@ function CostQuadrant({ track }: { track: Track }) {
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
-          { text: <><Who id="boat" />, <Who id="boxd" /> and <Who id="sandboxer" /> run in Europe, so every call from our Florida server crosses the Atlantic.</> },
+          { text: <><Who id="boat" /> and <Who id="boxd" /> run in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
       />
@@ -349,19 +359,19 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Our SDK",
     line: "Every provider ran through Sandbox SDK, which we make; version 0.2.0 is public on npm.",
-    more: "The 1.0 used here will be published soon. Each adapter calls the provider's official SDK or API, and uses its native path for commands and files where one exists. Sandboxer's API is derived from Boat's API v1, but Sandboxer is run separately, on Hetzner, not by Boat.",
+    more: "The 1.0 used here will be published soon. Each adapter calls the provider's official SDK or API, and uses its native path for commands and files where one exists.",
   },
   {
     term: "One location",
     line: "Every test ran from one server in Florida, US.",
-    more: "Distance to each provider's region affects every call. Boat, boxd and Sandboxer run in Europe; Sandboxer offers only eu-central, and its sandboxes reached the internet from Helsinki. The Hardware tab under Machines shows where each sandbox ran.",
+    more: "Distance to each provider's region affects every call. The Hardware tab under Machines shows where each sandbox ran.",
   },
   {
     term: "Two tracks",
     line: "Same machine asks every provider for 4 vCPU and 8 GB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
     more: (
       <>
-        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Sandboxer's default size is already 4 vCPU and 8 GB, so it ran the same machine on both tracks. Every chart marks a machine that differs from its track.
+        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
       </>
     ),
   },
@@ -373,12 +383,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers. Sandboxer was added on Oct 23 from its own runs of the same tests on that SDK (harness commits 4450887 and bd86c3c), pause and resume included.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Sandboxer gives a per-sandbox usage record at its list price; we read it just before delete, so it leaves out the delete call itself, about 0.35 s or 1% of a task. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -393,7 +403,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Sandboxer allows 24 active sandboxes, so it has no burst of 25. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",
@@ -460,14 +470,6 @@ export default function Page() {
         </div>
 
         <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
-
-        <Section
-          id="locations"
-          title="By location"
-          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
-        >
-          <ByLocation />
-        </Section>
 
         <TraceWaterfall />
 
