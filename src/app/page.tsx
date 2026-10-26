@@ -322,9 +322,46 @@ function Headlines({ track }: { track: Track }) {
 function Facts({ track }: { track: Track }) {
   const next = track.absent.map((id) => providerInfo[id].name);
   const facts = hasResults(track)
-    ? [dayRange(track.window), `${track.providers.length} providers${next.length ? ` (${next.join(" and ")} next)` : ""}`, "Florida, US", "100 runs per test, 30 per agent task"]
-    : ["Coming in the next update", "Florida, US"];
-  return <p className="text-m text-neutral-7">{facts.join(" · ")}</p>;
+    ? [
+        "Oct 22–26, 2026",
+        `${track.providers.length} providers${next.length ? ` (${next.join(" and ")} next)` : ""}`,
+        "2 caller locations: Florida, US & Frankfurt, DE",
+        "100 runs per main test, 20 per location test",
+      ]
+    : ["Coming in the next update", "2 caller locations: Florida, US & Frankfurt, DE"];
+  return (
+    <div className="flex flex-col gap-s">
+      <p className="text-m text-neutral-7">{facts.join(" · ")}</p>
+      <div className="flex flex-wrap items-center gap-xs text-xs">
+        <span className="mr-xxs text-neutral-7">Caller locations:</span>
+        <JumpLink
+          section="locations"
+          tab="combined"
+          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-10 transition-colors hover:bg-neutral-3"
+        >
+          <span aria-hidden className="size-1.5 rounded-full bg-accent" />
+          All locations (EU-Central vs US-East)
+        </JumpLink>
+        <JumpLink
+          section="locations"
+          tab="eu"
+          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
+        >
+          EU-Central · Frankfurt, DE
+        </JumpLink>
+        <JumpLink
+          section="locations"
+          tab="us-east"
+          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
+        >
+          US-East · Florida, US
+        </JumpLink>
+        <span className="inline-flex items-center rounded-s bg-neutral-2 px-s py-xxs font-mono text-xs text-neutral-7">
+          US-West · soon
+        </span>
+      </div>
+    </div>
+  );
 }
 
 /** Failures set aside in each track, for the Method section. */
@@ -352,9 +389,9 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
     more: "The 1.0 used here will be published soon. Each adapter calls the provider's official SDK or API, and uses its native path for commands and files where one exists. Sandboxer's API is derived from Boat's API v1, but Sandboxer is run separately, on Hetzner, not by Boat.",
   },
   {
-    term: "One location",
-    line: "Every test ran from one server in Florida, US.",
-    more: "Distance to each provider's region affects every call. Boat, boxd and Sandboxer run in Europe; Sandboxer offers only eu-central, and its sandboxes reached the internet from Helsinki. The Hardware tab under Machines shows where each sandbox ran.",
+    term: "Two locations",
+    line: "Network-sensitive tests ran from both US-East (Florida, US) and EU-Central (Frankfurt, Germany); the 100-run deep dive ran from Florida, US.",
+    more: "Distance to each provider's API gateway and sandbox region affects every call. Boat (Northern France) and boxd (Frankfurt) run their API and sandboxes in Europe, so calling from Frankfurt is 1.7×–3.9× faster than from Florida. Sandboxer's microVMs run in Helsinki (Hetzner), while its API gateway (sandboxer.com) runs in Virginia, US — so requests from Frankfurt cross the Atlantic to Virginia and back to Helsinki. The Hardware tab under Machines shows where each sandbox ran.",
   },
   {
     term: "Two tracks",
@@ -459,8 +496,6 @@ export default function Page() {
           <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
         </div>
 
-        <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
-
         <Section
           id="locations"
           title="By location"
@@ -468,6 +503,10 @@ export default function Page() {
         >
           <ByLocation />
         </Section>
+
+        <div className="pt-xxl">
+          <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
+        </div>
 
         <TraceWaterfall />
 

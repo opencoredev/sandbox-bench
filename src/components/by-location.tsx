@@ -85,7 +85,7 @@ function ProviderLocationRow({
           <ProviderName id={provider} />
         </span>
         <span className="mt-0.5 block text-xs text-neutral-7">
-          {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+          {provider === "sandboxer" ? "API in Virginia · VM in Helsinki" : hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
         </span>
       </div>
 
@@ -219,7 +219,7 @@ function OverviewPanel() {
       <DetailsExpander metrics={vantageMetrics} />
 
       <p className="mt-s text-xs text-neutral-7">
-        In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+        <Who id="sandboxer" /> runs its microVMs in Helsinki (Hetzner), while its API gateway (<span className="font-mono">sandboxer.com</span>) is hosted in Virginia, US (105 ms HTTPS first byte from Florida vs 347 ms from Frankfurt) — so SDK calls from Frankfurt cross the Atlantic to Virginia and back to Helsinki. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
   );
@@ -282,7 +282,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
                   <ProviderName id={id} />
                 </span>
                 <span className="mt-0.5 block text-xs text-neutral-7">
-                  {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+                  {id === "sandboxer" ? "API in Virginia · VM in Helsinki" : hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
                 </span>
               </div>
 
@@ -327,7 +327,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
       <DetailsExpander metrics={vantageMetrics} onlyRegion={region} />
 
       <p className="mt-s text-xs text-neutral-7">
-        In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+        <Who id="sandboxer" /> runs its microVMs in Helsinki (Hetzner), while its API gateway (<span className="font-mono">sandboxer.com</span>) is hosted in Virginia, US (105 ms HTTPS first byte from Florida vs 347 ms from Frankfurt) — so SDK calls from Frankfurt cross the Atlantic to Virginia and back to Helsinki. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
   );
