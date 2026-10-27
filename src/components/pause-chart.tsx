@@ -6,7 +6,7 @@ import { ChartHead, Footnotes, Who, sentence, trackFootnotes } from "@/component
 import { markFill } from "@/lib/marks";
 import type { Provider, Track } from "@/lib/data";
 import { formatShort, formatValue } from "@/lib/format";
-import { allocationNotes, noRealPause, pauseHow } from "@/lib/notes";
+import { allocationNotes, noRealPause } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace } from "@/lib/traces";
@@ -41,7 +41,6 @@ function pauseNotes(track: Track, marks: ReadonlyMap<ProviderId, number>, extra:
   return [
     ...[...marks].map(([id, mark]) => ({ mark, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
     ...extra,
-    ...track.providers.flatMap((p) => { const how = pauseHow[p.id]; return how ? [{ text: <><Who id={p.id} />: {how}</> }] : []; }),
     ...restart.map((p) => ({ text: <><Who id={p.id} />: not supported. {noRealPause[p.id]} We don&apos;t time a restart as a pause.</> })),
     ...(missing.length > 0 ? [{ text: <>No result for {list(missing)} (no pause support).</> }] : []),
     ...trackFootnotes(track, "pause-resume"),

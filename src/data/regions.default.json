@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "batchId": "sbx65-r1",
-  "commit": "a718f99545beb68bbae1b721724d18ed9dfaf927",
+  "commit": "cc96da3e33334e609c435ddefd76b1e4a67df03b",
   "track": "default",
   "window": {
     "start": "2026-10-26T02:04:11.716Z",
-    "end": "2026-10-26T17:21:38.201Z"
+    "end": "2026-10-26T03:41:54.108Z"
   },
   "regions": [
     {
@@ -19,7 +19,7 @@
         "location": "Frankfurt, DE (vps-41a131f1)",
         "serverType": "VPS 2 vCore / 4 GB"
       },
-      "runs": 18
+      "runs": 16
     },
     {
       "id": "us-east",
@@ -32,7 +32,7 @@
         "location": "Boca Raton, FL (ms-a2)",
         "serverType": null
       },
-      "runs": 18
+      "runs": 16
     }
   ],
   "plannedRegions": [
@@ -137,18 +137,6 @@
       "provider": "superserve",
       "tcpMs": 20.913,
       "firstByteMs": 103.423
-    },
-    {
-      "region": "eu",
-      "provider": "sandboxer",
-      "tcpMs": 93.13400000000001,
-      "firstByteMs": 347.12399999999997
-    },
-    {
-      "region": "us-east",
-      "provider": "sandboxer",
-      "tcpMs": 31.183999999999997,
-      "firstByteMs": 105.276
     }
   ],
   "metrics": [
@@ -431,26 +419,6 @@
       "spread": 1.3125822180523092
     },
     {
-      "provider": "sandboxer",
-      "metric": "cold",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 3845.5483604999827,
-          "p95": 4845.102813550038
-        },
-        "us-east": {
-          "n": 20,
-          "failures": 0,
-          "p50": 3488.669687000045,
-          "p95": 7263.343117750034
-        }
-      },
-      "best": "us-east",
-      "spread": 1.1022964927948862
-    },
-    {
       "provider": "superserve",
       "metric": "cold",
       "cells": {
@@ -609,26 +577,6 @@
       },
       "best": "us-east",
       "spread": 1.5587898208754318
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "command",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 391.20704100001603,
-          "p95": 420.18436604998294
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 263.0270019999998,
-          "p95": 283.50930170002977
-        }
-      },
-      "best": "us-east",
-      "spread": 1.4873265407177332
     },
     {
       "provider": "superserve",
@@ -791,26 +739,6 @@
       "spread": 1.9030994961961722
     },
     {
-      "provider": "sandboxer",
-      "metric": "files-1kb",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 966.6663594999991,
-          "p95": 1175.8838882000023
-        },
-        "us-east": {
-          "n": 20,
-          "failures": 0,
-          "p50": 634.4237555,
-          "p95": 978.5850961000024
-        }
-      },
-      "best": "us-east",
-      "spread": 1.523691934798616
-    },
-    {
       "provider": "superserve",
       "metric": "files-1kb",
       "cells": {
@@ -969,26 +897,6 @@
       },
       "best": "us-east",
       "spread": 2.335733207320633
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "files-10mb",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 7447.528600999991,
-          "p95": 11589.949111450023
-        },
-        "us-east": {
-          "n": 17,
-          "failures": 0,
-          "p50": 5879.107358000008,
-          "p95": 10553.553897800006
-        }
-      },
-      "best": "us-east",
-      "spread": 1.2667788062869356
     },
     {
       "provider": "superserve",
@@ -1151,26 +1059,6 @@
       "spread": 1.7317927582696726
     },
     {
-      "provider": "sandboxer",
-      "metric": "tool-replay",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 47279.01944199999,
-          "p95": 50119.533063999996
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 36046.38400350001,
-          "p95": 53434.58117975001
-        }
-      },
-      "best": "us-east",
-      "spread": 1.3116161509406692
-    },
-    {
       "provider": "superserve",
       "metric": "tool-replay",
       "cells": {
@@ -1329,26 +1217,6 @@
       },
       "best": "us-east",
       "spread": 1.7136996443444168
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "reconnect",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 822.2043370000029,
-          "p95": 1433.6311716999771
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 484.98480799997924,
-          "p95": 1013.8914179000178
-        }
-      },
-      "best": "us-east",
-      "spread": 1.695319777934236
     },
     {
       "provider": "superserve",
@@ -1511,26 +1379,6 @@
       "spread": 1.6979849166124632
     },
     {
-      "provider": "sandboxer",
-      "metric": "preview-first-byte",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 640.4079975000004,
-          "p95": 740.891243500002
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 351.93828000000485,
-          "p95": 397.0714160000016
-        }
-      },
-      "best": "us-east",
-      "spread": 1.8196599628207297
-    },
-    {
       "provider": "superserve",
       "metric": "preview-first-byte",
       "cells": {
@@ -1689,26 +1537,6 @@
       },
       "best": "us-east",
       "spread": 1.5793250008991568
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "tcp",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 2.5265819999996886,
-          "p95": 6.400235580000438
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 1.9224219999998127,
-          "p95": 3.5750591000011918
-        }
-      },
-      "best": "us-east",
-      "spread": 1.314270227868769
     },
     {
       "provider": "superserve",
@@ -1871,26 +1699,6 @@
       "spread": 1.226837697039494
     },
     {
-      "provider": "sandboxer",
-      "metric": "destroy",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 885.3430939999962,
-          "p95": 2281.5251484999712
-        },
-        "us-east": {
-          "n": 20,
-          "failures": 0,
-          "p50": 626.5976215000264,
-          "p95": 2041.4433795000066
-        }
-      },
-      "best": "us-east",
-      "spread": 1.4129372082207288
-    },
-    {
       "provider": "superserve",
       "metric": "destroy",
       "cells": {
@@ -2049,26 +1857,6 @@
       },
       "best": "eu",
       "spread": 1.0015144771916944
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "cpu-all",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 29112285.18807946,
-          "p95": 9468754.854121342
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 53342362.41721178,
-          "p95": 16510876.93052509
-        }
-      },
-      "best": "us-east",
-      "spread": 1.832297329893352
     },
     {
       "provider": "superserve",
@@ -2231,26 +2019,6 @@
       "spread": 1.0205413243328452
     },
     {
-      "provider": "sandboxer",
-      "metric": "cpu-single",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 14489454.08934268,
-          "p95": 9084637.564855067
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 18729091.427614335,
-          "p95": 7669840.837364303
-        }
-      },
-      "best": "us-east",
-      "spread": 1.2926015923118872
-    },
-    {
       "provider": "superserve",
       "metric": "cpu-single",
       "cells": {
@@ -2409,26 +2177,6 @@
       },
       "best": "us-east",
       "spread": 1.6804279855738657
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "dev-server",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 4570.811263999995,
-          "p95": 4832.079323500009
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 3141.5319335000095,
-          "p95": 3348.492087999999
-        }
-      },
-      "best": "us-east",
-      "spread": 1.4549625344433832
     },
     {
       "provider": "superserve",
@@ -2591,26 +2339,6 @@
       "spread": 1.0346865170342459
     },
     {
-      "provider": "sandboxer",
-      "metric": "iops-read",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 283406.8007392186,
-          "p95": 158005.86185413672
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 386595.4082713821,
-          "p95": 182918.42362779804
-        }
-      },
-      "best": "us-east",
-      "spread": 1.3641006752943596
-    },
-    {
       "provider": "superserve",
       "metric": "iops-read",
       "cells": {
@@ -2769,26 +2497,6 @@
       },
       "best": "eu",
       "spread": 1.127778722721697
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "iops-write",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 200.6725803803626,
-          "p95": 22.432070253917495
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 160.84651894348954,
-          "p95": 21.85106945383946
-        }
-      },
-      "best": "eu",
-      "spread": 1.247602880674497
     },
     {
       "provider": "superserve",
@@ -2951,26 +2659,6 @@
       "spread": 1.1291050205879163
     },
     {
-      "provider": "sandboxer",
-      "metric": "disk-read",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 5752.744676084967,
-          "p95": 2499.82037938918
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 8343.7893355856,
-          "p95": 2939.3938346651053
-        }
-      },
-      "best": "us-east",
-      "spread": 1.4504014701490227
-    },
-    {
       "provider": "superserve",
       "metric": "disk-read",
       "cells": {
@@ -3129,26 +2817,6 @@
       },
       "best": "us-east",
       "spread": 1.0190827720613058
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "disk-write",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 568.5336829509622,
-          "p95": 41.048961206656585
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 530.2008035028578,
-          "p95": 123.75264458996531
-        }
-      },
-      "best": "eu",
-      "spread": 1.0722987954655143
     },
     {
       "provider": "superserve",
@@ -3311,26 +2979,6 @@
       "spread": 2.025412539481169
     },
     {
-      "provider": "sandboxer",
-      "metric": "edit-loop",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 1267.0569534999977,
-          "p95": 1316.8459697500148
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 890.9783880000177,
-          "p95": 972.7185117499976
-        }
-      },
-      "best": "us-east",
-      "spread": 1.4220961704179658
-    },
-    {
       "provider": "superserve",
       "metric": "edit-loop",
       "cells": {
@@ -3489,26 +3137,6 @@
       },
       "best": "us-east",
       "spread": 1.0271542991831282
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "git-clone",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 1892.7015919999976,
-          "p95": 2150.091131000012
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 1962.9971275000207,
-          "p95": 2066.7737557500077
-        }
-      },
-      "best": "eu",
-      "spread": 1.037140316147641
     },
     {
       "provider": "superserve",
@@ -3671,26 +3299,6 @@
       "spread": 1.0924894230006645
     },
     {
-      "provider": "sandboxer",
-      "metric": "memory",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 13686.716523413103,
-          "p95": 1773.4075403980357
-        },
-        "us-east": {
-          "n": 19,
-          "failures": 0,
-          "p50": 28421.85151581104,
-          "p95": 6400.0733430294595
-        }
-      },
-      "best": "us-east",
-      "spread": 2.0766011677958964
-    },
-    {
       "provider": "superserve",
       "metric": "memory",
       "cells": {
@@ -3851,26 +3459,6 @@
       "spread": 1.1401646385038722
     },
     {
-      "provider": "sandboxer",
-      "metric": "npm-install",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 1587.7413834999898,
-          "p95": 2392.8241787500156
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 1362.8702504999928,
-          "p95": 2025.2514607499907
-        }
-      },
-      "best": "us-east",
-      "spread": 1.164998196209433
-    },
-    {
       "provider": "superserve",
       "metric": "npm-install",
       "cells": {
@@ -3989,26 +3577,6 @@
       },
       "best": "us-east",
       "spread": 1.41789767383293
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "pause-resume",
-      "cells": {
-        "eu": {
-          "n": 20,
-          "failures": 0,
-          "p50": 12622.934021000001,
-          "p95": 25382.988938049988
-        },
-        "us-east": {
-          "n": 17,
-          "failures": 3,
-          "p50": 19729.43572000001,
-          "p95": 26887.210928199984
-        }
-      },
-      "best": "eu",
-      "spread": 1.5629833513490095
     },
     {
       "provider": "superserve",
@@ -4169,26 +3737,6 @@
       },
       "best": "us-east",
       "spread": 1.588744647494664
-    },
-    {
-      "provider": "sandboxer",
-      "metric": "pip-install",
-      "cells": {
-        "eu": {
-          "n": 6,
-          "failures": 0,
-          "p50": 5388.152111999982,
-          "p95": 8692.433773249984
-        },
-        "us-east": {
-          "n": 6,
-          "failures": 0,
-          "p50": 6268.762599000023,
-          "p95": 6811.229080000001
-        }
-      },
-      "best": "eu",
-      "spread": 1.1634346003407792
     },
     {
       "provider": "superserve",
