@@ -5,7 +5,7 @@ import { formatValue } from "@/lib/format";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { blankWhy, isRanked, providerTrack, tied } from "@/lib/seo/provider";
-import type { MetricData, ProviderTrack } from "@/lib/seo/provider";
+import type { MetricData, ProviderTrack, Ranked } from "@/lib/seo/provider";
 
 /**
  * Two providers' results side by side, from the same agentData() model the
@@ -36,12 +36,20 @@ function compareMetric(m: MetricData, a: ProviderId, b: ProviderId): CompareRow 
     if (!r) return { kind: "blank", why: blankWhy(m.results.find((x) => x.provider === id)?.status ?? "not run") };
     return { kind: "ranked", rank: ranked.indexOf(r) + 1, of: ranked.length, median: fmt(r.median), p95: r.p95 === null ? "n/a" : fmt(r.p95), ci: `${fmt(r.ci95[0])} to ${fmt(r.ci95[1])}` };
   };
-  const ra = ranked.find((x) => x.provider === a);
-  const rb = ranked.find((x) => x.provider === b);
-  // Results are sorted best first, so the lower index is ahead.
-  const verdict: Verdict =
-    !ra || !rb ? { kind: "not-compared" } : tied(ra, rb) ? { kind: "tied" } : { kind: "ahead", leader: ranked.indexOf(ra) < ranked.indexOf(rb) ? a : b };
-  return { id: m.id, label: m.label, better: m.better, a: side(a), b: side(b), verdict };
+  return { id: m.id, label: m.label, better: m.better, a: side(a), b: side(b), verdict: verdictOf(ranked, a, b) };
+}
+
+type RankedLike = Pick<Ranked, "provider" | "median" | "ci95">;
+
+/** Who is ahead among ranked results sorted best first: the lower index, unless the medians are tied or one side is missing. */
+export function verdictOf(ranked: readonly RankedLike[], a: ProviderId, b: ProviderId): Verdict {
+  const ia = ranked.findIndex((x) => x.provider === a);
+  const ib = ranked.findIndex((x) => x.provider === b);
+  const ra = ranked[ia];
+  const rb = ranked[ib];
+  if (!ra || !rb) return { kind: "not-compared" };
+  if (tied(ra, rb)) return { kind: "tied" };
+  return { kind: "ahead", leader: ia < ib ? a : b };
 }
 
 export function compareTrack(trackId: TrackId, a: ProviderId, b: ProviderId) {

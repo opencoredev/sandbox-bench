@@ -23,7 +23,7 @@ export const isRanked = (r: Result): r is Ranked =>
   r.status === "measured" && r.median !== null && r.ci95 !== null && r.ci95.length === 2 && typeof r.ci95[0] === "number" && typeof r.ci95[1] === "number";
 
 // The site's tie rule: medians inside each other's 95% intervals count as tied.
-export const tied = (a: Ranked, b: Ranked) => a.median >= b.ci95[0] && a.median <= b.ci95[1] && b.median >= a.ci95[0] && b.median <= a.ci95[1];
+export const tied = (a: Pick<Ranked, "median" | "ci95">, b: Pick<Ranked, "median" | "ci95">) => a.median >= b.ci95[0] && a.median <= b.ci95[1] && b.median >= a.ci95[0] && b.median <= a.ci95[1];
 
 export type Standing =
   | { kind: "ranked"; rank: number; of: number; median: string; p95: string; ci: string; leader: { id: ProviderId; median: string } | null; tiedWith: ProviderId[] }
