@@ -42,5 +42,18 @@
       "source": "/google14363a02f88d13fa.html",
       "destination": "/google14363a02f88d13fa/"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.aisandboxbench.com"
+        }
+      ],
+      "destination": "https://aisandboxbench.com/:path*",
+      "permanent": true
+    }
   ]
 }
