@@ -15,15 +15,15 @@ import type { ProviderId } from "@/lib/providers";
 
 type Data = ReturnType<typeof agentData>;
 type TrackData = Data["tracks"][TrackId];
-type MetricData = TrackData["metrics"][number];
+export type MetricData = TrackData["metrics"][number];
 type Result = MetricData["results"][number];
-type Ranked = Result & { median: number; ci95: [number, number] };
+export type Ranked = Result & { median: number; ci95: [number, number] };
 
-const isRanked = (r: Result): r is Ranked =>
+export const isRanked = (r: Result): r is Ranked =>
   r.status === "measured" && r.median !== null && r.ci95 !== null && r.ci95.length === 2 && typeof r.ci95[0] === "number" && typeof r.ci95[1] === "number";
 
 // The site's tie rule: medians inside each other's 95% intervals count as tied.
-const tied = (a: Ranked, b: Ranked) => a.median >= b.ci95[0] && a.median <= b.ci95[1] && b.median >= a.ci95[0] && b.median <= a.ci95[1];
+export const tied = (a: Ranked, b: Ranked) => a.median >= b.ci95[0] && a.median <= b.ci95[1] && b.median >= a.ci95[0] && b.median <= a.ci95[1];
 
 export type Standing =
   | { kind: "ranked"; rank: number; of: number; median: string; p95: string; ci: string; leader: { id: ProviderId; median: string } | null; tiedWith: ProviderId[] }
@@ -36,7 +36,7 @@ export interface MetricRow {
   standing: Standing;
 }
 
-const blankWhy = (status: string) => {
+export const blankWhy = (status: string) => {
   const text = notRunText(status)
     .replace(/^unsupported: /, "")
     .replace(/^unsupported$/, "not supported")

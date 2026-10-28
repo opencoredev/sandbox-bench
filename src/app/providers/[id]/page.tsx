@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
-
-import { Lockup } from "@/components/brand";
 import { ProviderLogo } from "@/components/provider-logo";
 import { JsonLd } from "@/components/seo/json-ld";
+import { Breadcrumb, Fact, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { isProviderPage, lastModified, providerPages, providerPath, site } from "@/lib/seo/pages";
+import { comparePath, comparisonsWith, isProviderPage, lastModified, providerPages, providerPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { trackInfo } from "@/lib/data";
 import { headline, providerNotes, providerResults, taskText } from "@/lib/seo/provider";
@@ -32,20 +30,6 @@ async function pageId(props: Props): Promise<ProviderPageId> {
 const card = "Sandbox bench: cloud sandboxes for AI agents, measured";
 
 const titleOf = (id: ProviderPageId) => `${providerName(id)} sandbox benchmark: cold start, agent tasks and cost`;
-
-function ordinal(n: number) {
-  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
-}
 
 /** The machine a track ran on, in words, from the track's own definition. */
 const machineOf = (trackId: ProviderTrack["id"]) => (trackId === "same-spec" ? `the same ${trackInfo["same-spec"].short} machine` : "its default machine");
@@ -79,9 +63,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     twitter: { card: "summary_large_image", title, description, images: [{ url: "/twitter-image", alt: card }] },
   };
 }
-
-const link = "focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10";
-
 
 const names = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
@@ -162,23 +143,13 @@ function MetricTable({ title, rows }: { title: string; rows: readonly MetricRow[
   );
 }
 
-const Fact = ({ term, children }: { term: string; children: ReactNode }) => (
-  <div className="flex flex-col gap-xxs">
-    <dt className="text-s text-neutral-7">{term}</dt>
-    <dd className="text-m text-neutral-10">{children}</dd>
-  </div>
-);
-
 function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
   const name = providerName(id);
   const heading = `${name} on ${machineOf(t.id)}`;
   const href = t.id === "same-spec" ? "/" : "/?track=default";
   return (
     <section aria-labelledby={`track-${t.id}`} className="pt-xxl">
-      <h2 id={`track-${t.id}`} className="flex items-center gap-s font-brand text-l font-medium">
-        <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
-        {heading}
-      </h2>
+      <SectionTitle id={`track-${t.id}`}>{heading}</SectionTitle>
       <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
         {t.description} Runs from {t.run.start} to {t.run.end}, {t.providerCount} providers. See every provider side by side on the{" "}
         <a className={link} href={href}>
@@ -307,24 +278,10 @@ export default async function ProviderPage(props: Props) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
-        <div className="mx-auto flex max-w-[1100px] items-center gap-s">
-          <a href="/" className="surface focus-ring flex h-12 shrink-0 items-center px-m" aria-label="Sandbox bench, full results">
-            <Lockup />
-          </a>
-          <a href="/" className="surface focus-ring ml-auto flex h-12 items-center px-m text-s text-neutral-8 hover:text-neutral-10">
-            Full results
-          </a>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto max-w-[1100px] px-m sm:px-l">
-        <nav aria-label="Breadcrumb" className="pt-l text-s text-neutral-7">
-          <a className="focus-ring rounded-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="/">
-            Sandbox bench
-          </a>{" "}
-          / <span aria-current="page">{name}</span>
-        </nav>
+        <Breadcrumb current={name} />
         <div className="flex flex-col gap-s pt-s pb-l">
           <h1 className="flex items-center gap-s font-brand text-xl font-medium text-balance sm:text-xxl">
             <ProviderLogo id={id} size={32} />
@@ -373,10 +330,7 @@ export default async function ProviderPage(props: Props) {
         ))}
 
         <section aria-labelledby="caveats" className="pt-xxl">
-          <h2 id="caveats" className="flex items-center gap-s font-brand text-l font-medium">
-            <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
-            How to read these numbers
-          </h2>
+          <SectionTitle id="caveats">How to read these numbers</SectionTitle>
           <Card className="mt-l">
             <ul className="flex max-w-[80ch] list-disc flex-col gap-xs pl-m text-s text-pretty text-neutral-8">
               {[...providerNotes(id), ...caveats].map((c) => (
@@ -387,12 +341,16 @@ export default async function ProviderPage(props: Props) {
         </section>
 
         <section aria-labelledby="more" className="pt-xxl">
-          <h2 id="more" className="flex items-center gap-s font-brand text-l font-medium">
-            <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
-            More results
-          </h2>
+          <SectionTitle id="more">More results</SectionTitle>
           <Card className="mt-l">
             <ul className="flex flex-col gap-xs text-s">
+              {comparisonsWith(id).map((c) => (
+                <li key={c.slug}>
+                  <a className={link} href={comparePath(c.slug)}>
+                    {providerName(c.a)} vs {providerName(c.b)}, side by side
+                  </a>
+                </li>
+              ))}
               {others.map((o) => (
                 <li key={o}>
                   <a className={link} href={providerPath(o)}>
@@ -410,34 +368,13 @@ export default async function ProviderPage(props: Props) {
                   Every provider on its default machine
                 </a>
               </li>
-              <li>
-                Raw data:{" "}
-                <a className={link} href="/results.json">
-                  results.json
-                </a>{" "}
-                ·{" "}
-                <a className={link} href="/results.md">
-                  results.md
-                </a>{" "}
-                ·{" "}
-                <a className={link} href="/llms.txt">
-                  llms.txt
-                </a>
-              </li>
+              <RawData />
             </ul>
           </Card>
         </section>
       </main>
 
-      <footer className="mx-auto mt-xxl max-w-[1100px] px-m sm:px-l">
-        <div className="flex flex-wrap gap-x-s gap-y-xxs py-xl text-s text-neutral-7">
-          <span>Sandbox bench · {name} · updated {lastModified(providerPath(id))}</span>
-          <span aria-hidden className="hidden sm:inline">·</span>
-          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
-            Source on GitHub
-          </a>
-        </div>
-      </footer>
+      <SiteFooter label={name} updated={lastModified(providerPath(id))} />
     </>
   );
 }
