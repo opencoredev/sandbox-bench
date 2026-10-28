@@ -1,4 +1,4 @@
-import { agentData, groups, notRunText } from "@/lib/agent-data";
+import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
 import { costKinds, formatPerThousand, formatTaskCost } from "@/lib/cost";
 import { trackIds } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
@@ -115,4 +115,21 @@ export function headline(t: ProviderTrack, metricId: string) {
   const row = t.groups.flatMap((g) => g.rows).find((r) => r.id === metricId);
   if (!row || row.standing.kind !== "ranked") return null;
   return { label: row.label, median: row.standing.median, rank: row.standing.rank, of: row.standing.of, tied: row.standing.tiedWith.length > 0 };
+}
+
+/** What one task is, as the published model words it. */
+export const taskText = () => agentData().task;
+
+/**
+ * The site's own notes about one provider: the sentences of llms.txt's
+ * "Coming in the next update" section that start with its name. Read from the
+ * published text so a note disappears from the page when it leaves the site.
+ */
+export function providerNotes(id: ProviderId) {
+  const name = providerName(id);
+  const section = llmsTxt().split("## Coming in the next update")[1]?.split("\n## ")[0] ?? "";
+  return section
+    .trim()
+    .split(/(?<=\.) (?=[A-Z])/)
+    .filter((s) => s.startsWith(`${name} `) || s.startsWith(`${name}'s `));
 }

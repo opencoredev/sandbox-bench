@@ -8,10 +8,11 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Card } from "@/components/tabs";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { caveats, disclosure, providerCaveats } from "@/lib/seo/copy";
+import { caveats, disclosure } from "@/lib/seo/copy";
 import { isProviderPage, lastModified, providerPages, providerPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
-import { headline, providerResults } from "@/lib/seo/provider";
+import { trackInfo } from "@/lib/data";
+import { headline, providerNotes, providerResults, taskText } from "@/lib/seo/provider";
 import type { MetricRow, ProviderTrack } from "@/lib/seo/provider";
 
 export const dynamicParams = false;
@@ -32,15 +33,36 @@ const card = "Sandbox bench: cloud sandboxes for AI agents, measured";
 
 const titleOf = (id: ProviderPageId) => `${providerName(id)} sandbox benchmark: cold start, agent tasks and cost`;
 
-/** One sentence of measured facts for the meta description, from the landing track. */
+function ordinal(n: number) {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}
+
+/** The machine a track ran on, in words, from the track's own definition. */
+const machineOf = (trackId: ProviderTrack["id"]) => (trackId === "same-spec" ? `the same ${trackInfo["same-spec"].short} machine` : "its default machine");
+
+/** One sentence of measured facts for the meta description, from the landing track, machine first. */
 function summary(id: ProviderPageId) {
   const r = providerResults(id);
   const t = r.tracks[0];
   if (!t) return `${r.name} sandbox results from Sandbox bench.`;
   const cold = headline(t, "cold");
   const tool = headline(t, "tool-replay");
-  const parts = [cold ? `${cold.median} median cold start` : null, tool ? `${tool.median} for a 100-call tool replay` : null, t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.label.toLowerCase()})` : null].filter((x) => x !== null);
-  return `${r.name} sandbox measured against ${t.providerCount - 1} other providers: ${parts.join(", ")} ${t.id === "same-spec" ? "on the same 4 vCPU, 8 GB machine, plus its default sandbox" : "on its default machine"}.`;
+  const parts = [
+    cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of})` : null,
+    tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
+    t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.label.toLowerCase()})` : null,
+  ].filter((x) => x !== null);
+  return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
@@ -60,19 +82,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 const link = "focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10";
 
-function ordinal(n: number) {
-  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
-}
 
 const names = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
@@ -126,7 +135,12 @@ function MetricTable({ title, rows }: { title: string; rows: readonly MetricRow[
               </th>
               {r.standing.kind === "ranked" ? (
                 <>
-                  <td className="py-xxs pr-m font-mono whitespace-nowrap">{r.standing.median}</td>
+                  <td className="py-xxs pr-m font-mono sm:whitespace-nowrap">
+                    <span className="whitespace-nowrap">{r.standing.median}</span>
+                    {/* Phones have no p95 or interval columns, so both sit under the median. */}
+                    <span className="block text-xs text-neutral-7 sm:hidden">p95 {r.standing.p95}</span>
+                    <span className="block text-xs text-neutral-7 sm:hidden">95%: {r.standing.ci}</span>
+                  </td>
                   <td className="hidden py-xxs pr-m font-mono whitespace-nowrap text-neutral-8 sm:table-cell">{r.standing.p95}</td>
                   <td className="hidden py-xxs pr-m font-mono whitespace-nowrap text-neutral-8 sm:table-cell">{r.standing.ci}</td>
                 </>
@@ -157,7 +171,7 @@ const Fact = ({ term, children }: { term: string; children: ReactNode }) => (
 
 function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
   const name = providerName(id);
-  const heading = t.id === "same-spec" ? `${name} on the same 4 vCPU, 8 GB machine` : `${name} on its default machine`;
+  const heading = `${name} on ${machineOf(t.id)}`;
   const href = t.id === "same-spec" ? "/" : "/?track=default";
   return (
     <section aria-labelledby={`track-${t.id}`} className="pt-xxl">
@@ -200,7 +214,7 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
           {t.cost.kind === "priced" ? (
             <li>
-              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). A task creates a sandbox, runs the 100-call tool replay and deletes it.
+              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). {taskText()}
             </li>
           ) : null}
           {t.pricePerHourUsd !== null ? <li>List price: ${t.pricePerHourUsd} per hour for this machine, compute only.</li> : null}
@@ -318,7 +332,7 @@ export default async function ProviderPage(props: Props) {
           </h1>
           <p className="max-w-[72ch] text-m text-pretty text-neutral-8">
             {h ? `Our hardware probe found ${name} runs each sandbox as a ${h.runsAs.split(",")[0]}. ` : ""}
-            We timed it through one SDK against {Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1)}{" "}other sandbox providers: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same 4 vCPU, 8 GB machine for every provider, and each provider&apos;s default machine.
+            We timed it through one SDK against {Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1)}{" "}other sandbox providers: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same {trackInfo["same-spec"].short} machine for every provider, and each provider&apos;s default machine.
           </p>
           <p className="max-w-[72ch] text-s text-pretty text-neutral-7">{disclosure}</p>
         </div>
@@ -365,7 +379,7 @@ export default async function ProviderPage(props: Props) {
           </h2>
           <Card className="mt-l">
             <ul className="flex max-w-[80ch] list-disc flex-col gap-xs pl-m text-s text-pretty text-neutral-8">
-              {[...providerCaveats[id], ...caveats].map((c) => (
+              {[...providerNotes(id), ...caveats].map((c) => (
                 <li key={c}>{c}</li>
               ))}
             </ul>
@@ -388,7 +402,7 @@ export default async function ProviderPage(props: Props) {
               ))}
               <li>
                 <a className={link} href="/">
-                  Every provider on the same 4 vCPU, 8 GB machine
+                  Every provider on the same {trackInfo["same-spec"].short} machine
                 </a>
               </li>
               <li>
