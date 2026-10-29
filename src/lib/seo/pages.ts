@@ -34,7 +34,7 @@ export const comparePath = (slug: CompareSlug): ComparePath => `/compare/${slug}
 export const comparisonsWith = (id: ProviderId) => comparePages.filter((p) => p.a === id || p.b === id);
 
 /** Every public page. Adding a provider or comparison page without a content date below fails to compile. */
-export type SitePath = "/" | "/results.md" | "/llms.txt" | typeof providersPath | ProviderPath | ComparePath;
+export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -43,8 +43,6 @@ export type SitePath = "/" | "/results.md" | "/llms.txt" | typeof providersPath 
  */
 const contentDates = {
   "/": "2026-10-26",
-  "/results.md": "2026-10-26",
-  "/llms.txt": "2026-10-28",
   "/providers/e2b/": "2026-10-28",
   "/providers/": "2026-10-29",
   "/providers/daytona/": "2026-10-28",
@@ -65,12 +63,10 @@ export const lastModified = (path: SitePath) => {
   return own > dataDate ? own : dataDate;
 };
 
-/** Every public page, for the sitemap. results.json is left out: it is data for scripts, not a page to rank. */
+/** Every public page, for the sitemap. results.json, results.md and llms.txt are left out: they are data for scripts and agents, not pages to rank. */
 export const sitePaths: readonly SitePath[] = [
   "/",
   providersPath,
   ...providerPages.map(providerPath),
   ...comparePages.map((p) => comparePath(p.slug)),
-  "/results.md",
-  "/llms.txt",
 ];
