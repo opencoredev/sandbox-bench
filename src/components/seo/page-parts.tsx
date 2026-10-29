@@ -47,12 +47,24 @@ export const SiteHeader = () => (
   </header>
 );
 
-export const Breadcrumb = ({ current }: { current: string }) => (
+const crumb = "focus-ring rounded-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10";
+
+/** Sandbox bench / [parent /] current. `parent` is the section a page sits in, such as the providers index. */
+export const Breadcrumb = ({ current, parent }: { current: string; parent?: { name: string; href: string } }) => (
   <nav aria-label="Breadcrumb" className="pt-l text-s text-neutral-7">
-    <a className="focus-ring rounded-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="/">
+    <a className={crumb} href="/">
       Sandbox bench
     </a>{" "}
-    / <span aria-current="page">{current}</span>
+    /{" "}
+    {parent ? (
+      <>
+        <a className={crumb} href={parent.href}>
+          {parent.name}
+        </a>{" "}
+        /{" "}
+      </>
+    ) : null}
+    <span aria-current="page">{current}</span>
   </nav>
 );
 
