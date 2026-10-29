@@ -48,7 +48,7 @@ const rows = (): Row[] => providerIds().map((id) => ({ id, tracks: { "same-spec"
 /** Cold start median and rank on one track, or why there is none. */
 function ColdCell({ t }: { t: ProviderTrack | null }) {
   const cold = t ? headline(t, "cold") : null;
-  if (!cold) return <span className="text-neutral-7">n/a</span>;
+  if (!t || !cold) return <span className="text-neutral-7">n/a</span>;
   return (
     <span>
       <span className="font-mono whitespace-nowrap text-neutral-10">{cold.median}</span>{" "}
