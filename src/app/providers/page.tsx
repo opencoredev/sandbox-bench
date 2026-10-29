@@ -11,7 +11,7 @@ import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { caveats, disclosure, untested } from "@/lib/seo/copy";
 import { comparePages, comparePath, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
-import { headline, providerTrack } from "@/lib/seo/provider";
+import { headline, providerTrack, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
 
 const card = "Sandbox bench: cloud sandboxes for AI agents, measured";
@@ -137,7 +137,7 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-s pt-s pb-l">
           <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Sandbox providers we benchmark</h1>
           <p className="max-w-[72ch] text-m text-pretty text-neutral-8">
-            Sandbox bench times {all.length}{" "}cloud sandbox products for AI agents through one SDK: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Every result is a median with its p95 and 95% interval, on two tracks: the same {sameSpec}{" "}machine for every provider, and each provider&apos;s default machine. Upstash appears twice because Box and Ephemeral Box are separate products.
+            Sandbox bench times {all.length}{" "}cloud sandbox products for AI agents through one SDK: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Every timed result is a median with its p95 and 95% interval, on two tracks: the same {sameSpec}{" "}machine for every provider, and each provider&apos;s default machine. Upstash appears twice because Box and Ephemeral Box are separate products.
           </p>
           <p className="max-w-[72ch] text-s text-pretty text-neutral-7">{disclosure}</p>
         </div>
@@ -145,7 +145,7 @@ export default function ProvidersPage() {
         <section aria-labelledby="providers">
           <SectionTitle id="providers">Every provider at a glance</SectionTitle>
           <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
-            Cold start is the provider&apos;s own time from create() to the first command. Cost covers one task: a sandbox that is created, runs a 100-call tool replay and is deleted. Cost kinds differ, so compare them with care. Linked names have their own page with every test.
+            Cold start is the provider&apos;s own time from create() to the first command. {taskText()} Cost kinds differ, so compare them with care. Linked names have their own page with every test.
           </p>
           <Card>
             <table className="w-full table-fixed text-left text-s">
