@@ -56,6 +56,7 @@ function ColdCell({ t }: { t: ProviderTrack | null }) {
         {ordinal(cold.rank)} of {cold.of}
         {cold.tied ? ", tied" : ""}
       </span>
+      {t.id === "same-spec" && !t.machine.equalSpec ? <span className="block text-xs text-neutral-7">machine differs</span> : null}
     </span>
   );
 }
@@ -137,7 +138,7 @@ export default function ProvidersPage() {
         <div className="flex flex-col gap-s pt-s pb-l">
           <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Sandbox providers we benchmark</h1>
           <p className="max-w-[72ch] text-m text-pretty text-neutral-8">
-            Sandbox bench times {all.length}{" "}cloud sandbox products for AI agents through one SDK: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Every timed result is a median with its p95 and 95% interval, on two tracks: the same {sameSpec}{" "}machine for every provider, and each provider&apos;s default machine. Upstash appears twice because Box and Ephemeral Box are separate products.
+            Sandbox bench times {all.length}{" "}cloud sandbox products for AI agents through one SDK: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Every timed result is a median with its p95 and 95% interval, on two tracks: every provider asked for the same {sameSpec}{" "}machine (or its nearest size), and each provider&apos;s default machine. A row marked “machine differs” measured something else inside. Upstash appears twice because Box and Ephemeral Box are separate products.
           </p>
           <p className="max-w-[72ch] text-s text-pretty text-neutral-7">{disclosure}</p>
         </div>
