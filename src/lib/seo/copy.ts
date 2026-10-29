@@ -18,3 +18,6 @@ export const caveats = [
 /** Who runs the bench, said plainly on every page. */
 export const disclosure =
   "Sandbox bench runs on Sandbox SDK, which the same team (opencoredev) builds. We may work with some of these providers. No provider paid for these results or decided how they were tested.";
+
+/** Sandbox providers people ask about that the bench has not run. Pages say so plainly and publish no numbers for them. */
+export const untested = ["Modal", "Vercel Sandbox", "Cloudflare Sandbox", "Runloop", "Northflank", "Blaxel", "Fly Sprites", "CodeSandbox", "Morph"] as const;

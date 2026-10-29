@@ -1,6 +1,6 @@
 import { llmsTxt } from "@/lib/agent-data";
 import { providerName } from "@/lib/providers";
-import { comparePages, comparePath, providerPages, providerPath } from "@/lib/seo/pages";
+import { comparePages, comparePath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
 
 export const dynamic = "force-static";
 
@@ -8,6 +8,7 @@ export const dynamic = "force-static";
 const pages = `
 ## Provider pages
 
+- [Sandbox providers we benchmark](${providersPath}): every provider in one table, with cold start on both tracks and cost per task, and the providers not tested yet.
 ${providerPages.map((id) => `- [${providerName(id)} sandbox benchmark](${providerPath(id)}): ${providerName(id)}'s results on both tracks, its ranks, cost per task and caveats.`).join("\n")}
 
 ## Comparison pages

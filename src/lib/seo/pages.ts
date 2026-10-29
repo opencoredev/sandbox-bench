@@ -8,9 +8,12 @@ export const site = "https://aisandboxbench.com";
  * roll out a few at a time, and only for providers with published results on
  * the live site.
  */
-export const providerPages = ["e2b", "daytona"] as const satisfies readonly ProviderId[];
+export const providerPages = ["e2b", "daytona", "superserve", "upstash"] as const satisfies readonly ProviderId[];
 export type ProviderPageId = (typeof providerPages)[number];
 export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
+
+/** The index of every provider page. */
+export const providersPath = "/providers/";
 
 export type ProviderPath = `/providers/${ProviderPageId}/`;
 export const providerPath = (id: ProviderPageId): ProviderPath => `/providers/${id}/`;
@@ -31,7 +34,7 @@ export const comparePath = (slug: CompareSlug): ComparePath => `/compare/${slug}
 export const comparisonsWith = (id: ProviderId) => comparePages.filter((p) => p.a === id || p.b === id);
 
 /** Every public page. Adding a provider or comparison page without a content date below fails to compile. */
-export type SitePath = "/" | "/results.md" | "/llms.txt" | ProviderPath | ComparePath;
+export type SitePath = "/" | "/results.md" | "/llms.txt" | typeof providersPath | ProviderPath | ComparePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -43,7 +46,10 @@ const contentDates = {
   "/results.md": "2026-10-26",
   "/llms.txt": "2026-10-28",
   "/providers/e2b/": "2026-10-28",
+  "/providers/": "2026-10-29",
   "/providers/daytona/": "2026-10-28",
+  "/providers/superserve/": "2026-10-29",
+  "/providers/upstash/": "2026-10-29",
   "/compare/e2b-vs-daytona/": "2026-10-28",
 } as const satisfies Record<SitePath, string>;
 
@@ -62,6 +68,7 @@ export const lastModified = (path: SitePath) => {
 /** Every public page, for the sitemap. results.json is left out: it is data for scripts, not a page to rank. */
 export const sitePaths: readonly SitePath[] = [
   "/",
+  providersPath,
   ...providerPages.map(providerPath),
   ...comparePages.map((p) => comparePath(p.slug)),
   "/results.md",

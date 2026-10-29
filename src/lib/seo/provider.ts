@@ -4,7 +4,7 @@ import { trackIds } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import { formatValue } from "@/lib/format";
 import type { Unit } from "@/lib/format";
-import { providerName } from "@/lib/providers";
+import { isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 /**
@@ -121,15 +121,28 @@ export function headline(t: ProviderTrack, metricId: string) {
 export const taskText = () => agentData().task;
 
 /**
+ * The words a note can use for a provider: its name, plus, for a provider that
+ * sells a second product (Upstash Box and Ephemeral Box), that product's short
+ * name ("Upstash") and its name without the brand ("Ephemeral Box").
+ */
+function noteNames(id: ProviderId) {
+  const family = Object.keys(providerInfo).filter(isProviderId).filter((x) => x === id || providerBrand(x) === id);
+  return family.flatMap((x) => {
+    const label = providerLabel(x);
+    return label.kind === "tagged" ? [providerName(x), label.short, `${label.tag} ${label.rest}`] : [providerName(x)];
+  });
+}
+
+/**
  * The site's own notes about one provider: the sentences of llms.txt's
- * "Coming in the next update" section that start with its name. Read from the
+ * "Coming in the next update" section that mention it. Read from the
  * published text so a note disappears from the page when it leaves the site.
  */
 export function providerNotes(id: ProviderId) {
-  const name = providerName(id);
+  const names = noteNames(id);
   const section = llmsTxt().split("## Coming in the next update")[1]?.split("\n## ")[0] ?? "";
   return section
     .trim()
     .split(/(?<=\.) (?=[A-Z])/)
-    .filter((s) => s.startsWith(`${name} `) || s.startsWith(`${name}'s `));
+    .filter((s) => names.some((n) => new RegExp(`(^|[\\s(])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}('s)?[\\s,.;)]`).test(s)));
 }
