@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import { agentData } from "@/lib/agent-data";
 import { trackIds } from "@/lib/data";
 import { compareTrack, verdictOf } from "@/lib/seo/compare";
+import { comparePages } from "@/lib/seo/pages";
 import { isRanked } from "@/lib/seo/provider";
 
 // The comparison pages publish a winner per test, so the rules behind it get their own tests. Run with `bun test`.
@@ -30,22 +31,28 @@ describe("verdictOf", () => {
 });
 
 describe("compareTrack on the published data", () => {
-  for (const tid of trackIds) {
-    test(`${tid}: verdicts follow the ranking and the tally adds up`, () => {
-      const t = compareTrack(tid, "e2b", "daytona");
-      if (!t) return;
-      const metrics = agentData().tracks[tid].metrics;
-      const rows = t.groups.flatMap((g) => g.rows);
-      for (const row of rows) {
-        const ranked = metrics.find((m) => m.id === row.id)?.results.filter(isRanked) ?? [];
-        const both = ranked.some((x) => x.provider === "e2b") && ranked.some((x) => x.provider === "daytona");
-        assert.equal(row.verdict.kind === "not-compared", !both, row.id);
-        if (row.verdict.kind === "ahead" && row.a.kind === "ranked" && row.b.kind === "ranked") {
-          assert.ok(row.verdict.leader === "e2b" ? row.a.rank < row.b.rank : row.b.rank < row.a.rank, row.id);
+  for (const p of comparePages) {
+    for (const tid of trackIds) {
+      test(`${p.slug}, ${tid}: verdicts follow the ranking and the tally adds up`, () => {
+        const t = compareTrack(tid, p.a, p.b);
+        if (!t) return;
+        const metrics = agentData().tracks[tid].metrics;
+        const rows = t.groups.flatMap((g) => g.rows);
+        for (const row of rows) {
+          const ranked = metrics.find((m) => m.id === row.id)?.results.filter(isRanked) ?? [];
+          const both = ranked.some((x) => x.provider === p.a) && ranked.some((x) => x.provider === p.b);
+          assert.equal(row.verdict.kind === "not-compared", !both, row.id);
+          if (row.verdict.kind === "ahead" && row.a.kind === "ranked" && row.b.kind === "ranked") {
+            assert.ok(row.verdict.leader === p.a ? row.a.rank < row.b.rank : row.b.rank < row.a.rank, row.id);
+          }
         }
-      }
-      assert.equal(t.tally.a + t.tally.b + t.tally.tied, t.tally.compared);
-      assert.equal(t.tally.compared, rows.filter((x) => x.verdict.kind !== "not-compared").length);
-    });
+        assert.equal(t.tally.a + t.tally.b + t.tally.tied, t.tally.compared);
+        assert.equal(t.tally.compared, rows.filter((x) => x.verdict.kind !== "not-compared").length);
+      });
+    }
   }
+
+  test("every comparison page has at least one test both providers finished", () => {
+    for (const p of comparePages) assert.ok(trackIds.some((tid) => (compareTrack(tid, p.a, p.b)?.tally.compared ?? 0) > 0), p.slug);
+  });
 });

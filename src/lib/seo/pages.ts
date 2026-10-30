@@ -8,7 +8,7 @@ export const site = "https://aisandboxbench.com";
  * roll out a few at a time, and only for providers with published results on
  * the live site.
  */
-export const providerPages = ["e2b", "daytona", "superserve", "upstash"] as const satisfies readonly ProviderId[];
+export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral"] as const satisfies readonly ProviderId[];
 export type ProviderPageId = (typeof providerPages)[number];
 export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
 
@@ -22,7 +22,11 @@ export const providerPath = (id: ProviderPageId): ProviderPath => `/providers/${
  * Pairs with a page at /compare/<a>-vs-<b>/. Only pairs people search for, and
  * only when both have published results on the same track.
  */
-export const comparePages = [{ slug: "e2b-vs-daytona", a: "e2b", b: "daytona" }] as const satisfies readonly { slug: string; a: ProviderId; b: ProviderId }[];
+export const comparePages = [
+  { slug: "e2b-vs-daytona", a: "e2b", b: "daytona" },
+  { slug: "upstash-box-vs-e2b", a: "upstash", b: "e2b" },
+  { slug: "upstash-box-vs-daytona", a: "upstash", b: "daytona" },
+] as const satisfies readonly { slug: string; a: ProviderId; b: ProviderId }[];
 export type ComparePage = (typeof comparePages)[number];
 export type CompareSlug = ComparePage["slug"];
 export const comparePage = (slug: string): ComparePage | null => comparePages.find((p) => p.slug === slug) ?? null;
@@ -48,7 +52,10 @@ const contentDates = {
   "/providers/daytona/": "2026-10-28",
   "/providers/superserve/": "2026-10-29",
   "/providers/upstash/": "2026-10-29",
+  "/providers/upstash-ephemeral/": "2026-10-30",
   "/compare/e2b-vs-daytona/": "2026-10-28",
+  "/compare/upstash-box-vs-e2b/": "2026-10-30",
+  "/compare/upstash-box-vs-daytona/": "2026-10-30",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */
