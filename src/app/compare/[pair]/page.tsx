@@ -252,7 +252,8 @@ export default async function ComparePageView(props: Props) {
   const path = comparePath(p.slug);
   const url = `${site}${path}`;
   const name = pairName(p);
-  const notes = [...providerNotes(p.a), ...providerNotes(p.b)];
+  // One note can name both providers; show it once.
+  const notes = [...new Set([...providerNotes(p.a), ...providerNotes(p.b)])];
 
   const jsonLd = {
     "@context": "https://schema.org",
