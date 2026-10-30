@@ -53,7 +53,7 @@ const contentDates = {
   "/providers/superserve/": "2026-10-29",
   "/providers/upstash/": "2026-10-29",
   "/providers/upstash-ephemeral/": "2026-10-30",
-  "/compare/e2b-vs-daytona/": "2026-10-28",
+  "/compare/e2b-vs-daytona/": "2026-10-30",
   "/compare/upstash-box-vs-e2b/": "2026-10-30",
   "/compare/upstash-box-vs-daytona/": "2026-10-30",
 } as const satisfies Record<SitePath, string>;

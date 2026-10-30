@@ -45,6 +45,16 @@
   ],
   "redirects": [
     {
+      "source": "/compare",
+      "destination": "/providers/",
+      "permanent": true
+    },
+    {
+      "source": "/compare/",
+      "destination": "/providers/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
