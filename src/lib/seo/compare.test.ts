@@ -52,7 +52,7 @@ describe("compareTrack on the published data", () => {
     }
   }
 
-  test("every comparison page has both providers on at least one published track", () => {
-    for (const p of comparePages) assert.ok(trackIds.some((tid) => compareTrack(tid, p.a, p.b) !== null), p.slug);
+  test("every comparison page has at least one test both providers finished", () => {
+    for (const p of comparePages) assert.ok(trackIds.some((tid) => (compareTrack(tid, p.a, p.b)?.tally.compared ?? 0) > 0), p.slug);
   });
 });
