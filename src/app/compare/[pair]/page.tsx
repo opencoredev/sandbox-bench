@@ -11,7 +11,7 @@ import type { ProviderId } from "@/lib/providers";
 import { compareResults, costKindsDiffer, rowOf } from "@/lib/seo/compare";
 import type { CompareRow, CompareTrack, Side } from "@/lib/seo/compare";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { comparePage, comparePages, comparePath, isProviderPage, lastModified, providerPath, site } from "@/lib/seo/pages";
+import { comparePage, comparePages, comparePath, isProviderPage, lastModified, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ComparePage } from "@/lib/seo/pages";
 import { providerNotes, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
@@ -254,6 +254,7 @@ export default async function ComparePageView(props: Props) {
   const name = pairName(p);
   // One note can name both providers; show it once.
   const notes = [...new Set([...providerNotes(p.a), ...providerNotes(p.b)])];
+  const related = comparePages.filter((c) => c.slug !== p.slug);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -273,7 +274,8 @@ export default async function ComparePageView(props: Props) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Sandbox bench", item: `${site}/` },
-          { "@type": "ListItem", position: 2, name, item: url },
+          { "@type": "ListItem", position: 2, name: "Providers", item: `${site}${providersPath}` },
+          { "@type": "ListItem", position: 3, name, item: url },
         ],
       },
     ],
@@ -285,7 +287,7 @@ export default async function ComparePageView(props: Props) {
       <SiteHeader />
 
       <main className="mx-auto max-w-[1100px] px-m sm:px-l">
-        <Breadcrumb current={name} />
+        <Breadcrumb current={name} parent={{ name: "Providers", href: providersPath }} />
         <div className="flex flex-col gap-s pt-s pb-l">
           <h1 className="flex flex-wrap items-center gap-s font-brand text-xl font-medium text-balance sm:text-xxl">
             <ProviderLogo id={p.a} size={32} />
@@ -351,6 +353,18 @@ export default async function ComparePageView(props: Props) {
                     ]
                   : [],
               )}
+              {related.map((c) => (
+                <li key={c.slug}>
+                  <a className={link} href={comparePath(c.slug)}>
+                    {providerName(c.a)} vs {providerName(c.b)}, side by side
+                  </a>
+                </li>
+              ))}
+              <li>
+                <a className={link} href={providersPath}>
+                  Every sandbox provider we benchmark
+                </a>
+              </li>
               <li>
                 <a className={link} href="/">
                   Every provider on the same {trackInfo["same-spec"].short} machine
