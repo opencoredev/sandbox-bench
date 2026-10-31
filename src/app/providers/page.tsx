@@ -9,12 +9,12 @@ import { trackIds, trackInfo } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure, untested } from "@/lib/seo/copy";
 import { comparePages, comparePath, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import { headline, providerTrack, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
 
-const card = "Sandbox bench: cloud sandboxes for AI agents, measured";
 const landing = trackIds[0];
 
 /** Every provider with results on the landing track, in the order the published model lists them. */
@@ -35,9 +35,8 @@ export function generateMetadata(): Metadata {
     title,
     description: d,
     alternates: { canonical: providersPath },
-    // The site's own card: a page that sets openGraph gets no image from the root segment.
-    openGraph: { title, description: d, type: "website", siteName: "Sandbox bench", url: `${site}${providersPath}`, images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: card }] },
-    twitter: { card: "summary_large_image", title, description: d, images: [{ url: "/twitter-image", alt: card }] },
+    openGraph: { title, description: d, type: "website", siteName: "Sandbox bench", url: `${site}${providersPath}`, images: openGraphImages },
+    twitter: { card: "summary_large_image", title, description: d, images: twitterImages },
   };
 }
 

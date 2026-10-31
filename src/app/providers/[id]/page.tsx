@@ -6,6 +6,7 @@ import { Breadcrumb, Fact, link, ordinal, RawData, SectionTitle, SiteFooter, Sit
 import { Card } from "@/components/tabs";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
 import { comparePath, comparisonsWith, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
@@ -26,8 +27,6 @@ async function pageId(props: Props): Promise<ProviderPageId> {
   if (!isProviderPage(id)) notFound();
   return id;
 }
-
-const card = "Sandbox bench: cloud sandboxes for AI agents, measured";
 
 const titleOf = (id: ProviderPageId) => `${providerName(id)} sandbox benchmark: cold start, agent tasks and cost`;
 
@@ -58,9 +57,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: providerPath(id) },
-    // The site's own card: a page that sets openGraph gets no image from the root segment.
-    openGraph: { title, description, type: "article", siteName: "Sandbox bench", url, images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: card }] },
-    twitter: { card: "summary_large_image", title, description, images: [{ url: "/twitter-image", alt: card }] },
+    openGraph: { title, description, type: "article", siteName: "Sandbox bench", url, images: openGraphImages },
+    twitter: { card: "summary_large_image", title, description, images: twitterImages },
   };
 }
 
