@@ -73,7 +73,7 @@ function Standing({ row }: { row: MetricRow }) {
       return <span className="text-neutral-7">{s.why}</span>;
     case "ranked": {
       const tie = s.tiedWith.length ? `, tied with ${names(s.tiedWith)}` : "";
-      const lead = s.leader ? ` · best: ${providerName(s.leader.id)} ${s.leader.median}` : "";
+      const lead = s.leader ? ` · ${row.better === "lower" ? "lowest" : "highest"} median: ${providerName(s.leader.id)} ${s.leader.median}` : "";
       return (
         <span>
           <span className="text-neutral-10">
