@@ -47,12 +47,12 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath;
  */
 const contentDates = {
   "/": "2026-10-26",
-  "/providers/e2b/": "2026-10-28",
+  "/providers/e2b/": "2026-10-31",
   "/providers/": "2026-10-29",
-  "/providers/daytona/": "2026-10-28",
-  "/providers/superserve/": "2026-10-29",
-  "/providers/upstash/": "2026-10-29",
-  "/providers/upstash-ephemeral/": "2026-10-30",
+  "/providers/daytona/": "2026-10-31",
+  "/providers/superserve/": "2026-10-31",
+  "/providers/upstash/": "2026-10-31",
+  "/providers/upstash-ephemeral/": "2026-10-31",
   "/providers/boat/": "2026-10-31",
   "/compare/e2b-vs-daytona/": "2026-10-30",
   "/compare/upstash-box-vs-e2b/": "2026-10-30",
