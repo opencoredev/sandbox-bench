@@ -41,7 +41,7 @@ function summary(id: ProviderPageId) {
   const cold = headline(t, "cold");
   const tool = headline(t, "tool-replay");
   const parts = [
-    cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of})` : null,
+    cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
     tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
     t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.label.toLowerCase()})` : null,
   ].filter((x) => x !== null);
