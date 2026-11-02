@@ -112,6 +112,7 @@ export default function ProvidersPage() {
         dateModified: lastModified(providersPath),
         isPartOf: { "@type": "WebSite", name: "Sandbox bench", url: `${site}/` },
         publisher: { "@type": "Organization", name: "opencoredev", url: "https://github.com/opencoredev" },
+        author: { "@type": "Person", name: "Leo", alternateName: "@leodev", url: "https://leodev.cv" },
         mainEntity: {
           "@type": "ItemList",
           itemListElement: providerPages.map((id, i) => ({ "@type": "ListItem", position: i + 1, name: `${providerName(id)} sandbox benchmark`, url: `${site}${providerPath(id)}` })),

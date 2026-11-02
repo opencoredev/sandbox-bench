@@ -267,6 +267,7 @@ export default async function ComparePageView(props: Props) {
         isPartOf: { "@type": "WebSite", name: "Sandbox bench", url: `${site}/` },
         about: [p.a, p.b].map((id) => ({ "@type": "SoftwareApplication", name: `${providerName(id)} sandbox`, applicationCategory: "DeveloperApplication" })),
         publisher: { "@type": "Organization", name: "opencoredev", url: "https://github.com/opencoredev" },
+        author: { "@type": "Person", name: "Leo", alternateName: "@leodev", url: "https://leodev.cv" },
       },
       {
         "@type": "BreadcrumbList",
