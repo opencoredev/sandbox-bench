@@ -25,8 +25,10 @@ export const metadata: Metadata = {
     apple: "/apple-icon.png",
   },
   description,
+  authors: [{ name: "Leo (@leodev)", url: "https://leodev.cv" }],
+  creator: "Leo (@leodev)",
   openGraph: { title, description, type: "website", siteName: "Sandbox bench", url: "https://aisandboxbench.com" },
-  twitter: { card: "summary_large_image", title, description },
+  twitter: { card: "summary_large_image", creator: "@leodev", title, description },
   metadataBase: new URL("https://aisandboxbench.com"),
   // Agents find the data from the page head rather than a block on the page: llms.txt, the Markdown and the JSON.
   alternates: { canonical: "/", types: { "text/plain": "/llms.txt", "text/markdown": "/results.md", "application/json": "/results.json" } },

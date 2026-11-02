@@ -262,6 +262,7 @@ export default async function ProviderPage(props: Props) {
         isPartOf: { "@type": "WebSite", name: "Sandbox bench", url: `${site}/` },
         about: { "@type": "SoftwareApplication", name: `${name} sandbox`, applicationCategory: "DeveloperApplication" },
         publisher: { "@type": "Organization", name: "opencoredev", url: "https://github.com/opencoredev" },
+        author: { "@type": "Person", name: "Leo", alternateName: "@leodev", url: "https://leodev.cv" },
       },
       {
         "@type": "BreadcrumbList",

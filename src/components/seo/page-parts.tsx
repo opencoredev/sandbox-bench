@@ -80,6 +80,12 @@ export const SiteFooter = ({ label, updated }: { label: string; updated: string 
       <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
         Source on GitHub
       </a>
+      <span aria-hidden className="hidden sm:inline">
+        ·
+      </span>
+      <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://leodev.cv">
+        By Leo (@leodev)
+      </a>
     </div>
   </footer>
 );
