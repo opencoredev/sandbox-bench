@@ -11,7 +11,7 @@ import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure, untested } from "@/lib/seo/copy";
-import { comparePages, comparePath, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPages, alternativesPath, comparePages, comparePath, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import { headline, providerTrack, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
 
@@ -215,6 +215,13 @@ export default function ProvidersPage() {
                 <li key={c.slug}>
                   <a className={link} href={comparePath(c.slug)}>
                     {providerName(c.a)} vs {providerName(c.b)}, side by side
+                  </a>
+                </li>
+              ))}
+              {alternativesPages.map((id) => (
+                <li key={`alt-${id}`}>
+                  <a className={link} href={alternativesPath(id)}>
+                    {providerName(id)} alternatives, measured against {providerName(id)}
                   </a>
                 </li>
               ))}

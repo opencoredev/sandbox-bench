@@ -12,9 +12,9 @@ import { compareResults, costKindsDiffer, rowOf } from "@/lib/seo/compare";
 import type { CompareRow, CompareTrack, Side } from "@/lib/seo/compare";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { comparePage, comparePages, comparePath, isProviderPage, lastModified, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPath, comparePage, comparePages, comparePath, isAlternativesPage, isProviderPage, lastModified, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ComparePage } from "@/lib/seo/pages";
-import { providerNotes, taskText } from "@/lib/seo/provider";
+import { pauseText, providerNotes, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
 
 export const dynamicParams = false;
@@ -152,12 +152,6 @@ function CompareTable({ p, title, rows }: { p: ComparePage; title: string; rows:
       </div>
     </div>
   );
-}
-
-function pauseText(t: ProviderTrack) {
-  if (t.pause.supported && "split" in t.pause && t.pause.split) return `pause ${t.pause.split.pause.toFixed(2)} s, resume ${t.pause.split.resume.toFixed(2)} s (median of ${t.pause.split.n})`;
-  if ("note" in t.pause && t.pause.note) return t.pause.note;
-  return t.pause.supported ? "supported" : "not supported";
 }
 
 function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
@@ -347,6 +341,17 @@ export default async function ComparePageView(props: Props) {
                       <li key={id}>
                         <a className={link} href={providerPath(id)}>
                           {providerName(id)} sandbox benchmark
+                        </a>
+                      </li>,
+                    ]
+                  : [],
+              )}
+              {[p.a, p.b].flatMap((id) =>
+                isAlternativesPage(id)
+                  ? [
+                      <li key={`alt-${id}`}>
+                        <a className={link} href={alternativesPath(id)}>
+                          {providerName(id)} alternatives, measured against {providerName(id)}
                         </a>
                       </li>,
                     ]

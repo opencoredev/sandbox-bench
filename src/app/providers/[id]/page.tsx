@@ -8,7 +8,7 @@ import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { comparePath, comparisonsWith, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPath, comparePath, comparisonsWith, isAlternativesPage, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { trackInfo } from "@/lib/data";
 import { headline, providerNotes, providerResults, taskText } from "@/lib/seo/provider";
@@ -344,6 +344,13 @@ export default async function ProviderPage(props: Props) {
           <SectionTitle id="more">More results</SectionTitle>
           <Card className="mt-l">
             <ul className="flex flex-col gap-xs text-s">
+              {isAlternativesPage(id) ? (
+                <li>
+                  <a className={link} href={alternativesPath(id)}>
+                    {name} alternatives, measured against {name}
+                  </a>
+                </li>
+              ) : null}
               {comparisonsWith(id).map((c) => (
                 <li key={c.slug}>
                   <a className={link} href={comparePath(c.slug)}>
