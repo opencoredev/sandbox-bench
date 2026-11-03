@@ -117,6 +117,13 @@ export function headline(t: ProviderTrack, metricId: string) {
   return { label: row.label, median: row.standing.median, rank: row.standing.rank, of: row.standing.of, tied: row.standing.tiedWith.length > 0 };
 }
 
+/** A track's pause and resume result in a few words: the measured split, the site's note, or whether it is supported. */
+export function pauseText(t: ProviderTrack) {
+  if (t.pause.supported && "split" in t.pause && t.pause.split) return `pause ${t.pause.split.pause.toFixed(2)} s, resume ${t.pause.split.resume.toFixed(2)} s (median of ${t.pause.split.n})`;
+  if ("note" in t.pause && t.pause.note) return t.pause.note;
+  return t.pause.supported ? "supported" : "not supported";
+}
+
 /** What one task is, as the published model words it. */
 export const taskText = () => agentData().task;
 

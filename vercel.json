@@ -55,6 +55,16 @@
       "permanent": true
     },
     {
+      "source": "/alternatives",
+      "destination": "/providers/",
+      "permanent": true
+    },
+    {
+      "source": "/alternatives/",
+      "destination": "/providers/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {

@@ -37,8 +37,19 @@ export const comparePath = (slug: CompareSlug): ComparePath => `/compare/${slug}
 /** Comparison pages that include one provider, for its page's links. */
 export const comparisonsWith = (id: ProviderId) => comparePages.filter((p) => p.a === id || p.b === id);
 
-/** Every public page. Adding a provider or comparison page without a content date below fails to compile. */
-export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath;
+/**
+ * Providers with a page at /alternatives/<id>/: every other tested provider,
+ * measured against this one. Only for providers people search alternatives to.
+ */
+export const alternativesPages = ["e2b"] as const satisfies readonly ProviderPageId[];
+export type AlternativesPageId = (typeof alternativesPages)[number];
+export const isAlternativesPage = (id: string): id is AlternativesPageId => (alternativesPages as readonly string[]).includes(id);
+
+export type AlternativesPath = `/alternatives/${AlternativesPageId}/`;
+export const alternativesPath = (id: AlternativesPageId): AlternativesPath => `/alternatives/${id}/`;
+
+/** Every public page. Adding a provider, comparison or alternatives page without a content date below fails to compile. */
+export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath | AlternativesPath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -47,8 +58,8 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath;
  */
 const contentDates = {
   "/": "2026-10-26",
-  "/providers/e2b/": "2026-11-02",
-  "/providers/": "2026-11-02",
+  "/providers/e2b/": "2026-11-03",
+  "/providers/": "2026-11-03",
   "/providers/daytona/": "2026-11-02",
   "/providers/superserve/": "2026-11-02",
   "/providers/upstash/": "2026-11-02",
@@ -56,9 +67,10 @@ const contentDates = {
   "/providers/boat/": "2026-11-02",
   "/providers/freestyle/": "2026-11-02",
   "/providers/tenki/": "2026-11-02",
-  "/compare/e2b-vs-daytona/": "2026-10-30",
-  "/compare/upstash-box-vs-e2b/": "2026-10-30",
+  "/compare/e2b-vs-daytona/": "2026-11-03",
+  "/compare/upstash-box-vs-e2b/": "2026-11-03",
   "/compare/upstash-box-vs-daytona/": "2026-10-30",
+  "/alternatives/e2b/": "2026-11-03",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */
@@ -79,4 +91,5 @@ export const sitePaths: readonly SitePath[] = [
   providersPath,
   ...providerPages.map(providerPath),
   ...comparePages.map((p) => comparePath(p.slug)),
+  ...alternativesPages.map(alternativesPath),
 ];
