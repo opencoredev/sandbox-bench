@@ -330,10 +330,10 @@ export default async function AlternativesPage(props: Props) {
         ) : null}
 
         <section aria-labelledby="untested" className="pt-xxl">
-          <SectionTitle id="untested">Alternatives we haven&apos;t tested</SectionTitle>
+          <SectionTitle id="untested">Providers we haven&apos;t tested</SectionTitle>
           <Card className="mt-l">
             <p className="max-w-[80ch] text-s text-pretty text-neutral-8">
-              Other sandboxes often listed as {name} alternatives include {`${untested.slice(0, -1).join(", ")} and ${untested.at(-1) ?? ""}`}. None of them has been run through the bench, so this page has no numbers for them.
+              Sandbox providers we haven&apos;t run through the bench yet include {`${untested.slice(0, -1).join(", ")} and ${untested.at(-1) ?? ""}`}, so this page has no numbers for them.
             </p>
           </Card>
         </section>
