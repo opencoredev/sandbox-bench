@@ -7,10 +7,10 @@ const name = "Sandbox bench";
 const publisher = { "@type": "Organization", "@id": `${site}/#organization`, name: "opencoredev", url: "https://github.com/opencoredev" } as const;
 
 /** Every metric the published model carries, once, in its order on the first track that has it. */
-function measured() {
+function measured(model: ReturnType<typeof agentData>) {
   const seen = new Map<string, { "@type": "PropertyValue"; name: string; unitText: string }>();
   for (const id of trackIds) {
-    for (const m of agentData().tracks[id].metrics) {
+    for (const m of model.tracks[id].metrics) {
       if (!seen.has(m.id)) seen.set(m.id, { "@type": "PropertyValue", name: m.label, unitText: m.unit });
     }
   }
@@ -31,6 +31,7 @@ function coverage() {
  * published model, so a data refresh updates it.
  */
 export function HomeJsonLd() {
+  const model = agentData();
   const data = {
     "@context": "https://schema.org",
     "@graph": [
@@ -40,7 +41,7 @@ export function HomeJsonLd() {
         "@type": "Dataset",
         "@id": `${site}/#dataset`,
         name: `${name} results`,
-        description: agentData().about,
+        description: model.about,
         url: `${site}/`,
         isAccessibleForFree: true,
         license: "https://opensource.org/licenses/MIT",
@@ -48,7 +49,7 @@ export function HomeJsonLd() {
         temporalCoverage: coverage(),
         creator: { "@type": "Person", name: "Leo", alternateName: "@leodev", url: "https://leodev.cv" },
         publisher: { "@id": publisher["@id"] },
-        variableMeasured: measured(),
+        variableMeasured: measured(model),
         distribution: [
           { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${site}/results.json` },
           { "@type": "DataDownload", encodingFormat: "text/markdown", contentUrl: `${site}/results.md` },
