@@ -17,6 +17,8 @@ import { Ridgelines } from "@/components/ridgelines";
 import { Scatter, linearTicks, logTicks } from "@/components/scatter";
 import type { ScatterPoint } from "@/components/scatter";
 import { JumpLink } from "@/components/jump";
+import { HomeJsonLd } from "@/components/seo/home-json-ld";
+import { HomeLinks } from "@/components/seo/home-links";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
@@ -449,6 +451,7 @@ const showSwitch = trackIds.every((id) => tracks[id].providers.length > 0);
 export default function Page() {
   return (
     <>
+      <HomeJsonLd />
       {/* As on Artificial Analysis: no bar behind the header, just the logo and one bar of section links floating over the page.
           A fade from the page colour keeps them readable over the cards scrolling underneath. */}
       <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
@@ -749,6 +752,8 @@ export default function Page() {
               </span>
             ))}
           </span>
+          <span aria-hidden className="hidden sm:inline">·</span>
+          <HomeLinks />
           <span aria-hidden className="hidden sm:inline">·</span>
           <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
             Source on GitHub
