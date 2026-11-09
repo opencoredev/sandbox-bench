@@ -707,7 +707,7 @@ describe("page", () => {
   test("the idle chart says its run count and scope, names who stopped, and isn't ranked", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     assert.match(html, /What leaving the sandbox open costs/);
-    assert.match(html, new RegExp(`${realistic.coverage.idle.attempts} runs per provider and wait\\. Median total cost of fix, wait and resume, failed attempts included, per 1,000`));
+    assert.match(html, new RegExp(`${realistic.coverage.idle.attempts} runs per provider and wait\\. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts`));
     assert.doesNotMatch(html, /Lower is better/);
     assert.match(html, /couldn&#x27;t resume/);
     assert.match(html, /Not in this test:/);

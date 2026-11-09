@@ -138,7 +138,8 @@ export function columnsOf(costed: readonly Costed[]): Column[] {
   return costed.map((row) => ({
     provider: row.provider,
     label: perThousand(row.cost.usdPerCompleted),
-    tag: statusTag(row),
+    // Only the kind under the bar, as the plan asks; the full status is in the table below and in this bar's details.
+    tag: row.cost.kind,
     note: minimumNote(row.provider),
     segments: [{ value: row.cost.usdPerCompleted, color: providerColor(row.provider), fill: row.eligible ? "solid" : "striped" }],
     detail: [
@@ -510,7 +511,7 @@ export function IdleChart() {
       <ChartHead
         title="What leaving the sandbox open costs"
         sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GB · US dollars"
-        meta={`${idle.attempts} runs per provider and wait. Median total cost of fix, wait and resume, failed attempts included, per 1,000.`}
+        meta={`${idle.attempts} runs per provider and wait. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts.`}
       />
       {lines.length ? <p className="mb-m text-s text-pretty">{lines}</p> : null}
       <div className="grid gap-x-xl gap-y-l md:grid-cols-2 xl:grid-cols-3">
