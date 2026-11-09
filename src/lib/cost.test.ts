@@ -44,8 +44,8 @@ describe("cost status", () => {
 describe("cost pick", () => {
   // The published data, pinned: a change to the rule or the data must change these on purpose.
   const expected = {
-    "same-spec": { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "superserve"], lower: ["boxd"] },
-    default: { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "superserve"], lower: ["boxd"] },
+    "same-spec": { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "superserve", "modal"], lower: ["boxd"] },
+    default: { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "modal", "superserve"], lower: ["boxd"] },
   } as const satisfies Record<(typeof trackIds)[number], { pick: string; eligible: readonly string[]; lower: readonly string[] }>;
 
   for (const id of trackIds) {

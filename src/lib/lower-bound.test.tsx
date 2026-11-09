@@ -4,12 +4,11 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { CostPerTaskChart } from "@/components/cost";
-import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
+import { agentMarkdown } from "@/lib/agent-data";
 import { costPick, costStatus, costTag, hasLowerBounds, hourlyText, isEligible, perThousandText, pricedTasks, regionNote, wholeMachine } from "@/lib/cost";
 import { parseProvider, readCostPerTask, trackIds, tracks } from "@/lib/data";
 import { modalExport, onlyModalLowerBound, withModal } from "@/lib/fixtures/modal";
 import { isProviderId, providerInfo, providerName } from "@/lib/providers";
-import { caveats } from "@/lib/seo/copy";
 
 // Lower bounds (Modal's default track) and region multipliers, from the SBX-103 export. Run with `bun test`.
 
@@ -70,7 +69,8 @@ describe("lower-bound cost", () => {
     assert.equal(published.kind, "verified");
     if (c.kind !== "verified" || published.kind !== "verified") return;
     assert.equal(c.pick.id, published.pick.id);
-    assert.deepEqual(c.eligible, published.eligible);
+    // The fixture swaps the published (billed, eligible) Modal for a lower bound, so only Modal leaves the eligible set.
+    assert.deepEqual(c.eligible, published.eligible.filter((id) => id !== "modal"));
     assert.ok(!c.lower.some((x) => x.id === "modal"));
     assert.equal(pricedTasks(t).at(-1)?.id, "modal");
   });
@@ -120,17 +120,20 @@ describe("lower-bound hourly price and region multiplier", () => {
     assert.equal(regionNote(p), "priced at Modal's us-east rate, 1.75× its base price");
   });
 
-  test("no region note without a multiplier", () => {
-    for (const id of trackIds) for (const p of tracks[id].providers) assert.equal(regionNote(p), null);
+  test("only Modal, pinned to us-east, has a region note; no other provider has a multiplier", () => {
+    for (const id of trackIds)
+      for (const p of tracks[id].providers) assert.equal(regionNote(p), p.id === "modal" ? "priced at Modal's us-east rate, 1.75× its base price" : null);
   });
 });
 
 describe("published data", () => {
-  test("has no lower bound, so no qualifier appears in the agent files or caveats", () => {
-    assert.equal(hasLowerBounds(trackIds.map((id) => tracks[id])), false);
-    for (const text of [agentMarkdown(), llmsTxt(), JSON.stringify(agentData()), caveats.join(" ")]) {
-      assert.ok(!/at least \$|≥ \$|lower bound|lowerBound|regionMultiplier/i.test(text));
-    }
+  test("the only lower bound is Modal's default-machine hourly price, and the agent files say so", () => {
+    assert.equal(hasLowerBounds(trackIds.map((id) => tracks[id])), true);
+    for (const id of trackIds)
+      for (const p of tracks[id].providers) assert.equal(p.pricingBound === "lower", p.id === "modal" && id === "default", `${id} ${p.id}`);
+    // Modal's costs per task are billed, so none of them is a lower bound.
+    for (const id of trackIds) for (const [pid, c] of Object.entries(tracks[id].costs)) assert.ok(!(c && c.kind !== "none" && c.bound === "lower"), `${id} ${pid}`);
+    assert.match(agentMarkdown(), /≥ \$0\.036/);
   });
 
   test("a registered provider with no data in either track is not named absent and gets no rows", () => {

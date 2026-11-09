@@ -36,7 +36,8 @@ export function withModal(bound: "lower" | "exact" | null, usd?: number): Track 
   const row = modalExport(bound, usd);
   return {
     ...base,
-    providers: [...base.providers, ...parseProvider(row)],
+    // The published data has Modal too; the fixture replaces it.
+    providers: [...base.providers.filter((p) => p.id !== "modal"), ...parseProvider(row)],
     costs: { ...base.costs, modal: readCostPerTask(row) },
   };
 }

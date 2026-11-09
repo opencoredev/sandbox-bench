@@ -314,14 +314,488 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "modal",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": null,
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 1,
+     "memoryGiB": 452.844783782959,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69078063964844,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 1024,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8167381286621,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80915451049805,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69067764282227,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192314147949,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165855407715,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447685241699,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192276000977,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447723388672,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447952270508,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81676483154297,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8091583251953,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192543029785,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81664276123047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84477615356445,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84476470947266,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.783878326416,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.690673828125,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192008972168,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165512084961,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80934143066406,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192237854004,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84475326538086,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192733764648,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.419246673584,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165626525879,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610336303711,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906318664551,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69068145751953,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69064712524414,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16106796264648,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69066619873047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192199707031,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447799682617,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907043457031,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192390441895,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906394958496,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192047119141,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907730102539,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8168182373047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69067001342773,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69062423706055,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906623840332,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81673431396484,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16103744506836,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81675720214844,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192085266113,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907157897949,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16104888916016,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447914123535,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907386779785,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192352294922,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906547546387,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8188171386719,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8167724609375,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81660079956055,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80932998657227,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81663513183594,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16101837158203,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906433105469,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165817260742,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4191932678223,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7005615234375,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8187942504883,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80931854248047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8093681335449,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84474182128906,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610565185547,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610450744629,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8091468811035,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906852722168,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84478759765625,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7849769592285,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69078826904297,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610107421875,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80932235717773,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7005920410156,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81656646728516,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16102981567383,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610221862793,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69065856933594,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8168296813965,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447570800781,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.419261932373,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192161560059,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16107940673828,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192581176758,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.70056533813477,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8188247680664,
+     "diskGiB": 512
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": false,
+    "mismatches": [
+     "Restored allocation differs from source"
+    ]
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-09T13:19:59.467Z"
+  "end": "2026-11-09T19:49:55.720Z"
  },
- "observations": 31529,
+ "observations": 34418,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -520,6 +994,31 @@
   },
   {
    "id": "sbx103-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx103m-default-main",
+   "suite": "main",
+   "samples": 1979
+  },
+  {
+   "id": "sbx103m-default-main-makeup",
+   "suite": "main",
+   "samples": 228
+  },
+  {
+   "id": "sbx103m-default-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbx103m-default-burst",
+   "suite": "burst",
+   "samples": 426
+  },
+  {
+   "id": "sbx103m-default-cost",
    "suite": "cost",
    "samples": 50
   }
@@ -1769,6 +2268,579 @@
     "resume": 0.9699681200000924,
     "n": 100
    }
+  },
+  {
+   "id": "modal",
+   "costPerTask": {
+    "usd": 0.00018831000000000002,
+    "kind": "billed",
+    "source": "Modal billing report (workspaceBillingReport, cost per App per hour by resource; the call behind `modal billing report`)",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true,
+    "bound": null
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": null,
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 1,
+     "memoryGiB": 452.844783782959,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69078063964844,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 1024,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8167381286621,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80915451049805,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69067764282227,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192314147949,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165855407715,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447685241699,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192276000977,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447723388672,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447952270508,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81676483154297,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8091583251953,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192543029785,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81664276123047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84477615356445,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84476470947266,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.783878326416,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.690673828125,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192008972168,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165512084961,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80934143066406,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192237854004,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84475326538086,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192733764648,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.419246673584,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165626525879,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610336303711,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906318664551,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69068145751953,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69064712524414,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16106796264648,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69066619873047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192199707031,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447799682617,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907043457031,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192390441895,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906394958496,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192047119141,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907730102539,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8168182373047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69067001342773,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69062423706055,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906623840332,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81673431396484,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16103744506836,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81675720214844,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192085266113,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907157897949,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16104888916016,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447914123535,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6907386779785,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192352294922,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906547546387,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8188171386719,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8167724609375,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81660079956055,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80932998657227,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81663513183594,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16101837158203,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906433105469,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8165817260742,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4191932678223,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7005615234375,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8187942504883,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80931854248047,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8093681335449,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84474182128906,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610565185547,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610450744629,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8091468811035,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.6906852722168,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.84478759765625,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7849769592285,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69078826904297,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610107421875,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.80932235717773,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.7005920410156,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.81656646728516,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16102981567383,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.1610221862793,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.69065856933594,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8168296813965,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 452.8447570800781,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.419261932373,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192161560059,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 203.16107940673828,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 676.4192581176758,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.70056533813477,
+     "diskGiB": 512
+    },
+    {
+     "cpu": 1,
+     "memoryGiB": 328.8188247680664,
+     "diskGiB": 512
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.036295875000000005,
+   "pricingBound": "lower",
+   "pricingRegion": "us-east",
+   "regionMultiplier": 1.75,
+   "commonHourly": 1.329552,
+   "perVcpuHour": 0.29036700000000004,
+   "pricingAllocation": {
+    "cpu": 0.125,
+    "memoryGiB": 0.125
+   },
+   "allocationVerification": {
+    "verified": false,
+    "mismatches": [
+     "Restored allocation differs from source"
+    ]
+   },
+   "rates": {
+    "vcpuHour": 0.14191199999999998,
+    "memoryGiBHour": 0.024012,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://modal.com/pricing",
+   "pricingNotes": "Sandbox rates ($0.1419 per CPU-hour, $0.024 per GiB-hour; one Modal CPU is a physical core). Billed per second on max(request, usage), minimum request 0.125 CPU. Priced on the requested allocation, never on the guest's MemTotal, which shows the host's memory without a size. A sized sandbox pins request = limit, so its estimate is exact. The default track (0.125 CPU, 128 MiB request) bursts into spare host capacity and that usage is billed too, so its estimate is a lower bound. A pinned region adds 1.15x (broad, such as us) or 1.75x (narrow, such as us-east). No disk charge or creation fee listed; plan credits excluded.",
+   "reliability": {
+    "successes": 2889,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 1,
+    "visibleCpus": [
+     1
+    ],
+    "cpuQuota": 16.125,
+    "memoryGiB": 452.844783782959,
+    "diskGiB": 512,
+    "cpuModels": [],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": null,
+    "kernel": "4.19.0-gvisor",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 60
+     },
+     {
+      "value": "New York City, US",
+      "count": 38
+     },
+     {
+      "value": "Boydton, US",
+      "count": 19
+     },
+     {
+      "value": "Washington, US",
+      "count": 9
+     },
+     {
+      "value": "Dulles Town Center, US",
+      "count": 4
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 49
+     },
+     {
+      "value": "AS398465 Rackdog, LLC",
+      "count": 49
+     },
+     {
+      "value": "AS8075 Microsoft Corporation",
+      "count": 23
+     },
+     {
+      "value": "AS396982 Google LLC",
+      "count": 9
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": null
   }
  ],
  "metrics": [
@@ -1907,6 +2979,19 @@
      "min": 0.41993762300000526,
      "ciLow": 0.4988006710002665,
      "ciHigh": 0.5308028110002633,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.3751881750000175,
+     "p95": 0.4404920879998244,
+     "min": 0.31341763699999864,
+     "ciLow": 0.36428582399999143,
+     "ciHigh": 0.3826133629999822,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2053,6 +3138,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.07395490099996095,
+     "p95": 0.08288322600000537,
+     "min": 0.059940856999994144,
+     "ciLow": 0.06987780700001167,
+     "ciHigh": 0.07720117499999833,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2191,6 +3289,19 @@
      "min": 0.19176059000007808,
      "ciLow": 0.2337428610001225,
      "ciHigh": 0.24890829700000178,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.17808461699995679,
+     "p95": 0.19992525799999566,
+     "min": 0.147305234999978,
+     "ciLow": 0.1699388649999164,
+     "ciHigh": 0.1866250299999956,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2337,6 +3448,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.9379478239999953,
+     "p95": 4.993164110999904,
+     "min": 0.7413147250000002,
+     "ciLow": 0.9167883780000265,
+     "ciHigh": 0.9762874380000867,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2475,6 +3599,19 @@
      "min": 0.5865970639999724,
      "ciLow": 0.7563417119998485,
      "ciHigh": 0.7904810699999798,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.18231154599998264,
+     "p95": 0.21233464799996,
+     "min": 0.15602763100003358,
+     "ciLow": 0.1743006029999997,
+     "ciHigh": 0.18791275400000088,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2737,6 +3874,28 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.043,
+     "p95": 0.08,
+     "min": 0.033,
+     "ciLow": 0.041,
+     "ciHigh": 0.044,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0,
+     "timed": "terminate-request",
+     "requestUnknown": 0,
+     "confirmedStop": {
+      "n": 100,
+      "p50": 0.361,
+      "p95": 0.401,
+      "max": 0.651,
+      "unconfirmed": 0
+     }
     }
    ]
   },
@@ -2866,6 +4025,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.9060615790000011,
+     "p95": 1.278752861999994,
+     "min": 0.701728895999986,
+     "ciLow": 0.855655488000004,
+     "ciHigh": 0.9972941489999994,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2991,6 +4163,19 @@
      "min": 1.0244782330000017,
      "ciLow": 1.1067887210000045,
      "ciHigh": 1.1604987410000003,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.9775169850000238,
+     "p95": 1.3072701509999989,
+     "min": 0.8215989800000097,
+     "ciLow": 0.9431011819999985,
+     "ciHigh": 1.0073380560000078,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3137,6 +4322,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.5857840910000377,
+     "p95": 2.110076609999989,
+     "min": 0.40009030500001974,
+     "ciLow": 0.5149682809999795,
+     "ciHigh": 0.6163188029999874,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3275,6 +4473,19 @@
      "min": 1.0468117920000222,
      "ciLow": 1.1820017950000474,
      "ciHigh": 1.3740172160000075,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 1.1403596469999757,
+     "p95": 1.3723056930000022,
+     "min": 0.905879117000004,
+     "ciLow": 1.125533453000011,
+     "ciHigh": 1.167566605,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3421,6 +4632,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 4.38458044099997,
+     "p95": 6.211485465000005,
+     "min": 2.469597278000001,
+     "ciLow": 3.6038639480000128,
+     "ciHigh": 4.4994244490000055,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3559,6 +4783,19 @@
      "min": 1.158284936000011,
      "ciLow": 1.5108926249999932,
      "ciHigh": 1.7001164419999988,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.7742889200000209,
+     "p95": 0.9648922890000103,
+     "min": 0.605876002999983,
+     "ciLow": 0.7514023959999904,
+     "ciHigh": 0.8646215049999882,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3705,6 +4942,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.1582141479999991,
+     "p95": 0.17671357999998144,
+     "min": 0.14737211200001185,
+     "ciLow": 0.15409911499999,
+     "ciHigh": 0.1636552790000278,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3843,6 +5093,19 @@
      "min": 0.2204332070000237,
      "ciLow": 0.25798184899997434,
      "ciHigh": 0.28052296800000476,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.20625865999993404,
+     "p95": 0.24310646999999883,
+     "min": 0.17840028500003974,
+     "ciLow": 0.19109268000000157,
+     "ciHigh": 0.21448326599999565,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3989,6 +5252,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 10.529852208999975,
+     "p95": 12.677197134000016,
+     "min": 10.023603226000036,
+     "ciLow": 10.393018013999972,
+     "ciHigh": 11.74184690600005,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4131,6 +5407,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 3,
+     "p50": 0.46401188899999946,
+     "p95": 0.6473119300000001,
+     "min": 0.44447870200000034,
+     "ciLow": 0.44447870200000034,
+     "ciHigh": 0.6473119300000001,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4256,6 +5545,19 @@
      "min": 0.6064956529999982,
      "ciLow": 0.6064956529999982,
      "ciHigh": 1.244730971000001,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 3,
+     "p50": 0.5605837219999976,
+     "p95": 0.6010053050000024,
+     "min": 0.5600047489999997,
+     "ciLow": 0.5600047489999997,
+     "ciHigh": 0.6010053050000024,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -4402,6 +5704,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 13371498.44247443,
+     "p95": 24032774.55209858,
+     "min": 11756746.288486326,
+     "ciLow": 13245353.281718418,
+     "ciHigh": 13492385.531747967,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4540,6 +5855,19 @@
      "min": 4116034.3759748456,
      "ciLow": 13738518.79712045,
      "ciHigh": 18122254.12171808,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 11184895.255301502,
+     "p95": 19306647.69775657,
+     "min": 9548401.750798777,
+     "ciLow": 11071131.532969503,
+     "ciHigh": 11318025.748780219,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4686,6 +6014,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 28080.851080522378,
+     "p95": 47555.91617374788,
+     "min": 11827.09003069784,
+     "ciLow": 19251.07821202039,
+     "ciHigh": 31633.901276787714,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4824,6 +6165,19 @@
      "min": 1072.4098909154627,
      "ciLow": 2255.749898277738,
      "ciHigh": 2429.72906197756,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 7996.310029492033,
+     "p95": 10319.412680006562,
+     "min": 3846.3268132090457,
+     "ciLow": 5702.425555999964,
+     "ciHigh": 8287.509705046547,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4970,6 +6324,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 1547.3963940511276,
+     "p95": 12637.147477687306,
+     "min": 1329.52575225616,
+     "ciLow": 1538.1924687941892,
+     "ciHigh": 1576.1679188618273,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5112,6 +6479,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 119326.346837878,
+     "p95": 181266.2723653251,
+     "min": 68576.90860118256,
+     "ciLow": 110571.69019193777,
+     "ciHigh": 122554.88639737984,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5250,6 +6630,19 @@
      "min": 192439.53189082077,
      "ciLow": 546002.8750464369,
      "ciHigh": 608246.4918930687,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 308148.6046645445,
+     "p95": 409598.68928445835,
+     "min": 127266.94241171278,
+     "ciLow": 301092.51890948135,
+     "ciHigh": 313301.228116386,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5403,6 +6796,19 @@
      "min": 1.3632405999999264,
      "ciLow": 1.8691503999999526,
      "ciHigh": 1.997787400000206,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 2.680298200000042,
+     "p95": 7.04798560000004,
+     "min": 1.4458055999995167,
+     "ciLow": 2.583343999999954,
+     "ciHigh": 2.7486634000002397,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -6431,6 +7837,108 @@
    0.83,
    0.909,
    1.232
+  ],
+  "modal": [
+   0.313,
+   0.318,
+   0.318,
+   0.325,
+   0.328,
+   0.33,
+   0.332,
+   0.333,
+   0.336,
+   0.336,
+   0.337,
+   0.337,
+   0.339,
+   0.34,
+   0.343,
+   0.344,
+   0.345,
+   0.347,
+   0.348,
+   0.349,
+   0.349,
+   0.351,
+   0.352,
+   0.352,
+   0.352,
+   0.353,
+   0.353,
+   0.353,
+   0.354,
+   0.354,
+   0.355,
+   0.356,
+   0.36,
+   0.36,
+   0.362,
+   0.363,
+   0.363,
+   0.363,
+   0.364,
+   0.364,
+   0.364,
+   0.365,
+   0.365,
+   0.367,
+   0.369,
+   0.371,
+   0.371,
+   0.373,
+   0.374,
+   0.375,
+   0.376,
+   0.377,
+   0.377,
+   0.378,
+   0.379,
+   0.381,
+   0.382,
+   0.382,
+   0.383,
+   0.383,
+   0.383,
+   0.384,
+   0.385,
+   0.385,
+   0.386,
+   0.388,
+   0.388,
+   0.389,
+   0.389,
+   0.39,
+   0.391,
+   0.391,
+   0.391,
+   0.392,
+   0.394,
+   0.394,
+   0.394,
+   0.395,
+   0.395,
+   0.398,
+   0.398,
+   0.399,
+   0.399,
+   0.4,
+   0.401,
+   0.401,
+   0.402,
+   0.403,
+   0.409,
+   0.415,
+   0.416,
+   0.43,
+   0.431,
+   0.439,
+   0.44,
+   0.442,
+   0.45,
+   0.464,
+   0.744,
+   1.425
   ]
  },
  "missing": {
