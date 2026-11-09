@@ -638,18 +638,19 @@ describe("page", () => {
     assert.doesNotMatch(html.replaceAll("There is no overall cheapest", ""), /cheapest/i);
   });
 
-  test("the footprint is in the notes, the cost line is above the chart, and a lone eligible provider isn't named twice", () => {
+  test("the footprint is in the notes, the cost line is above the chart, and the eligible set is named only when there is more than one", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
     assert.match(html, /<span class="max-w-\[90ch\]">Workload CPU and memory, excluding installation: about/);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
     assert.ok(html.includes(costCovers));
-    assert.doesNotMatch(html, /Eligible: /);
+    // With Modal billed and settled, Upstash Box and Modal are both eligible on every tab, so the set is named.
+    assert.match(html, /Eligible: /);
   });
 
   test("Upstash Box's pick, row and details say its cost has an estimated disk part, with the amount", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /Only eligible provider:.*compute verified \(billed, settled\); disk estimated/s);
+    assert.match(html, /Lowest verified cost among eligible providers:.*compute verified \(billed, settled\); disk estimated/s);
     const part = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.estimatedPart;
     assert.ok(part);
     const total = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.cost?.usdPerCompleted ?? 1;
@@ -723,7 +724,7 @@ describe("page", () => {
 
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
-    assert.match(html, /Only verified fix-and-test cost, per 1,000/);
+    assert.match(html, /Lowest verified fix-and-test cost, per 1,000/);
     assert.match(html, /<span class="text-xs text-pretty text-neutral-8">compute verified \(billed, settled\); disk estimated<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });
