@@ -699,6 +699,11 @@ describe("page", () => {
     assert.equal((html.match(/class="flex h-3 items-stretch border-l border-neutral-4 sm:hidden"/g) ?? []).length, costedRows + buildRows);
   });
 
+  test("on phones each task card says which machine it ran on", () => {
+    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GB<\/span>/);
+    assert.match(renderToStaticMarkup(<TaskCost track={tracks.default} />), /<span class="block sm:hidden">Default machines · sizes vary<\/span>/);
+  });
+
   test("the idle chart says its run count and scope, names who stopped, and isn't ranked", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     assert.match(html, /What leaving the sandbox open costs/);

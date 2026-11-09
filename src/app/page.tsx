@@ -38,7 +38,6 @@ import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
 import { providerBrand, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { laterLine, pilotDetail } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
 
@@ -734,9 +733,7 @@ export default function Page() {
         >
           <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
             <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>
-              {pilotDetail(realistic).replace(/^\w/, (c) => c.toUpperCase())} {laterLine}
-            </span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider; each chart says how far its prices are verified.</span>
           </p>
           <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
           <Card className="mt-m">

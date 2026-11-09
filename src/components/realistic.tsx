@@ -342,16 +342,18 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
   const w = realistic.workloads?.[profile] ?? null;
   const footprint = profileFootprint(profile, w);
   const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GB";
+  const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GB";
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
   return (
     <>
-      {/* Phones keep the workload line; the machine is in the track switch above and the dollar sign says the currency. */}
+      {/* Phones keep the workload line and a short machine line, since the track switch can be far above; the dollar sign says the currency. */}
       <ChartHead
         title={title}
         sub={
           <>
             {profileWhat(profile, w)}
             <span className="hidden sm:inline"> · {machine} · US dollars · Lower is better</span>
+            <span className="block sm:hidden">{machineShort}</span>
           </>
         }
       />
