@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Allocations } from "@/components/allocations";
@@ -19,6 +20,7 @@ import type { ScatterPoint } from "@/components/scatter";
 import { JumpLink } from "@/components/jump";
 import { HomeJsonLd } from "@/components/seo/home-json-ld";
 import { HomeLinks } from "@/components/seo/home-links";
+import { homeMetadata } from "@/lib/seo/home";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
@@ -447,6 +449,8 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
 
 // The switch appears only once both tracks have results; until then one side would be empty sections.
 const showSwitch = trackIds.every((id) => tracks[id].providers.length > 0);
+
+export const metadata: Metadata = homeMetadata;
 
 export default function Page() {
   return (
