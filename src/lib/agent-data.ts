@@ -392,7 +392,7 @@ function realisticMarkdown() {
       lines.push(
         `## ${profileInfo[profile].label}, ${trackInfo[id].tab}`,
         "",
-        `${w?.what ?? ""}${w?.footprint ? `; ${w.footprint}` : ""}.`,
+        `${w?.what ?? ""}.${w?.footprint ? ` ${w.footprint}.` : ""}`,
         "",
         pickLine(id, profile),
         "",

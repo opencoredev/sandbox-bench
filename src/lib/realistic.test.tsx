@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { describe, test } from "node:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
@@ -14,6 +16,7 @@ import { tracks } from "@/lib/data";
 import {
   SCHEMA,
   billingText,
+  costCovers,
   coverageGaps,
   headlineRows,
   holdStatuses,
@@ -169,6 +172,28 @@ describe("data script", () => {
     assert.throws(() => build([{ name: "x", raw: summary({ rows: [...summary().rows, summaryRow({ provider: "e2b" })] }) }]), /e2b, which isn't in the coverage file/);
   });
 
+  test("refuses a duplicate held-open entry or row in a summary", () => {
+    const extra = heldEntry("upstash", "held-60", { medianCostUSD: 999 });
+    assert.throws(() => build([{ name: "x", raw: summary({ heldOpen: [...summary().heldOpen, extra] }) }]), /x: realistic data: heldOpen has upstash\/held-60 twice/);
+    assert.throws(() => build([{ name: "x", raw: summary({ rows: [...summary().rows, summaryRow({ costPerCompletedUSD: 0.5 })] }) }]), /x: realistic data: rows has upstash\/fix-and-test\/same-machine\/headline twice/);
+  });
+
+  test("the command refuses a duplicate held-open entry and leaves the existing output file as it was", () => {
+    const dir = mkdtempSync(join(tmpdir(), "realistic-dup-"));
+    const input = join(dir, "run", "merged", "summary.json");
+    mkdirSync(dirname(input), { recursive: true });
+    writeFileSync(input, JSON.stringify(summary({ heldOpen: [...summary().heldOpen, heldEntry("upstash", "held-60", { medianCostUSD: 999 })] })));
+    const coverageFile = join(dir, "coverage.json");
+    writeFileSync(coverageFile, JSON.stringify(coverage));
+    const out = join(dir, "out.json");
+    writeFileSync(out, "previous output\n");
+    const script = resolve(import.meta.dirname, "../../scripts/realistic-site-data.ts");
+    const run = spawnSync(process.execPath, [script, "--summary", input, "--coverage", coverageFile, "--out", out], { encoding: "utf8" });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stderr, /heldOpen has upstash\/held-60 twice/);
+    assert.equal(readFileSync(out, "utf8"), "previous output\n");
+  });
+
   test("stops when the summary's own pick disagrees with the site's rule", () => {
     assert.throws(() => build([{ name: "x", raw: summary({ picks: [pick({ lowest: "boat" })] }) }]), /lowest eligible is boat/);
     assert.throws(() => build([{ name: "x", raw: summary({ picks: [pick({ lowerUnverified: [] })] }) }]), /lower unverified/);
@@ -261,6 +286,14 @@ describe("schema", () => {
     assert.ok(realistic.rows.filter((r) => r.variant === "headline").every((r) => r.attempts === realistic.coverage.headline.attempts));
   });
 
+  test("the build refuses a duplicate held-open entry, so a second copy can't replace a chart value", () => {
+    const f = structuredClone(JSON.parse(JSON.stringify(realistic))) as Record<string, unknown> & { heldOpen: Record<string, unknown>[] };
+    const vercel = f.heldOpen.find((h) => h.provider === "vercel" && h.idle === "held-60");
+    assert.ok(vercel);
+    f.heldOpen = [...f.heldOpen, { ...vercel, medianCostUsd: 999 }];
+    assert.throws(() => parseRealistic(f), /heldOpen has vercel\/held-60 twice/);
+  });
+
   test("an unknown held-open status stops the build instead of being guessed", () => {
     const f = structuredClone(JSON.parse(JSON.stringify(realistic))) as Record<string, unknown> & { heldOpen: Record<string, unknown>[] };
     const [h] = f.heldOpen;
@@ -317,6 +350,11 @@ describe("statuses and billing", () => {
   test("the cost scope names only what the data has, and says what isn't measured", () => {
     const line = scopeLine(realistic);
     assert.match(line, /compute, memory, disk and standby storage/);
+    // The one-line summary above each chart and the scope line say the same thing.
+    assert.match(costCovers, /setup and failed attempts/);
+    assert.match(line, /setup and failed attempts included/);
+    assert.match(costCovers, /through confirmed deletion/);
+    assert.match(line, /through confirmed deletion/);
     assert.match(line, /Upstash Box's billing leaves disk out, so disk is added at list price/);
     assert.match(line, /For (Daytona and Upstash Ephemeral Box|Upstash Ephemeral Box and Daytona) it isn't known whether the billing source includes disk/);
     assert.match(line, /snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them/);
@@ -490,6 +528,21 @@ describe("page", () => {
     assert.match(html, /Not in the chart:/);
     assert.match(html, /default machine is too small for this workload/);
     assert.doesNotMatch(html.replaceAll("There is no overall cheapest", ""), /cheapest/i);
+  });
+
+  test("the footprint line says it excludes installation, and the cost line says setup is in the price", () => {
+    const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    assert.match(html, /Workload CPU and memory, excluding installation: about/);
+    assert.doesNotMatch(html, /install excluded/);
+    assert.ok(html.includes(costCovers));
+  });
+
+  test("on phones the chart is hidden and each provider row carries its bar instead", () => {
+    const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    assert.match(html, /<div class="hidden sm:block"><figure/);
+    const costedRows = headlineRows(realistic, "same-machine", "fix-and-test").costed.length;
+    const buildRows = headlineRows(realistic, "same-machine", "build").costed.length;
+    assert.equal((html.match(/class="flex h-3 items-stretch border-l border-neutral-4 sm:hidden"/g) ?? []).length, costedRows + buildRows);
   });
 
   test("the idle chart says its run count and scope, names who stopped, and isn't ranked", () => {

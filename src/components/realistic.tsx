@@ -13,6 +13,7 @@ import type { ProviderId } from "@/lib/providers";
 import {
   billingText,
   changeText,
+  costCovers,
   completedText,
   flagsOf,
   headlineRows,
@@ -161,10 +162,31 @@ function RowDetails({ row }: { row: RealisticRow }) {
   );
 }
 
-const rowGrid = "grid w-full grid-cols-[1fr_auto] gap-x-s gap-y-xxs text-left sm:grid-cols-[9rem_5.5rem_minmax(0,1fr)_5rem_6.5rem] sm:items-baseline";
+const rowGrid =
+  "grid w-full grid-cols-[5.25rem_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-xxs text-left sm:grid-cols-[9rem_5.5rem_minmax(0,1fr)_5rem_6.5rem] sm:items-baseline sm:gap-x-s";
 
-/** One provider: cost, short status, completion and time, with the longer explanation behind a disclosure. */
-function ProviderRow({ row }: { row: RealisticRow }) {
+/**
+ * The bar a phone shows inside the row, in place of a separate chart: the
+ * same length, colour and fill (solid when verified) as the chart's bar.
+ */
+function RowBar({ row, max }: { row: RealisticRow; max: number }) {
+  if (!row.cost) return <span aria-hidden className="sm:hidden" />;
+  return (
+    <span aria-hidden className="flex h-3 items-stretch border-l border-neutral-4 sm:hidden">
+      <span
+        className="rounded-r-xs"
+        style={{ width: `${Math.min(row.cost.usdPerCompleted / max, 1) * 100}%`, minWidth: 2, ...markFill(row.eligible ? "solid" : "striped", providerColor(row.provider)) }}
+      />
+    </span>
+  );
+}
+
+/**
+ * One provider: cost, kind and status, completion and time, with the longer
+ * explanation behind a disclosure. On phones the row also carries the bar, so
+ * the chart isn't drawn a second time above the list.
+ */
+function ProviderRow({ row, max }: { row: RealisticRow; max: number }) {
   const status = row.cost ? statusTag(row) : shortReason(row);
   const tone = row.cost === null ? "none" : row.eligible ? "ok" : "warn";
   return (
@@ -174,18 +196,19 @@ function ProviderRow({ row }: { row: RealisticRow }) {
         triggerClassName="w-full items-center gap-s py-s hover:bg-neutral-3/40"
         summary={
           <span className={rowGrid}>
-            <span className="text-s font-medium">
+            <span className="text-s leading-[1.1] font-medium">
               <Who id={row.provider} />
             </span>
+            <RowBar row={row} max={max} />
             <span className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-left">
               <span className="sr-only">Per 1,000 completed: </span>
               {row.cost ? perThousand(row.cost.usdPerCompleted) : "no cost"}
             </span>
-            <span className="col-span-2 flex gap-1.5 text-xs sm:col-span-1">
+            <span className="col-span-3 flex gap-1.5 text-xs sm:col-span-1">
               <Dot tone={tone} />
               <span className={tone === "warn" ? "text-warning" : tone === "ok" ? "text-neutral-10" : "text-neutral-8"}>{status}</span>
             </span>
-            <span className="col-span-2 font-mono text-xs text-neutral-8 tabular-nums sm:col-span-1">
+            <span className="col-span-3 font-mono text-xs text-neutral-8 tabular-nums sm:col-span-1">
               <span className="font-sans sm:sr-only">Completed </span>
               {notRun(row) ? "not run" : completedText(row)}
               {row.medianWallS === null ? null : (
@@ -211,8 +234,9 @@ function ProviderRow({ row }: { row: RealisticRow }) {
 
 /** Every provider in the workload, run or not, one row each. */
 function ProviderRows({ rows }: { rows: readonly RealisticRow[] }) {
+  const max = Math.max(...rows.map((r) => r.cost?.usdPerCompleted ?? 0), Number.EPSILON);
   return (
-    <div className="mt-l">
+    <div className="mt-s sm:mt-l">
       <p aria-hidden className={`${rowGrid} hidden pr-l pb-xs text-xs text-neutral-7 sm:grid`}>
         <span>Provider</span>
         <span>Per 1,000</span>
@@ -222,7 +246,7 @@ function ProviderRows({ rows }: { rows: readonly RealisticRow[] }) {
       </p>
       <ul className="flex flex-col">
         {rows.map((row) => (
-          <ProviderRow key={row.provider} row={row} />
+          <ProviderRow key={row.provider} row={row} max={max} />
         ))}
       </ul>
     </div>
@@ -272,11 +296,19 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
   return (
     <>
-      <ChartHead title={title} sub={`${profileWhat(profile, w)} · ${machine} · US dollars · Lower is better`} meta={footprint ? cap(footprint) : undefined} />
+      <ChartHead title={title} sub={`${profileWhat(profile, w)} · ${machine} · US dollars · Lower is better`} meta={footprint ?? undefined} />
       <Pick costed={costed} />
-      {costed.length > 0 ? <Columns columns={columnsOf(costed)} label={`${title} by provider`} /> : null}
+      <p className="mb-s text-xs text-neutral-8">{costCovers}</p>
+      {/* Phones get the bars inside the provider rows below instead, so nothing is listed twice. */}
+      {costed.length > 0 ? (
+        <div className="hidden sm:block">
+          <Columns columns={columnsOf(costed)} label={`${title} by provider`} />
+        </div>
+      ) : null}
       <Legend solid="Verified: eligible for the pick" striped="Not verified or not eligible: shown, never picked" />
-      <NotInChart rows={uncosted} />
+      <div className="hidden sm:block">
+        <NotInChart rows={uncosted} />
+      </div>
       <ProviderRows rows={[...costed, ...uncosted]} />
       <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted])} />
     </>

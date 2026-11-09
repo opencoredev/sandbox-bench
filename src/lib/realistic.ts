@@ -324,11 +324,29 @@ export function coverageGaps(c: Coverage, rows: readonly RealisticRow[], held: r
 }
 
 /** Rows and held-open entries checked one by one, before any coverage check: for one summary of a merge. */
+/** Stops on the first key seen twice: a second copy of a row or held-open entry would silently win in a lookup. */
+function once<T>(items: readonly T[], keyOf: (x: T) => string, path: string) {
+  const seen = new Set<string>();
+  for (const x of items) {
+    const key = keyOf(x);
+    if (seen.has(key)) fail(path, `has ${key} twice`);
+    seen.add(key);
+  }
+}
+
+/**
+ * Rows and held-open entries, each checked, with no row (provider, workload,
+ * track, variant) or held-open entry (provider, wait) twice. The build and the
+ * data script (per summary, before merging) both read through here.
+ */
 export function parseParts(rows: unknown, held: unknown): { rows: RealisticRow[]; heldOpen: HeldOpen[] } {
-  return {
+  const parsed = {
     rows: arr(rows, "rows").map((r, i) => parseRow(r, `rows[${i}]`)),
     heldOpen: arr(held, "heldOpen").map((h, i) => parseHeld(h, `heldOpen[${i}]`)),
   };
+  once(parsed.rows, (r) => `${r.provider}/${r.profile}/${r.track}/${r.variant}`, "rows");
+  once(parsed.heldOpen, (h) => `${h.provider}/${h.idle}`, "heldOpen");
+  return parsed;
 }
 
 /** Reads `src/data/realistic.json`, or the script's output before it is written. Incomplete data stops here. */
@@ -337,15 +355,8 @@ export function parseRealistic(raw: unknown): RealisticData {
   if (o.schema !== SCHEMA) fail("schema", `must be "${SCHEMA}"`);
   const fx = o.fx === null ? null : obj(o.fx, "fx");
   const workloads = o.workloads === null ? null : obj(o.workloads, "workloads");
-  const rows = arr(o.rows, "rows").map((r, i) => parseRow(r, `rows[${i}]`));
-  const keys = new Set<string>();
-  for (const r of rows) {
-    const key = `${r.provider}/${r.profile}/${r.track}/${r.variant}`;
-    if (keys.has(key)) fail("rows", `has ${key} twice`);
-    keys.add(key);
-  }
+  const { rows, heldOpen } = parseParts(o.rows, o.heldOpen);
   const coverage = parseCoverage(o.coverage);
-  const heldOpen = arr(o.heldOpen, "heldOpen").map((h, i) => parseHeld(h, `heldOpen[${i}]`));
   const gaps = coverageGaps(coverage, rows, heldOpen);
   if (gaps.length > 0) fail("file", `is incomplete or has unexpected data: ${gaps.join("; ")}`);
   return {
@@ -405,12 +416,20 @@ export function profileWhat(profile: ProfileId, w: Workload | null): string {
   }
 }
 
-/** "About 175–204 CPU-seconds and 2.5 GiB on the 4 vCPU, 8 GB reference machine", or null without a footprint. */
+/**
+ * "Workload CPU and memory, excluding installation: about 175–204
+ * CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GB reference machine", or null
+ * without a footprint. The label says what the figure leaves out, so it isn't
+ * read as leaving setup out of the price.
+ */
 export function profileFootprint(profile: ProfileId, w: Workload | null): string | null {
   if (!w) return null;
   const memory = profile === "build" ? `${range(w.memoryGiB, 1)} GiB of memory` : `${range(w.memoryGiB, 1)} GiB`;
-  return `about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine, install excluded`;
+  return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine`;
 }
+
+/** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
+export const costCovers = "Task cost includes setup and failed attempts, from the create request through confirmed deletion.";
 
 /**
  * Why a row can't be the pick. A reason the eligibility table names
@@ -656,7 +675,7 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const estimates = has((r) => r.cost?.kind === "estimate");
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
-    "Cost scope: every charge from the create request to confirmed deletion, meaning compute, memory, disk and standby storage, for every attempt, failed ones included.",
+    "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",

@@ -261,7 +261,14 @@ export function buildRealistic({
     });
     const ownHeld = list(s.heldOpen ?? [], `${name}.heldOpen`).map((h, i) => heldFrom(h, `${name}.heldOpen[${i}]`));
     need(own.length > 0, `${name} has no rows`);
-    const parsed = parseParts(own, ownHeld);
+    // Each row and held-open entry once: a duplicate would win a lookup silently, so the summary is refused before any merge.
+    const parsed = (() => {
+      try {
+        return parseParts(own, ownHeld);
+      } catch (e) {
+        throw new Error(`${name}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    })();
     const providers = [...new Set([...parsed.rows, ...parsed.heldOpen].map((r) => r.provider))];
     // Every provider this summary would replace must be complete in it, so a partial file can't drop rows.
     for (const id of providers) {
