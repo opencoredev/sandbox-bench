@@ -317,7 +317,7 @@ function realisticRowData(row: RealisticRow) {
 /** The part of a cost we added at list price, per 1,000, with what it is; nothing when none was added. */
 function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], total: number | null, key: "per1000CompletedUsd" | "medianPer1000Usd") {
   const note = kind ? estimatedPartText(kind, part, total, "per 1,000") : null;
-  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? round(part.usd / total) : null, what: part.labels, note } } : {};
+  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null, what: part.labels, note } } : {};
 }
 
 /** A plan minimum the usage-only cost leaves out, from the provider's pricing notes; nothing when it has none. */

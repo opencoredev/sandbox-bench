@@ -162,10 +162,11 @@ function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, pa
  * published numbers; an estimate is all estimate and carries none.
  */
 function estimatedFor(r: Json, where: string, usd: number | null, parts: SummaryParts) {
-  if (usd === null) return null;
   const p = parts.rows.get(keyOf(r));
   need(p !== undefined, `${where}: no estimated-parts entry for ${keyOf(r)} in this summary's parts file`);
   need(p !== undefined && sameTotal(p.total, usd), `${where}: the parts file's total for ${keyOf(r)} doesn't match the summary`);
+  // A row with no cost still needs its entry, with no total, so a missing or altered entry is caught too.
+  if (usd === null) return null;
   return r.costKind === "estimate" ? null : partOf(p);
 }
 

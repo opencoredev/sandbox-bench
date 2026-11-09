@@ -240,6 +240,22 @@ describe("data script", () => {
     assert.throws(() => build([{ name: "x", raw }], [], coverage, [partsFor(raw), other]), /two different parts files claim summary/);
   });
 
+  // The code review's reproduction: a row with no cost skipped its parts check, so a missing or altered entry passed.
+  test("a row with no cost still needs its parts entry, with no total", () => {
+    const cov = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "superserve"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "superserve", reason: "x" }] } };
+    const failing = summaryRow({ provider: "superserve", completed: 0, incomplete: 5, reasons: { "check-failed": 5 }, costPerCompletedUSD: null, medianWallS: null, wholeMachinePerCompletedUSD: null, eligibility: "did not complete; 5 incomplete runs (at most 1)" });
+    const raw = summary({ rows: [...summary().rows, failing] });
+    const key = (r: Record<string, unknown>) => `${String(r.provider)}/${String(r.profile)}/${String(r.track)}/${String(r.variant)}`;
+    const isFailing = (r: Record<string, unknown>) => key(r) === "superserve/fix-and-test/same-machine/headline";
+    assert.ok(build([{ name: "x", raw }], [], cov).rows.some((r) => r.provider === "superserve"));
+    const missing = partsFor(raw);
+    missing.rows = missing.rows.filter((r) => !isFailing(r));
+    assert.throws(() => build([{ name: "x", raw }], [], cov, [missing]), /no estimated-parts entry for superserve/);
+    const altered = partsFor(raw);
+    altered.rows = altered.rows.map((r) => (isFailing(r) ? { ...r, totalPerCompletedUSD: 999 } : r));
+    assert.throws(() => build([{ name: "x", raw }], [], cov, [altered]), /total for superserve.*doesn't match the summary/);
+  });
+
   test("refuses a duplicate held-open entry or row in a summary", () => {
     const extra = heldEntry("upstash", "held-60", { medianCostUSD: 999 });
     assert.throws(() => build([{ name: "x", raw: summary({ heldOpen: [...summary().heldOpen, extra] }) }]), /x: realistic data: heldOpen has upstash\/held-60 twice/);
@@ -560,6 +576,22 @@ describe("exports", () => {
     for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute)\b.*, /);
   });
 
+  // The code review's finding: a share rounded to 3 decimals read 0.40% in the export against 0.42% on the page.
+  test("an exported estimated share agrees with the percentage its note prints", () => {
+    const d = agentData().whatATaskCosts;
+    const parts = [
+      ...profileIds.flatMap((profile) => (["same-spec", "default"] as const).flatMap((track) => d.tracks[track]?.workloads[profile]?.providers ?? [])),
+      ...d.idle.providers.flatMap((g) => g.waits),
+    ].flatMap((p) => ("estimatedPart" in p && p.estimatedPart ? [p.estimatedPart] : []));
+    assert.ok(parts.length > 0);
+    for (const part of parts) {
+      const shown = /(\d+\.\d+)%/.exec(part.note)?.[1];
+      assert.ok(shown, part.note);
+      assert.ok(part.shareOfTotal !== null);
+      assert.equal((part.shareOfTotal * 100).toFixed(shown.split(".")[1]?.length ?? 2), shown, part.note);
+    }
+  });
+
   test("every export names the providers left out of the idle test, with why", () => {
     const d = agentData().whatATaskCosts;
     assert.deepEqual(d.idle.notTested.map((n) => n.provider), realistic.coverage.idle.notTested.map((n) => n.provider));
@@ -617,7 +649,7 @@ describe("page", () => {
 
   test("Upstash Box's pick, row and details say its cost has an estimated disk part, with the amount", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /The only verified cost among eligible providers:.*compute verified \(billed, settled\); disk estimated/s);
+    assert.match(html, /Only eligible provider:.*compute verified \(billed, settled\); disk estimated/s);
     const part = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.estimatedPart;
     assert.ok(part);
     const total = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.cost?.usdPerCompleted ?? 1;
@@ -686,7 +718,7 @@ describe("page", () => {
 
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
-    assert.match(html, /Fix and test, per 1,000/);
+    assert.match(html, /Only verified fix-and-test cost, per 1,000/);
     assert.match(html, /<span class="text-xs text-pretty text-neutral-8">compute verified \(billed, settled\); disk estimated<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });

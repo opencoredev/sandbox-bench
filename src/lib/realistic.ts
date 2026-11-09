@@ -414,8 +414,8 @@ export function parseRealistic(raw: unknown): RealisticData {
 export const pilotDetail = (d: Pick<RealisticData, "coverage">) =>
   `${d.coverage.headline.attempts} runs per provider; most costs are provider meters or estimates not yet checked against settled bills.`;
 export const pilotLine = (d: Pick<RealisticData, "coverage">) => `Pilot: ${pilotDetail(d)}`;
-/** "Pilot · 5 runs per provider · descriptive results": the short line above each chart; the full reason is in its notes. */
-export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs per provider · descriptive results`;
+/** "Pilot · 5 runs per provider · most prices not checked against settled bills": the short line above each chart; the full reason is in its notes. */
+export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs per provider · most prices not checked against settled bills`;
 
 /** "Pilot · 5 runs", for places with room for a word or two. */
 export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs`;
@@ -594,7 +594,7 @@ export function headlineRows(data: Pick<RealisticData, "rows">, track: RunTrack,
 
 export const pickLabels = {
   lowest: "Lowest verified cost among eligible providers",
-  only: "The only verified cost among eligible providers",
+  only: "Only eligible provider",
   none: "No clear winner",
   uncertified: "No certified winner",
 } as const;

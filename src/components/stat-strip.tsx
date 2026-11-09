@@ -41,7 +41,7 @@ function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
   switch (p.kind) {
     case "verified":
       return {
-        label: "Fix and test, per 1,000",
+        label: `${p.eligible.length === 1 ? "Only verified" : "Lowest verified"} fix-and-test cost, per 1,000`,
         provider: p.pick.provider,
         value: perThousand(p.pick.cost.usdPerCompleted),
         note: statusTag(p.pick),
