@@ -285,14 +285,43 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "vercel",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 64
+    }
+   },
+   "measured": [
+    {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 63.9375
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-04T00:42:09.978Z"
+  "end": "2026-11-09T13:19:59.467Z"
  },
- "observations": 28540,
+ "observations": 31529,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -471,6 +500,26 @@
   },
   {
    "id": "sbx93-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx103-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbx103-default-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbx103-default-burst",
+   "suite": "burst",
+   "samples": 426
+  },
+  {
+   "id": "sbx103-default-cost",
    "suite": "cost",
    "samples": 50
   }
@@ -1590,6 +1639,136 @@
    "failureReasons": [],
    "ourFailures": [],
    "pauseSplit": null
+  },
+  {
+   "id": "vercel",
+   "costPerTask": {
+    "usd": 0.001640902222222222,
+    "kind": "metered",
+    "source": "@vercel/sandbox Sandbox.get: totalActiveCpuDurationMs, totalDurationMs, memory",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 64
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 63.9375
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.3408,
+   "commonHourly": 0.6816,
+   "perVcpuHour": 0.1704,
+   "pricingAllocation": {
+    "cpu": 2,
+    "memoryGiB": 4
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.128,
+    "memoryGiBHour": 0.0212,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 1,
+      "memoryGiB": 2
+     },
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 6,
+      "memoryGiB": 12
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16
+     }
+    ]
+   },
+   "pricingSource": "https://vercel.com/docs/sandbox/pricing",
+   "pricingNotes": "Pro, iad1: active CPU $0.128 per vCPU-hour of CPU time (I/O wait not billed), memory $0.0212 per GB-hour of wall time in one-minute minimum increments, $0.60 per million creations. Vercel's docs leave rounding after the first minute open; we charge whole minutes, the dearer reading. Metered: the bench stops each sandbox to read Vercel's meter before deleting it, so the meter includes the stop's disk snapshot (about 3% in one probe; approximate, not corrected per task). Hourly assumes every vCPU busy. Pro's $20 credit, data transfer and snapshot storage excluded.",
+   "reliability": {
+    "successes": 2989,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 2,
+    "visibleCpus": [
+     2
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 4,
+    "diskGiB": 63.9375,
+    "cpuModels": [
+     {
+      "value": "Intel Xeon Processor @ 2.90GHz",
+      "count": 98
+     },
+     {
+      "value": "Intel Xeon Processor @ 2.50GHz",
+      "count": 32
+     }
+    ],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.56",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 2.1537836689999095,
+    "resume": 0.9699681200000924,
+    "n": 100
+   }
   }
  ],
  "metrics": [
@@ -1715,6 +1894,19 @@
      "min": 0.8640571680003777,
      "ciLow": 1.1253656589994208,
      "ciHigh": 1.1835937759997324,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.5095192749999696,
+     "p95": 0.7389362090001814,
+     "min": 0.41993762300000526,
+     "ciLow": 0.4988006710002665,
+     "ciHigh": 0.5308028110002633,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -1848,6 +2040,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.3369993169999216,
+     "p95": 0.49888390900008384,
+     "min": 0.2635807030000142,
+     "ciLow": 0.3221063939998858,
+     "ciHigh": 0.3451389589998871,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1973,6 +2178,19 @@
      "min": 0.7361919680000283,
      "ciLow": 0.7909371519996785,
      "ciHigh": 0.8130897880000993,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.23970911300019362,
+     "p95": 0.36938575699995274,
+     "min": 0.19176059000007808,
+     "ciLow": 0.2337428610001225,
+     "ciHigh": 0.24890829700000178,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2106,6 +2324,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.7323374740000581,
+     "p95": 1.0069169419999235,
+     "min": 0.5067903239999432,
+     "ciLow": 0.68940830499999,
+     "ciHigh": 0.7694397479998879,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2235,6 +2466,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.7721127140000462,
+     "p95": 1.0251402719998732,
+     "min": 0.5865970639999724,
+     "ciLow": 0.7563417119998485,
+     "ciHigh": 0.7904810699999798,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2334,6 +2578,19 @@
      "min": 0.7601993100000546,
      "ciLow": 0.898688473999966,
      "ciHigh": 0.9428273310000077,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 3.080766697000014,
+     "p95": 3.5730300229999705,
+     "min": 1.9801515019999352,
+     "ciLow": 3.0378306629998844,
+     "ciHigh": 3.121432426000014,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2467,6 +2724,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.12030608000000939,
+     "p95": 0.20486551899998448,
+     "min": 0.09430539499991573,
+     "ciLow": 0.11665671399980784,
+     "ciHigh": 0.12592165699996985,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2583,6 +2853,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.1461465480000044,
+     "p95": 1.3274016669999984,
+     "min": 1.1280633910000033,
+     "ciLow": 1.1404488369999746,
+     "ciHigh": 1.162706090000007,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2695,6 +2978,19 @@
      "min": 0.8658218740000011,
      "ciLow": 0.9287569549999899,
      "ciHigh": 1.110900363000008,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.1396165680000268,
+     "p95": 1.3101429100000097,
+     "min": 1.0244782330000017,
+     "ciLow": 1.1067887210000045,
+     "ciHigh": 1.1604987410000003,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2828,6 +3124,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.42403896200002056,
+     "p95": 0.5218866299999645,
+     "min": 0.3622461309999926,
+     "ciLow": 0.40458923699997834,
+     "ciHigh": 0.4411281949999975,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2953,6 +3262,19 @@
      "min": 0.8137441769998986,
      "ciLow": 0.8421656750000548,
      "ciHigh": 1.8442891850000014,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.261661010999931,
+     "p95": 1.9649952689999481,
+     "min": 1.0468117920000222,
+     "ciLow": 1.1820017950000474,
+     "ciHigh": 1.3740172160000075,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3086,6 +3408,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 4.21249188300001,
+     "p95": 5.764924003999913,
+     "min": 3.6661525460002014,
+     "ciLow": 3.993331724000047,
+     "ciHigh": 4.44153463900002,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3211,6 +3546,19 @@
      "min": 3.810884990999941,
      "ciLow": 4.002415890000062,
      "ciHigh": 4.277799941000063,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.6074900550000604,
+     "p95": 2.031863663999946,
+     "min": 1.158284936000011,
+     "ciLow": 1.5108926249999932,
+     "ciHigh": 1.7001164419999988,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3344,6 +3692,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.14671867400000338,
+     "p95": 0.2112472940000007,
+     "min": 0.13219974700000603,
+     "ciLow": 0.14384850199997892,
+     "ciHigh": 0.16343871999997647,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3469,6 +3830,19 @@
      "min": 1.0570297009998466,
      "ciLow": 1.1269574510001112,
      "ciHigh": 1.1885966469999985,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.2657310140000191,
+     "p95": 0.36246294299996223,
+     "min": 0.2204332070000237,
+     "ciLow": 0.25798184899997434,
+     "ciHigh": 0.28052296800000476,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -3602,6 +3976,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 22.841195615999982,
+     "p95": 24.24507493200002,
+     "min": 21.11899424199993,
+     "ciLow": 22.427780568999996,
+     "ciHigh": 23.234891275999953,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3731,6 +4118,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 3,
+     "p50": 0.603606103000002,
+     "p95": 1.279314019,
+     "min": 0.5790561419999977,
+     "ciLow": 0.5790561419999977,
+     "ciHigh": 1.279314019,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3843,6 +4243,19 @@
      "min": 3.2009133030000005,
      "ciLow": 3.2009133030000005,
      "ciHigh": 4.5834542769999995,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 3,
+     "p50": 1.231898667999999,
+     "p95": 1.244730971000001,
+     "min": 0.6064956529999982,
+     "ciLow": 0.6064956529999982,
+     "ciHigh": 1.244730971000001,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -3976,6 +4389,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 10508398.527525343,
+     "p95": 11865776.75397741,
+     "min": 2919799.9879780128,
+     "ciLow": 9362440.37401123,
+     "ciHigh": 11108622.409403972,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4101,6 +4527,19 @@
      "min": 25632593.996402133,
      "ciLow": 48624230.28296741,
      "ciHigh": 53718569.2483315,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 15396195.573899942,
+     "p95": 20442299.193225257,
+     "min": 4116034.3759748456,
+     "ciLow": 13738518.79712045,
+     "ciHigh": 18122254.12171808,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4234,6 +4673,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 8285.699930522971,
+     "p95": 14276.29735269519,
+     "min": 2927.1657627841573,
+     "ciLow": 6865.9980500992115,
+     "ciHigh": 9053.2102468466,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4359,6 +4811,19 @@
      "min": 26.331018372971688,
      "ciLow": 433.1250619025435,
      "ciHigh": 522.2078137321822,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 2346.3149575058465,
+     "p95": 2712.7037245272636,
+     "min": 1072.4098909154627,
+     "ciLow": 2255.749898277738,
+     "ciHigh": 2429.72906197756,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4492,6 +4957,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 6905.284664400673,
+     "p95": 7883.984690407557,
+     "min": 2630.349280708106,
+     "ciLow": 6666.621367443723,
+     "ciHigh": 7166.205605560254,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4621,6 +5099,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 27883.226355047063,
+     "p95": 36024.7478760203,
+     "min": 10245.089760593286,
+     "ciLow": 25390.51051489499,
+     "ciHigh": 29367.54468742048,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4746,6 +5237,19 @@
      "min": 271487.83819249814,
      "ciLow": 697471.6652397893,
      "ciHigh": 845068.5628176571,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 577421.9014319037,
+     "p95": 684422.4383612298,
+     "min": 192439.53189082077,
+     "ciLow": 546002.8750464369,
+     "ciHigh": 608246.4918930687,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4886,6 +5390,19 @@
      "min": 4.796017000001029,
      "ciLow": 5.774473999991869,
      "ciHigh": 6.08687260000238,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 1.939856800000328,
+     "p95": 2.4092781999993207,
+     "min": 1.3632405999999264,
+     "ciLow": 1.8691503999999526,
+     "ciHigh": 1.997787400000206,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5812,6 +6329,108 @@
    1.669,
    1.866,
    2.597
+  ],
+  "vercel": [
+   0.42,
+   0.427,
+   0.434,
+   0.437,
+   0.44,
+   0.445,
+   0.448,
+   0.449,
+   0.45,
+   0.45,
+   0.45,
+   0.45,
+   0.452,
+   0.453,
+   0.455,
+   0.46,
+   0.463,
+   0.463,
+   0.463,
+   0.464,
+   0.464,
+   0.467,
+   0.469,
+   0.474,
+   0.475,
+   0.476,
+   0.476,
+   0.477,
+   0.478,
+   0.48,
+   0.482,
+   0.483,
+   0.484,
+   0.488,
+   0.489,
+   0.49,
+   0.491,
+   0.494,
+   0.497,
+   0.499,
+   0.499,
+   0.502,
+   0.502,
+   0.502,
+   0.505,
+   0.506,
+   0.506,
+   0.508,
+   0.509,
+   0.51,
+   0.511,
+   0.514,
+   0.515,
+   0.516,
+   0.516,
+   0.518,
+   0.518,
+   0.518,
+   0.521,
+   0.531,
+   0.531,
+   0.531,
+   0.531,
+   0.532,
+   0.54,
+   0.541,
+   0.544,
+   0.545,
+   0.546,
+   0.549,
+   0.55,
+   0.552,
+   0.554,
+   0.556,
+   0.557,
+   0.572,
+   0.573,
+   0.577,
+   0.577,
+   0.585,
+   0.589,
+   0.59,
+   0.598,
+   0.598,
+   0.617,
+   0.626,
+   0.628,
+   0.633,
+   0.636,
+   0.643,
+   0.65,
+   0.654,
+   0.708,
+   0.713,
+   0.739,
+   0.757,
+   0.805,
+   0.83,
+   0.909,
+   1.232
   ]
  },
  "missing": {
@@ -5820,6 +6439,6 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 4 re-run in New York."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 4 re-run in New York. Vercel's is from its Nov 9 run (SBX-103)."
  }
 }

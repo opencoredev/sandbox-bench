@@ -8,6 +8,7 @@ import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
 import { costPick, costStatus, costTag, hasLowerBounds, hourlyText, isEligible, perThousandText, pricedTasks, regionNote, wholeMachine } from "@/lib/cost";
 import { parseProvider, readCostPerTask, trackIds, tracks } from "@/lib/data";
 import { modalExport, onlyModalLowerBound, withModal } from "@/lib/fixtures/modal";
+import { isProviderId, providerInfo, providerName } from "@/lib/providers";
 import { caveats } from "@/lib/seo/copy";
 
 // Lower bounds (Modal's default track) and region multipliers, from the SBX-103 export. Run with `bun test`.
@@ -132,11 +133,19 @@ describe("published data", () => {
     }
   });
 
-  test("Vercel Sandbox and Modal, with no data yet, are not named absent and get no rows", () => {
+  test("a registered provider with no data in either track is not named absent and gets no rows", () => {
+    const withData = new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)));
+    const missing = Object.keys(providerInfo).filter(isProviderId).filter((id) => !withData.has(id));
     for (const id of trackIds) {
-      assert.ok(!tracks[id].absent.includes("vercel") && !tracks[id].absent.includes("modal"));
-      assert.ok(!tracks[id].providers.some((p) => p.id === "vercel" || p.id === "modal"));
+      for (const pid of missing) {
+        assert.ok(!tracks[id].absent.includes(pid));
+        assert.ok(!tracks[id].providers.some((p) => p.id === pid));
+      }
     }
-    assert.ok(!/Vercel|Modal/.test(agentMarkdown()));
+    for (const pid of missing) assert.ok(!agentMarkdown().includes(providerName(pid)));
+  });
+
+  test("Vercel Sandbox, with data in both tracks, is a provider in each", () => {
+    for (const id of trackIds) assert.ok(tracks[id].providers.some((p) => p.id === "vercel"));
   });
 });

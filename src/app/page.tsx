@@ -35,7 +35,7 @@ import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
-import { providerColor } from "@/lib/providers";
+import { providerBrand, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
 
@@ -340,10 +340,13 @@ function Headlines({ track }: { track: Track }) {
 
 /** The facts line under the title, for one track. */
 function Facts({ track }: { track: Track }) {
+  // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
+  const configs = track.providers.length;
+  const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
   const facts = hasResults(track)
     ? [
-        "Oct 22 – Nov 4, 2026",
-        "8 providers (9 configs)",
+        dayRange(track.window),
+        configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`,
         "2 caller locations: Florida, US & Frankfurt, DE",
         "100 runs per main test, 20 per location test",
       ]

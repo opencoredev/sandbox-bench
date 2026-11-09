@@ -31,4 +31,4 @@ export const disclosure =
  * plainly and publish no numbers for them. Names match providerName, so
  * copy.test.ts fails once one of them has data: remove it here then.
  */
-export const untested = ["Modal", "Vercel Sandbox", "Cloudflare Sandbox", "Runloop", "Northflank", "Blaxel", "Fly Sprites", "CodeSandbox", "Morph"] as const;
+export const untested = ["Modal", "Cloudflare Sandbox", "Runloop", "Northflank", "Blaxel", "Fly Sprites", "CodeSandbox", "Morph"] as const;
