@@ -2,11 +2,12 @@ import { ArrowRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
-import { costPick, costStatuses, perThousandText } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { providerColor, providerName } from "@/lib/providers";
+import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { perThousand, pickFor, runTrackOf } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
   label: string;
@@ -27,28 +28,30 @@ function fastest(track: Track, id: string) {
   return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
 }
 
-/** The cost tile: the lowest verified cost among eligible providers, flagging a lower one that isn't eligible; or the lowest reported, with its status, when none is. */
+/**
+ * The cost tile: fix and test, the realistic workload closest to everyday
+ * agent work, rather than the quick synthetic task. It shows the lowest
+ * verified cost among eligible providers (saying so when it is the only
+ * one), or the lowest reported cost marked unverified when none is eligible.
+ */
 function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
-  const c = costPick(track);
-  switch (c.kind) {
-    case "verified": {
-      const [lower] = c.lower;
+  const p = pickFor(realistic, runTrackOf[track.id], "fix-and-test");
+  switch (p.kind) {
+    case "verified":
       return {
-        label: "Lowest verified cost, per 1,000 tasks",
-        provider: c.pick.id,
-        value: perThousandText(c.pick.cost),
-        note: lower ? `lower: ${providerName(lower.id)}, ${costStatuses[lower.status.kind].label.toLowerCase()}` : undefined,
+        label: "Fix and test, per 1,000",
+        provider: p.pick.provider,
+        value: perThousand(p.pick.cost.usdPerCompleted),
+        note: `${p.eligible.length === 1 ? "only verified cost" : "lowest verified cost"} · pilot`,
       };
+    case "none": {
+      const [lowest] = p.lower;
+      return lowest ? { label: "Fix and test: none verified", provider: lowest.provider, value: perThousand(lowest.cost.usdPerCompleted), note: "lowest reported, unverified · pilot" } : null;
     }
-    case "none":
-      // With only lower bounds there is no lowest figure to show, so no tile.
-      return c.lowest
-        ? { label: "No verified cost yet", provider: c.lowest.id, value: perThousandText(c.lowest.cost), note: `lowest reported, ${costStatuses[c.lowest.status.kind].label.toLowerCase()}` }
-        : null;
     case "empty":
       return null;
     default: {
-      const _exhaustive: never = c;
+      const _exhaustive: never = p;
       return _exhaustive;
     }
   }
@@ -65,7 +68,7 @@ function stats(track: Track): Stat[] {
   return [
     ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
     ...(replay ? [{ label: "Fastest agent work", ...replay, section: "agent", tab: "tool-replay" }] : []),
-    ...(cost ? [{ ...cost, section: "cost", tab: "task" }] : []),
+    ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
     ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, section: "state", tab: "resume" }] : []),
   ];

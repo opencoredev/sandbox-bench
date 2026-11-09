@@ -9,6 +9,7 @@ import { ByLocation } from "@/components/by-location";
 import { CostLegend, CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
+import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -37,6 +38,7 @@ import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
 import { providerBrand, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { laterLine, pilotDetail } from "@/lib/realistic";
 import { advertised } from "@/lib/sizes";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
@@ -63,7 +65,8 @@ const sections = [
   ["scale", "Bursts", "burst-10"],
   ["machines", "Machines"],
   ["reliability", "Reliability"],
-  ["cost", "Cost", "task"],
+  // "Cost" opens What a task costs; the quick task and prices section follows it, so the item stays lit through both.
+  ["task-cost", "Cost", "fix-and-test"],
   ["method", "Method"],
 ] as const;
 
@@ -320,7 +323,7 @@ function Headlines({ track }: { track: Track }) {
       <Headline marker="var(--color-3)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
-      <Headline marker="var(--color-1)" title="Cost per 1,000 tasks" sub="USD · lower is better" section="cost" tab="task">
+      <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
@@ -723,14 +726,43 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="cost" title="Cost" lede="What the same agent task cost on each provider, and what each charges per hour.">
+        <Section
+          id={taskCostSection}
+          title="What a task costs"
+          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>
+              {pilotDetail.replace(/^\w/, (c) => c.toUpperCase())} {laterLine}
+            </span>
+          </p>
+          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
+          <Card className="mt-m">
+            <IdleChart />
+          </Card>
+        </Section>
+
+        <Section
+          id="cost"
+          title="Quick task and prices"
+          lede={
+            <>
+              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
+              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+                What a task costs
+              </JumpLink>
+              .
+            </>
+          }
+        >
           <PerTrack>
             {(track) => (
               <>
                 <TabCard
                   label="Cost" section="cost"
                   tabs={[
-                    { id: "task", label: "Cost per 1,000 tasks", content: <CostPerTaskChart track={track} /> },
+                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
                     { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
                     { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
                   ]}

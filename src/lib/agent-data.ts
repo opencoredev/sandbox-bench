@@ -32,6 +32,34 @@ import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import {
+  billingText,
+  changeText,
+  completedText,
+  flagsOf,
+  headlineRows,
+  idleGroups,
+  idleLabel,
+  idleOutcome,
+  isCounterfactual,
+  laterLine,
+  noCostReason,
+  perThousand,
+  pickLabels,
+  pilotLine,
+  profileFootprint,
+  profileIds,
+  profileInfo,
+  profileWhat,
+  runTrackOf,
+  statusTag,
+  taskPick,
+  uncertifiedWhy,
+  wallText,
+  wilson,
+} from "@/lib/realistic";
+import type { Costed, ProfileId, RealisticRow } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 import { advertised, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
@@ -170,7 +198,7 @@ function costPickRow(track: Track): QuickPick {
       // The tag in costCell already names the status, so only the reason follows it.
       const lower = c.lower.map((t) => `${costCell(t)}${"why" in t.status ? `, because ${t.status.why}` : ""}`);
       return {
-        need: pickLabel,
+        need: `Quick task: ${pickLabel.toLowerCase()}`,
         pick: costCell(c.pick),
         runnerUp: c.runnerUp ? costCell(c.runnerUp) : "n/a",
         note: `Eligible: ${nameList(c.eligible)}.${lower.length ? ` Lower but not eligible: ${lower.join("; ")}.` : ""}`,
@@ -178,10 +206,10 @@ function costPickRow(track: Track): QuickPick {
     }
     case "none":
       return c.lowest
-        ? { need: noPickLabel, pick: `Lowest reported: ${costCell(c.lowest)}`, runnerUp: "n/a", note: `${statusNote(c.lowest.status) ?? ""}.` }
-        : { need: noPickLabel, pick: "Every reported cost is a lower bound, so none is ranked", runnerUp: "n/a", note: null };
+        ? { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: `Lowest reported: ${costCell(c.lowest)}`, runnerUp: "n/a", note: `${statusNote(c.lowest.status) ?? ""}.` }
+        : { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: "Every reported cost is a lower bound, so none is ranked", runnerUp: "n/a", note: null };
     case "empty":
-      return { need: pickLabel, pick: "n/a", runnerUp: "n/a", note: null };
+      return { need: `Quick task: ${pickLabel.toLowerCase()}`, pick: "n/a", runnerUp: "n/a", note: null };
     default: {
       const _exhaustive: never = c;
       return _exhaustive;
@@ -239,6 +267,163 @@ export function quickPicks(track: Track): QuickPick[] {
   ];
   // Picks with no data in this release (bursts, cost per task) are left out rather than shown as n/a.
   return picks.filter((q) => q.pick !== "n/a");
+}
+
+// ---------------------------------------------------------------------------
+// What a task costs: the realistic workloads (pilot), in every export.
+
+const realisticAbout =
+  "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
+
+const realisticScope =
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price). Only a row with eligible: true can be a pick: billed and settled (or a meter reconciled with settled charges), tied to our own sandboxes, at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB. Whole machine at list price is a counterfactual for providers that bill less than the whole machine. There is no overall cheapest pick: each workload and track has its own, and this pilot names no certified winner.";
+
+const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
+
+function realisticRowData(row: RealisticRow) {
+  const billing = billingText(row, billingLabel(billingBases[row.provider]));
+  const ci = wilson(row.completed, row.attempts);
+  return {
+    provider: row.provider,
+    name: providerName(row.provider),
+    attempts: row.attempts,
+    completed: row.completed,
+    incomplete: row.incomplete,
+    notRun: row.notRun,
+    completedText: completedText(row),
+    completedWilson95: { low: round(ci.low), high: round(ci.high) },
+    medianWallS: round(row.medianWallS),
+    medianCpuS: round(row.medianCpuS),
+    costPerCompletedUsd: usd6(row.cost?.usdPerCompleted ?? null),
+    per1000CompletedUsd: usd6(row.cost ? row.cost.usdPerCompleted * TASKS_PER_PRICE : null),
+    kind: row.cost?.kind ?? null,
+    eligible: row.eligible,
+    status: row.cost ? statusTag(row) : null,
+    whyNotEligible: flagsOf(row).map((f) => f.text),
+    noCost: row.cost ? null : noCostReason(row),
+    wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
+    wholeMachineCounterfactual: isCounterfactual(billing),
+    billing,
+    ...(row.costNote ? { costNote: row.costNote } : {}),
+  };
+}
+
+const pickRow = (r: Costed) => ({ provider: r.provider, per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE), kind: r.cost.kind, status: statusTag(r), whyNotEligible: flagsOf(r).map((f) => f.text) });
+
+function realisticPickData(costed: readonly Costed[]) {
+  const p = taskPick(costed);
+  const uncertified = { certified: false, certification: `${pickLabels.uncertified}: ${uncertifiedWhy}.` };
+  switch (p.kind) {
+    case "verified":
+      return { label: p.label, ...uncertified, pick: pickRow(p.pick), eligible: p.eligible, lowerNotEligible: p.lower.map(pickRow) };
+    case "none":
+      return { label: p.label, ...uncertified, pick: null, eligible: [], lowerNotEligible: p.lower.map(pickRow) };
+    case "empty":
+      return { label: pickLabels.none, ...uncertified, pick: null, eligible: [], lowerNotEligible: [] };
+    default: {
+      const _exhaustive: never = p;
+      return _exhaustive;
+    }
+  }
+}
+
+function realisticProfile(id: TrackId, profile: ProfileId) {
+  const { costed, uncosted } = headlineRows(realistic, runTrackOf[id], profile);
+  return { pick: realisticPickData(costed), providers: [...costed, ...uncosted].map(realisticRowData) };
+}
+
+/** The realistic workloads as plain data: definitions, the pilot label, per track and workload the pick and every provider, and the idle test. */
+export function realisticData() {
+  return {
+    title: "What a task costs",
+    pilot: pilotLine,
+    comingLater: laterLine,
+    about: realisticAbout,
+    howToRead: realisticScope,
+    source: { generatedAt: realistic.generatedAt, runs: realistic.sources.map((s) => ({ name: s.name, generatedAt: s.generatedAt, providers: s.providers })), eurToUsd: realistic.fx },
+    workloads: profileIds.map((profile) => {
+      const w = realistic.workloads?.[profile] ?? null;
+      return { id: profile, label: profileInfo[profile].label, what: profileWhat(profile, w), footprint: profileFootprint(profile, w), repo: w?.repo ?? null, commit: w?.commit ?? null };
+    }),
+    tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
+    idle: {
+      what: "Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included.",
+      providers: idleGroups(realistic).map((g) => ({
+        provider: g.provider,
+        name: providerName(g.provider),
+        outcome: idleOutcome(g),
+        waits: g.points.map((p) => ({
+          minutes: p.minutes,
+          runs: p.runs,
+          completed: p.completed,
+          medianCostUsd: usd6(p.medianCostUsd),
+          per1000Usd: usd6(p.medianCostUsd === null ? null : p.medianCostUsd * TASKS_PER_PRICE),
+          kind: p.costKind,
+          status: p.status,
+          changeVsNoWait: changeText(p),
+          medianWakeMs: p.medianWakeMs,
+          stateChanges: p.transitions,
+          stoppedWhileIdle: p.stopped,
+        })),
+      })),
+    },
+  };
+}
+
+const pickLine = (track: TrackId, profile: ProfileId) => {
+  const p = realisticProfile(track, profile).pick;
+  const lower = p.lowerNotEligible.map((r) => `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.status})`).join("; ");
+  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000 (${p.pick.status}). Eligible: ${nameList(p.eligible)}.` : `${p.label}: no provider has a verified cost yet.`;
+  return `${head} ${p.certification}${lower ? ` ${p.pick ? "Lower but not eligible" : "Reported, none eligible"}: ${lower}.` : ""}`;
+};
+
+function realisticMarkdown() {
+  const d = realisticData();
+  const lines = ["# What a task costs (realistic workloads)", "", d.pilot, d.comingLater, "", d.about, "", d.howToRead, ""];
+  for (const id of trackIds) {
+    for (const profile of profileIds) {
+      const w = d.workloads.find((x) => x.id === profile);
+      const t = realisticProfile(id, profile);
+      lines.push(
+        `## ${profileInfo[profile].label}, ${trackInfo[id].tab}`,
+        "",
+        `${w?.what ?? ""}${w?.footprint ? `; ${w.footprint}` : ""}.`,
+        "",
+        pickLine(id, profile),
+        "",
+        "| Provider | Per 1,000 completed | Kind and status | Completed | Median time | Billing model | Whole machine at list price, per 1,000 |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+        ...t.providers.map(
+          (r) =>
+            `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.status ?? `no cost: ${r.noCost ?? ""}`}${r.whyNotEligible.length ? ` (${r.whyNotEligible.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE)}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
+        ),
+        "",
+      );
+    }
+  }
+  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Status | Change vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
+  for (const g of d.idle.providers)
+    for (const p of g.waits)
+      lines.push(`| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.changeVsNoWait ?? "n/a"} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`);
+  lines.push("", ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`] : [])), "");
+  return lines;
+}
+
+function realisticLlms() {
+  const d = realisticData();
+  const picks = trackIds.flatMap((id) => profileIds.map((profile) => `- ${profileInfo[profile].label}, ${trackInfo[id].tab}: ${pickLine(id, profile)}`));
+  const idle = d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}`] : []));
+  return `## What a task costs (realistic workloads)
+
+${d.pilot} ${d.comingLater}
+
+${d.about} Full numbers: \`whatATaskCosts\` in /results.json and the "What a task costs" section of /results.md.
+
+${picks.join("\n")}
+
+Idle test (same machine, fix and test, then 10 or 60 minutes open): ${idle.length ? `${idle.join("; ")}.` : "no provider stopped the sandbox."}
+
+`;
 }
 
 const allocationOf = (p: Track["providers"][number]) => ({
@@ -378,7 +563,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); a task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run: never compare them as if they were the same kind without saying so. `costPerTask.status` comes from one eligibility table (`costEligibility`): verified (billed and settled, and not provisional) can be the cost pick; unreconciled (metered, not yet checked against settled charges), provisional, unsettled and estimate are shown but never picked. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers (`costPick`), with the eligible set and every lower cost that isn't eligible, with its reason. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. `costPerTask.status` comes from one eligibility table (`costEligibility`): verified (billed and settled, and not provisional) can be the cost pick; unreconciled (metered, not yet checked against settled charges), provisional, unsettled and estimate are shown but never picked. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers (`costPick`), with the eligible set and every lower cost that isn't eligible, with its reason. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
 
 /** The eligibility table as data, in the order a cost is checked against it. The lower-bound row is listed once a track has one. */
 const costEligibility = () =>
@@ -404,7 +589,8 @@ export function agentData() {
   return {
     about,
     howToRead: howToReadText(),
-    task: "A task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox.",
+    task: "The quick task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox. It is a small synthetic task; whatATaskCosts has real workloads.",
+    whatATaskCosts: realisticData(),
     commonSize: commonSize.label,
     costEligibility: costEligibility(),
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
@@ -497,9 +683,12 @@ export function agentMarkdown() {
     "",
     "JSON: /results.json. Guide: /llms.txt.",
     "",
+    ...realisticMarkdown(),
+    "# The quick task and the main suite",
+    "",
     howToReadText(),
     "",
-    "A task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
+    "The quick task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
     ...trackIds.flatMap(trackMarkdown),
   ];
@@ -569,7 +758,7 @@ ${trackIds.map((id) => `- \`${id}\`: ${trackInfo[id].label}. ${trackInfo[id].des
 
 The page shows one track at a time: \`/\` opens the same-machine track and \`/?track=default\` the default-machines track.
 
-## Quick picks
+${realisticLlms()}## Quick picks
 
 ${picks.join("\n")}
 ## Coming in the next update
@@ -578,7 +767,7 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ## Data
 
-- [results.json](/results.json): both tracks. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
+- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the pick, its eligible set, lower costs that aren't eligible, and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
 - [results.md](/results.md): the same numbers as Markdown tables, one section per track.
 
 ## How to read it

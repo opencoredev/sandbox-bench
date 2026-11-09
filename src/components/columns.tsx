@@ -25,6 +25,8 @@ export interface Column {
   detail: readonly DetailLine[];
   /** Footnote number shown beside the provider name. */
   mark?: number;
+  /** A short qualifier printed with the bar, such as a cost's kind and status. */
+  tag?: string;
   /** The time breakdown the column opens on click or Enter (components/trace-panel.tsx). */
   trace?: TraceKind;
 }
@@ -169,6 +171,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
           >
             <ProviderName id={column.provider} layout="centered" />
             <Mark column={column} />
+            {column.tag ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
           </span>
         ))}
       </div>
@@ -218,6 +221,7 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
             >
               {column.label}
             </span>
+            {column.tag ? <span aria-hidden className="col-span-2 col-start-2 -mt-0.5 pb-0.5 text-xxs leading-tight text-neutral-7">{column.tag}</span> : null}
             {still ? null : <Card column={column} className="top-full right-0 mt-xxs" />}
           </div>
         );

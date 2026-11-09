@@ -36,9 +36,6 @@ import { allocationNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
-/** What a task is, said the same way everywhere it is priced. */
-export const taskDefinition = "One task = create a sandbox, run 100 tool calls, delete it";
-
 /** Stands in for a cost chart until the cost run has results. */
 export const NoCostResults = ({ compact = false }: { compact?: boolean }) => (
   <ComingNext compact={compact}>Cost per task comes from a separate cost run, billed per sandbox.</ComingNext>
@@ -83,8 +80,8 @@ export function costColumns(track: Track) {
   return { columns, marks };
 }
 
-/** A small swatch of a bar's fill, for the legend. */
-const Swatch = ({ fill }: { fill: MarkFill }) => (
+/** A small swatch of a bar's fill, for the legend. Shared with the realistic-workload legends. */
+export const Swatch = ({ fill }: { fill: MarkFill }) => (
   <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-[2px]" style={markFill(fill, "var(--color-neutral-8)")} />
 );
 
@@ -260,7 +257,7 @@ export function CostTable({ track }: { track: Track }) {
 
 /** Cost per task from the cost run. */
 export function CostPerTaskChart({ track }: { track: Track }) {
-  const head = <ChartHead title="Cost per 1,000 tasks" sub={`${taskDefinition} · US dollars · Lower is better`} />;
+  const head = <ChartHead title="Cost of the quick task: create, 100 tool calls, delete" sub="Per 1,000 tasks · A small synthetic task, not real work: see What a task costs above · US dollars · Lower is better" />;
   if (!hasTaskCosts(track))
     return (
       <>
