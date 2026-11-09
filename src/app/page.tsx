@@ -202,6 +202,14 @@ function CostQuadrant({ track }: { track: Track }) {
         <NoCostResults />
       </>
     );
+  // Every cost here is a lower bound: nothing can be placed on the cost axis, so say why instead.
+  if (points.length === 0)
+    return (
+      <>
+        {head}
+        <Footnotes items={bounded.map((t) => ({ text: <><Who id={t.id} /> isn&apos;t plotted: its cost is a lower bound, so its place on the cost axis isn&apos;t known.</> }))} />
+      </>
+    );
   return (
     <>
       {head}
