@@ -39,6 +39,7 @@ import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNo
 import { providerBrand, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { laterLine, pilotDetail } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
@@ -734,7 +735,7 @@ export default function Page() {
           <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
             <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
             <span>
-              {pilotDetail.replace(/^\w/, (c) => c.toUpperCase())} {laterLine}
+              {pilotDetail(realistic).replace(/^\w/, (c) => c.toUpperCase())} {laterLine}
             </span>
           </p>
           <Tracked>{(track) => <TaskCost track={track} />}</Tracked>

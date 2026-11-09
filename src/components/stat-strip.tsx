@@ -6,7 +6,7 @@ import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { perThousand, pickFor, runTrackOf } from "@/lib/realistic";
+import { perThousand, pickFor, pilotShort, runTrackOf, statusTag } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
@@ -15,6 +15,8 @@ interface Stat {
   provider: ProviderId;
   /** A qualifier under the provider, such as how a cost was priced. */
   note?: string;
+  /** A line that must always show in full, under the clamped provider line, such as the pilot label. */
+  badge?: string;
   section: string;
   tab: string;
 }
@@ -42,11 +44,14 @@ function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
         label: "Fix and test, per 1,000",
         provider: p.pick.provider,
         value: perThousand(p.pick.cost.usdPerCompleted),
-        note: `${p.eligible.length === 1 ? "only verified cost" : "lowest verified cost"} · pilot`,
+        note: statusTag(p.pick),
+        badge: `${pilotShort(realistic)}${p.lower.length ? " · lower unverified costs exist" : ""}`,
       };
     case "none": {
       const [lowest] = p.lower;
-      return lowest ? { label: "Fix and test: none verified", provider: lowest.provider, value: perThousand(lowest.cost.usdPerCompleted), note: "lowest reported, unverified · pilot" } : null;
+      return lowest
+        ? { label: "Fix and test: none verified", provider: lowest.provider, value: perThousand(lowest.cost.usdPerCompleted), note: statusTag(lowest), badge: `${pilotShort(realistic)} · lowest reported, unverified` }
+        : null;
     }
     case "empty":
       return null;
@@ -104,6 +109,7 @@ export function StatStrip({ track }: { track: Track }) {
                 className="size-4 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:text-accent motion-reduce:transition-none"
               />
             </span>
+            {s.badge ? <span className="text-xs text-pretty text-neutral-7">{s.badge}</span> : null}
           </JumpLink>
         </li>
       ))}

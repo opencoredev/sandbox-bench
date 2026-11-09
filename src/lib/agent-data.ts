@@ -38,6 +38,7 @@ import {
   completedText,
   flagsOf,
   headlineRows,
+  holdTag,
   idleGroups,
   idleLabel,
   idleOutcome,
@@ -52,6 +53,7 @@ import {
   profileInfo,
   profileWhat,
   runTrackOf,
+  scopeLine,
   statusTag,
   taskPick,
   uncertifiedWhy,
@@ -275,13 +277,13 @@ export function quickPicks(track: Track): QuickPick[] {
 const realisticAbout =
   "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
-const realisticScope =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price). Only a row with eligible: true can be a pick: billed and settled (or a meter reconciled with settled charges), tied to our own sandboxes, at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB. Whole machine at list price is a counterfactual for providers that bill less than the whole machine. There is no overall cheapest pick: each workload and track has its own, and this pilot names no certified winner.";
+const realisticHowToRead =
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `status` adds the eligibility-table statuses in the same words as `costEligibility`: verified, unreconciled, provisional, unsettled, estimate, plus qualifiers of these runs (wrong size, too many failures). Only a row with eligible: true can be a pick: billed and settled (or a meter reconciled with settled charges), tied to our own sandboxes, at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. There is no overall cheapest pick: each workload and track has its own, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
 function realisticRowData(row: RealisticRow) {
-  const billing = billingText(row, billingLabel(billingBases[row.provider]));
+  const billing = billingText(row.provider);
   const ci = wilson(row.completed, row.attempts);
   return {
     provider: row.provider,
@@ -302,7 +304,7 @@ function realisticRowData(row: RealisticRow) {
     whyNotEligible: flagsOf(row).map((f) => f.text),
     noCost: row.cost ? null : noCostReason(row),
     wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
-    wholeMachineCounterfactual: isCounterfactual(billing),
+    wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
   };
@@ -312,7 +314,7 @@ const pickRow = (r: Costed) => ({ provider: r.provider, per1000CompletedUsd: usd
 
 function realisticPickData(costed: readonly Costed[]) {
   const p = taskPick(costed);
-  const uncertified = { certified: false, certification: `${pickLabels.uncertified}: ${uncertifiedWhy}.` };
+  const uncertified = { certified: false, certification: `${pickLabels.uncertified}: ${uncertifiedWhy(realistic)}.` };
   switch (p.kind) {
     case "verified":
       return { label: p.label, ...uncertified, pick: pickRow(p.pick), eligible: p.eligible, lowerNotEligible: p.lower.map(pickRow) };
@@ -336,10 +338,12 @@ function realisticProfile(id: TrackId, profile: ProfileId) {
 export function realisticData() {
   return {
     title: "What a task costs",
-    pilot: pilotLine,
+    pilot: pilotLine(realistic),
+    runsPerProvider: realistic.coverage.headline.attempts,
     comingLater: laterLine,
     about: realisticAbout,
-    howToRead: realisticScope,
+    costScope: scopeLine(realistic),
+    howToRead: realisticHowToRead,
     source: { generatedAt: realistic.generatedAt, runs: realistic.sources.map((s) => ({ name: s.name, generatedAt: s.generatedAt, providers: s.providers })), eurToUsd: realistic.fx },
     workloads: profileIds.map((profile) => {
       const w = realistic.workloads?.[profile] ?? null;
@@ -347,7 +351,8 @@ export function realisticData() {
     }),
     tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
     idle: {
-      what: "Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included.",
+      what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included.`,
+      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason })),
       providers: idleGroups(realistic).map((g) => ({
         provider: g.provider,
         name: providerName(g.provider),
@@ -359,7 +364,7 @@ export function realisticData() {
           medianCostUsd: usd6(p.medianCostUsd),
           per1000Usd: usd6(p.medianCostUsd === null ? null : p.medianCostUsd * TASKS_PER_PRICE),
           kind: p.costKind,
-          status: p.status,
+          status: holdTag(p),
           changeVsNoWait: changeText(p),
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
@@ -379,7 +384,7 @@ const pickLine = (track: TrackId, profile: ProfileId) => {
 
 function realisticMarkdown() {
   const d = realisticData();
-  const lines = ["# What a task costs (realistic workloads)", "", d.pilot, d.comingLater, "", d.about, "", d.howToRead, ""];
+  const lines = ["# What a task costs (realistic workloads)", "", d.pilot, d.comingLater, "", d.about, "", d.costScope, "", d.howToRead, ""];
   for (const id of trackIds) {
     for (const profile of profileIds) {
       const w = d.workloads.find((x) => x.id === profile);
@@ -401,11 +406,15 @@ function realisticMarkdown() {
       );
     }
   }
-  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Status | Change vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
+  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Kind and status | Change vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const g of d.idle.providers)
     for (const p of g.waits)
       lines.push(`| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.changeVsNoWait ?? "n/a"} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`);
-  lines.push("", ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`] : [])), "");
+  lines.push(
+    "",
+    ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
+    ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
+  );
   return lines;
 }
 
@@ -421,7 +430,9 @@ ${d.about} Full numbers: \`whatATaskCosts\` in /results.json and the "What a tas
 
 ${picks.join("\n")}
 
-Idle test (same machine, fix and test, then 10 or 60 minutes open): ${idle.length ? `${idle.join("; ")}.` : "no provider stopped the sandbox."}
+${d.costScope}
+
+Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.coverage.idle.attempts} runs per provider and wait): ${idle.length ? `${idle.join("; ")}.` : "no provider stopped the sandbox."} Not tested: ${d.idle.notTested.map((n) => `${n.name} (${n.reason})`).join("; ") || "none"}.
 
 `;
 }
