@@ -309,15 +309,15 @@ function realisticRowData(row: RealisticRow) {
     wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
-    ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, "per1000CompletedUsd"),
+    ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, row.cost?.usdPerCompleted ?? null, "per1000CompletedUsd"),
     ...minimumData(row.provider),
   };
 }
 
 /** The part of a cost we added at list price, per 1,000, with what it is; nothing when none was added. */
-function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], key: "per1000CompletedUsd" | "medianPer1000Usd") {
-  const note = kind ? estimatedPartText(kind, part, "per 1,000") : null;
-  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), what: part.labels, note } } : {};
+function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], total: number | null, key: "per1000CompletedUsd" | "medianPer1000Usd") {
+  const note = kind ? estimatedPartText(kind, part, total, "per 1,000") : null;
+  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? round(part.usd / total) : null, what: part.labels, note } } : {};
 }
 
 /** A plan minimum the usage-only cost leaves out, from the provider's pricing notes; nothing when it has none. */
@@ -332,7 +332,7 @@ const pickRow = (r: Costed) => ({
   kind: r.cost.kind,
   status: statusTag(r),
   whyNotEligible: flagsOf(r).map((f) => f.text),
-  ...estimatedPartData(r.cost.kind, r.estimatedPart, "per1000CompletedUsd"),
+  ...estimatedPartData(r.cost.kind, r.estimatedPart, r.cost.usdPerCompleted, "per1000CompletedUsd"),
   ...minimumData(r.provider),
 });
 
@@ -394,7 +394,7 @@ export function realisticData() {
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
-          ...estimatedPartData(p.costKind, p.estimatedPart, "medianPer1000Usd"),
+          ...estimatedPartData(p.costKind, p.estimatedPart, p.medianCostUsd, "medianPer1000Usd"),
         })),
       })),
     },

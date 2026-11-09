@@ -1,5 +1,6 @@
 {
-  "schema": "realistic-estimated-parts/1",
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "ea17d70460d4cbecd91da47380303659bc12786fccfdbde2e6cf1cc6bfbacee3",
   "harness": {
     "commit": "be57fd3"
   },
@@ -572,18 +573,21 @@
     {
       "provider": "e2b",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.012987272,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "daytona",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.0100503624,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "upstash",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.01646270063580247,
       "medianEstimatedUSD": 0.000045524691358024696,
       "estimatedLabels": [
         "disk at list price"
@@ -592,30 +596,35 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.01645793972222222,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boxd",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.005189,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "e2b",
       "idle": "held-60",
+      "medianTotalUSD": 0.343964264,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "daytona",
       "idle": "held-60",
+      "medianTotalUSD": 0.0904276231,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "upstash",
       "idle": "held-60",
+      "medianTotalUSD": 0.01816273888888889,
       "medianEstimatedUSD": 0.001434027777777778,
       "estimatedLabels": [
         "disk at list price"
@@ -624,30 +633,35 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "held-60",
+      "medianTotalUSD": 0.012147272666666667,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boxd",
       "idle": "held-60",
+      "medianTotalUSD": 0.043337,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "e2b",
       "idle": "held-10",
+      "medianTotalUSD": 0.066876088,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "daytona",
       "idle": "held-10",
+      "medianTotalUSD": 0.0655775809,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "upstash",
       "idle": "held-10",
+      "medianTotalUSD": 0.016459864802469137,
       "medianEstimatedUSD": 0.00027469135802469136,
       "estimatedLabels": [
         "disk at list price"
@@ -656,48 +670,56 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "held-10",
+      "medianTotalUSD": 0.01664865683333333,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boxd",
       "idle": "held-10",
+      "medianTotalUSD": 0.011206,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boat",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.00104,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boat",
       "idle": "held-60",
+      "medianTotalUSD": 0.03604,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "boat",
       "idle": "held-10",
+      "medianTotalUSD": 0.00708,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "vercel",
       "idle": "zero-wait",
+      "medianTotalUSD": 0.02124188,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "vercel",
       "idle": "held-60",
+      "medianTotalUSD": 0.19192063555555555,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "vercel",
       "idle": "held-10",
+      "medianTotalUSD": 0.050567177777777784,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     }

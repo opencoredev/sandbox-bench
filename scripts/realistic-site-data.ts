@@ -48,6 +48,7 @@
  * every pick is "no certified winner" (the site has no interval data to show
  * a certified one). Any mismatch stops the script with the reason.
  */
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
@@ -86,35 +87,49 @@ export function flagsOf(eligibility: string): string[] {
 }
 
 /** One summary row in the site's shape, before the parser checks it. */
-/**
- * Estimated parts by row key and by held-open key, from the --parts files.
- * A row key can appear in more than one file when a later summary replaces a
- * provider, so rows keep every entry and are matched by their total.
- */
-export interface PartsIndex {
-  rows: Map<string, { total: number | null; usd: number; labels: string[] }[]>;
-  held: Map<string, { usd: number; labels: string[] }>;
+/** One parts file's entries, by row key and by held-open key, each with the total it was computed for. */
+export interface SummaryParts {
+  rows: Map<string, { total: number | null; usd: number; labels: string[] }>;
+  held: Map<string, { total: number | null; usd: number; labels: string[] }>;
 }
 
-/** Reads scripts/realistic-estimated-parts.ts output files into one index. */
-export function partsIndex(files: readonly unknown[]): PartsIndex {
-  const index: PartsIndex = { rows: new Map(), held: new Map() };
+const totalOf = (v: unknown) => (typeof v === "number" ? v : null);
+const sameTotal = (a: number | null, b: number | null) => (a === null || b === null ? a === b : Math.abs(a - b) <= 1e-9);
+
+/**
+ * The --parts files keyed by the SHA-256 of the summary.json each was
+ * computed for (scripts/realistic-estimated-parts.ts records it). A summary
+ * only ever reads its own file, so two summaries with equal totals can't swap
+ * parts. A key twice in one file, or two different files for one summary, is refused.
+ */
+export function partsByDigest(files: readonly unknown[]): Map<string, SummaryParts> {
+  const out = new Map<string, { parts: SummaryParts; text: string }>();
   for (const [i, f] of files.entries()) {
     const file = record(f, `parts file ${i}`);
-    need(file.schema === "realistic-estimated-parts/1", `parts file ${i} isn't a realistic-estimated-parts/1 file`);
+    need(file.schema === "realistic-estimated-parts/2", `parts file ${i} isn't a realistic-estimated-parts/2 file; rerun scripts/realistic-estimated-parts.ts`);
+    need(typeof file.summarySha256 === "string" && /^[0-9a-f]{64}$/.test(file.summarySha256), `parts file ${i} has no summarySha256`);
+    const sha = String(file.summarySha256);
+    const parts: SummaryParts = { rows: new Map(), held: new Map() };
     for (const r of list(file.rows, `parts file ${i}.rows`).map((x) => record(x, `parts file ${i} row`))) {
-      const total = typeof r.totalPerCompletedUSD === "number" ? r.totalPerCompletedUSD : null;
-      index.rows.set(keyOf(r), [...(index.rows.get(keyOf(r)) ?? []), { total, usd: Number(r.estimatedPerCompletedUSD), labels: list(r.estimatedLabels, "estimatedLabels").map(String) }]);
+      need(!parts.rows.has(keyOf(r)), `parts file ${i} has ${keyOf(r)} twice`);
+      parts.rows.set(keyOf(r), { total: totalOf(r.totalPerCompletedUSD), usd: Number(r.estimatedPerCompletedUSD), labels: list(r.estimatedLabels, "estimatedLabels").map(String) });
     }
-    for (const h of list(file.heldOpen, `parts file ${i}.heldOpen`).map((x) => record(x, `parts file ${i} held`)))
-      index.held.set(`${String(h.provider)}/${String(h.idle)}`, { usd: Number(h.medianEstimatedUSD), labels: list(h.estimatedLabels, "estimatedLabels").map(String) });
+    for (const h of list(file.heldOpen, `parts file ${i}.heldOpen`).map((x) => record(x, `parts file ${i} held`))) {
+      const key = `${String(h.provider)}/${String(h.idle)}`;
+      need(!parts.held.has(key), `parts file ${i} has held-open ${key} twice`);
+      parts.held.set(key, { total: totalOf(h.medianTotalUSD), usd: Number(h.medianEstimatedUSD), labels: list(h.estimatedLabels, "estimatedLabels").map(String) });
+    }
+    const text = JSON.stringify(f);
+    const seen = out.get(sha);
+    need(seen === undefined || seen.text === text, `two different parts files claim summary ${sha.slice(0, 12)}; keep the one built from that summary`);
+    out.set(sha, { parts, text });
   }
-  return index;
+  return new Map([...out].map(([sha, v]) => [sha, v.parts]));
 }
 
 const partOf = (p: { usd: number; labels: string[] } | undefined) => (p && p.usd > 0 ? { usd: sig(p.usd), labels: p.labels } : null);
 
-function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, parts: PartsIndex) {
+function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, parts: SummaryParts) {
   const r = record(raw, where);
   const eligibility = typeof r.eligibility === "string" ? r.eligibility : "";
   const usd = numOrNull(r.costPerCompletedUSD, `${where}.costPerCompletedUSD`);
@@ -146,19 +161,20 @@ function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, pa
  * recomputed total matches the summary's, so the parts belong to the
  * published numbers; an estimate is all estimate and carries none.
  */
-function estimatedFor(r: Json, where: string, usd: number | null, parts: PartsIndex) {
+function estimatedFor(r: Json, where: string, usd: number | null, parts: SummaryParts) {
   if (usd === null) return null;
-  const entries = parts.rows.get(keyOf(r));
-  need(entries !== undefined, `${where}: no estimated-parts entry for ${keyOf(r)}; run scripts/realistic-estimated-parts.ts on this summary's runs and pass it with --parts`);
-  const p = entries?.find((e) => e.total !== null && Math.abs(e.total - usd) <= 1e-9);
-  need(p !== undefined, `${where}: the parts file's total for ${keyOf(r)} doesn't match the summary; it was built from other runs`);
+  const p = parts.rows.get(keyOf(r));
+  need(p !== undefined, `${where}: no estimated-parts entry for ${keyOf(r)} in this summary's parts file`);
+  need(p !== undefined && sameTotal(p.total, usd), `${where}: the parts file's total for ${keyOf(r)} doesn't match the summary`);
   return r.costKind === "estimate" ? null : partOf(p);
 }
 
-function heldFrom(raw: unknown, where: string, parts: PartsIndex) {
+function heldFrom(raw: unknown, where: string, parts: SummaryParts) {
   const h = record(raw, where);
-  const p = parts.held.get(`${String(h.provider)}/${String(h.idle)}`);
-  need(p !== undefined || h.medianCostUSD === null, `${where}: no estimated-parts entry for ${String(h.provider)}/${String(h.idle)}; pass the parts file for these runs with --parts`);
+  const key = `${String(h.provider)}/${String(h.idle)}`;
+  const p = parts.held.get(key);
+  need(p !== undefined, `${where}: no estimated-parts entry for held-open ${key} in this summary's parts file`);
+  need(p !== undefined && sameTotal(p.total, numOrNull(h.medianCostUSD, `${where}.medianCostUSD`)), `${where}: the parts file's median for held-open ${key} doesn't match the summary`);
   return {
     provider: h.provider,
     idle: h.idle,
@@ -273,6 +289,8 @@ export function checkPicks(name: string, picks: readonly unknown[], data: Pick<R
 export interface SummaryInput {
   name: string;
   raw: unknown;
+  /** SHA-256 of the summary.json bytes, matched against each parts file's summarySha256. */
+  sha256: string;
 }
 
 /**
@@ -300,13 +318,27 @@ export function buildRealistic({
   need(summaries.length > 0, "give at least one --summary");
   const coverage = parseCoverage(rawCoverage, "coverage file");
   need(rawParts.length > 0, "give at least one --parts file from scripts/realistic-estimated-parts.ts");
-  const parts = partsIndex(rawParts);
+  const partsFiles = partsByDigest(rawParts);
   let rows: unknown[] = [];
   let held: unknown[] = [];
   let fx: Json | null = null;
   const sources: { name: string; generatedAt: string; providers: unknown[] }[] = [];
-  for (const { name, raw } of summaries) {
+  for (const { name, raw, sha256 } of summaries) {
     const s = record(raw, name);
+    // Refuse a duplicate before anything is looked up, so the error names the duplicate.
+    for (const [what, items, key] of [
+      ["rows", list(s.rows ?? [], `${name}.rows`), (x: Json) => keyOf(x)],
+      ["heldOpen", list(s.heldOpen ?? [], `${name}.heldOpen`), (x: Json) => `${String(x.provider)}/${String(x.idle)}`],
+    ] as const) {
+      const seen = new Set<string>();
+      for (const item of items.filter(isObj)) {
+        need(!seen.has(key(item)), `${name}: realistic data: ${what} has ${key(item)} twice`);
+        seen.add(key(item));
+      }
+    }
+    const parts = partsFiles.get(sha256);
+    need(parts !== undefined, `${name}: no --parts file was built from this summary (sha256 ${sha256.slice(0, 12)}); run scripts/realistic-estimated-parts.ts on it`);
+    if (!parts) continue;
     const dropped = new Set(list(s.dropped ?? [], `${name}.dropped`).flatMap((d) => (isObj(d) && typeof d.attemptId === "string" ? [d.attemptId] : [])));
     const setup = prepareFailures(attempts, dropped);
     const own = list(s.rows, `${name}.rows`).map((r, i) => {
@@ -371,7 +403,11 @@ export type { HeldOpen, ProviderId, RealisticRow, RunTrack };
 function main(argv: readonly string[]) {
   const take = (flag: string) => argv.flatMap((a, i) => (a === flag && argv[i + 1] ? [argv[i + 1] ?? ""] : []));
   const readJson = (p: string): unknown => JSON.parse(readFileSync(p, "utf8"));
-  const summaries = take("--summary").map((p) => ({ name: sourceName(resolve(p)), raw: readJson(p) }));
+  const summaries = take("--summary").map((p) => {
+    const bytes = readFileSync(p);
+    const raw: unknown = JSON.parse(bytes.toString("utf8"));
+    return { name: sourceName(resolve(p)), raw, sha256: createHash("sha256").update(bytes).digest("hex") };
+  });
   const attempts = take("--attempts").flatMap((p) => readFileSync(p, "utf8").split("\n"));
   const parts = take("--parts").map(readJson);
   const [manifestPath] = take("--manifest");

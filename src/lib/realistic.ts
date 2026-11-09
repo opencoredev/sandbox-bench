@@ -414,6 +414,9 @@ export function parseRealistic(raw: unknown): RealisticData {
 export const pilotDetail = (d: Pick<RealisticData, "coverage">) =>
   `${d.coverage.headline.attempts} runs per provider; most costs are provider meters or estimates not yet checked against settled bills.`;
 export const pilotLine = (d: Pick<RealisticData, "coverage">) => `Pilot: ${pilotDetail(d)}`;
+/** "Pilot · 5 runs per provider · descriptive results": the short line above each chart; the full reason is in its notes. */
+export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs per provider · descriptive results`;
+
 /** "Pilot · 5 runs", for places with room for a word or two. */
 export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs`;
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
@@ -456,7 +459,7 @@ export function profileFootprint(profile: ProfileId, w: Workload | null): string
 }
 
 /** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
-export const costCovers = "Task cost includes setup and failed attempts, from the create request through confirmed deletion.";
+export const costCovers = "Task cost includes setup and failed attempts, through confirmed deletion.";
 
 /**
  * Why a row can't be the pick. A reason the eligibility table names
@@ -506,20 +509,25 @@ export const flagsOf = (row: Pick<RealisticRow, "flags">): readonly Flag[] => ro
 const partWords = (p: EstimatedPart) => [...new Set(p.labels.map((l) => l.replace(/\s+at list price$/, "")))].join(" and ");
 
 /**
- * The kind, saying when part of a billed or metered cost is our estimate:
- * "billed compute + estimated disk". The estimated part is only added where the
- * billing source leaves storage out, so the charge it sits on is compute.
+ * Kind and status, scoped when part of a billed or metered cost is our
+ * estimate: verification covers only the provider's charge, so a verified one
+ * reads "compute verified (billed, settled); disk estimated" and an unverified
+ * one "compute billed, unsettled; disk estimated". The estimated part is only
+ * added where the billing source leaves storage out, so that charge is compute.
  */
-export function withEstimatedPart(kindText: string, kind: CostKind, part: EstimatedPart | null) {
-  return part && kind !== "estimate" ? kindText.replace(/^\w+/, `${kind} compute + estimated ${partWords(part)}`) : kindText;
+export function kindStatusWithPart(kind: CostKind, statuses: readonly CostStatusKind[], part: EstimatedPart | null) {
+  if (!part || kind === "estimate") return kindStatusText(kind, statuses);
+  const verified = statuses.length === 1 && statuses[0] === "verified";
+  const compute = verified ? `compute verified (${kind === "billed" ? "billed, settled" : "metered, reconciled"})` : `compute ${kindStatusText(kind, statuses)}`;
+  return `${compute}; ${partWords(part)} estimated`;
 }
 
 export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
-  if (!row.cost) return "no cost";
+  if (!row.cost) return "n/a";
   const flags = flagsOf(row);
   const statuses = row.eligible ? (["verified"] as const) : flags.flatMap((f) => (f.status ? [f.status] : []));
   const qualifiers = [...new Set(flags.flatMap((f) => (f.status ? [] : [f.short])))];
-  const base = withEstimatedPart(kindStatusText(row.cost.kind, statuses), row.cost.kind, row.estimatedPart);
+  const base = kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
   const rest = qualifiers.length || statuses.length || row.eligible ? qualifiers : ["not eligible"];
   return [base, ...rest].join(", ");
 }
@@ -674,12 +682,16 @@ export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.
 
 /** "billed, verified" or "metered, unsettled, unreconciled", in the cost charts' words. */
 export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind" | "estimatedPart">) =>
-  p.costKind === null ? "no cost" : withEstimatedPart(kindStatusText(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"]), p.costKind, p.estimatedPart);
+  p.costKind === null ? "n/a" : kindStatusWithPart(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], p.estimatedPart);
 
-/** "$0.036 of it is disk added at list price, an estimate; the rest is billed compute.", or null. */
-export function estimatedPartText(kind: CostKind, part: EstimatedPart | null, unit: string) {
+/** "0.30%": the estimated part's share of the figure it sits in, said beside that figure, never as one range for every cost. */
+export const shareText = (part: number, total: number) => `${((part / total) * 100).toFixed(2)}%`;
+
+/** "$0.036 per 1,000 of it (0.30%) is disk added at list price, an estimate; the rest is billed compute.", or null. */
+export function estimatedPartText(kind: CostKind, part: EstimatedPart | null, total: number | null, unit: string) {
   if (!part || kind === "estimate") return null;
-  return `${perThousand(part.usd)} ${unit} of it is ${partWords(part)} added at list price, an estimate; the rest is ${kind} compute.`;
+  const share = total ? ` (${shareText(part.usd, total)})` : "";
+  return `${perThousand(part.usd)} ${unit} of it${share} is ${partWords(part)} added at list price, an estimate; the rest is ${kind} compute.`;
 }
 
 export const idleLabel = (p: Pick<IdlePoint, "minutes">) => (p.minutes === 0 ? "No wait" : p.minutes === 60 ? "1 hour" : `${p.minutes} min`);
@@ -713,7 +725,7 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
-    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "+ estimated disk".` : "",
+    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "disk estimated"; only the billed part counts as verified.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
     "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

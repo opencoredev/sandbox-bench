@@ -73,7 +73,11 @@ export const hasTaskCosts = (track: Track) => pricedTasks(track).length > 0;
  * cost has been yet. Estimates are shown, never picked.
  */
 export const costStatuses = {
-  verified: { label: "Verified", eligible: true, rule: "Billed and settled, and not flagged provisional." },
+  verified: {
+    label: "Verified",
+    eligible: true,
+    rule: "Billed and settled, and not flagged provisional. A pick may include a part we add at list price where the billing source leaves it out, such as disk; that part is marked estimated, and only the billed part counts as verified.",
+  },
   unreconciled: { label: "Unreconciled", eligible: false, rule: "Metered: the provider's usage records at its published rates, not yet checked against the charges it settled." },
   provisional: { label: "Provisional", eligible: false, rule: "Billed or metered, but flagged provisional, with the reason." },
   unsettled: { label: "Unsettled", eligible: false, rule: "Billed or metered, but the provider has not settled the amount, so it can still change." },

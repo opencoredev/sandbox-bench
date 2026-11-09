@@ -24,8 +24,9 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
-export const PARTS_SCHEMA = "realistic-estimated-parts/1";
+export const PARTS_SCHEMA = "realistic-estimated-parts/2";
 
 /** A cost part as the harness reports it. */
 export interface Part {
@@ -51,6 +52,8 @@ export interface PartsRow {
 export interface PartsHeld {
   provider: string;
   idle: string;
+  /** The harness's median total for these runs, so the site can check it against the summary's medianCostUSD. */
+  medianTotalUSD: number | null;
   /** Median over the runs of each run's estimated part, beside the harness's median total. */
   medianEstimatedUSD: number;
   estimatedLabels: string[];
@@ -58,6 +61,8 @@ export interface PartsHeld {
 
 export interface PartsFile {
   schema: typeof PARTS_SCHEMA;
+  /** SHA-256 of the summary.json bytes these parts were computed for; the site joins parts only to that summary. */
+  summarySha256: string;
   harness: { commit: string };
   rows: PartsRow[];
   heldOpen: PartsHeld[];
@@ -115,7 +120,8 @@ async function main(argv: readonly string[]) {
   const { billingRule } = await import(join(h, "src/cost/billing-rules.ts"));
   const { reportedCost } = await import(join(h, "src/cost/columns.ts"));
 
-  const summary: unknown = JSON.parse(readFileSync(summaryPath, "utf8"));
+  const summaryBytes = readFileSync(summaryPath);
+  const summary: unknown = JSON.parse(summaryBytes.toString("utf8"));
   if (!isObj(summary) || !Array.isArray(summary.rows) || !isObj(summary.fx)) throw new Error("summary.json needs rows and fx");
   const drops = (Array.isArray(summary.dropRules) ? summary.dropRules : []).filter(isObj);
   const lines = (file: string) => (existsSync(file) ? readFileSync(file, "utf8").split("\n").filter((l) => l.trim() !== "").map((l): unknown => JSON.parse(l)) : []);
@@ -154,10 +160,20 @@ async function main(argv: readonly string[]) {
   const heldOpen: PartsHeld[] = [...held].map(([key, costs]) => {
     const [provider = "", idle = ""] = key.split("|");
     const est = costs.map((c) => estimatedOf(c).reduce((s, p) => s + p.usd, 0));
-    return { provider, idle, medianEstimatedUSD: median(est), estimatedLabels: [...new Set(costs.flatMap(estimatedOf).filter((p) => p.usd > 0).map((p) => p.label))] };
+    const priced = costs.flatMap((c) => (c.kind === "unavailable" ? [] : [c.usd]));
+    const medianTotalUSD = priced.length === costs.length && costs.length > 0 ? median(priced) : null;
+    return { provider, idle, medianTotalUSD, medianEstimatedUSD: median(est), estimatedLabels: [...new Set(costs.flatMap(estimatedOf).filter((p) => p.usd > 0).map((p) => p.label))] };
   });
+  for (const sh of (Array.isArray(summary.heldOpen) ? summary.heldOpen : []).filter(isObj)) {
+    const p = heldOpen.find((x) => x.provider === sh.provider && x.idle === sh.idle);
+    const b = typeof sh.medianCostUSD === "number" ? sh.medianCostUSD : null;
+    if (!p) throw new Error(`no attempts for held-open ${String(sh.provider)} / ${String(sh.idle)}; pass every run folder the summary read`);
+    if ((p.medianTotalUSD === null) !== (b === null) || (p.medianTotalUSD !== null && b !== null && Math.abs(p.medianTotalUSD - b) > 1e-9))
+      throw new Error(`held-open ${p.provider} / ${p.idle}: recomputed median ${p.medianTotalUSD} doesn't match the summary's ${b}`);
+  }
   const commit = execFileSync("git", ["-C", h, "rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim();
-  const file: PartsFile = { schema: PARTS_SCHEMA, harness: { commit }, rows, heldOpen };
+  const summarySha256 = createHash("sha256").update(summaryBytes).digest("hex");
+  const file: PartsFile = { schema: PARTS_SCHEMA, summarySha256, harness: { commit }, rows, heldOpen };
   writeFileSync(out, `${JSON.stringify(file, null, 2)}\n`);
   const withParts = rows.filter((r) => r.estimatedPerCompletedUSD > 0);
   process.stdout.write(`wrote ${out}: ${rows.length} groups, totals match the summary; estimated parts in ${withParts.map((r) => `${r.provider} ${r.profile}/${r.track}/${r.variant}`).join(", ") || "none"}\n`);

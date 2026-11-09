@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -36,6 +37,7 @@ import {
   readFlag,
   runTracks,
   scopeLine,
+  shareText,
   statusTag,
   taskPick,
   wilson,
@@ -116,21 +118,26 @@ const summary = (over: Record<string, unknown> = {}) => ({
 
 type RawSummary = { rows?: Record<string, unknown>[]; heldOpen?: Record<string, unknown>[] };
 
-/** A parts file that agrees with these summaries: each costed row's total, no estimated part unless given. */
-const partsFor = (summaries: { raw: unknown }[], estimated: Record<string, number> = {}) => ({
-  schema: "realistic-estimated-parts/1",
-  harness: { commit: "test" },
-  rows: summaries.flatMap(({ raw }) =>
-    ((raw as RawSummary).rows ?? []).map((r) => {
-      const key = `${String(r.provider)}/${String(r.profile)}/${String(r.track)}/${String(r.variant)}`;
-      return { provider: r.provider, profile: r.profile, track: r.track, variant: r.variant, totalPerCompletedUSD: r.costPerCompletedUSD, estimatedPerCompletedUSD: estimated[key] ?? 0, estimatedLabels: estimated[key] ? ["disk at list price"] : [] };
-    }),
-  ),
-  heldOpen: summaries.flatMap(({ raw }) => ((raw as RawSummary).heldOpen ?? []).map((h) => ({ provider: h.provider, idle: h.idle, medianEstimatedUSD: 0, estimatedLabels: [] }))),
-});
+/** The digest a summary is bound to: SHA-256 of the bytes the command would read. */
+const digest = (raw: unknown) => createHash("sha256").update(JSON.stringify(raw)).digest("hex");
 
-const build = (summaries: { name: string; raw: unknown }[], attempts: string[] = [], cov: unknown = coverage, parts: unknown[] = [partsFor(summaries)]) =>
-  buildRealistic({ summaries, coverage: cov, attempts, parts, generatedAt: "2026-11-09T01:00:00.000Z" });
+/** A parts file built from one summary: each costed row's total, no estimated part unless given, one entry per key. */
+const partsFor = (raw: unknown, estimated: Record<string, number> = {}) => {
+  const rows = new Map<string, Record<string, unknown>>();
+  for (const r of (raw as RawSummary).rows ?? []) {
+    const key = `${String(r.provider)}/${String(r.profile)}/${String(r.track)}/${String(r.variant)}`;
+    if (!rows.has(key)) rows.set(key, { provider: r.provider, profile: r.profile, track: r.track, variant: r.variant, totalPerCompletedUSD: r.costPerCompletedUSD, estimatedPerCompletedUSD: estimated[key] ?? 0, estimatedLabels: estimated[key] ? ["disk at list price"] : [] });
+  }
+  const held = new Map<string, Record<string, unknown>>();
+  for (const h of (raw as RawSummary).heldOpen ?? []) {
+    const key = `${String(h.provider)}/${String(h.idle)}`;
+    if (!held.has(key)) held.set(key, { provider: h.provider, idle: h.idle, medianTotalUSD: h.medianCostUSD, medianEstimatedUSD: estimated[key] ?? 0, estimatedLabels: estimated[key] ? ["disk at list price"] : [] });
+  }
+  return { schema: "realistic-estimated-parts/2", summarySha256: digest(raw), harness: { commit: "test" }, rows: [...rows.values()], heldOpen: [...held.values()] };
+};
+
+const build = (summaries: { name: string; raw: unknown }[], attempts: string[] = [], cov: unknown = coverage, parts: unknown[] = summaries.map((s) => partsFor(s.raw))) =>
+  buildRealistic({ summaries: summaries.map((s) => ({ ...s, sha256: digest(s.raw) })), coverage: cov, attempts, parts, generatedAt: "2026-11-09T01:00:00.000Z" });
 
 describe("data script", () => {
   test("reads a summary into the site's schema, with flags split from the eligibility text", () => {
@@ -192,18 +199,45 @@ describe("data script", () => {
 
   test("marks the estimated part from the parts file, and refuses missing or mismatched parts", () => {
     const raw = summary();
-    const d = build([{ name: "x", raw }], [], coverage, [partsFor([{ raw }], { "upstash/fix-and-test/same-machine/headline": 0.0001 })]);
+    const d = build([{ name: "x", raw }], [], coverage, [partsFor(raw, { "upstash/fix-and-test/same-machine/headline": 0.0001 })]);
     const up = d.rows.find((r) => r.provider === "upstash" && r.variant === "headline");
     assert.deepEqual(up?.estimatedPart, { usd: 0.0001, labels: ["disk at list price"] });
     assert.equal(d.rows.find((r) => r.provider === "boat")?.estimatedPart, null);
-    assert.throws(() => buildRealistic({ summaries: [{ name: "x", raw }], coverage, parts: [], generatedAt: "t" }), /give at least one --parts file/);
-    const wrong = partsFor([{ raw }]);
+    assert.throws(() => buildRealistic({ summaries: [{ name: "x", raw, sha256: digest(raw) }], coverage, parts: [], generatedAt: "t" }), /give at least one --parts file/);
+    const wrong = partsFor(raw);
     const [first] = wrong.rows;
     assert.ok(first);
     first.totalPerCompletedUSD = 0.5;
     assert.throws(() => build([{ name: "x", raw }], [], coverage, [wrong]), /doesn't match the summary/);
-    const missing = { ...partsFor([{ raw }]), rows: [] };
+    const missing = { ...partsFor(raw), rows: [] };
     assert.throws(() => build([{ name: "x", raw }], [], coverage, [missing]), /no estimated-parts entry/);
+    assert.throws(() => build([{ name: "x", raw }], [], coverage, [partsFor(summary({ generatedAt: "other" }))]), /no --parts file was built from this summary/);
+  });
+
+  // The code review's reproduction: two summaries with equal totals but different parts swapped with the order of the files.
+  test("parts are bound to their own summary, so file order can't swap them", () => {
+    const a = summary({ generatedAt: "a" });
+    const b = summary({ generatedAt: "b" });
+    const key = "upstash/fix-and-test/same-machine/headline";
+    const pa = partsFor(a, { [key]: 0.00016387 });
+    const pb = partsFor(b, { [key]: 0.00166836 });
+    const part = (parts: unknown[]) => build([{ name: "a", raw: a }, { name: "b", raw: b }], [], coverage, parts).rows.find((r) => r.provider === "upstash" && r.variant === "headline")?.estimatedPart?.usd;
+    assert.equal(part([pa, pb]), 0.00166836);
+    assert.equal(part([pb, pa]), 0.00166836);
+  });
+
+  test("refuses a held-open total that doesn't match, a key twice in a parts file, and two different parts files for one summary", () => {
+    const raw = summary();
+    const held = partsFor(raw);
+    const [first] = held.heldOpen;
+    assert.ok(first);
+    first.medianTotalUSD = 0.5;
+    assert.throws(() => build([{ name: "x", raw }], [], coverage, [held]), /median for held-open upstash\/zero-wait doesn't match the summary/);
+    const twice = partsFor(raw);
+    twice.rows = [...twice.rows, ...twice.rows.slice(0, 1)];
+    assert.throws(() => build([{ name: "x", raw }], [], coverage, [twice]), /has upstash\/fix-and-test\/same-machine\/headline twice/);
+    const other = partsFor(raw, { "upstash/fix-and-test/same-machine/headline": 0.0002 });
+    assert.throws(() => build([{ name: "x", raw }], [], coverage, [partsFor(raw), other]), /two different parts files claim summary/);
   });
 
   test("refuses a duplicate held-open entry or row in a summary", () => {
@@ -216,11 +250,12 @@ describe("data script", () => {
     const dir = mkdtempSync(join(tmpdir(), "realistic-dup-"));
     const input = join(dir, "run", "merged", "summary.json");
     mkdirSync(dirname(input), { recursive: true });
-    writeFileSync(input, JSON.stringify(summary({ heldOpen: [...summary().heldOpen, heldEntry("upstash", "held-60", { medianCostUSD: 999 })] })));
+    const dup = summary({ heldOpen: [...summary().heldOpen, heldEntry("upstash", "held-60", { medianCostUSD: 999 })] });
+    writeFileSync(input, JSON.stringify(dup));
     const coverageFile = join(dir, "coverage.json");
     writeFileSync(coverageFile, JSON.stringify(coverage));
     const partsFile = join(dir, "parts.json");
-    writeFileSync(partsFile, JSON.stringify(partsFor([{ raw: summary() }])));
+    writeFileSync(partsFile, JSON.stringify(partsFor(dup)));
     const out = join(dir, "out.json");
     writeFileSync(out, "previous output\n");
     const script = resolve(import.meta.dirname, "../../scripts/realistic-site-data.ts");
@@ -353,19 +388,20 @@ describe("statuses and billing", () => {
 
   test("tags use the cost charts' words: kind, then statuses, then qualifiers", () => {
     const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null }, eligible, flags, estimatedPart: null });
-    assert.equal(statusTag({ ...row("billed", true, []), estimatedPart: { usd: 0.1, labels: ["disk at list price"] } }), "billed compute + estimated disk, verified");
+    assert.equal(statusTag({ ...row("billed", true, []), estimatedPart: { usd: 0.1, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
     assert.equal(statusTag(row("billed", true, [])), "billed, verified");
     assert.equal(statusTag(row("metered", false, ["unsettled (5 attempts)", meter])), "metered, unsettled, unreconciled");
     assert.equal(statusTag(row("estimate", false, ["unverified estimate: x"])), "estimate");
     assert.equal(statusTag(row("metered", false, [meter, "wrong machine size: 15.6 GiB memory"])), "metered, unreconciled, wrong size");
-    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), /^(billed|metered|estimate)\b/);
+    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), r.estimatedPart ? /^compute (verified \((billed|metered), (settled|reconciled)\)|billed|metered).*; disk estimated/ : /^(billed|metered|estimate)\b/);
   });
 
   test("held-open statuses read into the same words", () => {
     assert.deepEqual(holdStatuses("settled"), []);
     assert.deepEqual(holdStatuses("unsettled; metered, unreconciled (provisional)"), ["unsettled", "unreconciled"]);
     assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: null }), "billed, verified");
-    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "billed compute + estimated disk, verified");
+    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
+    assert.equal(holdTag({ costKind: "billed", statuses: ["unsettled"], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute billed, unsettled; disk estimated");
     assert.equal(holdTag({ costKind: "metered", statuses: ["unreconciled"], estimatedPart: null }), "metered, unreconciled");
     assert.equal(holdStatuses("refunded"), null);
   });
@@ -521,7 +557,7 @@ describe("exports", () => {
         assert.ok(w.pick.lowerNotEligible.every((r) => r.whyNotEligible.length > 0));
       }
     assert.ok(d.idle.providers.length > 0);
-    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate)\b.*, /);
+    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute)\b.*, /);
   });
 
   test("every export names the providers left out of the idle test, with why", () => {
@@ -581,10 +617,12 @@ describe("page", () => {
 
   test("Upstash Box's pick, row and details say its cost has an estimated disk part, with the amount", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /The only verified cost among eligible providers:.*billed compute \+ estimated disk, verified/s);
+    assert.match(html, /The only verified cost among eligible providers:.*compute verified \(billed, settled\); disk estimated/s);
     const part = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.estimatedPart;
     assert.ok(part);
-    assert.ok(html.includes(`${perThousand(part.usd)} per 1,000 of it is disk added at list price, an estimate; the rest is billed compute.`));
+    const total = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.cost?.usdPerCompleted ?? 1;
+    assert.ok(html.includes(`${perThousand(part.usd)} per 1,000 of it (${shareText(part.usd, total)}) is disk added at list price, an estimate; the rest is billed compute.`));
+    assert.doesNotMatch(html, /\b0\.3[–-]1\.0%/);
   });
 
   test("only Upstash Box has an estimated part in this data", () => {
@@ -636,14 +674,20 @@ describe("page", () => {
     assert.doesNotMatch(html, /Lower is better/);
     assert.match(html, /couldn&#x27;t resume/);
     assert.match(html, /Not in this test:/);
-    assert.match(html, /billed compute \+ estimated disk, verified/);
+    assert.match(html, /compute verified \(billed, settled\); disk estimated/);
     assert.match(html, /metered, unreconciled/);
+    // Each idle share is said beside its own wait, never as one range.
+    for (const h of realistic.heldOpen.filter((x) => x.provider === "upstash" && x.estimatedPart && x.medianCostUsd))
+      assert.ok(html.includes(shareText(h.estimatedPart?.usd ?? 0, h.medianCostUsd ?? 1)), `share for ${h.idle}`);
+    // One fixed value column and outcomes on their own line, so every idle bar track has one width.
+    assert.match(html, /grid-cols-\[3.75rem_minmax\(0,1fr\)_4.5rem\]/);
+    assert.doesNotMatch(html, /min-w-\[4.5rem\] items-baseline/);
   });
 
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Fix and test, per 1,000/);
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">billed compute \+ estimated disk, verified<\/span>/, "the status sits outside the clamped line");
+    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">compute verified \(billed, settled\); disk estimated<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });
 });
