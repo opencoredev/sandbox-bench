@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Disclosure } from "@/components/disclosure";
 import { ProviderName } from "@/components/provider-name";
 import type { Provider, TrackId } from "@/lib/data";
-import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
+import { chipBasisLabel, hardware, notProbed, probeDate } from "@/lib/hardware";
 import type { HardwareDetail } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
@@ -102,6 +102,11 @@ function Row({ p, h, track }: { p: Provider; h: HardwareDetail; track: TrackId }
  * A grid on wide screens; stacked labelled cells on phones.
  */
 export function SpecSheet({ providers, track }: { providers: readonly Provider[]; track: TrackId }) {
+  const rows = providers.flatMap((p) => {
+    const h = hardware[p.id];
+    return h ? [{ p, h }] : [];
+  });
+  const unprobed = providers.filter((p) => !hardware[p.id]);
   return (
     <>
       <p className="mb-m max-w-[80ch] text-xs text-neutral-7">
@@ -117,10 +122,22 @@ export function SpecSheet({ providers, track }: { providers: readonly Provider[]
         <span />
       </div>
       <ul>
-        {providers.map((p) => (
-          <Row key={p.id} p={p} h={hardware[p.id]} track={track} />
+        {rows.map(({ p, h }) => (
+          <Row key={p.id} p={p} h={h} track={track} />
         ))}
       </ul>
+      {unprobed.length > 0 ? (
+        <p className="mt-s text-xs text-pretty text-neutral-7">
+          {notProbed}:{" "}
+          {unprobed.map((p, i) => (
+            <span key={p.id} style={{ color: providerColor(p.id) }}>
+              {i > 0 ? ", " : ""}
+              <ProviderName id={p.id} />
+            </span>
+          ))}
+          . Hardware is shown once our probe has run there.
+        </p>
+      ) : null}
     </>
   );
 }

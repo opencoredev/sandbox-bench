@@ -42,7 +42,12 @@ export const chipBasisLabel = {
   conflicting: "conflicting",
 } as const satisfies Record<ChipBasis, string>;
 
-export const hardware = {
+/**
+ * Only providers the probe has run on. A provider without an entry (Vercel
+ * Sandbox and Modal, added before their probe) shows as not probed, never
+ * with guessed hardware.
+ */
+export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
   e2b: {
     chip: "Intel Xeon Platinum 8373C",
     family: "Ice Lake, 2.6 GHz, 54 MB L3",
@@ -216,4 +221,7 @@ export const hardware = {
     ],
     sameSpec: null,
   },
-} as const satisfies Record<ProviderId, HardwareDetail>;
+};
+
+/** Said where a provider has no hardware probe yet. */
+export const notProbed = "Not probed yet";

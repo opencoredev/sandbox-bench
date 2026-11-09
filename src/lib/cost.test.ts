@@ -7,7 +7,7 @@ import { trackIds, tracks } from "@/lib/data";
 
 // The cost eligibility table and the pick built on it. Run with `bun test`.
 
-const cost = (kind: Priced["kind"], settled: boolean): Priced => ({ kind, usd: 0.001, n: 10, confidence: "medium", source: null, settled });
+const cost = (kind: Priced["kind"], settled: boolean): Priced => ({ kind, usd: 0.001, n: 10, confidence: "medium", source: null, settled, bound: null });
 
 describe("cost status", () => {
   test("billed and settled is verified and eligible", () => {
@@ -67,7 +67,7 @@ describe("cost pick", () => {
     const costs = Object.fromEntries(Object.entries(base.costs).map(([k, v]) => [k, v && v.kind === "billed" ? { ...v, settled: false } : v]));
     const c = costPick({ ...base, costs } as typeof base);
     assert.equal(c.kind, "none");
-    if (c.kind === "none") assert.equal(c.lowest.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
+    if (c.kind === "none") assert.equal(c.lowest?.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
   });
 
   test("no costs at all: empty", () => {

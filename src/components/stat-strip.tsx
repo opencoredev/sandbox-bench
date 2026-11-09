@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
-import { costPick, costStatuses, formatPerThousand } from "@/lib/cost";
+import { costPick, costStatuses, perThousandText } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { providerColor, providerName } from "@/lib/providers";
@@ -36,12 +36,15 @@ function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
       return {
         label: "Lowest verified cost, per 1,000 tasks",
         provider: c.pick.id,
-        value: formatPerThousand(c.pick.cost.usd),
+        value: perThousandText(c.pick.cost),
         note: lower ? `lower: ${providerName(lower.id)}, ${costStatuses[lower.status.kind].label.toLowerCase()}` : undefined,
       };
     }
     case "none":
-      return { label: "No verified cost yet", provider: c.lowest.id, value: formatPerThousand(c.lowest.cost.usd), note: `lowest reported, ${costStatuses[c.lowest.status.kind].label.toLowerCase()}` };
+      // With only lower bounds there is no lowest figure to show, so no tile.
+      return c.lowest
+        ? { label: "No verified cost yet", provider: c.lowest.id, value: perThousandText(c.lowest.cost), note: `lowest reported, ${costStatuses[c.lowest.status.kind].label.toLowerCase()}` }
+        : null;
     case "empty":
       return null;
     default: {

@@ -28,13 +28,13 @@ import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, pricedTasks } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
 import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
-import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote, upstashTwinNote } from "@/lib/notes";
+import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
@@ -119,16 +119,18 @@ function PriceChart({ track }: { track: Track }) {
     const price = usdPrice(p, "hourly");
     return price ? [{ p, ...price }] : [];
   });
+  // A lower bound can't be ranked against a price, so lower bounds come after every exact price.
   const columns: Column[] = priced
-    .sort((a, b) => a.usd - b.usd)
-    .map(({ p, usd, converted, original }) => ({
+    .sort((a, b) => Number(isLowerBound(a)) - Number(isLowerBound(b)) || a.usd - b.usd)
+    .map(({ p, usd, converted, original, bound }) => ({
       provider: p.id,
-      label: formatMoney(usd, "USD"),
+      label: qualify({ amount: formatMoney(usd, "USD"), bound, style: "tight" }),
       mark: converted ? 1 : undefined,
       segments: [{ value: usd, color: providerColor(p.id), fill: "solid" }],
-      detail: [`${formatMoney(usd, "USD")} ${per("hourly")}${converted ? ` (${original})` : ""}`, ranOn(p)],
+      detail: [`${qualify({ amount: formatMoney(usd, "USD"), bound })} ${per("hourly")}${converted ? ` (${original})` : ""}${bound === "lower" ? ", a lower bound" : ""}`, ranOn(p)],
     }));
   const unpriced = track.providers.filter((p) => !usdPrice(p, "hourly"));
+  const lowerBounds = priced.filter(isLowerBound);
   return (
     <>
       <ChartHead title={title} sub={`${what} · From each provider's price list · US dollars · Lower is better`} />
@@ -137,6 +139,8 @@ function PriceChart({ track }: { track: Track }) {
         items={[
           ...priced.filter((x) => x.converted).map(({ p, original }) => ({ mark: 1, text: <><Who id={p.id} /> {conversionNote(original, per("hourly"))}</> })),
           ...(unpriced.length > 0 ? [{ text: <>No price for {unpriced.map((p, i) => <span key={p.id}>{i > 0 ? ", " : ""}<Who id={p.id} /></span>)}: its measured machine did not match a priced size.</> }] : []),
+          ...lowerBounds.map(({ p }) => ({ text: <><Who id={p.id} />: at least this much. Its price counts only the resources requested, and it also bills use above them, so it is listed after every exact price.</> })),
+          ...priced.flatMap(({ p }) => { const note = regionNote(p); return note ? [{ text: <><Who id={p.id} />: {sentence(note)}</> }] : []; }),
           { text: "CPU and memory only, at list price. Boat charges a flat rate per size. Upstash and boxd may cost less: they bill only part of the machine." },
           ...trackFootnotes(track),
         ]}
@@ -166,6 +170,7 @@ function CommonPriceChart({ track }: { track: Track }) {
       <Footnotes
         items={[
           ...track.providers.filter((p) => commonPrice(p) === null).map((p) => ({ text: <><Who id={p.id} /> does not list a {commonSize.label} machine, so no price is shown.</> })),
+          ...track.providers.flatMap((p) => { const note = regionNote(p); return note && commonPrice(p) !== null ? [{ text: <><Who id={p.id} />: {sentence(note)}</> }] : []; }),
           { text: "CPU and memory only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash bills only while the CPU is busy, so it may cost less. Boat charges a flat rate per size." },
         ]}
       />
@@ -179,7 +184,10 @@ const perTask = ([first, ...rest]: readonly [number, ...number[]]): readonly [nu
 /** The quadrant: agent work time across, cost per task up, one plain dot per provider. */
 function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
+  // A lower bound has no place on a cost axis: the charge could sit anywhere above it.
+  const bounded = pricedTasks(track).filter((t) => isLowerBound(t.cost));
   const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
+    if (isLowerBound(cost)) return [];
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
     return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), `Cost status: ${costStatuses[status.kind].label.toLowerCase()}`, ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
@@ -210,6 +218,7 @@ function CostQuadrant({ track }: { track: Track }) {
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
+          ...bounded.map((t) => ({ text: <><Who id={t.id} /> isn&apos;t plotted: its cost is a lower bound, so its place on the cost axis isn&apos;t known.</> })),
           { text: <><Who id="boat" /> runs in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
@@ -307,7 +316,7 @@ function Headlines({ track }: { track: Track }) {
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
-            <CostLegend compact />
+            <CostLegend track={track} compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
           </>
         ) : (
@@ -577,7 +586,7 @@ export default function Page() {
                       notes: Object.fromEntries(Object.entries(left).map(([id, why]) => [id, `left out: ${why}`])),
                     },
                     { id: "reconnect", what: "Attach to an existing sandbox by ID and run a command" },
-                    { id: "destroy", what: "Delete the sandbox and wait for confirmation" },
+                    { id: "destroy", what: "Delete the sandbox and wait for confirmation", notes: forTrack(track, destroyNotes) },
                   ])}
                 />
               );
@@ -603,8 +612,8 @@ export default function Page() {
                     : []),
                   { id: "pause-resume", label: "Pause + resume", content: <PauseChart track={track} /> },
                   ...metricTabs(track, [
-                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: mergeNotes(blockedNotes(track, "snapshot"), notRunNotes(track, "snapshot")) },
-                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot")) },
+                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: mergeNotes(blockedNotes(track, "snapshot"), notRunNotes(track, "snapshot"), forTrack(track, snapshotNotes)) },
+                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot"), forTrack(track, snapshotNotes)) },
                   ]),
                 ]}
               />

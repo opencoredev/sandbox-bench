@@ -33,8 +33,19 @@ export interface SiteProviderExport {
   equalSpec: boolean;
   currency: string | null;
   hourly: number | null;
+  /** Already multiplied by `regionMultiplier`, like `hourly`. */
   commonHourly: number | null;
   perVcpuHour: number | null;
+  /**
+   * How the hourly price relates to the bill: "lower" when it is a lower bound
+   * (Modal's default track bills burst usage above its 0.125 CPU / 128 MiB
+   * request). Null without a price; absent in exports made before SBX-103.
+   */
+  pricingBound?: string | null;
+  /** The region the source runs were pinned to, which sets `regionMultiplier`. Null when unpinned. */
+  pricingRegion?: string | null;
+  /** The region price multiplier already in `hourly` and `commonHourly` (Modal pinned to us-east: 1.75). 1 when none applies. */
+  regionMultiplier?: number;
   pricingAllocation: { cpu: number; memoryGiB: number } | null;
   allocationVerification: { verified: boolean | null; mismatches: readonly string[] };
   pricingSource: string | null;
@@ -79,6 +90,13 @@ export interface CostPerTaskExport {
   n: number;
   /** False while the provider can still change the amount (Daytona settles up to 48 hours later). */
   settled: boolean;
+  /**
+   * For an estimate, how it relates to the bill: "lower" is a lower bound
+   * (Modal's list-price fallback on its default track), "exact" or
+   * "observed" otherwise. Null for billed and metered amounts; absent in
+   * exports made before SBX-103.
+   */
+  bound?: string | null;
 }
 
 export interface SiteMetricExport {

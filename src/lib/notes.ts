@@ -96,7 +96,28 @@ export const execNotes: Notes = {};
 export const noRealPause: Notes = {
   daytona: "Daytona's container sandboxes have no pause: stop and start restarts the sandbox and ends every running process.",
   boat: "Boat has no pause: stop and start restarts the machine and ends every running process.",
+  vercel: "Vercel Sandbox's pause keeps files but not processes: pause stops the session, and resume starts a new one from the saved file system, ending every running process.",
 };
+
+/** Snapshot caveats from each provider's docs, for the snapshot charts. */
+export const snapshotNotes: Notes = {
+  modal: "Modal's snapshots keep the file system only, not running processes or memory.",
+  vercel: "Vercel's snapshot() also stops the sandbox it snapshots.",
+};
+
+/**
+ * What a destroy time covers, where it is not the provider's delete call
+ * alone. Modal confirms a stop well after accepting the terminate request,
+ * so its published time is the request, as the others' are, and the stop is
+ * disclosed here (bench/MODAL.md).
+ */
+export const destroyNotes: Notes = {
+  modal: "times Modal's terminate request, the same call the other providers' delete times. Modal reports the sandbox stopped later, sometimes about 30 s after (2 of 18 sandboxes in a probe), and may bill until then",
+};
+
+/** Only the notes for providers in a track, so a provider with no data there gets no line. */
+export const forTrack = (t: Track, notes: Notes): Notes =>
+  Object.fromEntries(Object.entries(notes).filter(([id]) => t.providers.some((p) => p.id === id)));
 
 /** The machine probe runs under Python multiprocessing; Superserve's VMs have no /dev/shm for its locks. */
 export const probeNote = "not measured: our machine probe needs /dev/shm, which Superserve's VMs don't have";

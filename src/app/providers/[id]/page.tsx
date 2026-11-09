@@ -187,7 +187,7 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
             </li>
           ) : null}
           <li>Billing: {t.billing}.</li>
-          {t.pricePerHourUsd !== null ? <li>List price: ${t.pricePerHourUsd} per hour for this machine, compute only{t.wholeMachine.counterfactual ? "; a counterfactual, since it bills usage, not the whole machine" : ""}.</li> : null}
+          {t.pricePerHour !== null ? <li>List price: {t.pricePerHour} per hour for this machine, compute only{t.wholeMachine.counterfactual ? "; a counterfactual, since it bills usage, not the whole machine" : ""}{t.priceNote ? `; ${t.priceNote}` : ""}.</li> : null}
           <li>
             Pause and resume:{" "}
             {t.pause.supported && "split" in t.pause && t.pause.split

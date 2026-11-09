@@ -1,5 +1,5 @@
 import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
-import { costKinds, formatPerThousand, formatTaskCost } from "@/lib/cost";
+import { costKinds, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import { formatValue } from "@/lib/format";
@@ -71,6 +71,8 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
   const p = t.providers.find((x) => x.id === id);
   if (!t.published || !p) return null;
   const cost = p.costPerTask;
+  const costBound = "bound" in cost ? (cost.bound ?? null) : null;
+  const priceBound = "bound" in p.price ? (p.price.bound ?? null) : null;
   return {
     id: trackId,
     label: t.label,
@@ -83,8 +85,9 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
       "basis" in cost && cost.perTaskUsd !== null
         ? {
             kind: "priced" as const,
-            perTask: formatTaskCost(cost.perTaskUsd),
-            perThousand: formatPerThousand(cost.perTaskUsd),
+            perTask: qualify({ amount: formatTaskCost(cost.perTaskUsd), bound: costBound }),
+            perThousand: qualify({ amount: formatPerThousand(cost.perTaskUsd), bound: costBound }),
+            lowerBound: costBound === "lower",
             label: costKinds[cost.kind].label,
             tag: cost.tag,
             statusNote: cost.statusNote,
@@ -93,6 +96,10 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
           }
         : { kind: "none" as const, note: "note" in cost ? cost.note : "no cost data" },
     pricePerHourUsd: p.price.perHourUsd,
+    /** "$0.391", or "at least $0.021" for a lower bound. */
+    pricePerHour: p.price.perHourUsd === null ? null : qualify({ amount: `$${p.price.perHourUsd}`, bound: priceBound }),
+    /** "priced at Modal's us-east rate, 1.75× its base price", where a region multiplier applies. */
+    priceNote: "regionNote" in p.price ? p.price.regionNote : null,
     billing: p.billing.label,
     wholeMachine: p.wholeMachineAtListPrice,
     reliability: p.reliability,

@@ -5,7 +5,7 @@ import { ProviderName } from "@/components/provider-name";
 import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { dayRange, formatCount, formatValue } from "@/lib/format";
-import { hardware } from "@/lib/hardware";
+import { hardware, notProbed } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
@@ -85,7 +85,7 @@ function ProviderLocationRow({
           <ProviderName id={provider} />
         </span>
         <span className="mt-0.5 block text-xs text-neutral-7">
-          {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+          {hw === undefined ? notProbed : hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
         </span>
       </div>
 
@@ -282,7 +282,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
                   <ProviderName id={id} />
                 </span>
                 <span className="mt-0.5 block text-xs text-neutral-7">
-                  {hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
+                  {hw === undefined ? notProbed : hw.regionShort ? `Sandbox in ${hw.regionShort}` : "API in Virginia"}
                 </span>
               </div>
 

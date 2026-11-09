@@ -10,16 +10,18 @@ import {
   costSource,
   costStatuses,
   costTag,
-  formatPerThousand,
   hasTaskCosts,
   hourlyText,
   isEligible,
+  isLowerBound,
   machineText,
   noPickLabel,
   notFromBill,
   perTaskLifetimeNote,
+  perThousandText,
   pickLabel,
   pricedTasks,
+  regionNote,
   statusNote,
   unpricedTasks,
   wholeMachine,
@@ -66,11 +68,11 @@ export function costColumns(track: Track) {
     const why = statusNote(status);
     return {
       provider: id,
-      label: formatPerThousand(cost.usd),
+      label: perThousandText(cost, "tight"),
       mark: marks.get(id),
       segments: [{ value: cost.usd, color: providerColor(id), fill: fillOf(status) }],
       detail: [
-        ["Per 1,000 tasks", formatPerThousand(cost.usd)],
+        ["Per 1,000 tasks", perThousandText(cost)],
         ["Status", costStatuses[status.kind].label],
         costSource(id, cost),
         sentence(billingLabel(billingBases[id]).replace(/^\w/, (c) => c.toUpperCase())),
@@ -86,8 +88,11 @@ const Swatch = ({ fill }: { fill: MarkFill }) => (
   <span aria-hidden className="inline-block size-2.5 shrink-0 rounded-[2px]" style={markFill(fill, "var(--color-neutral-8)")} />
 );
 
+/** Whether a track shows a lower-bound cost, so the legend and notes explain one only when it does. */
+const showsLowerBound = (track: Track) => pricedTasks(track).some((t) => isLowerBound(t.cost));
+
 /** What solid and striped bars mean. */
-export function CostLegend({ compact = false }: { compact?: boolean }) {
+export function CostLegend({ track, compact = false }: { track: Track; compact?: boolean }) {
   return (
     <p className={`mt-s flex flex-wrap items-center gap-x-m gap-y-xxs text-neutral-7 ${compact ? "text-xxs" : "text-xs"}`}>
       <span className="inline-flex items-center gap-1.5">
@@ -96,7 +101,7 @@ export function CostLegend({ compact = false }: { compact?: boolean }) {
       </span>
       <span className="inline-flex items-center gap-1.5">
         <Swatch fill="striped" />
-        Unreconciled, provisional, unsettled or estimate: shown, not eligible
+        {showsLowerBound(track) ? "Unreconciled, provisional, unsettled, estimate or lower bound: shown, not eligible" : "Unreconciled, provisional, unsettled or estimate: shown, not eligible"}
       </span>
     </p>
   );
@@ -104,7 +109,7 @@ export function CostLegend({ compact = false }: { compact?: boolean }) {
 
 const Amount = ({ t }: { t: PricedTask }) => (
   <>
-    <Who id={t.id} /> <span className="font-mono tabular-nums text-neutral-10">{formatPerThousand(t.cost.usd)}</span>{" "}
+    <Who id={t.id} /> <span className="font-mono tabular-nums text-neutral-10">{perThousandText(t.cost)}</span>{" "}
     <span className="text-neutral-7">({costTag(t.id, t.cost, t.status)})</span>
   </>
 );
@@ -138,9 +143,13 @@ export function CostPick({ track }: { track: Track }) {
       return (
         <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
           <p className="font-medium">{noPickLabel}.</p>
-          <p className="text-xs text-neutral-7">
-            Lowest reported: <Amount t={c.lowest} />. {sentence(statusNote(c.lowest.status) ?? "")}
-          </p>
+          {c.lowest ? (
+            <p className="text-xs text-neutral-7">
+              Lowest reported: <Amount t={c.lowest} />. {sentence(statusNote(c.lowest.status) ?? "")}
+            </p>
+          ) : (
+            <p className="text-xs text-neutral-7">Every reported cost is a lower bound, so none is ranked.</p>
+          )}
         </div>
       );
     case "empty":
@@ -174,7 +183,7 @@ function WholeMachineCell({ w }: { w: Row["w"] }) {
   if (w.kind === "none") return <span className="text-neutral-7">{w.why}</span>;
   return (
     <>
-      <span className="font-mono text-xs whitespace-nowrap tabular-nums text-neutral-10">{hourlyText(w)}</span>
+      <span className="font-mono text-xs whitespace-nowrap tabular-nums text-neutral-10">{hourlyText(w, "tight")}</span>
       <span className="block text-xs text-neutral-7">
         {machineText(w)}
         {w.counterfactual ? ", counterfactual" : ""}
@@ -197,7 +206,7 @@ export function CostTable({ track }: { track: Track }) {
           <li key={t.id} className="py-s text-s">
             <p className="flex items-baseline justify-between gap-s">
               <Who id={t.id} />
-              <span className="font-mono text-xs tabular-nums">{formatPerThousand(t.cost.usd)}</span>
+              <span className="font-mono text-xs tabular-nums">{perThousandText(t.cost, "tight")}</span>
             </p>
             <p className="mt-xxs text-xs">
               <Status t={t} />
@@ -209,7 +218,7 @@ export function CostTable({ track }: { track: Track }) {
                 w.why
               ) : (
                 <>
-                  <span className="font-mono tabular-nums text-neutral-10">{hourlyText(w)}</span>, {machineText(w)}
+                  <span className="font-mono tabular-nums text-neutral-10">{hourlyText(w, "tight")}</span>, {machineText(w)}
                   {w.counterfactual ? ", counterfactual" : ""}
                 </>
               )}
@@ -233,7 +242,7 @@ export function CostTable({ track }: { track: Track }) {
               <th scope="row" className="py-s pr-5 font-medium">
                 <Who id={t.id} />
               </th>
-              <td className="py-s pr-5 font-mono text-xs whitespace-nowrap tabular-nums">{formatPerThousand(t.cost.usd)}</td>
+              <td className="py-s pr-5 font-mono text-xs whitespace-nowrap tabular-nums">{perThousandText(t.cost, "tight")}</td>
               <td className="py-s pr-5 text-xs">
                 <Status t={t} />
               </td>
@@ -267,14 +276,21 @@ export function CostPerTaskChart({ track }: { track: Track }) {
       {head}
       <CostPick track={track} />
       <Columns columns={columns} label="Cost per 1,000 tasks by provider" />
-      <CostLegend />
+      <CostLegend track={track} />
       <CostTable track={track} />
       <Footnotes
         items={[
           ...[...marks].map(([id, mark]) => ({ mark, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
           { text: "Each task ran in its own sandbox, up to 10 per provider, in a separate cost run. The bar is the median." },
           { text: <>Eligible for the pick: {costStatuses.verified.rule.replace(/^\w/, (c) => c.toLowerCase())} Unreconciled, provisional, unsettled and estimated costs are shown, never picked.</> },
+          ...(showsLowerBound(track)
+            ? [{ text: "A lower bound (≥) counts only the resources requested, and the provider also bills use above them, so the charge can be higher. It is listed after every exact cost and is never ranked or picked." }]
+            : []),
           { text: <>{wholeMachineLabel}: {perTaskLifetimeNote} For a provider that bills usage it is a counterfactual, not what it charges.</> },
+          ...track.providers.flatMap((p) => {
+            const note = regionNote(p);
+            return note && pricedTasks(track).some((t) => t.id === p.id) ? [{ text: <><Who id={p.id} />: {sentence(note)}</> }] : [];
+          }),
           ...(missing.length > 0
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),

@@ -7,13 +7,17 @@ import {
   costStatus,
   costStatuses,
   costTag,
-  formatPerThousand,
-  formatTaskCost,
+  hasLowerBounds,
   isEligible,
+  isLowerBound,
+  isPriced,
   noPickLabel,
   perTaskLifetimeNote,
+  perTaskText,
+  perThousandText,
   pickLabel,
   pricedTasks,
+  regionNote,
   statusNote,
   wholeMachine,
   wholeMachineLabel,
@@ -25,7 +29,7 @@ import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
-import { absentNote, allocationNotes, measuredText, noRealPause, requestedText } from "@/lib/notes";
+import { absentNote, allocationNotes, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { advertised, sizeOf } from "@/lib/sizes";
@@ -48,13 +52,14 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
 const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
+const modalNoPause = "unsupported: Modal sandboxes can't stop and run again, so Modal has no pause and resume";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume" },
+    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause },
   },
   "same-spec": {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume" },
+    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause },
     snapshot: { superserve: superserveJoins },
     "create-from-snapshot": { superserve: superserveJoins },
     "burst-10": {
@@ -146,8 +151,14 @@ export interface QuickPick {
   note: string | null;
 }
 
-/** "boxd $0.000128 per task, $0.13 per 1,000 (metered, provisional)". */
-const costCell = (t: PricedTask) => `${providerName(t.id)} ${formatTaskCost(t.cost.usd)} per task, ${formatPerThousand(t.cost.usd)} per 1,000 (${costTag(t.id, t.cost, t.status)})`;
+/** "boxd $0.000128 per task, $0.13 per 1,000 (metered, provisional)"; a lower bound reads "at least …". */
+const costCell = (t: PricedTask) => `${providerName(t.id)} ${perTaskText(t.cost)} per task, ${perThousandText(t.cost)} per 1,000 (${costTag(t.id, t.cost, t.status)})`;
+
+/** Whether any track shows a lower bound. Lower-bound fields and notes appear only then, so data without one publishes as before. */
+const anyLowerBound = () => hasLowerBounds(trackIds.map((id) => tracks[id]));
+
+/** `{ bound: "lower" }` on a lower-bound amount, nothing otherwise. */
+const lowerBoundField = (lower: boolean) => (lower ? { bound: "lower" as const } : {});
 
 const nameList = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
@@ -166,7 +177,9 @@ function costPickRow(track: Track): QuickPick {
       };
     }
     case "none":
-      return { need: noPickLabel, pick: `Lowest reported: ${costCell(c.lowest)}`, runnerUp: "n/a", note: `${statusNote(c.lowest.status) ?? ""}.` };
+      return c.lowest
+        ? { need: noPickLabel, pick: `Lowest reported: ${costCell(c.lowest)}`, runnerUp: "n/a", note: `${statusNote(c.lowest.status) ?? ""}.` }
+        : { need: noPickLabel, pick: "Every reported cost is a lower bound, so none is ranked", runnerUp: "n/a", note: null };
     case "empty":
       return { need: pickLabel, pick: "n/a", runnerUp: "n/a", note: null };
     default: {
@@ -178,13 +191,13 @@ function costPickRow(track: Track): QuickPick {
 
 /** The cost pick as data for agents: who, the eligible set, and every lower cost that isn't eligible, with why. */
 function costPickData(track: Track) {
-  const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), kind: t.cost.kind, status: t.status.kind, why: "why" in t.status ? t.status.why : null });
+  const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), ...lowerBoundField(isLowerBound(t.cost)), kind: t.cost.kind, status: t.status.kind, why: "why" in t.status ? t.status.why : null });
   const c = costPick(track);
   switch (c.kind) {
     case "verified":
       return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, eligible: c.eligible, lowerNotEligible: c.lower.map(row) };
     case "none":
-      return { label: noPickLabel, pick: null, lowestReported: row(c.lowest), eligible: [], lowerNotEligible: [] };
+      return { label: noPickLabel, pick: null, lowestReported: c.lowest ? row(c.lowest) : null, eligible: [], lowerNotEligible: [] };
     case "empty":
       return { label: noPickLabel, pick: null, eligible: [], lowerNotEligible: [] };
     default: {
@@ -238,9 +251,10 @@ const allocationOf = (p: Track["providers"][number]) => ({
   pricedAt: p.pricingAllocation,
 });
 
-/** The hardware probe's findings, with how sure each one is. */
+/** The hardware probe's findings, with how sure each one is, or null where the probe hasn't run. */
 function hardwareOf(id: ProviderId) {
   const h = hardware[id];
+  if (h === undefined) return null;
   return {
     chip: h.chip,
     family: h.family,
@@ -266,6 +280,7 @@ function costOf(track: Track, id: ProviderId) {
         kind: c.kind,
         perTaskUsd: roundCost(c.usd),
         per1000TasksUsd: roundCost(c.usd * TASKS_PER_PRICE),
+        ...lowerBoundField(isLowerBound(c)),
         confidence: c.confidence,
         tasks: c.n,
         source: c.source,
@@ -297,7 +312,13 @@ function wholeMachineOf(p: Provider) {
   const w = wholeMachine(p);
   return w.kind === "none"
     ? { perHourUsd: null, perTaskUsd: null, counterfactual: billingBases[p.id].kind === "usage", text: w.why, note: perTaskLifetimeNote }
-    : { perHourUsd: round(w.usdPerHour), perTaskUsd: null, allocation: { cpu: w.cpu, memoryGiB: round(w.memoryGiB) }, counterfactual: w.counterfactual, text: wholeMachineText(w), note: perTaskLifetimeNote };
+    : { perHourUsd: round(w.usdPerHour), ...lowerBoundField(isLowerBound(w)), perTaskUsd: null, allocation: { cpu: w.cpu, memoryGiB: round(w.memoryGiB) }, counterfactual: w.counterfactual, text: wholeMachineText(w), note: perTaskLifetimeNote };
+}
+
+/** Where a provider's prices carry a region multiplier: the region, the multiplier and the note. Nothing otherwise. */
+function regionOf(p: Provider) {
+  const note = regionNote(p);
+  return note ? { region: p.pricingRegion, regionMultiplier: p.regionMultiplier, regionNote: note } : {};
 }
 
 /** One track as plain data. */
@@ -329,7 +350,9 @@ function trackData(track: Track) {
           perHour: round(p.hourly),
           perVcpuHour: round(p.perVcpuHour),
           perHourUsd: round(usdPrice(p, "hourly")?.usd ?? null),
+          ...lowerBoundField(p.hourly !== null && p.pricingBound === "lower"),
           commonSizeUsd: round(commonPrice(p)?.usd ?? null),
+          ...regionOf(p),
           note: p.pricingNotes,
           usdNote: p.currency === "EUR" ? `Converted at the ECB rate of ${eurUsd.rate} USD per EUR on ${eurUsd.date}.` : null,
           source: p.pricingSource,
@@ -357,17 +380,33 @@ const about =
 const howToRead =
   "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); a task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run: never compare them as if they were the same kind without saying so. `costPerTask.status` comes from one eligibility table (`costEligibility`): verified (billed and settled, and not provisional) can be the cost pick; unreconciled (metered, not yet checked against settled charges), provisional, unsettled and estimate are shown but never picked. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers (`costPick`), with the eligible set and every lower cost that isn't eligible, with its reason. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
 
-/** The eligibility table as data, in the order a cost is checked against it. */
-const costEligibility = Object.entries(costStatuses).map(([status, s]) => ({ status, label: s.label, eligible: s.eligible, rule: s.rule }));
+/** The eligibility table as data, in the order a cost is checked against it. The lower-bound row is listed once a track has one. */
+const costEligibility = () =>
+  Object.entries(costStatuses)
+    .filter(([status]) => status !== "lowerBound" || anyLowerBound())
+    .map(([status, s]) => ({ status, label: s.label, eligible: s.eligible, rule: s.rule }));
+
+/** How to read lower bounds and region multipliers, said only once the data has one. */
+function howToReadQualifiers() {
+  const lower = anyLowerBound()
+    ? " `bound: \"lower\"` on a cost or price marks a lower bound (status `lowerBound`): it counts only the resources requested and the provider also bills use above them, so the charge can be higher. Read it as at least that amount; it is never eligible and never compared with exact costs."
+    : "";
+  const region = trackIds.some((id) => tracks[id].providers.some((p) => regionNote(p) !== null))
+    ? " `price.regionMultiplier` is the pinned region's price multiplier, already included in every price and cost for that provider."
+    : "";
+  return `${lower}${region}`;
+}
+
+const howToReadText = () => `${howToRead}${howToReadQualifiers()}`;
 
 /** Everything on the page as one JSON document, both tracks, for agents and scripts. */
 export function agentData() {
   return {
     about,
-    howToRead,
+    howToRead: howToReadText(),
     task: "A task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox.",
     commonSize: commonSize.label,
-    costEligibility,
+    costEligibility: costEligibility(),
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
   };
@@ -394,7 +433,7 @@ function trackMarkdown(id: TrackId) {
     ...d.quickPicks.flatMap((q) => (q.note ? [`${q.need}: ${q.note}`, ""] : [])),
     "## Machines and cost",
     "",
-    `Cost status: ${costEligibility.map((r) => `${r.label.toLowerCase()} (${r.eligible ? "can be the cost pick" : "shown, never picked"}): ${r.rule}`).join(" ")}`,
+    `Cost status: ${costEligibility().map((r) => `${r.label.toLowerCase()} (${r.eligible ? "can be the cost pick" : "shown, never picked"}): ${r.rule}`).join(" ")}`,
     "",
     `${wholeMachineLabel}: ${perTaskLifetimeNote} For a provider that bills usage it is a counterfactual, not its price.`,
     "",
@@ -402,9 +441,10 @@ function trackMarkdown(id: TrackId) {
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${p.costPerTask.perTaskUsd === null ? "n/a" : formatTaskCost(p.costPerTask.perTaskUsd)} | ${p.costPerTask.perTaskUsd === null ? "n/a" : formatPerThousand(p.costPerTask.perTaskUsd)} | ${p.costPerTask.kind} | ${"status" in p.costPerTask ? (p.costPerTask.status === "estimate" ? p.costPerTask.tag : p.costPerTask.status) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"status" in p.costPerTask ? (p.costPerTask.status === "estimate" || p.costPerTask.status === "lowerBound" ? p.costPerTask.tag : p.costPerTask.status) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
+    ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),
     ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),
     ...d.providers.flatMap((p) =>
       "basis" in p.costPerTask
@@ -442,6 +482,12 @@ function trackMarkdown(id: TrackId) {
   return lines;
 }
 
+/** A provider's cost per task and per 1,000 for a table cell: "≥ $X" for a lower bound, "n/a" without a cost. */
+function costCells(track: Track, id: ProviderId) {
+  const c = track.costs[id];
+  return c && isPriced(c) ? { perTask: perTaskText(c, "tight"), perThousand: perThousandText(c, "tight") } : { perTask: "n/a", perThousand: "n/a" };
+}
+
 /** The same results as Markdown tables, one section per track, one table per metric, best first. */
 export function agentMarkdown() {
   const lines = [
@@ -451,7 +497,7 @@ export function agentMarkdown() {
     "",
     "JSON: /results.json. Guide: /llms.txt.",
     "",
-    howToRead,
+    howToReadText(),
     "",
     "A task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
@@ -467,6 +513,30 @@ function notEligibleSummary() {
     for (const t of pricedTasks(tracks[id]))
       if (t.status.kind === "provisional" || t.status.kind === "unsettled" || t.status.kind === "unreconciled") seen.set(t.id, `${providerName(t.id)}'s ${t.cost.kind} cost is ${costStatuses[t.status.kind].label.toLowerCase()}: ${t.status.why}`);
   return seen.size ? [...seen.values()].join("; ") : "none";
+}
+
+/**
+ * Sentences on lower bounds, region multipliers, destroy timing and snapshot
+ * caveats for the notes section, per provider with data, so its provider page
+ * quotes them. Empty while no provider in the data has one.
+ */
+function qualifierNotes() {
+  const seen = new Map<ProviderId, string[]>();
+  const add = (id: ProviderId, s: string) => seen.set(id, [...new Set([...(seen.get(id) ?? []), s])]);
+  for (const id of trackIds)
+    for (const p of tracks[id].providers) {
+      const c = tracks[id].costs[p.id];
+      const where = id === "default" ? "on its default machine" : `on the ${trackInfo[id].short} machine`;
+      if (c && isPriced(c) && isLowerBound(c)) add(p.id, `${providerName(p.id)}'s cost per task ${where} is a lower bound: it counts only the resources requested, and ${providerName(p.id)} also bills use above them, so it is shown as at least that amount and never ranked or picked.`);
+      if (p.hourly !== null && p.pricingBound === "lower") add(p.id, `${providerName(p.id)}'s hourly price ${where} is a lower bound for the same reason.`);
+      const note = regionNote(p);
+      if (note) add(p.id, `${providerName(p.id)} is ${note}.`);
+      const destroy = destroyNotes[p.id];
+      if (destroy) add(p.id, `Destroy on ${providerName(p.id)} ${destroy}.`);
+      const snapshot = snapshotNotes[p.id];
+      if (snapshot) add(p.id, snapshot);
+    }
+  return [...seen.values()].flat().map((s) => ` ${s}`).join("");
 }
 
 /** "boxd: bills active CPU and memory in use; E2B, Boat: bills the whole machine while it exists; …", grouped by label. */
@@ -504,7 +574,7 @@ The page shows one track at a time: \`/\` opens the same-machine track and \`/?t
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither has a billing API. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked. Billing models: ${billingSummary()}. ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither has a billing API. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} Billing models: ${billingSummary()}. ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
 
 ## Data
 
@@ -513,7 +583,7 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ## How to read it
 
-${howToRead}
+${howToReadText()}
 
 Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
 

@@ -1,4 +1,4 @@
-import type { Provider, TaskCost, Track } from "@/lib/data";
+import type { PriceBound, Provider, TaskCost, Track } from "@/lib/data";
 import { usdPrice } from "@/lib/fx";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -26,6 +26,28 @@ export function formatTaskCost(usd: number) {
   if (usd >= 0.01) return `$${usd.toFixed(3)}`;
   return `$${usd.toPrecision(2)}`;
 }
+
+/**
+ * Whether an amount is a lower bound: the provider also bills use the figure
+ * doesn't count, so the charge can be higher. A lower bound is shown as "at
+ * least", never ranked against exact amounts and never picked.
+ */
+export const isLowerBound = (x: { bound: PriceBound | null }) => x.bound === "lower";
+
+/** "prose" says "at least $X"; "tight" says "≥ $X", for table cells and bar labels. */
+export type BoundStyle = "prose" | "tight";
+
+/** An amount with its lower-bound qualifier, or the amount alone when it is not a lower bound. */
+export function qualify({ amount, bound, style = "prose" }: { amount: string; bound: PriceBound | null; style?: BoundStyle }) {
+  if (bound !== "lower") return amount;
+  return style === "tight" ? `≥ ${amount}` : `at least ${amount}`;
+}
+
+/** A task's cost as the site prints it, per 1,000 tasks: "$0.23", or "at least $0.23" for a lower bound. */
+export const perThousandText = (c: Priced, style: BoundStyle = "prose") => qualify({ amount: formatPerThousand(c.usd), bound: c.bound, style });
+
+/** A task's cost per task: "$0.00023", or "at least $0.00023" for a lower bound. */
+export const perTaskText = (c: Priced, style: BoundStyle = "prose") => qualify({ amount: formatTaskCost(c.usd), bound: c.bound, style });
 
 /** Tasks cost fractions of a cent, so the site shows them per this many tasks. Agent files keep the raw per-task value too. */
 export const TASKS_PER_PRICE = 1000;
@@ -56,6 +78,11 @@ export const costStatuses = {
   provisional: { label: "Provisional", eligible: false, rule: "Billed or metered, but flagged provisional, with the reason." },
   unsettled: { label: "Unsettled", eligible: false, rule: "Billed or metered, but the provider has not settled the amount, so it can still change." },
   estimate: { label: "Estimate", eligible: false, rule: "Our measured time at list price, not the provider's bill or meter." },
+  lowerBound: {
+    label: "Lower bound",
+    eligible: false,
+    rule: "Our measured time at list price on the requested resources, where the provider also bills use above the request, so the charge can be higher. Shown as at least that amount, never ranked against exact costs or picked.",
+  },
 } as const satisfies Record<string, { label: string; eligible: boolean; rule: string }>;
 
 export type CostStatusKind = keyof typeof costStatuses;
@@ -84,8 +111,10 @@ const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>>
   },
 };
 
-/** Where a cost sits in the table above. */
+/** Where a cost sits in the table above. A lower bound is checked first: no other status makes it comparable. */
 export function costStatus(id: ProviderId, c: Priced): CostStatus {
+  if (isLowerBound(c))
+    return { kind: "lowerBound", why: `this list-price figure counts only the resources requested, and ${providerName(id)} also bills use above them, so the charge can be higher` };
   const flag = provisionalCosts[id];
   if (flag && flag.kind === c.kind) return { kind: "provisional", why: flag.why };
   switch (c.kind) {
@@ -104,9 +133,18 @@ export function costStatus(id: ProviderId, c: Priced): CostStatus {
 
 export const isEligible = (s: CostStatus) => costStatuses[s.kind].eligible;
 
-/** "metered, provisional": the kind and its status, for labels beside a number. An estimate is both, so it is said once. */
+/** "metered, provisional" or "estimate, lower bound": the kind and its status, for labels beside a number. An estimate is both, so it is said once. */
 export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
   s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : `${costKinds[c.kind].label.toLowerCase()}, ${costStatuses[s.kind].label.toLowerCase()}`;
+
+/** Whether any track has a lower-bound cost or hourly price, so notes about lower bounds appear only once one does. */
+export const hasLowerBounds = (ts: readonly Track[]) =>
+  ts.some((t) =>
+    t.providers.some((p) => {
+      const c = t.costs[p.id];
+      return p.pricingBound === "lower" || (c !== undefined && isPriced(c) && isLowerBound(c));
+    }),
+  );
 
 /** "Provisional: its metered figure …": why a cost is not eligible, or null when it is. */
 export const statusNote = (s: CostStatus) => (s.kind === "verified" ? null : `${costStatuses[s.kind].label}: ${s.why}`);
@@ -120,6 +158,8 @@ export const statusNote = (s: CostStatus) => (s.kind === "verified" ? null : `${
 export type BillingBasis =
   | { kind: "usage"; label: string; evidence: string }
   | { kind: "machine"; evidence: string }
+  /** Bills the larger of what was requested and what was used (Modal): the request's list price is the least it charges. */
+  | { kind: "request"; label: string; evidence: string }
   | { kind: "unconfirmed"; evidence: string };
 
 const upstashBasis: BillingBasis = {
@@ -142,11 +182,19 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   superserve: { kind: "unconfirmed", evidence: "Published vCPU and GiB-hour rates; our data doesn't say whether they apply to the allocation or to use." },
   freestyle: { kind: "unconfirmed", evidence: "Published overage rates and no billing API; our data doesn't say whether they apply to the allocation or to use." },
   tenki: { kind: "unconfirmed", evidence: "Per-second pricing and no billing API; our data doesn't say whether it applies to the allocation or to use." },
+  vercel: { kind: "unconfirmed", evidence: "Our sources for Vercel Sandbox, its SDK adapter and docs, don't say what it bills on." },
+  modal: {
+    kind: "request",
+    label: "bills per second on the larger of its request and what it uses, counting a CPU as a physical core",
+    evidence:
+      "Modal's pricing and sandbox resources docs (checked Nov 9, 2026): CPU and memory are billed per second on max(request, usage), with a minimum request of 0.125 CPU, and one Modal CPU is a physical core. A pinned region multiplies the price: 1.15x for a broad region such as us, 1.75x for a narrow one such as us-east.",
+  },
 };
 
 export function billingLabel(b: BillingBasis) {
   switch (b.kind) {
     case "usage":
+    case "request":
       return b.label;
     case "machine":
       return "bills the whole machine while it exists";
@@ -166,7 +214,7 @@ export function billingLabel(b: BillingBasis) {
  * For a provider that bills usage it is a counterfactual, never its price.
  */
 export type WholeMachine =
-  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memoryGiB: number; counterfactual: boolean }
+  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memoryGiB: number; counterfactual: boolean; bound: PriceBound | null }
   | { kind: "none"; why: string };
 
 export const wholeMachineLabel = "Whole machine at list price";
@@ -183,11 +231,23 @@ export function wholeMachine(p: Provider): WholeMachine {
     cpu: p.pricingAllocation.cpu,
     memoryGiB: p.pricingAllocation.memoryGiB,
     counterfactual: billingBases[p.id].kind === "usage",
+    bound: p.pricingBound,
   };
 }
 
-/** "$0.391 an hour". */
-export const hourlyText = (w: Extract<WholeMachine, { kind: "hourly" }>) => `$${w.usdPerHour.toFixed(3)} an hour`;
+/**
+ * "priced at Modal's us-east rate, 1.75× its base price": said wherever a
+ * provider's prices carry a region multiplier, or null when none applies.
+ */
+export function regionNote(p: Pick<Provider, "id" | "pricingRegion" | "regionMultiplier">) {
+  if (p.regionMultiplier === 1) return null;
+  const where = p.pricingRegion === null ? "pinned-region" : `${p.pricingRegion}`;
+  return `priced at ${providerName(p.id)}'s ${where} rate, ${Number(p.regionMultiplier.toFixed(3))}× its base price`;
+}
+
+/** "$0.391 an hour", or "at least $0.021 an hour" ("≥ $0.021 an hour" in tight cells) for a lower bound. */
+export const hourlyText = (w: Extract<WholeMachine, { kind: "hourly" }>, style: BoundStyle = "prose") =>
+  `${qualify({ amount: `$${w.usdPerHour.toFixed(3)}`, bound: w.bound, style })} an hour`;
 
 /** "4 vCPU, 16 GiB". */
 export const machineText = (w: Extract<WholeMachine, { kind: "hourly" }>) => `${w.cpu} vCPU, ${Number(w.memoryGiB.toFixed(1))} GiB`;
@@ -195,17 +255,21 @@ export const machineText = (w: Extract<WholeMachine, { kind: "hourly" }>) => `${
 /** "$0.391 an hour for 4 vCPU, 16 GiB (from euros), counterfactual: …", one line for agent files. */
 export function wholeMachineText(w: WholeMachine) {
   if (w.kind === "none") return w.why;
-  return `${hourlyText(w)} for ${machineText(w)}${w.converted ? " (converted from euros)" : ""}${w.counterfactual ? ", counterfactual: it bills usage, not the whole machine" : ""}`;
+  return `${hourlyText(w)} for ${machineText(w)}${w.converted ? " (converted from euros)" : ""}${w.counterfactual ? ", counterfactual: it bills usage, not the whole machine" : ""}${isLowerBound(w) ? ", a lower bound: it also bills use above the request" : ""}`;
 }
 
-/** Every priced provider in a track, lowest first, with where its cost sits in the eligibility table. */
+/**
+ * Every priced provider in a track, lowest first, with where its cost sits in
+ * the eligibility table. Lower bounds come after every exact cost, lowest
+ * first among themselves: "at least $X" can't be ranked against "$Y".
+ */
 export function pricedTasks(track: Track) {
   return track.providers
     .flatMap((p) => {
       const c = track.costs[p.id];
       return c && isPriced(c) ? [{ id: p.id, cost: c, status: costStatus(p.id, c) }] : [];
     })
-    .sort((a, b) => a.cost.usd - b.cost.usd);
+    .sort((a, b) => Number(isLowerBound(a.cost)) - Number(isLowerBound(b.cost)) || a.cost.usd - b.cost.usd);
 }
 
 export type PricedTask = ReturnType<typeof pricedTasks>[number];
@@ -217,22 +281,26 @@ export const noPickLabel = "No verified cost yet";
  * The cost pick: the lowest verified cost among eligible providers, never
  * "cheapest". It carries the eligible set and every lower cost that isn't
  * eligible, so the reason a lower bar lost is always printed beside it.
+ * Lower bounds are never eligible and never "lower": their charge is unknown
+ * above the bound, so they are not compared with exact costs at all. With no
+ * pick, `lowest` is the lowest exact cost, or null when every cost is a lower bound.
  */
 export type CostPick =
   | { kind: "verified"; pick: PricedTask; runnerUp: PricedTask | null; eligible: readonly ProviderId[]; lower: readonly PricedTask[] }
-  | { kind: "none"; lowest: PricedTask }
+  | { kind: "none"; lowest: PricedTask | null }
   | { kind: "empty" };
 
 export function costPick(track: Track): CostPick {
   const all = pricedTasks(track);
-  const eligible = all.filter((t) => isEligible(t.status));
+  const comparable = all.filter((t) => !isLowerBound(t.cost));
+  const eligible = comparable.filter((t) => isEligible(t.status));
   const [pick, runnerUp] = eligible;
   if (pick) {
-    const lower = all.filter((t) => !isEligible(t.status) && t.cost.usd < pick.cost.usd);
+    const lower = comparable.filter((t) => !isEligible(t.status) && t.cost.usd < pick.cost.usd);
     return { kind: "verified", pick, runnerUp: runnerUp ?? null, eligible: eligible.map((t) => t.id), lower };
   }
-  const [lowest] = all;
-  return lowest ? { kind: "none", lowest } : { kind: "empty" };
+  if (all.length === 0) return { kind: "empty" };
+  return { kind: "none", lowest: comparable[0] ?? null };
 }
 
 /** Providers with no cost at all, and why. */
@@ -244,11 +312,11 @@ export const unpricedTasks = (track: Track) =>
 
 /** One line on where a cost came from, for hover cards and agent files. */
 export const costBasis = (c: Priced) =>
-  `${costKinds[c.kind].label} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}`;
+  `${costKinds[c.kind].label} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}${isLowerBound(c) ? ", a lower bound" : ""}`;
 
 /** The second line of a hover card: what the amount is, without jargon. */
 export const costSource = (id: ProviderId, c: Priced) =>
-  `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}`;
+  `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}`;
 
 /** Providers whose figure is not straight from a bill, grouped by how it was priced, for the one note under a cost chart. */
 export function notFromBill(track: Track) {

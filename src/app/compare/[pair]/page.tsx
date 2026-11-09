@@ -8,7 +8,7 @@ import { Card } from "@/components/tabs";
 import { trackInfo } from "@/lib/data";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { compareResults, costKindsDiffer, rowOf } from "@/lib/seo/compare";
+import { compareResults, costKindsDiffer, costLowerBound, rowOf } from "@/lib/seo/compare";
 import type { CompareRow, CompareTrack, Side } from "@/lib/seo/compare";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
@@ -222,7 +222,11 @@ function TrackSection({ p, t }: { p: ComparePage; t: CompareTrack }) {
           <SideFacts id={p.a} t={a} />
           <SideFacts id={p.b} t={b} />
         </div>
-        {costKindsDiffer(a, b) && a.cost.kind === "priced" && b.cost.kind === "priced" ? (
+        {costLowerBound(a, b) ? (
+          <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-8">
+            {[p.a, p.b].filter((_, i) => { const side = i === 0 ? a : b; return side.cost.kind === "priced" && side.cost.lowerBound; }).map(providerName).join(" and ")}&apos;s cost is a lower bound, at least the amount shown, so the two aren&apos;t directly comparable. {taskText()}
+          </p>
+        ) : costKindsDiffer(a, b) && a.cost.kind === "priced" && b.cost.kind === "priced" ? (
           <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-8">
             {providerName(p.a)}&apos;s cost is {a.cost.label.toLowerCase()} and {providerName(p.b)}&apos;s is {b.cost.label.toLowerCase()}, so the two aren&apos;t directly comparable. {taskText()}
           </p>
