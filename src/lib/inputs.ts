@@ -77,6 +77,8 @@ export interface CostPerTaskExport {
   source: string | null;
   confidence: string | null;
   n: number;
+  /** False while the provider can still change the amount (Daytona settles up to 48 hours later). */
+  settled: boolean;
 }
 
 export interface SiteMetricExport {

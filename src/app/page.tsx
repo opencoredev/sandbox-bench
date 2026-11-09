@@ -6,7 +6,7 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { ByLocation } from "@/components/by-location";
-import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
+import { CostLegend, CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
@@ -28,7 +28,7 @@ import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, hasTaskCosts, pricedTasks } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, pricedTasks } from "@/lib/cost";
 import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Provider, Track } from "@/lib/data";
 import { dayRange, formatGiB, formatMoney } from "@/lib/format";
@@ -179,10 +179,10 @@ const perTask = ([first, ...rest]: readonly [number, ...number[]]): readonly [nu
 /** The quadrant: agent work time across, cost per task up, one plain dot per provider. */
 function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
-  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
+  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), `Cost status: ${costStatuses[status.kind].label.toLowerCase()}`, ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
@@ -210,7 +210,7 @@ function CostQuadrant({ track }: { track: Track }) {
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
-          { text: <><Who id="boat" /> and <Who id="boxd" /> run in Europe, so every call from our Florida server crosses the Atlantic.</> },
+          { text: <><Who id="boat" /> runs in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
       />
@@ -307,6 +307,7 @@ function Headlines({ track }: { track: Track }) {
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
+            <CostLegend compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
           </>
         ) : (
@@ -324,7 +325,7 @@ function Headlines({ track }: { track: Track }) {
 function Facts({ track }: { track: Track }) {
   const facts = hasResults(track)
     ? [
-        "Oct 22–26, 2026",
+        "Oct 22 – Nov 4, 2026",
         "8 providers (9 configs)",
         "2 caller locations: Florida, US & Frankfurt, DE",
         "100 runs per main test, 20 per location test",
@@ -392,7 +393,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Two locations",
     line: "Network-sensitive tests ran from both US-East (Florida, US) and EU-Central (Frankfurt, Germany); the 100-run deep dive ran from Florida, US.",
-    more: "Distance to each provider's API gateway and sandbox region affects every call. Boat (Northern France) and boxd (Frankfurt) run their API and sandboxes in Europe, so calling from Frankfurt is 1.5×–3.9× faster than from Florida. The Hardware tab under Machines shows where each sandbox ran.",
+    more: "Distance to each provider's API gateway and sandbox region affects every call. Boat (Northern France) runs its API and sandboxes in Europe, so calling it from Frankfurt is 1.5×–2.9× faster than from Florida (7.6× for a preview's first byte). boxd runs in New York, so the gap goes the other way. The Hardware tab under Machines shows where each sandbox ran.",
   },
   {
     term: "Two tracks",
@@ -411,12 +412,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge; Daytona's is unsettled and can still change for 48 hours. E2B and boxd give a usage record, priced at their published rates. A usage record stays unreconciled, and can't be the pick, until it is checked against the charges the provider settled; boxd's is also provisional, for the reason shown beside it. Freestyle and Tenki have no billing API, so they use our measured time at list price. Boat's is an estimate from its docs, because its per-sandbox usage wasn't pulled for that run; with no settled-charge source for Boat, it can't be a pick yet. Only a billed cost that has settled and isn't provisional can be the pick, which is the lowest verified cost among eligible providers. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",

@@ -2,10 +2,10 @@ import { ArrowRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
-import { formatPerThousand, pricedTasks } from "@/lib/cost";
+import { costPick, costStatuses, formatPerThousand } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { providerColor } from "@/lib/providers";
+import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 interface Stat {
@@ -27,20 +27,42 @@ function fastest(track: Track, id: string) {
   return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
 }
 
+/** The cost tile: the lowest verified cost among eligible providers, flagging a lower one that isn't eligible; or the lowest reported, with its status, when none is. */
+function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
+  const c = costPick(track);
+  switch (c.kind) {
+    case "verified": {
+      const [lower] = c.lower;
+      return {
+        label: "Lowest verified cost, per 1,000 tasks",
+        provider: c.pick.id,
+        value: formatPerThousand(c.pick.cost.usd),
+        note: lower ? `lower: ${providerName(lower.id)}, ${costStatuses[lower.status.kind].label.toLowerCase()}` : undefined,
+      };
+    }
+    case "none":
+      return { label: "No verified cost yet", provider: c.lowest.id, value: formatPerThousand(c.lowest.cost.usd), note: `lowest reported, ${costStatuses[c.lowest.status.kind].label.toLowerCase()}` };
+    case "empty":
+      return null;
+    default: {
+      const _exhaustive: never = c;
+      return _exhaustive;
+    }
+  }
+}
+
 function stats(track: Track): Stat[] {
   const cold = fastest(track, "cold");
   const replay = fastest(track, "tool-replay");
   const restore = fastest(track, "create-from-snapshot");
-  const cheapest = pricedTasks(track)[0];
+  const cost = costTile(track);
   const resume = track.providers
     .flatMap((p) => (p.pauseSplit ? [{ provider: p.id, resume: p.pauseSplit.resume }] : []))
     .sort((a, b) => a.resume - b.resume)[0];
   return [
     ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
     ...(replay ? [{ label: "Fastest agent work", ...replay, section: "agent", tab: "tool-replay" }] : []),
-    ...(cheapest
-      ? [{ label: "Cheapest per 1,000 tasks", provider: cheapest.id, value: formatPerThousand(cheapest.cost.usd), note: cheapest.cost.kind === "billed" ? undefined : "not from a bill yet", section: "cost", tab: "task" }]
-      : []),
+    ...(cost ? [{ ...cost, section: "cost", tab: "task" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
     ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, section: "state", tab: "resume" }] : []),
   ];

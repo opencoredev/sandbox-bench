@@ -60,7 +60,7 @@ export interface Metric {
  * estimate is list price, where the provider has no billing amount.
  */
 export type TaskCost =
-  | { kind: "billed" | "metered" | "estimate"; usd: number; n: number; confidence: "high" | "medium" | "low" | null; source: string | null }
+  | { kind: "billed" | "metered" | "estimate"; usd: number; n: number; confidence: "high" | "medium" | "low" | null; source: string | null; settled: boolean }
   | { kind: "none"; why: string };
 
 export type SdkReady = NonNullable<ExtrasProviderExport["sdkReady"]>;
@@ -107,7 +107,7 @@ function readCostPerTask(p: SiteProviderExport): TaskCost {
   const c = p.costPerTask;
   if (c === undefined || c === null || c.usd === null || c.n === 0) return { kind: "none", why: "coming in the next update" };
   if (!isCostKind(c.kind)) return { kind: "none", why: `unknown cost kind "${c.kind}"` };
-  return { kind: c.kind, usd: c.usd, n: c.n, confidence: toConfidence(c.confidence), source: c.source };
+  return { kind: c.kind, usd: c.usd, n: c.n, confidence: toConfidence(c.confidence), source: c.source, settled: c.settled };
 }
 
 function parseProvider(p: SiteProviderExport): Provider[] {

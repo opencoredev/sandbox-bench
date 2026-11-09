@@ -219,7 +219,7 @@ function OverviewPanel() {
       <DetailsExpander metrics={vantageMetrics} />
 
       <p className="mt-s text-xs text-neutral-7">
-        <Who id="boat" /> (Northern France) and <Who id="boxd" /> (Frankfurt) run their sandboxes in Europe; the remaining providers run in US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+        <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers, <Who id="boxd" /> (New York) included, run in US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
   );
@@ -327,7 +327,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
       <DetailsExpander metrics={vantageMetrics} onlyRegion={region} />
 
       <p className="mt-s text-xs text-neutral-7">
-        <Who id="boat" /> (Northern France) and <Who id="boxd" /> (Frankfurt) run their sandboxes in Europe; the remaining providers run in US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+        <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers, <Who id="boxd" /> (New York) included, run in US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
     </>
   );

@@ -81,9 +81,20 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     ranIn: p.ranIn,
     cost:
       "basis" in cost && cost.perTaskUsd !== null
-        ? { kind: "priced" as const, perTask: formatTaskCost(cost.perTaskUsd), perThousand: formatPerThousand(cost.perTaskUsd), label: costKinds[cost.kind].label, source: costKinds[cost.kind].source, basis: cost.basis }
+        ? {
+            kind: "priced" as const,
+            perTask: formatTaskCost(cost.perTaskUsd),
+            perThousand: formatPerThousand(cost.perTaskUsd),
+            label: costKinds[cost.kind].label,
+            tag: cost.tag,
+            statusNote: cost.statusNote,
+            source: costKinds[cost.kind].source,
+            basis: cost.basis,
+          }
         : { kind: "none" as const, note: "note" in cost ? cost.note : "no cost data" },
     pricePerHourUsd: p.price.perHourUsd,
+    billing: p.billing.label,
+    wholeMachine: p.wholeMachineAtListPrice,
     reliability: p.reliability,
     failures: p.failures,
     pause: p.pause,

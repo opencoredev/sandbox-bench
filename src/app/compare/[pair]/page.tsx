@@ -169,7 +169,7 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         <Fact term="Cost per 1,000 tasks">
           {t.cost.kind === "priced" ? (
             <>
-              {t.cost.perThousand} <span className="text-neutral-7">({t.cost.label.toLowerCase()})</span>
+              {t.cost.perThousand} <span className="text-neutral-7">({t.cost.tag})</span>
             </>
           ) : (
             <span className="text-neutral-7">{t.cost.note}</span>
@@ -187,9 +187,10 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         <li>Asked for: {t.machine.asked}.</li>
         {t.machine.note ? <li>Machine: {t.machine.note}</li> : null}
         {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
+        <li>Billing: {t.billing}.</li>
         {t.cost.kind === "priced" ? (
           <li>
-            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).
+            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).{t.cost.statusNote ? ` ${t.cost.statusNote}; not eligible for the cost pick.` : ""}
           </li>
         ) : null}
         <li>

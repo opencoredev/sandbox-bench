@@ -43,7 +43,7 @@ function summary(id: ProviderPageId) {
   const parts = [
     cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
     tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
-    t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.label.toLowerCase()})` : null,
+    t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.tag})` : null,
   ].filter((x) => x !== null);
   return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
 }
@@ -165,7 +165,7 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           <Fact term="Cost per 1,000 tasks">
             {t.cost.kind === "priced" ? (
               <>
-                {t.cost.perThousand} <span className="text-neutral-7">({t.cost.label.toLowerCase()})</span>
+                {t.cost.perThousand} <span className="text-neutral-7">({t.cost.tag})</span>
               </>
             ) : (
               <span className="text-neutral-7">{t.cost.note}</span>
@@ -183,10 +183,11 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
           {t.cost.kind === "priced" ? (
             <li>
-              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). {taskText()}
+              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). {t.cost.statusNote ? `${t.cost.statusNote}; not eligible for the cost pick. ` : ""}{taskText()}
             </li>
           ) : null}
-          {t.pricePerHourUsd !== null ? <li>List price: ${t.pricePerHourUsd} per hour for this machine, compute only.</li> : null}
+          <li>Billing: {t.billing}.</li>
+          {t.pricePerHourUsd !== null ? <li>List price: ${t.pricePerHourUsd} per hour for this machine, compute only{t.wholeMachine.counterfactual ? "; a counterfactual, since it bills usage, not the whole machine" : ""}.</li> : null}
           <li>
             Pause and resume:{" "}
             {t.pause.supported && "split" in t.pause && t.pause.split
@@ -224,7 +225,10 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
                 {t.picks.map((q) => (
                   <tr key={q.need} className="align-top">
                     <th scope="row" className="py-xxs pr-m font-normal text-neutral-7">{q.need}</th>
-                    <td className="py-xxs pr-m text-neutral-10">{q.pick}</td>
+                    <td className="py-xxs pr-m text-neutral-10">
+                      {q.pick}
+                      {q.note ? <span className="mt-xxs block text-xs text-pretty text-neutral-7">{q.note}</span> : null}
+                    </td>
                     <td className="py-xxs text-neutral-8">{q.runnerUp}</td>
                   </tr>
                 ))}

@@ -79,7 +79,6 @@ export const machineNotes = (t: Track): Notes => (t.id === "default" ? defaultMa
 /** Providers hosted in Europe: every call from Florida crosses the Atlantic. */
 export const farNotes: Notes = {
   boat: "runs in France, so every call from our Florida server crosses the Atlantic.",
-  boxd: "runs in Germany, so every call from our Florida server crosses the Atlantic.",
 };
 
 /**
