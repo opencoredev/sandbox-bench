@@ -182,7 +182,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   superserve: { kind: "unconfirmed", evidence: "Published vCPU and GiB-hour rates; our data doesn't say whether they apply to the allocation or to use." },
   freestyle: { kind: "unconfirmed", evidence: "Published overage rates and no billing API; our data doesn't say whether they apply to the allocation or to use." },
   tenki: { kind: "unconfirmed", evidence: "Per-second pricing and no billing API; our data doesn't say whether it applies to the allocation or to use." },
-  vercel: { kind: "unconfirmed", evidence: "Our sources for Vercel Sandbox, its SDK adapter and docs, don't say what it bills on." },
+  vercel: {
+    kind: "usage",
+    label: "bills active CPU time and the memory it allocates",
+    evidence:
+      "vercel.com/docs/sandbox/pricing (checked Nov 9, 2026): active CPU at $0.128 per vCPU-hour and provisioned memory at $0.0212 per GB-hour on Pro in iad1, memory in one-minute minimum increments; its per-sandbox usage records report both.",
+  },
   modal: {
     kind: "request",
     label: "bills per second on the larger of its request and what it uses, counting a CPU as a physical core",
