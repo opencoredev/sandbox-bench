@@ -8,12 +8,10 @@ import { Theme } from "@/components/theme";
 import { trackScript } from "@/components/track";
 import { TracePanel } from "@/components/trace-panel";
 import { PostHogProvider } from "@/lib/posthog-provider";
+import { homeOpenGraph, homeTwitter, siteDescription as description, siteTitle as title } from "@/lib/seo/home";
 
 import "./globals.css";
 
-const title = "Sandbox bench: cloud sandboxes for agents, measured";
-const description =
-  "8 cloud sandbox providers for AI agents (E2B, Daytona, Upstash Box and Ephemeral Box, Boat, boxd, Freestyle, Tenki, Superserve) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GB machine.";
 
 export const metadata: Metadata = {
   title,
@@ -27,8 +25,8 @@ export const metadata: Metadata = {
   description,
   authors: [{ name: "Leo (@leodev)", url: "https://leodev.cv" }],
   creator: "Leo (@leodev)",
-  openGraph: { title, description, type: "website", siteName: "Sandbox bench", url: "https://aisandboxbench.com" },
-  twitter: { card: "summary_large_image", creator: "@leodev", title, description },
+  openGraph: homeOpenGraph,
+  twitter: homeTwitter,
   metadataBase: new URL("https://aisandboxbench.com"),
   // Agents find the data from the page head rather than a block on the page: llms.txt, the Markdown and the JSON.
   alternates: { canonical: "/", types: { "text/plain": "/llms.txt", "text/markdown": "/results.md", "application/json": "/results.json" } },
