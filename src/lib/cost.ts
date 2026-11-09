@@ -133,9 +133,20 @@ export function costStatus(id: ProviderId, c: Priced): CostStatus {
 
 export const isEligible = (s: CostStatus) => costStatuses[s.kind].eligible;
 
+/**
+ * "metered, unreconciled" or "billed, unsettled, provisional": a cost's kind
+ * and every status it carries, in the eligibility table's words. An estimate
+ * is both a kind and a status, so it is said once. Shared by every chart and
+ * export that labels a cost.
+ */
+export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKind[]) {
+  const rest = [...new Set(statuses)].filter((k) => !(kind === "estimate" && k === "estimate"));
+  return [costKinds[kind].label, ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
+}
+
 /** "metered, provisional" or "estimate, lower bound": the kind and its status, for labels beside a number. An estimate is both, so it is said once. */
 export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
-  s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : `${costKinds[c.kind].label.toLowerCase()}, ${costStatuses[s.kind].label.toLowerCase()}`;
+  s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : kindStatusText(c.kind, [s.kind]);
 
 /** Whether any track has a lower-bound cost or hourly price, so notes about lower bounds appear only once one does. */
 export const hasLowerBounds = (ts: readonly Track[]) =>

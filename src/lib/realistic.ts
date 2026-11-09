@@ -1,4 +1,5 @@
-import { formatPerThousand } from "@/lib/cost";
+import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
+import type { CostStatusKind } from "@/lib/cost";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TrackId } from "@/lib/tracks";
@@ -67,7 +68,6 @@ export interface RealisticRow {
   cost: { kind: CostKind; usdPerCompleted: number; wholeMachineUsdPerCompleted: number | null } | null;
   /** The harness's note on how the cost was made, where it gives one. */
   costNote: string | null;
-  billingModel: string | null;
   /** From the harness's eligibility table: billed and settled (or reconciled), attributable, at most one incomplete run, right machine size. */
   eligible: boolean;
   /** Each reason the row isn't eligible, as the harness words it. */
@@ -83,14 +83,35 @@ export interface HeldOpen {
   /** Median total cost of one run: fix and test, the wait, then the resume step. */
   medianCostUsd: number | null;
   changeVsZeroWait: number | null;
+  /** The harness's status text, and the eligibility-table statuses read from it (empty when billed and settled). */
   status: string;
+  statuses: readonly CostStatusKind[];
   medianWakeMs: number | null;
   transitions: readonly string[];
+}
+
+/**
+ * What a complete data set must contain, checked by the build and by the data
+ * script before any provider's data is replaced: every provider, workload,
+ * track and variant, with its run count. Written by hand in
+ * scripts/realistic-coverage.json and copied into the data file.
+ */
+export interface Coverage {
+  headline: { attempts: number; providers: readonly ProviderId[]; profiles: readonly ProfileId[]; tracks: readonly RunTrack[] };
+  idle: {
+    attempts: number;
+    profile: ProfileId;
+    track: RunTrack;
+    providers: readonly ProviderId[];
+    /** Headline providers left out of the idle test, each with why. */
+    notTested: readonly { provider: ProviderId; reason: string }[];
+  };
 }
 
 export interface RealisticData {
   schema: typeof SCHEMA;
   generatedAt: string;
+  coverage: Coverage;
   sources: readonly { name: string; generatedAt: string; providers: readonly ProviderId[] }[];
   fx: { eurToUsd: number; date: string } | null;
   workloads: Record<ProfileId, Workload> | null;
@@ -184,7 +205,6 @@ function parseRow(v: unknown, path: string): RealisticRow {
         }
       : null,
     costNote: nullable(str)(o.costNote, `${path}.costNote`),
-    billingModel: nullable(str)(o.billingModel, `${path}.billingModel`),
     eligible: o.eligible === true ? true : o.eligible === false ? false : fail(`${path}.eligible`, "must be true or false"),
     flags: arr(o.flags, `${path}.flags`).map((f, i) => str(f, `${path}.flags[${i}]`)),
   };
@@ -193,8 +213,28 @@ function parseRow(v: unknown, path: string): RealisticRow {
   return row;
 }
 
+/**
+ * The eligibility-table statuses in a held-open status text: "settled" has
+ * none, "unsettled; metered, unreconciled (provisional)" is unsettled and
+ * unreconciled. Null for wording this reader doesn't know, so the build stops
+ * instead of guessing.
+ */
+export function holdStatuses(status: string): CostStatusKind[] | null {
+  const out: CostStatusKind[] = [];
+  for (const part of status.split(/;\s*/).map((x) => x.trim())) {
+    if (part === "settled") continue;
+    if (part.startsWith("unsettled")) out.push("unsettled");
+    else if (part.includes("unreconciled")) out.push("unreconciled");
+    else if (part.includes("provisional")) out.push("provisional");
+    else return null;
+  }
+  return out;
+}
+
 function parseHeld(v: unknown, path: string): HeldOpen {
   const o = obj(v, path);
+  const status = str(o.status, `${path}.status`);
+  const statuses = holdStatuses(status) ?? fail(`${path}.status`, `"${status}" isn't a status this site can read; extend holdStatuses first`);
   return {
     provider: providerOf(o.provider, `${path}.provider`),
     idle: oneOf(idleIds)(o.idle, `${path}.idle`),
@@ -203,13 +243,95 @@ function parseHeld(v: unknown, path: string): HeldOpen {
     costKind: nullable(oneOf(costKindIds))(o.costKind, `${path}.costKind`),
     medianCostUsd: nullable(num)(o.medianCostUsd, `${path}.medianCostUsd`),
     changeVsZeroWait: nullable(num)(o.changeVsZeroWait, `${path}.changeVsZeroWait`),
-    status: str(o.status, `${path}.status`),
+    status,
+    statuses,
     medianWakeMs: nullable(num)(o.medianWakeMs, `${path}.medianWakeMs`),
     transitions: arr(o.transitions, `${path}.transitions`).map((t, i) => str(t, `${path}.transitions[${i}]`)),
   };
 }
 
-/** Reads `src/data/realistic.json`, or the script's output before it is written. */
+const ids = <T>(read: (v: unknown, path: string) => T) => (v: unknown, path: string): T[] => arr(v, path).map((x, i) => read(x, `${path}[${i}]`));
+
+/** Reads the expected coverage, from the data file or scripts/realistic-coverage.json. */
+export function parseCoverage(v: unknown, path = "coverage"): Coverage {
+  const o = obj(v, path);
+  const h = obj(o.headline, `${path}.headline`);
+  const i = obj(o.idle, `${path}.idle`);
+  const headline = {
+    attempts: count(h.attempts, `${path}.headline.attempts`),
+    providers: ids(providerOf)(h.providers, `${path}.headline.providers`),
+    profiles: ids(oneOf(profileIds))(h.profiles, `${path}.headline.profiles`),
+    tracks: ids(oneOf(runTracks))(h.tracks, `${path}.headline.tracks`),
+  };
+  const idle = {
+    attempts: count(i.attempts, `${path}.idle.attempts`),
+    profile: oneOf(profileIds)(i.profile, `${path}.idle.profile`),
+    track: oneOf(runTracks)(i.track, `${path}.idle.track`),
+    providers: ids(providerOf)(i.providers, `${path}.idle.providers`),
+    notTested: arr(i.notTested, `${path}.idle.notTested`).map((n, j) => {
+      const no = obj(n, `${path}.idle.notTested[${j}]`);
+      return { provider: providerOf(no.provider, `${path}.idle.notTested[${j}].provider`), reason: str(no.reason, `${path}.idle.notTested[${j}].reason`) };
+    }),
+  };
+  if (headline.attempts === 0 || idle.attempts === 0) fail(path, "run counts must be at least 1");
+  const accounted = [...idle.providers, ...idle.notTested.map((n) => n.provider)];
+  if (new Set(accounted).size !== accounted.length) fail(`${path}.idle`, "names a provider twice");
+  for (const id of headline.providers) if (!accounted.includes(id)) fail(`${path}.idle`, `must test ${id} or say why not in notTested`);
+  for (const id of accounted) if (!headline.providers.includes(id)) fail(`${path}.idle`, `names ${id}, which isn't a headline provider`);
+  return { headline, idle };
+}
+
+const idleVariants = ["zero-wait", "held-10", "held-60"] as const satisfies readonly VariantId[];
+
+/**
+ * Everything one provider is missing against the expected coverage: each
+ * headline workload and track, and on the idle providers each idle variant
+ * and held-open entry, with the right run counts.
+ */
+export function providerGaps(c: Coverage, provider: ProviderId, rows: readonly RealisticRow[], held: readonly HeldOpen[]): string[] {
+  const gaps: string[] = [];
+  const row = (profile: ProfileId, track: RunTrack, variant: VariantId) => rows.find((r) => r.provider === provider && r.profile === profile && r.track === track && r.variant === variant);
+  for (const profile of c.headline.profiles)
+    for (const track of c.headline.tracks) {
+      const r = row(profile, track, "headline");
+      if (!r) gaps.push(`${provider} has no ${profile} / ${track} headline row`);
+      else if (r.attempts !== c.headline.attempts) gaps.push(`${provider} ${profile} / ${track} headline has ${r.attempts} attempts, not ${c.headline.attempts}`);
+    }
+  if (c.idle.providers.includes(provider))
+    for (const variant of idleVariants) {
+      const r = row(c.idle.profile, c.idle.track, variant);
+      if (!r) gaps.push(`${provider} has no ${variant} row`);
+      else if (r.attempts !== c.idle.attempts) gaps.push(`${provider} ${variant} has ${r.attempts} attempts, not ${c.idle.attempts}`);
+      const h = held.find((x) => x.provider === provider && x.idle === variant);
+      if (!h) gaps.push(`${provider} has no ${variant} held-open entry`);
+      else if (h.runs !== c.idle.attempts) gaps.push(`${provider} ${variant} held-open has ${h.runs} runs, not ${c.idle.attempts}`);
+    }
+  return gaps;
+}
+
+/** Every gap and every unexpected row against the coverage; empty for a complete data set. */
+export function coverageGaps(c: Coverage, rows: readonly RealisticRow[], held: readonly HeldOpen[]): string[] {
+  const expected = (r: RealisticRow) =>
+    c.headline.providers.includes(r.provider) &&
+    (r.variant === "headline"
+      ? c.headline.profiles.includes(r.profile) && c.headline.tracks.includes(r.track)
+      : c.idle.providers.includes(r.provider) && r.profile === c.idle.profile && r.track === c.idle.track);
+  return [
+    ...c.headline.providers.flatMap((id) => providerGaps(c, id, rows, held)),
+    ...rows.filter((r) => !expected(r)).map((r) => `unexpected row ${r.provider} ${r.profile} / ${r.track} / ${r.variant}; add it to the coverage first`),
+    ...held.filter((h) => !c.idle.providers.includes(h.provider)).map((h) => `unexpected held-open entry for ${h.provider}; add it to the coverage first`),
+  ];
+}
+
+/** Rows and held-open entries checked one by one, before any coverage check: for one summary of a merge. */
+export function parseParts(rows: unknown, held: unknown): { rows: RealisticRow[]; heldOpen: HeldOpen[] } {
+  return {
+    rows: arr(rows, "rows").map((r, i) => parseRow(r, `rows[${i}]`)),
+    heldOpen: arr(held, "heldOpen").map((h, i) => parseHeld(h, `heldOpen[${i}]`)),
+  };
+}
+
+/** Reads `src/data/realistic.json`, or the script's output before it is written. Incomplete data stops here. */
 export function parseRealistic(raw: unknown): RealisticData {
   const o = obj(raw, "file");
   if (o.schema !== SCHEMA) fail("schema", `must be "${SCHEMA}"`);
@@ -222,9 +344,14 @@ export function parseRealistic(raw: unknown): RealisticData {
     if (keys.has(key)) fail("rows", `has ${key} twice`);
     keys.add(key);
   }
+  const coverage = parseCoverage(o.coverage);
+  const heldOpen = arr(o.heldOpen, "heldOpen").map((h, i) => parseHeld(h, `heldOpen[${i}]`));
+  const gaps = coverageGaps(coverage, rows, heldOpen);
+  if (gaps.length > 0) fail("file", `is incomplete or has unexpected data: ${gaps.join("; ")}`);
   return {
     schema: SCHEMA,
     generatedAt: str(o.generatedAt, "generatedAt"),
+    coverage,
     sources: arr(o.sources, "sources").map((s, i) => {
       const so = obj(s, `sources[${i}]`);
       return {
@@ -238,16 +365,19 @@ export function parseRealistic(raw: unknown): RealisticData {
       ? { "fix-and-test": parseWorkload(workloads["fix-and-test"], "workloads.fix-and-test"), build: parseWorkload(workloads.build, "workloads.build") }
       : null,
     rows,
-    heldOpen: arr(o.heldOpen, "heldOpen").map((h, i) => parseHeld(h, `heldOpen[${i}]`)),
+    heldOpen,
   };
 }
 
 // ---------------------------------------------------------------------------
 // Words. Every sentence about these results is made here, so the page and the agent files agree.
 
-/** The one pilot line, said wherever these numbers appear. */
-export const pilotDetail = "5 runs per provider; most costs are provider meters or estimates not yet checked against settled bills.";
-export const pilotLine = `Pilot: ${pilotDetail}`;
+/** The one pilot line, said wherever these numbers appear. The run count comes from the coverage every row was checked against. */
+export const pilotDetail = (d: Pick<RealisticData, "coverage">) =>
+  `${d.coverage.headline.attempts} runs per provider; most costs are provider meters or estimates not yet checked against settled bills.`;
+export const pilotLine = (d: Pick<RealisticData, "coverage">) => `Pilot: ${pilotDetail(d)}`;
+/** "Pilot · 5 runs", for places with room for a word or two. */
+export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs`;
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 
 export const profileInfo = {
@@ -282,59 +412,58 @@ export function profileFootprint(profile: ProfileId, w: Workload | null): string
   return `about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine, install excluded`;
 }
 
-/** Why a row can't be the pick, grouped by kind so a bar can say it in a word or two. */
-export type FlagKind = "unsettled" | "provisional" | "estimate" | "wrong-size" | "incomplete" | "did-not-complete" | "unattributable" | "other";
-
+/**
+ * Why a row can't be the pick. A reason the eligibility table names
+ * (unsettled, unreconciled, provisional, estimate) carries that status, so it
+ * reads exactly as on the other cost charts; the rest (wrong size, too many
+ * failures) are qualifiers of these runs.
+ */
 export interface Flag {
-  kind: FlagKind;
+  status: CostStatusKind | null;
   /** A word or two for bars and tables. */
   short: string;
-  /** A plain sentence fragment for notes and agent files. */
+  /** A plain sentence fragment for details and agent files. */
   text: string;
 }
 
-const flagShort = {
-  unsettled: "unsettled",
-  provisional: "provisional",
-  estimate: "unconfirmed",
-  "wrong-size": "wrong size",
-  incomplete: "too many failures",
-  "did-not-complete": "did not complete",
-  unattributable: "not attributable",
-  other: "not eligible",
-} as const satisfies Record<FlagKind, string>;
+const withStatus = (k: CostStatusKind, text: string): Flag => ({ status: k, short: costStatuses[k].label.toLowerCase(), text });
+const qualifier = (short: string, text: string): Flag => ({ status: null, short, text });
 
-/** One of the harness's eligibility reasons, read into a kind and plain words. Unknown wording is kept as it is. */
+/** One of the harness's eligibility reasons, read into a status or qualifier and plain words. Unknown wording is kept as it is. */
 export function readFlag(flag: string): Flag {
-  const make = (kind: FlagKind, text: string): Flag => ({ kind, short: flagShort[kind], text });
-  if (flag.startsWith("unsettled")) return make("unsettled", "the provider hasn't settled the charge yet, so it can still change");
+  if (flag.startsWith("unsettled")) return withStatus("unsettled", "the provider hasn't settled the charge yet, so it can still change");
   if (flag.startsWith("provisional")) {
-    if (flag.includes("meter not reconciled")) return make("provisional", "its usage meter hasn't been checked against settled charges yet");
-    if (flag.includes("storage coverage")) return make("provisional", "it isn't known yet whether its billing source includes disk");
-    return make("provisional", flag.replace(/^provisional:\s*/, ""));
+    if (flag.includes("meter not reconciled")) return withStatus("unreconciled", "its usage meter hasn't been checked against settled charges yet");
+    if (flag.includes("storage coverage")) return withStatus("provisional", "it isn't known yet whether its billing source includes disk");
+    return withStatus("provisional", flag.replace(/^provisional:\s*/, ""));
   }
   if (flag.startsWith("unverified estimate"))
-    return make("estimate", "our measured time at list price; the provider hasn't confirmed its billing rules in writing, and no isolated billing window was checked");
+    return withStatus("estimate", "our measured time at list price; the provider hasn't confirmed its billing rules in writing, and no isolated billing window was checked");
   const size = /^wrong machine size: ([\d.]+) GiB memory/.exec(flag);
-  if (size?.[1]) return make("wrong-size", `it ran with ${Number(size[1]).toFixed(1)} GiB of memory, not the 8 GiB this track asks for`);
-  if (flag.startsWith("wrong machine size")) return make("wrong-size", flag.replace(/^wrong machine size:\s*/, "its machine isn't the size this track asks for: "));
+  if (size?.[1]) return qualifier("wrong size", `it ran with ${Number(size[1]).toFixed(1)} GiB of memory, not the 8 GiB this track asks for`);
+  if (flag.startsWith("wrong machine size")) return qualifier("wrong size", flag.replace(/^wrong machine size:\s*/, "its machine isn't the size this track asks for: "));
   const failed = /^(\d+) incomplete runs?/.exec(flag);
-  if (failed?.[1]) return make("incomplete", `${failed[1]} of its runs didn't complete, and a pick allows at most 1`);
-  if (flag.startsWith("did not complete")) return make("did-not-complete", "no run completed");
-  if (flag.startsWith("not attributable")) return make("unattributable", "its charges can't be tied to our sandbox IDs");
-  return make("other", flag);
+  if (failed?.[1]) return qualifier("too many failures", `${failed[1]} of its runs didn't complete, and a pick allows at most 1`);
+  if (flag.startsWith("did not complete")) return qualifier("did not complete", "no run completed");
+  if (flag.startsWith("not attributable")) return qualifier("not attributable", "its charges can't be tied to our sandbox IDs");
+  return qualifier("not eligible", flag);
 }
 
 export const flagsOf = (row: Pick<RealisticRow, "flags">): readonly Flag[] => row.flags.map(readFlag);
 
-const kindWord = { billed: "billed", metered: "metered", estimate: "estimate" } as const satisfies Record<CostKind, string>;
-
-/** "billed · verified", "metered · unsettled, provisional", "estimate · unconfirmed": the kind and status every bar carries. */
+/**
+ * "billed, verified", "metered, unsettled, unreconciled", "estimate, wrong
+ * size": the kind and status every realistic cost carries, in the same words
+ * as the quick-task cost chart (kindStatusText), then any qualifier.
+ */
 export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags">): string {
-  const kind = row.cost ? kindWord[row.cost.kind] : "no cost";
-  if (row.eligible) return `${kind} · verified`;
-  const shorts = [...new Set(flagsOf(row).map((f) => f.short))];
-  return `${kind} · ${shorts.length ? shorts.join(", ") : "not eligible"}`;
+  if (!row.cost) return "no cost";
+  const flags = flagsOf(row);
+  const statuses = row.eligible ? (["verified"] as const) : flags.flatMap((f) => (f.status ? [f.status] : []));
+  const qualifiers = [...new Set(flags.flatMap((f) => (f.status ? [] : [f.short])))];
+  const base = kindStatusText(row.cost.kind, statuses);
+  const rest = qualifiers.length || statuses.length || row.eligible ? qualifiers : ["not eligible"];
+  return [base, ...rest].join(", ");
 }
 
 /** Why a row has no cost: never run, or run without a completed task. */
@@ -377,11 +506,11 @@ export function wallText(s: number) {
 
 export const perThousand = (usd: number) => formatPerThousand(usd);
 
-/** A billing model the harness didn't name falls back to the site's own label for the provider. */
-export const billingText = (row: Pick<RealisticRow, "billingModel">, fallback: string) => row.billingModel ?? fallback;
+/** What the provider bills on, from the site's one evidence-backed table (lib/cost.ts), the same words as the other cost charts. */
+export const billingText = (id: ProviderId) => billingLabel(billingBases[id]);
 
-/** A provider billed for less than the whole machine: its whole-machine figure is a counterfactual. */
-export const isCounterfactual = (billing: string) => billing !== "bills the whole machine while it exists";
+/** A provider that bills usage: its whole-machine figure is a counterfactual, as on the other cost charts. */
+export const isCounterfactual = (id: ProviderId) => billingBases[id].kind === "usage";
 
 // ---------------------------------------------------------------------------
 // Rows and the pick.
@@ -390,7 +519,7 @@ export type Costed = RealisticRow & { cost: NonNullable<RealisticRow["cost"]> };
 const isCosted = (r: RealisticRow): r is Costed => r.cost !== null;
 
 /** One profile's headline rows on one track: costed rows lowest first, then rows with no cost, by name. */
-export function headlineRows(data: RealisticData, track: RunTrack, profile: ProfileId) {
+export function headlineRows(data: Pick<RealisticData, "rows">, track: RunTrack, profile: ProfileId) {
   const rows = data.rows.filter((r) => r.variant === "headline" && r.track === track && r.profile === profile);
   const costed = rows.filter(isCosted).sort((a, b) => a.cost.usdPerCompleted - b.cost.usdPerCompleted);
   const uncosted = rows.filter((r) => !isCosted(r)).sort((a, b) => providerName(a.provider).localeCompare(providerName(b.provider)));
@@ -405,7 +534,7 @@ export const pickLabels = {
 } as const;
 
 /** Why this release names no certified winner: the plan's statistics need the full run. */
-export const uncertifiedWhy = "with 5 pilot runs there is no statistical test, so the result is descriptive";
+export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.coverage.headline.attempts} pilot runs there is no statistical test, so the result is descriptive`;
 
 /**
  * The pick, by the plan's rules. Only an eligible row can be picked: billed
@@ -436,7 +565,7 @@ export function taskPick(costed: readonly Costed[]): TaskPick {
   };
 }
 
-export const pickFor = (data: RealisticData, track: RunTrack, profile: ProfileId) => taskPick(headlineRows(data, track, profile).costed);
+export const pickFor = (data: Pick<RealisticData, "rows">, track: RunTrack, profile: ProfileId) => taskPick(headlineRows(data, track, profile).costed);
 
 // ---------------------------------------------------------------------------
 // The idle diagnostic: fix and test, then the sandbox left open, then a resume step.
@@ -458,13 +587,21 @@ export interface IdleGroup {
 
 const isStop = (t: string) => /->\s*(stopped|paused|terminated|deleted)$/.test(t);
 
-/** Per provider, its points in wait order, sorted by the cost after the longest wait. */
-export function idleGroups(data: RealisticData): IdleGroup[] {
+/**
+ * Per provider, its points in wait order, sorted by the cost after the
+ * longest wait. The harness's held-open status covers settlement only, so a
+ * provider whose rows say its billing source may leave disk out stays
+ * provisional here too, as on the cost charts.
+ */
+export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): IdleGroup[] {
   const ids = [...new Set(data.heldOpen.map((h) => h.provider))];
   const groups = ids.map((provider): IdleGroup => {
+    const storageUnknown = data.rows.some((r) => r.provider === provider && r.flags.some((f) => f.includes("storage coverage")));
     const points = idleIds.flatMap((idle) => {
       const h = data.heldOpen.find((x) => x.provider === provider && x.idle === idle);
-      return h ? [{ ...h, minutes: idleMinutes[idle], stopped: h.transitions.some(isStop) }] : [];
+      if (!h) return [];
+      const statuses: readonly CostStatusKind[] = storageUnknown && !h.statuses.includes("provisional") ? [...h.statuses, "provisional"] : h.statuses;
+      return [{ ...h, statuses, minutes: idleMinutes[idle], stopped: h.transitions.some(isStop) }];
     });
     const stoppedAt = points.filter((p) => p.stopped).at(-1) ?? null;
     const resumeFailedAt = points.filter((p) => !p.stopped && p.runs > 0 && p.completed === 0 && p.idle !== "zero-wait").at(-1) ?? null;
@@ -474,8 +611,12 @@ export function idleGroups(data: RealisticData): IdleGroup[] {
   return groups.sort((a, b) => last(a) - last(b));
 }
 
-/** A held-open figure is settled only when the harness says so; anything else is shown striped, as on the cost charts. */
-export const isSettledHold = (p: Pick<HeldOpen, "status">) => p.status === "settled";
+/** A held-open figure is verified only when billed (or metered) with no open status; anything else is striped, as on the cost charts. */
+export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.costKind !== null && p.costKind !== "estimate" && p.statuses.length === 0;
+
+/** "billed, verified" or "metered, unsettled, unreconciled", in the cost charts' words. */
+export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind">) =>
+  p.costKind === null ? "no cost" : kindStatusText(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"]);
 
 export const idleLabel = (p: Pick<IdlePoint, "minutes">) => (p.minutes === 0 ? "No wait" : p.minutes === 60 ? "1 hour" : `${p.minutes} min`);
 
@@ -493,6 +634,37 @@ export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {
   const pct = Math.round(p.changeVsZeroWait * 100);
   return `${pct >= 0 ? "+" : ""}${pct}% vs no wait`;
 };
+
+/**
+ * Providers whose billing source leaves disk out, so the harness adds disk at
+ * list price as an estimated part (sandbox-sdk bench/src/cost/billing-rules.ts,
+ * storage "excluded"). The others either include disk, charge none, or it
+ * isn't known, which their rows flag.
+ */
+const diskAddedAtListPrice: readonly ProviderId[] = ["upstash"];
+
+/**
+ * The cost scope, said once on the page and in every export, naming only what
+ * the data includes: which providers have disk added, which leave it unknown
+ * (from their flags), which are estimates, and what isn't measured at all.
+ */
+export function scopeLine(d: Pick<RealisticData, "rows">): string {
+  const costed = d.rows.filter((r) => r.cost !== null);
+  const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))];
+  const added = has((r) => diskAddedAtListPrice.includes(r.provider));
+  const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
+  const estimates = has((r) => r.cost?.kind === "estimate");
+  const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
+  return [
+    "Cost scope: every charge from the create request to confirmed deletion, meaning compute, memory, disk and standby storage, for every attempt, failed ones included.",
+    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost.` : "",
+    unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
+    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
+    "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 export const providerList = (ids: readonly ProviderId[]) =>
   ids.map(providerName).reduce((acc, name, i) => (i === 0 ? name : i === ids.length - 1 ? `${acc} and ${name}` : `${acc}, ${name}`), "");

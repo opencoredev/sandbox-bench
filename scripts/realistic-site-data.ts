@@ -8,7 +8,9 @@
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
- * Adding a provider run later (Modal, for example) is one more `--summary`:
+ * Adding a provider run later (Modal, for example): add the provider to
+ * scripts/realistic-coverage.json (headline, and idle or notTested with why),
+ * then run the same command with one more `--summary`:
  *
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal/summary.json
  *
@@ -22,9 +24,16 @@
  *   summary's count exactly, so a wrong file stops the script.
  * - `--manifest <file>` (optional): the frozen workload manifest, for each
  *   workload's repo, commit and reference footprint.
+ * - `--coverage <file>`: what a complete data set holds, defaults to
+ *   scripts/realistic-coverage.json: every provider, workload, track and idle
+ *   variant, and the run count of each. The run count is the "5 runs" the
+ *   pilot line prints, so the label can't drift from the data.
  * - `--out <file>`: defaults to src/data/realistic.json.
  *
- * Checks before writing: every row parses into the site's schema
+ * Checks before writing: each summary is complete for every provider it has
+ * (so a partial file can't replace good rows) and carries a pick for every
+ * workload and track; the merged result is complete against the coverage;
+ * every row parses into the site's schema
  * (src/lib/realistic.ts), the pick rule the site uses gives the same pick,
  * eligible set and lower unverified costs as each summary's own `picks`, and
  * every pick is "no certified winner" (the site has no interval data to show
@@ -33,8 +42,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";
 
-import { SCHEMA, headlineRows, idleIds, parseRealistic, profileIds, runTracks, taskPick } from "@/lib/realistic";
-import type { HeldOpen, PrepareFailure, ProfileId, RealisticData, RealisticRow, RunTrack, Workload } from "@/lib/realistic";
+import { SCHEMA, headlineRows, idleIds, parseCoverage, parseParts, parseRealistic, profileIds, providerGaps, runTracks, taskPick } from "@/lib/realistic";
+import type { Coverage, HeldOpen, PrepareFailure, ProfileId, RealisticData, RealisticRow, RunTrack, Workload } from "@/lib/realistic";
 import type { ProviderId } from "@/lib/providers";
 
 type Json = Record<string, unknown>;
@@ -89,7 +98,6 @@ function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null) {
     medianCpuS: sig(numOrNull(r.medianCpuS, `${where}.medianCpuS`)),
     cost: usd === null || kind === null || kind === undefined ? null : { kind, usdPerCompleted: sig(usd), wholeMachineUsdPerCompleted: sig(numOrNull(r.wholeMachinePerCompletedUSD, `${where}.wholeMachinePerCompletedUSD`)) },
     costNote: typeof r.costNote === "string" ? r.costNote : null,
-    billingModel: r.billingModel ?? null,
     eligible: eligibility === "eligible",
     flags: flagsOf(eligibility),
   };
@@ -167,8 +175,17 @@ export function workloadsFrom(manifest: unknown): Record<ProfileId, Workload> {
   return { "fix-and-test": one("fix-and-test"), build: one("build") };
 }
 
-/** The summary's own picks against the site's rule on the same rows. Throws on the first difference. */
-export function checkPicks(name: string, picks: readonly unknown[], data: RealisticData) {
+/**
+ * The summary's own picks against the site's rule on the same rows. Every
+ * workload and track in the coverage needs one. Throws on the first gap or difference.
+ */
+export function checkPicks(name: string, picks: readonly unknown[], data: Pick<RealisticData, "rows">, coverage: Coverage) {
+  for (const profile of coverage.headline.profiles)
+    for (const track of coverage.headline.tracks)
+      need(
+        picks.some((p) => isObj(p) && p.profile === profile && p.track === track),
+        `${name} has no pick for ${profile} / ${track}; a summary must carry every workload and track's pick`,
+      );
   for (const raw of picks) {
     const p = record(raw, `${name} pick`);
     const where = `${name} pick ${String(p.profile)} / ${String(p.track)}`;
@@ -208,8 +225,22 @@ export interface SummaryInput {
  * provider it contains, with setup failures from attempts and footprints
  * from the manifest. Pure: the CLI below does the file reading.
  */
-export function buildRealistic({ summaries, attempts = [], manifest = null, generatedAt }: { summaries: readonly SummaryInput[]; attempts?: readonly string[]; manifest?: unknown; generatedAt: string }): RealisticData {
+export function buildRealistic({
+  summaries,
+  coverage: rawCoverage,
+  attempts = [],
+  manifest = null,
+  generatedAt,
+}: {
+  summaries: readonly SummaryInput[];
+  /** scripts/realistic-coverage.json: what a complete data set holds. */
+  coverage: unknown;
+  attempts?: readonly string[];
+  manifest?: unknown;
+  generatedAt: string;
+}): RealisticData {
   need(summaries.length > 0, "give at least one --summary");
+  const coverage = parseCoverage(rawCoverage, "coverage file");
   let rows: unknown[] = [];
   let held: unknown[] = [];
   let fx: Json | null = null;
@@ -229,11 +260,19 @@ export function buildRealistic({ summaries, attempts = [], manifest = null, gene
       return rowFrom(r, `${name}.rows[${i}]`, prepared && failedRuns > 0 ? prepared : null);
     });
     const ownHeld = list(s.heldOpen ?? [], `${name}.heldOpen`).map((h, i) => heldFrom(h, `${name}.heldOpen[${i}]`));
-    const providers = [...new Set([...own, ...ownHeld].map((r) => r.provider))];
+    need(own.length > 0, `${name} has no rows`);
+    const parsed = parseParts(own, ownHeld);
+    const providers = [...new Set([...parsed.rows, ...parsed.heldOpen].map((r) => r.provider))];
+    // Every provider this summary would replace must be complete in it, so a partial file can't drop rows.
+    for (const id of providers) {
+      need(coverage.headline.providers.includes(id), `${name} has ${id}, which isn't in the coverage file; add it there first`);
+      const gaps = providerGaps(coverage, id, parsed.rows, parsed.heldOpen);
+      need(gaps.length === 0, `${name} is incomplete for ${id}, so nothing was replaced: ${gaps.join("; ")}`);
+    }
     // Check this summary's picks on its own rows before merging, so each file is checked against itself.
-    checkPicks(name, list(s.picks ?? [], `${name}.picks`), parseRealistic(fileOf({ generatedAt, sources: [], fx: null, workloads: null, rows: own, heldOpen: ownHeld })));
-    rows = [...rows.filter((r) => isObj(r) && !providers.includes(r.provider)), ...own];
-    held = [...held.filter((h) => isObj(h) && !providers.includes(h.provider)), ...ownHeld];
+    checkPicks(name, list(s.picks ?? [], `${name}.picks`), parsed, coverage);
+    rows = [...rows.filter((r) => isObj(r) && !providers.some((id) => id === r.provider)), ...own];
+    held = [...held.filter((h) => isObj(h) && !providers.some((id) => id === h.provider)), ...ownHeld];
     if (isObj(s.fx)) {
       need(fx === null || (fx.eurToUsd === s.fx.eurToUsd && fx.date === s.fx.date), `${name}: its EUR to USD rate differs from an earlier summary's; rerun the reports on one frozen rate`);
       fx = s.fx;
@@ -245,6 +284,7 @@ export function buildRealistic({ summaries, attempts = [], manifest = null, gene
   return parseRealistic(
     fileOf({
       generatedAt,
+      coverage,
       sources,
       fx: fx ? { eurToUsd: fx.eurToUsd, date: fx.date } : null,
       workloads: manifest === null ? null : workloadsFrom(manifest),
@@ -254,7 +294,7 @@ export function buildRealistic({ summaries, attempts = [], manifest = null, gene
   );
 }
 
-function fileOf(parts: { generatedAt: string; sources: unknown; fx: unknown; workloads: unknown; rows: unknown; heldOpen: unknown }) {
+function fileOf(parts: { generatedAt: string; coverage: Coverage; sources: unknown; fx: unknown; workloads: unknown; rows: unknown; heldOpen: unknown }) {
   return { schema: SCHEMA, ...parts };
 }
 
@@ -267,9 +307,11 @@ function main(argv: readonly string[]) {
   const summaries = take("--summary").map((p) => ({ name: sourceName(resolve(p)), raw: readJson(p) }));
   const attempts = take("--attempts").flatMap((p) => readFileSync(p, "utf8").split("\n"));
   const [manifestPath] = take("--manifest");
+  const [coveragePath = resolve(import.meta.dirname, "realistic-coverage.json")] = take("--coverage");
   const [outPath = resolve(import.meta.dirname, "../src/data/realistic.json")] = take("--out");
   const data = buildRealistic({
     summaries,
+    coverage: readJson(coveragePath),
     attempts,
     manifest: manifestPath ? readJson(manifestPath) : null,
     generatedAt: new Date().toISOString(),
