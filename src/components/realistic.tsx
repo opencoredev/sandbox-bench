@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Columns } from "@/components/columns";
-import type { Column } from "@/components/columns";
+import { Break, Columns, axisMax, layout } from "@/components/columns";
+import type { Bar, Column } from "@/components/columns";
 import { Swatch } from "@/components/cost";
 import { Disclosure } from "@/components/disclosure";
 import { ChartHead, Footnotes, Who, sentence } from "@/components/metric-chart";
@@ -14,6 +14,7 @@ import {
   billingText,
   changeText,
   costCovers,
+  estimatedPartText,
   completedText,
   flagsOf,
   headlineRows,
@@ -42,6 +43,7 @@ import {
 } from "@/lib/realistic";
 import type { Costed, IdleGroup, IdlePoint, ProfileId, RealisticData, RealisticRow, RunTrack } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { minimumLong, minimumShort, planMinimum } from "@/lib/plan-minimum";
 
 /** The section id, shared with the stat strip and the nav that link here. */
 export const taskCostSection = "task-cost";
@@ -84,7 +86,7 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
             <span className="text-neutral-7">per 1,000 ({statusTag(p.pick)})</span>
           </p>
           <p className="text-xs text-neutral-7">
-            {pickLabels.uncertified}: {uncertifiedWhy(realistic)}. Eligible: {names(p.eligible)}.
+            {pickLabels.uncertified}: {uncertifiedWhy(realistic)}.{p.eligible.length > 1 ? <> Eligible: {names(p.eligible)}.</> : null}
           </p>
           {p.lower.length > 0 ? (
             <p className="flex gap-1.5 text-xs text-neutral-7">
@@ -110,11 +112,16 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
   }
 }
 
-function columnsOf(costed: readonly Costed[]): Column[] {
+/** "usage only; monthly minimum excluded" where the provider has a plan minimum the cost leaves out. */
+const minimumNote = (id: ProviderId) => (planMinimum(id) ? minimumShort : undefined);
+
+/** The chart's columns, one per costed provider. The phone rows draw their bars from the same columns. */
+export function columnsOf(costed: readonly Costed[]): Column[] {
   return costed.map((row) => ({
     provider: row.provider,
     label: perThousand(row.cost.usdPerCompleted),
     tag: statusTag(row),
+    note: minimumNote(row.provider),
     segments: [{ value: row.cost.usdPerCompleted, color: providerColor(row.provider), fill: row.eligible ? "solid" : "striped" }],
     detail: [
       ["Per 1,000 completed", perThousand(row.cost.usdPerCompleted)],
@@ -149,6 +156,8 @@ function RowDetails({ row }: { row: RealisticRow }) {
     ...(row.cost ? [] : [`${cap(noCostReason(row))}.`]),
     ...flagsOf(row).map((f) => sentence(cap(f.text))),
     ...(row.costNote ? [sentence(cap(row.costNote))] : []),
+    ...(row.cost ? [estimatedPartText(row.cost.kind, row.estimatedPart, "per 1,000")].flatMap((t) => (t ? [cap(t)] : [])) : []),
+    ...[planMinimum(row.provider)].flatMap((m) => (m ? [minimumLong(row.provider, m)] : [])),
     ...(notRun(row) ? [] : [`Completed ${completedText(row)}, 95% interval ${wilsonText(row)}.`]),
     sentence(`Billing: ${billingText(row.provider)}`),
     ...(row.cost ? [wholeLine(row)] : []),
@@ -162,21 +171,33 @@ function RowDetails({ row }: { row: RealisticRow }) {
   );
 }
 
+// The phone price column has one fixed width, so every row's bar track is the same width and bar length follows cost.
 const rowGrid =
-  "grid w-full grid-cols-[5.25rem_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-xxs text-left sm:grid-cols-[9rem_5.5rem_minmax(0,1fr)_5rem_6.5rem] sm:items-baseline sm:gap-x-s";
+  "grid w-full grid-cols-[5.25rem_minmax(0,1fr)_4rem] items-center gap-x-2.5 gap-y-xxs text-left sm:grid-cols-[9rem_5.5rem_minmax(0,1fr)_5rem_6.5rem] sm:items-baseline sm:gap-x-s";
+
+/**
+ * Each provider's bar as the chart lays it out: the chart's own axis end
+ * (an outlier more than 4x the runner-up is cut short) and its break mark.
+ * The phone rows draw exactly these, so the two views can't disagree.
+ */
+export function rowBars(costed: readonly Costed[]): Map<ProviderId, Bar> {
+  const columns = columnsOf(costed);
+  const max = axisMax(columns);
+  return new Map(columns.map((c) => [c.provider, layout(c, max)]));
+}
 
 /**
  * The bar a phone shows inside the row, in place of a separate chart: the
- * same length, colour and fill (solid when verified) as the chart's bar.
+ * chart's length, break, colour and fill (solid when verified).
  */
-function RowBar({ row, max }: { row: RealisticRow; max: number }) {
-  if (!row.cost) return <span aria-hidden className="sm:hidden" />;
+function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
+  if (!row.cost || !bar) return <span aria-hidden className="sm:hidden" />;
+  const color = providerColor(row.provider);
   return (
-    <span aria-hidden className="flex h-3 items-stretch border-l border-neutral-4 sm:hidden">
-      <span
-        className="rounded-r-xs"
-        style={{ width: `${Math.min(row.cost.usdPerCompleted / max, 1) * 100}%`, minWidth: 2, ...markFill(row.eligible ? "solid" : "striped", providerColor(row.provider)) }}
-      />
+    <span aria-hidden data-bar-share={bar.length.toFixed(6)} className="flex h-3 items-stretch border-l border-neutral-4 sm:hidden">
+      <span className="relative rounded-r-xs" style={{ width: `${bar.length * 100}%`, minWidth: 2, ...markFill(row.eligible ? "solid" : "striped", color) }}>
+        {bar.broken === null ? null : <Break color={color} along="x" />}
+      </span>
     </span>
   );
 }
@@ -186,7 +207,7 @@ function RowBar({ row, max }: { row: RealisticRow; max: number }) {
  * explanation behind a disclosure. On phones the row also carries the bar, so
  * the chart isn't drawn a second time above the list.
  */
-function ProviderRow({ row, max }: { row: RealisticRow; max: number }) {
+function ProviderRow({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
   const status = row.cost ? statusTag(row) : shortReason(row);
   const tone = row.cost === null ? "none" : row.eligible ? "ok" : "warn";
   return (
@@ -199,14 +220,17 @@ function ProviderRow({ row, max }: { row: RealisticRow; max: number }) {
             <span className="text-s leading-[1.1] font-medium">
               <Who id={row.provider} />
             </span>
-            <RowBar row={row} max={max} />
+            <RowBar row={row} bar={bar} />
             <span className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-left">
               <span className="sr-only">Per 1,000 completed: </span>
               {row.cost ? perThousand(row.cost.usdPerCompleted) : "no cost"}
             </span>
             <span className="col-span-3 flex gap-1.5 text-xs sm:col-span-1">
               <Dot tone={tone} />
-              <span className={tone === "warn" ? "text-warning" : tone === "ok" ? "text-neutral-10" : "text-neutral-8"}>{status}</span>
+              <span>
+                <span className={tone === "warn" ? "text-warning" : tone === "ok" ? "text-neutral-10" : "text-neutral-8"}>{status}</span>
+                {minimumNote(row.provider) ? <span className="block text-xxs text-neutral-8">{minimumNote(row.provider)}</span> : null}
+              </span>
             </span>
             <span className="col-span-3 font-mono text-xs text-neutral-8 tabular-nums sm:col-span-1">
               <span className="font-sans sm:sr-only">Completed </span>
@@ -233,8 +257,9 @@ function ProviderRow({ row, max }: { row: RealisticRow; max: number }) {
 }
 
 /** Every provider in the workload, run or not, one row each. */
-function ProviderRows({ rows }: { rows: readonly RealisticRow[] }) {
-  const max = Math.max(...rows.map((r) => r.cost?.usdPerCompleted ?? 0), Number.EPSILON);
+export function ProviderRows({ costed, uncosted }: { costed: readonly Costed[]; uncosted: readonly RealisticRow[] }) {
+  const bars = rowBars(costed);
+  const rows = [...costed, ...uncosted];
   return (
     <div className="mt-s sm:mt-l">
       <p aria-hidden className={`${rowGrid} hidden pr-l pb-xs text-xs text-neutral-7 sm:grid`}>
@@ -246,7 +271,7 @@ function ProviderRows({ rows }: { rows: readonly RealisticRow[] }) {
       </p>
       <ul className="flex flex-col">
         {rows.map((row) => (
-          <ProviderRow key={row.provider} row={row} max={max} />
+          <ProviderRow key={row.provider} row={row} bar={bars.get(row.provider)} />
         ))}
       </ul>
     </div>
@@ -273,16 +298,21 @@ function NotInChart({ rows }: { rows: readonly RealisticRow[] }) {
 }
 
 /** The notes every workload chart carries. */
-function profileNotes(data: RealisticData, track: RunTrack, rows: readonly RealisticRow[]) {
+function profileNotes(data: RealisticData, track: RunTrack, rows: readonly RealisticRow[], footprint: string | null) {
   const has = (id: ProviderId) => rows.some((r) => r.provider === id && r.cost !== null);
+  const minimums = [...new Set(rows.filter((r) => r.cost !== null).map((r) => r.provider))].flatMap((id) => {
+    const m = planMinimum(id);
+    return m ? [{ text: minimumLong(id, m) }] : [];
+  });
   return [
+    ...(footprint ? [{ text: `${footprint}.` }] : []),
     { text: scopeLine(data) },
     { text: "Cost per completed task: the cost of every attempt divided by the tasks that completed. Every task starts from the provider's base image and installs the pinned toolchain and dependencies itself." },
     { text: "Eligible for the pick: billed and settled (or a usage meter reconciled with settled charges), tied to our own sandboxes, at most 1 incomplete run and, on Same machine, exactly 4 vCPU and 8 GB. Everything else is striped and never picked. There is no overall cheapest." },
     { text: "Whole machine at list price: the published rate for the machine over each task's billed time. For a provider that bills usage, it is a counterfactual, not what it charges." },
     ...(track === "default" ? [{ text: "Default machines: each provider's own default size, so sizes differ. Where the default is too small for the workload (checked locally before any paid run), the provider wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ text: <><Who id="boxd" /> bills in euros, converted at {data.fx.eurToUsd} dollars per euro, the rate frozen on {data.fx.date}.</> }] : []),
-    ...(has("boat") ? [{ text: <><Who id="boat" />&apos;s monthly plan minimum isn&apos;t in its per-task cost.</> }] : []),
+    ...minimums,
     { text: `${pilotLine(data)} ${laterLine}` },
   ];
 }
@@ -296,7 +326,7 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
   return (
     <>
-      <ChartHead title={title} sub={`${profileWhat(profile, w)} · ${machine} · US dollars · Lower is better`} meta={footprint ?? undefined} />
+      <ChartHead title={title} sub={`${profileWhat(profile, w)} · ${machine} · US dollars · Lower is better`} />
       <Pick costed={costed} />
       <p className="mb-s text-xs text-neutral-8">{costCovers}</p>
       {/* Phones get the bars inside the provider rows below instead, so nothing is listed twice. */}
@@ -309,8 +339,8 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
       <div className="hidden sm:block">
         <NotInChart rows={uncosted} />
       </div>
-      <ProviderRows rows={[...costed, ...uncosted]} />
-      <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted])} />
+      <ProviderRows costed={costed} uncosted={uncosted} />
+      <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted], footprint)} />
     </>
   );
 }
@@ -365,6 +395,7 @@ function IdleProvider({ group, max }: { group: IdleGroup; max: number }) {
       <p className="text-s">
         <Who id={group.provider} />
         <span className="block text-xs text-neutral-7">{idleTags(group.points)}</span>
+        {minimumNote(group.provider) ? <span className="block text-xxs text-neutral-8">{minimumNote(group.provider)}</span> : null}
       </p>
       <div role="list" aria-label="Cost with the sandbox left open" className="flex flex-col gap-xxs">
         {group.points.map((p) => (
@@ -462,6 +493,14 @@ export function IdleChart() {
       <Footnotes
         items={[
           { text: "Each run is paired with a no-wait run: fix and test, then the resume step straight away. The idle part alone isn't separable on most providers." },
+          ...groups.flatMap((g) => {
+            const parts = g.points.flatMap((p) => (p.estimatedPart ? [`${idleLabel(p).toLowerCase()} ${perThousand(p.estimatedPart.usd)}`] : []));
+            return parts.length ? [{ text: <><Who id={g.provider} />: disk added at list price, an estimate, is part of each median: {parts.join(", ")} per 1,000.</> }] : [];
+          }),
+          ...groups.flatMap((g) => {
+            const m = planMinimum(g.provider);
+            return m ? [{ text: minimumLong(g.provider, m) }] : [];
+          }),
           { text: "Nothing runs in the sandbox while it waits: no command, open stream or keepalive from us. Each provider's default idle, standby and pause behaviour applies." },
           { text: scopeLine(realistic) },
           { text: `${pilotLine(realistic)} ${laterLine}` },

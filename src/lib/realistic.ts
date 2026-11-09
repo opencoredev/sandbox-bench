@@ -47,6 +47,13 @@ export interface Workload {
   tests: number | null;
 }
 
+/** A part of a cost we added at list price: per completed task on rows, the median per run on held-open entries. */
+export interface EstimatedPart {
+  usd: number;
+  /** The harness's labels, such as "disk at list price". */
+  labels: readonly string[];
+}
+
 /** Why setup stopped before the workload, where the attempt says. */
 export type PrepareFailure = { kind: "insufficient-disk"; freeGiB: number; requiredGiB: number; runs: number };
 
@@ -68,6 +75,12 @@ export interface RealisticRow {
   cost: { kind: CostKind; usdPerCompleted: number; wholeMachineUsdPerCompleted: number | null } | null;
   /** The harness's note on how the cost was made, where it gives one. */
   costNote: string | null;
+  /**
+   * The part of a billed or metered cost we added at list price, per completed
+   * task, such as disk a billing source leaves out; null when none was added.
+   * Computed with the harness's own cost code (scripts/realistic-estimated-parts.ts).
+   */
+  estimatedPart: EstimatedPart | null;
   /** From the harness's eligibility table: billed and settled (or reconciled), attributable, at most one incomplete run, right machine size. */
   eligible: boolean;
   /** Each reason the row isn't eligible, as the harness words it. */
@@ -86,6 +99,8 @@ export interface HeldOpen {
   /** The harness's status text, and the eligibility-table statuses read from it (empty when billed and settled). */
   status: string;
   statuses: readonly CostStatusKind[];
+  /** Median over the runs of each run's estimated part; null when none was added. */
+  estimatedPart: EstimatedPart | null;
   medianWakeMs: number | null;
   transitions: readonly string[];
 }
@@ -147,6 +162,14 @@ const providerOf = (v: unknown, path: string): ProviderId => {
   return isProviderId(s) ? s : fail(path, `names an unknown provider "${s}"; add it to src/lib/providers.ts first`);
 };
 
+function parseEstimatedPart(v: unknown, path: string): EstimatedPart | null {
+  if (v === null || v === undefined) return null;
+  const o = obj(v, path);
+  const usd = num(o.usd, `${path}.usd`);
+  if (usd <= 0) fail(path, "must be null when nothing was added");
+  return { usd, labels: arr(o.labels, `${path}.labels`).map((l, i) => str(l, `${path}.labels[${i}]`)) };
+}
+
 const parseRange = (v: unknown, path: string) => {
   const o = obj(v, path);
   const min = num(o.min, `${path}.min`);
@@ -205,11 +228,14 @@ function parseRow(v: unknown, path: string): RealisticRow {
         }
       : null,
     costNote: nullable(str)(o.costNote, `${path}.costNote`),
+    estimatedPart: parseEstimatedPart(o.estimatedPart, `${path}.estimatedPart`),
     eligible: o.eligible === true ? true : o.eligible === false ? false : fail(`${path}.eligible`, "must be true or false"),
     flags: arr(o.flags, `${path}.flags`).map((f, i) => str(f, `${path}.flags[${i}]`)),
   };
   if (row.cost !== null && row.completed === 0) fail(path, "has a cost per completed task but no completed task");
   if (row.eligible && (row.cost === null || row.flags.length > 0)) fail(path, "is eligible, so it needs a cost and no flags");
+  if (row.estimatedPart && (row.cost === null || row.cost.kind === "estimate" || row.estimatedPart.usd > row.cost.usdPerCompleted))
+    fail(`${path}.estimatedPart`, "belongs only on a billed or metered cost, and can't exceed it");
   return row;
 }
 
@@ -245,6 +271,7 @@ function parseHeld(v: unknown, path: string): HeldOpen {
     changeVsZeroWait: nullable(num)(o.changeVsZeroWait, `${path}.changeVsZeroWait`),
     status,
     statuses,
+    estimatedPart: parseEstimatedPart(o.estimatedPart, `${path}.estimatedPart`),
     medianWakeMs: nullable(num)(o.medianWakeMs, `${path}.medianWakeMs`),
     transitions: arr(o.transitions, `${path}.transitions`).map((t, i) => str(t, `${path}.transitions[${i}]`)),
   };
@@ -475,12 +502,24 @@ export const flagsOf = (row: Pick<RealisticRow, "flags">): readonly Flag[] => ro
  * size": the kind and status every realistic cost carries, in the same words
  * as the quick-task cost chart (kindStatusText), then any qualifier.
  */
-export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags">): string {
+/** "disk" from "disk at list price": what an estimated part is, in a word. */
+const partWords = (p: EstimatedPart) => [...new Set(p.labels.map((l) => l.replace(/\s+at list price$/, "")))].join(" and ");
+
+/**
+ * The kind, saying when part of a billed or metered cost is our estimate:
+ * "billed compute + estimated disk". The estimated part is only added where the
+ * billing source leaves storage out, so the charge it sits on is compute.
+ */
+export function withEstimatedPart(kindText: string, kind: CostKind, part: EstimatedPart | null) {
+  return part && kind !== "estimate" ? kindText.replace(/^\w+/, `${kind} compute + estimated ${partWords(part)}`) : kindText;
+}
+
+export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
   if (!row.cost) return "no cost";
   const flags = flagsOf(row);
   const statuses = row.eligible ? (["verified"] as const) : flags.flatMap((f) => (f.status ? [f.status] : []));
   const qualifiers = [...new Set(flags.flatMap((f) => (f.status ? [] : [f.short])))];
-  const base = kindStatusText(row.cost.kind, statuses);
+  const base = withEstimatedPart(kindStatusText(row.cost.kind, statuses), row.cost.kind, row.estimatedPart);
   const rest = qualifiers.length || statuses.length || row.eligible ? qualifiers : ["not eligible"];
   return [base, ...rest].join(", ");
 }
@@ -634,8 +673,14 @@ export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): Idle
 export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.costKind !== null && p.costKind !== "estimate" && p.statuses.length === 0;
 
 /** "billed, verified" or "metered, unsettled, unreconciled", in the cost charts' words. */
-export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind">) =>
-  p.costKind === null ? "no cost" : kindStatusText(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"]);
+export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind" | "estimatedPart">) =>
+  p.costKind === null ? "no cost" : withEstimatedPart(kindStatusText(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"]), p.costKind, p.estimatedPart);
+
+/** "$0.036 of it is disk added at list price, an estimate; the rest is billed compute.", or null. */
+export function estimatedPartText(kind: CostKind, part: EstimatedPart | null, unit: string) {
+  if (!part || kind === "estimate") return null;
+  return `${perThousand(part.usd)} ${unit} of it is ${partWords(part)} added at list price, an estimate; the rest is ${kind} compute.`;
+}
 
 export const idleLabel = (p: Pick<IdlePoint, "minutes">) => (p.minutes === 0 ? "No wait" : p.minutes === 60 ? "1 hour" : `${p.minutes} min`);
 
@@ -655,14 +700,6 @@ export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {
 };
 
 /**
- * Providers whose billing source leaves disk out, so the harness adds disk at
- * list price as an estimated part (sandbox-sdk bench/src/cost/billing-rules.ts,
- * storage "excluded"). The others either include disk, charge none, or it
- * isn't known, which their rows flag.
- */
-const diskAddedAtListPrice: readonly ProviderId[] = ["upstash"];
-
-/**
  * The cost scope, said once on the page and in every export, naming only what
  * the data includes: which providers have disk added, which leave it unknown
  * (from their flags), which are estimates, and what isn't measured at all.
@@ -670,13 +707,13 @@ const diskAddedAtListPrice: readonly ProviderId[] = ["upstash"];
 export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const costed = d.rows.filter((r) => r.cost !== null);
   const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))];
-  const added = has((r) => diskAddedAtListPrice.includes(r.provider));
+  const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
   const estimates = has((r) => r.cost?.kind === "estimate");
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
-    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost.` : "",
+    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "+ estimated disk".` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
     "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

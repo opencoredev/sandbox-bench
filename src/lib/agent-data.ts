@@ -36,6 +36,7 @@ import {
   billingText,
   changeText,
   completedText,
+  estimatedPartText,
   flagsOf,
   headlineRows,
   holdTag,
@@ -60,8 +61,9 @@ import {
   wallText,
   wilson,
 } from "@/lib/realistic";
-import type { Costed, ProfileId, RealisticRow } from "@/lib/realistic";
+import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { minimumLong, planMinimum } from "@/lib/plan-minimum";
 import { advertised, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
@@ -307,10 +309,32 @@ function realisticRowData(row: RealisticRow) {
     wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
+    ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, "per1000CompletedUsd"),
+    ...minimumData(row.provider),
   };
 }
 
-const pickRow = (r: Costed) => ({ provider: r.provider, per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE), kind: r.cost.kind, status: statusTag(r), whyNotEligible: flagsOf(r).map((f) => f.text) });
+/** The part of a cost we added at list price, per 1,000, with what it is; nothing when none was added. */
+function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], key: "per1000CompletedUsd" | "medianPer1000Usd") {
+  const note = kind ? estimatedPartText(kind, part, "per 1,000") : null;
+  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), what: part.labels, note } } : {};
+}
+
+/** A plan minimum the usage-only cost leaves out, from the provider's pricing notes; nothing when it has none. */
+function minimumData(id: ProviderId) {
+  const m = planMinimum(id);
+  return m ? { planMinimum: { usdPerMonth: m.usdPerMonth, inCost: false, note: minimumLong(id, m) } } : {};
+}
+
+const pickRow = (r: Costed) => ({
+  provider: r.provider,
+  per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE),
+  kind: r.cost.kind,
+  status: statusTag(r),
+  whyNotEligible: flagsOf(r).map((f) => f.text),
+  ...estimatedPartData(r.cost.kind, r.estimatedPart, "per1000CompletedUsd"),
+  ...minimumData(r.provider),
+});
 
 function realisticPickData(costed: readonly Costed[]) {
   const p = taskPick(costed);
@@ -357,6 +381,7 @@ export function realisticData() {
         provider: g.provider,
         name: providerName(g.provider),
         outcome: idleOutcome(g),
+        ...minimumData(g.provider),
         waits: g.points.map((p) => ({
           minutes: p.minutes,
           runs: p.runs,
@@ -369,6 +394,7 @@ export function realisticData() {
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
+          ...estimatedPartData(p.costKind, p.estimatedPart, "medianPer1000Usd"),
         })),
       })),
     },
@@ -403,6 +429,8 @@ function realisticMarkdown() {
             `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.status ?? `no cost: ${r.noCost ?? ""}`}${r.whyNotEligible.length ? ` (${r.whyNotEligible.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE)}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
         ),
         "",
+        ...t.providers.flatMap((r) => [...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []), ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : [])]),
+        "",
       );
     }
   }
@@ -413,6 +441,8 @@ function realisticMarkdown() {
   lines.push(
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
+    ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("estimatedPart" in w && w.estimatedPart ? [`${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`, ""] : []))),
+    ...d.idle.providers.flatMap((g) => ("planMinimum" in g && g.planMinimum ? [g.planMinimum.note, ""] : [])),
     ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
   );
   return lines;
@@ -431,6 +461,8 @@ ${d.about} Full numbers: \`whatATaskCosts\` in /results.json and the "What a tas
 ${picks.join("\n")}
 
 ${d.costScope}
+
+${[...new Set(d.tracks["same-spec"]?.workloads["fix-and-test"].providers.flatMap((p) => [...("estimatedPart" in p && p.estimatedPart ? [`${p.name}'s costs include an estimated part: ${p.estimatedPart.note}`] : []), ...("planMinimum" in p && p.planMinimum ? [p.planMinimum.note] : [])]) ?? [])].join(" ")}
 
 Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.coverage.idle.attempts} runs per provider and wait): ${idle.length ? `${idle.join("; ")}.` : "no provider stopped the sandbox."} Not tested: ${d.idle.notTested.map((n) => `${n.name} (${n.reason})`).join("; ") || "none"}.
 

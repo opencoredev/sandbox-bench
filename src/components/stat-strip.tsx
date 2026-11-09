@@ -102,13 +102,15 @@ export function StatStrip({ track }: { track: Track }) {
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
                   <ProviderName id={s.provider} />
                 </span>
-                {s.note ? <span className="text-neutral-7"> · {s.note}</span> : null}
+                {s.note && !s.badge ? <span className="text-neutral-7"> · {s.note}</span> : null}
               </span>
               <ArrowRight
                 aria-hidden
                 className="size-4 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:text-accent motion-reduce:transition-none"
               />
             </span>
+            {/* A tile with a badge carries a status that must never be cut, so both sit outside the clamped line. */}
+            {s.badge && s.note ? <span className="text-xs text-pretty text-neutral-8">{s.note}</span> : null}
             {s.badge ? <span className="text-xs text-pretty text-neutral-7">{s.badge}</span> : null}
           </JumpLink>
         </li>

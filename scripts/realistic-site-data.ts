@@ -5,6 +5,7 @@
  *
  *   bun scripts/realistic-site-data.ts \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-vercel/merged/summary.json \
+ *     --parts scripts/realistic-parts/sbx103-vercel.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -13,11 +14,19 @@
  * then run the same command with one more `--summary`:
  *
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal/summary.json
+ *     --parts scripts/realistic-parts/sbx103-modal.json
+ *
+ * Each --parts file comes from scripts/realistic-estimated-parts.ts, run once
+ * per summary against the harness checkout that built it (see its header).
  *
  * Options:
  * - `--summary <file>` (one or more, in order). A later summary replaces every
  *   row and held-open entry of each provider it contains, so a summary that
  *   repeats the earlier providers and one that has only the new provider both work.
+ * - `--parts <file>` (required, one per summary): the output of
+ *   scripts/realistic-estimated-parts.ts for that summary's runs. It marks the
+ *   part of each cost that is our estimate (disk added at list price), and every
+ *   recomputed total must match the summary's.
  * - `--attempts <file>` (optional, any number): the runs' `attempts.jsonl`. It
  *   adds why setup stopped (free disk against the disk the workload needs) to
  *   rows whose runs failed in preparation. The runs it finds must match the
@@ -77,7 +86,35 @@ export function flagsOf(eligibility: string): string[] {
 }
 
 /** One summary row in the site's shape, before the parser checks it. */
-function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null) {
+/**
+ * Estimated parts by row key and by held-open key, from the --parts files.
+ * A row key can appear in more than one file when a later summary replaces a
+ * provider, so rows keep every entry and are matched by their total.
+ */
+export interface PartsIndex {
+  rows: Map<string, { total: number | null; usd: number; labels: string[] }[]>;
+  held: Map<string, { usd: number; labels: string[] }>;
+}
+
+/** Reads scripts/realistic-estimated-parts.ts output files into one index. */
+export function partsIndex(files: readonly unknown[]): PartsIndex {
+  const index: PartsIndex = { rows: new Map(), held: new Map() };
+  for (const [i, f] of files.entries()) {
+    const file = record(f, `parts file ${i}`);
+    need(file.schema === "realistic-estimated-parts/1", `parts file ${i} isn't a realistic-estimated-parts/1 file`);
+    for (const r of list(file.rows, `parts file ${i}.rows`).map((x) => record(x, `parts file ${i} row`))) {
+      const total = typeof r.totalPerCompletedUSD === "number" ? r.totalPerCompletedUSD : null;
+      index.rows.set(keyOf(r), [...(index.rows.get(keyOf(r)) ?? []), { total, usd: Number(r.estimatedPerCompletedUSD), labels: list(r.estimatedLabels, "estimatedLabels").map(String) }]);
+    }
+    for (const h of list(file.heldOpen, `parts file ${i}.heldOpen`).map((x) => record(x, `parts file ${i} held`)))
+      index.held.set(`${String(h.provider)}/${String(h.idle)}`, { usd: Number(h.medianEstimatedUSD), labels: list(h.estimatedLabels, "estimatedLabels").map(String) });
+  }
+  return index;
+}
+
+const partOf = (p: { usd: number; labels: string[] } | undefined) => (p && p.usd > 0 ? { usd: sig(p.usd), labels: p.labels } : null);
+
+function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, parts: PartsIndex) {
   const r = record(raw, where);
   const eligibility = typeof r.eligibility === "string" ? r.eligibility : "";
   const usd = numOrNull(r.costPerCompletedUSD, `${where}.costPerCompletedUSD`);
@@ -98,13 +135,30 @@ function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null) {
     medianCpuS: sig(numOrNull(r.medianCpuS, `${where}.medianCpuS`)),
     cost: usd === null || kind === null || kind === undefined ? null : { kind, usdPerCompleted: sig(usd), wholeMachineUsdPerCompleted: sig(numOrNull(r.wholeMachinePerCompletedUSD, `${where}.wholeMachinePerCompletedUSD`)) },
     costNote: typeof r.costNote === "string" ? r.costNote : null,
+    estimatedPart: estimatedFor(r, where, usd, parts),
     eligible: eligibility === "eligible",
     flags: flagsOf(eligibility),
   };
 }
 
-function heldFrom(raw: unknown, where: string) {
+/**
+ * A costed row's estimated part. Every costed row needs an entry whose
+ * recomputed total matches the summary's, so the parts belong to the
+ * published numbers; an estimate is all estimate and carries none.
+ */
+function estimatedFor(r: Json, where: string, usd: number | null, parts: PartsIndex) {
+  if (usd === null) return null;
+  const entries = parts.rows.get(keyOf(r));
+  need(entries !== undefined, `${where}: no estimated-parts entry for ${keyOf(r)}; run scripts/realistic-estimated-parts.ts on this summary's runs and pass it with --parts`);
+  const p = entries?.find((e) => e.total !== null && Math.abs(e.total - usd) <= 1e-9);
+  need(p !== undefined, `${where}: the parts file's total for ${keyOf(r)} doesn't match the summary; it was built from other runs`);
+  return r.costKind === "estimate" ? null : partOf(p);
+}
+
+function heldFrom(raw: unknown, where: string, parts: PartsIndex) {
   const h = record(raw, where);
+  const p = parts.held.get(`${String(h.provider)}/${String(h.idle)}`);
+  need(p !== undefined || h.medianCostUSD === null, `${where}: no estimated-parts entry for ${String(h.provider)}/${String(h.idle)}; pass the parts file for these runs with --parts`);
   return {
     provider: h.provider,
     idle: h.idle,
@@ -116,6 +170,7 @@ function heldFrom(raw: unknown, where: string) {
     status: h.status,
     medianWakeMs: numOrNull(h.medianWakeMs, `${where}.medianWakeMs`),
     transitions: h.transitions ?? [],
+    estimatedPart: h.costKind === "estimate" ? null : partOf(p),
   };
 }
 
@@ -229,6 +284,7 @@ export function buildRealistic({
   summaries,
   coverage: rawCoverage,
   attempts = [],
+  parts: rawParts,
   manifest = null,
   generatedAt,
 }: {
@@ -236,11 +292,15 @@ export function buildRealistic({
   /** scripts/realistic-coverage.json: what a complete data set holds. */
   coverage: unknown;
   attempts?: readonly string[];
+  /** scripts/realistic-estimated-parts.ts output for these summaries' runs; required, so no cost loses its estimated-part mark. */
+  parts: readonly unknown[];
   manifest?: unknown;
   generatedAt: string;
 }): RealisticData {
   need(summaries.length > 0, "give at least one --summary");
   const coverage = parseCoverage(rawCoverage, "coverage file");
+  need(rawParts.length > 0, "give at least one --parts file from scripts/realistic-estimated-parts.ts");
+  const parts = partsIndex(rawParts);
   let rows: unknown[] = [];
   let held: unknown[] = [];
   let fx: Json | null = null;
@@ -257,9 +317,9 @@ export function buildRealistic({
       const failedRuns = typeof reasons["prepare-failed"] === "number" ? reasons["prepare-failed"] : 0;
       // A setup detail is attached only where it accounts for every setup failure of that row.
       if (prepared) need(prepared.runs === failedRuns, `${name}: ${key} has ${failedRuns} setup failures but the attempts files show ${prepared.runs} out-of-disk ones; pass the attempts of the runs this summary merged`);
-      return rowFrom(r, `${name}.rows[${i}]`, prepared && failedRuns > 0 ? prepared : null);
+      return rowFrom(r, `${name}.rows[${i}]`, prepared && failedRuns > 0 ? prepared : null, parts);
     });
-    const ownHeld = list(s.heldOpen ?? [], `${name}.heldOpen`).map((h, i) => heldFrom(h, `${name}.heldOpen[${i}]`));
+    const ownHeld = list(s.heldOpen ?? [], `${name}.heldOpen`).map((h, i) => heldFrom(h, `${name}.heldOpen[${i}]`, parts));
     need(own.length > 0, `${name} has no rows`);
     // Each row and held-open entry once: a duplicate would win a lookup silently, so the summary is refused before any merge.
     const parsed = (() => {
@@ -313,6 +373,7 @@ function main(argv: readonly string[]) {
   const readJson = (p: string): unknown => JSON.parse(readFileSync(p, "utf8"));
   const summaries = take("--summary").map((p) => ({ name: sourceName(resolve(p)), raw: readJson(p) }));
   const attempts = take("--attempts").flatMap((p) => readFileSync(p, "utf8").split("\n"));
+  const parts = take("--parts").map(readJson);
   const [manifestPath] = take("--manifest");
   const [coveragePath = resolve(import.meta.dirname, "realistic-coverage.json")] = take("--coverage");
   const [outPath = resolve(import.meta.dirname, "../src/data/realistic.json")] = take("--out");
@@ -320,6 +381,7 @@ function main(argv: readonly string[]) {
     summaries,
     coverage: readJson(coveragePath),
     attempts,
+    parts,
     manifest: manifestPath ? readJson(manifestPath) : null,
     generatedAt: new Date().toISOString(),
   });

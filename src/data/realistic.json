@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-09T19:13:53.227Z",
+  "generatedAt": "2026-11-09T19:48:50.598Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -124,6 +124,7 @@
         "wholeMachineUsdPerCompleted": 0.002204
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -149,6 +150,7 @@
         "wholeMachineUsdPerCompleted": 0.0110074
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -174,6 +176,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -197,6 +200,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -219,6 +223,7 @@
         "wholeMachineUsdPerCompleted": 0.0171028
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -244,6 +249,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -267,6 +273,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -294,6 +301,12 @@
         "wholeMachineUsdPerCompleted": 0.0119625
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.00016387,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": true,
       "flags": []
     },
@@ -321,6 +334,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: storage coverage of the billing source unknown"
@@ -350,6 +364,7 @@
         "wholeMachineUsdPerCompleted": 0.0401875
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "3 incomplete runs (at most 1)",
@@ -375,6 +390,7 @@
         "wholeMachineUsdPerCompleted": 0.002118
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -400,6 +416,7 @@
         "wholeMachineUsdPerCompleted": 0.0158491
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
@@ -425,6 +442,7 @@
         "wholeMachineUsdPerCompleted": 0.0120901
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -450,6 +468,7 @@
         "wholeMachineUsdPerCompleted": 0.0186392
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -474,6 +493,7 @@
         "wholeMachineUsdPerCompleted": 0.0206956
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -504,6 +524,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "did not complete",
@@ -536,6 +557,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "did not complete",
@@ -562,6 +584,12 @@
         "wholeMachineUsdPerCompleted": 0.0097338
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000671296,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": true,
       "flags": []
     },
@@ -584,6 +612,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: storage coverage of the billing source unknown"
@@ -608,6 +637,7 @@
         "wholeMachineUsdPerCompleted": 0.0294609
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -632,6 +662,7 @@
         "wholeMachineUsdPerCompleted": 0.00089
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -657,6 +688,7 @@
         "wholeMachineUsdPerCompleted": 0.00714168
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -682,6 +714,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -705,6 +738,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -727,6 +761,7 @@
         "wholeMachineUsdPerCompleted": 0.00996182
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -752,6 +787,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -774,6 +810,7 @@
         "wholeMachineUsdPerCompleted": 0.00727012
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -798,6 +835,12 @@
         "wholeMachineUsdPerCompleted": 0.00383588
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000525463,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": true,
       "flags": []
     },
@@ -820,6 +863,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: storage coverage of the billing source unknown"
@@ -844,6 +888,7 @@
         "wholeMachineUsdPerCompleted": 0.0150905
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -868,6 +913,7 @@
         "wholeMachineUsdPerCompleted": 0.000964
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -893,6 +939,7 @@
         "wholeMachineUsdPerCompleted": 0.00912072
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
@@ -923,6 +970,7 @@
         "wholeMachineUsdPerCompleted": 0.0109428
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
@@ -948,6 +996,7 @@
         "wholeMachineUsdPerCompleted": 0.0100832
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -972,6 +1021,7 @@
         "wholeMachineUsdPerCompleted": 0.00957581
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -1002,6 +1052,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "did not complete",
@@ -1028,6 +1079,7 @@
         "wholeMachineUsdPerCompleted": 0.0097888
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
@@ -1052,6 +1104,12 @@
         "wholeMachineUsdPerCompleted": 0.00528086
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000364198,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": true,
       "flags": []
     },
@@ -1074,6 +1132,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: storage coverage of the billing source unknown"
@@ -1098,6 +1157,7 @@
         "wholeMachineUsdPerCompleted": 0.0182902
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": [
         "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
@@ -1122,6 +1182,7 @@
         "wholeMachineUsdPerCompleted": 0.00711333
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1144,6 +1205,7 @@
         "wholeMachineUsdPerCompleted": 0.0761128
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1171,6 +1233,7 @@
         "wholeMachineUsdPerCompleted": 0.0986926
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1193,6 +1256,7 @@
         "wholeMachineUsdPerCompleted": 0.0676813
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1220,6 +1284,12 @@
         "wholeMachineUsdPerCompleted": 0.0415365
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.000286458,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -1242,6 +1312,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1264,6 +1335,7 @@
         "wholeMachineUsdPerCompleted": 0.141117
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1287,6 +1359,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1309,6 +1382,7 @@
         "wholeMachineUsdPerCompleted": 0.396477
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1332,6 +1406,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1354,6 +1429,7 @@
         "wholeMachineUsdPerCompleted": 0.344571
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1381,6 +1457,12 @@
         "wholeMachineUsdPerCompleted": 0.217192
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.00149788,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -1404,6 +1486,7 @@
       "medianCpuS": null,
       "cost": null,
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1426,6 +1509,7 @@
         "wholeMachineUsdPerCompleted": 0.705835
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1448,6 +1532,7 @@
         "wholeMachineUsdPerCompleted": 0.00114333
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1470,6 +1555,7 @@
         "wholeMachineUsdPerCompleted": 0.011926
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1492,6 +1578,7 @@
         "wholeMachineUsdPerCompleted": 0.0103822
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1514,6 +1601,7 @@
         "wholeMachineUsdPerCompleted": 0.0126347
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1536,6 +1624,12 @@
         "wholeMachineUsdPerCompleted": 0.00660108
       },
       "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000455247,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -1558,6 +1652,7 @@
         "wholeMachineUsdPerCompleted": null
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     },
@@ -1580,6 +1675,7 @@
         "wholeMachineUsdPerCompleted": 0.024677
       },
       "costNote": null,
+      "estimatedPart": null,
       "eligible": false,
       "flags": []
     }
@@ -1598,6 +1694,7 @@
         "unsettled",
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 805,
       "transitions": []
     },
@@ -1614,6 +1711,7 @@
         "unsettled",
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 850,
       "transitions": []
     },
@@ -1629,6 +1727,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 423,
       "transitions": [
         "running -> stopped"
@@ -1646,6 +1745,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 118,
       "transitions": []
     },
@@ -1661,6 +1761,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 120,
       "transitions": []
     },
@@ -1676,6 +1777,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 150,
       "transitions": []
     },
@@ -1691,6 +1793,7 @@
       "statuses": [
         "unsettled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 129,
       "transitions": []
     },
@@ -1706,6 +1809,7 @@
       "statuses": [
         "unsettled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 253,
       "transitions": []
     },
@@ -1721,6 +1825,7 @@
       "statuses": [
         "unsettled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 1839,
       "transitions": [
         "running -> stopped"
@@ -1738,6 +1843,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 140,
       "transitions": []
     },
@@ -1753,6 +1859,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 229,
       "transitions": []
     },
@@ -1768,6 +1875,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 258,
       "transitions": []
     },
@@ -1781,6 +1889,7 @@
       "changeVsZeroWait": null,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": null,
       "medianWakeMs": 243,
       "transitions": []
     },
@@ -1794,6 +1903,7 @@
       "changeVsZeroWait": 0.0115882,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": null,
       "medianWakeMs": 238,
       "transitions": []
     },
@@ -1807,6 +1917,7 @@
       "changeVsZeroWait": -0.26192,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": null,
       "medianWakeMs": 138,
       "transitions": []
     },
@@ -1820,6 +1931,12 @@
       "changeVsZeroWait": null,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": {
+        "usd": 0.0000455247,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 253,
       "transitions": []
     },
@@ -1833,6 +1950,12 @@
       "changeVsZeroWait": -0.000172258,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": {
+        "usd": 0.000274691,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 407,
       "transitions": []
     },
@@ -1846,6 +1969,12 @@
       "changeVsZeroWait": 0.103266,
       "status": "settled",
       "statuses": [],
+      "estimatedPart": {
+        "usd": 0.00143403,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 418.5,
       "transitions": []
     },
@@ -1861,6 +1990,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 306,
       "transitions": []
     },
@@ -1876,6 +2006,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 404,
       "transitions": []
     },
@@ -1891,6 +2022,7 @@
       "statuses": [
         "unreconciled"
       ],
+      "estimatedPart": null,
       "medianWakeMs": 631,
       "transitions": []
     }

@@ -27,24 +27,26 @@ export interface Column {
   mark?: number;
   /** A short qualifier printed with the bar, such as a cost's kind and status. */
   tag?: string;
+  /** A second short qualifier under the tag, such as what a cost leaves out. */
+  note?: string;
   /** The time breakdown the column opens on click or Enter (components/trace-panel.tsx). */
   trace?: TraceKind;
 }
 
-const total = (c: Column) => c.segments.reduce((sum, s) => sum + s.value, 0);
+const total = (c: Pick<Column, "segments">) => c.segments.reduce((sum, s) => sum + s.value, 0);
 
 /** An outlier this many times the runner-up would flatten every other column. */
 const OUTLIER = 4;
 /** When one is found, the axis ends this far above the runner-up instead. */
 const HEADROOM = 1.3;
 
-/** The value at the end of the axis: the largest total, or less when that total is an outlier. */
-function axisMax(columns: readonly Column[]) {
+/** The value at the end of the axis: the largest total, or less when that total is an outlier. Shared with any view that must draw the same bars. */
+export function axisMax(columns: readonly Pick<Column, "segments">[]) {
   const [first = 0, second = 0] = columns.map(total).sort((a, b) => b - a);
   return second > 0 && first > OUTLIER * second ? second * HEADROOM : Math.max(first, Number.EPSILON);
 }
 
-interface Bar {
+export interface Bar {
   /** Share of the axis each segment covers, baseline first. */
   shares: readonly number[];
   /** Share of the axis the whole bar covers. */
@@ -57,7 +59,7 @@ interface Bar {
  * Lays a column out against the axis. A bar past the end is drawn to the
  * end: its largest segment absorbs the cut so the others keep their scale.
  */
-function layout(column: Column, max: number): Bar {
+export function layout(column: Pick<Column, "segments">, max: number): Bar {
   const shares = column.segments.map((s) => s.value / max);
   if (total(column) <= max) return { shares, length: total(column) / max, broken: null };
   const broken = shares.indexOf(Math.max(...shares));
@@ -85,7 +87,7 @@ const opener = (column: Column) =>
  * The axis break: a slanted gap through the bar, edged in its colour, so a
  * shortened bar reads as cut rather than as its true length.
  */
-function Break({ color, along }: { color: string; along: "x" | "y" }) {
+export function Break({ color, along }: { color: string; along: "x" | "y" }) {
   return (
     <span
       aria-hidden
@@ -172,6 +174,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             <ProviderName id={column.provider} layout="centered" />
             <Mark column={column} />
             {column.tag ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
+            {column.note ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-8">{column.note}</span> : null}
           </span>
         ))}
       </div>
@@ -221,7 +224,12 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
             >
               {column.label}
             </span>
-            {column.tag ? <span aria-hidden className="col-span-2 col-start-2 -mt-0.5 pb-0.5 text-xxs leading-tight text-neutral-7">{column.tag}</span> : null}
+            {column.tag ? (
+              <span aria-hidden className="col-span-2 col-start-2 -mt-0.5 pb-0.5 text-xxs leading-tight text-neutral-7">
+                {column.tag}
+                {column.note ? <span className="text-neutral-8"> · {column.note}</span> : null}
+              </span>
+            ) : null}
             {still ? null : <Card column={column} className="top-full right-0 mt-xxs" />}
           </div>
         );
