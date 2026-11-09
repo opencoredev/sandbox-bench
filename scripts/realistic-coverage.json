@@ -40,15 +40,18 @@
     "notTested": [
       {
         "provider": "freestyle",
-        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox"
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
       },
       {
         "provider": "superserve",
-        "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox"
+        "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "account totals only"
       },
       {
         "provider": "tenki",
-        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox"
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
       }
     ]
   }

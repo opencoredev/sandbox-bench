@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-09T23:32:22.047Z",
+  "generatedAt": "2026-11-09T23:47:32.776Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -43,15 +43,18 @@
       "notTested": [
         {
           "provider": "freestyle",
-          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox"
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         },
         {
           "provider": "superserve",
-          "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox"
+          "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "account totals only"
         },
         {
           "provider": "tenki",
-          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox"
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         }
       ]
     }
@@ -130,7 +133,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.00219,
-        "wholeMachineUsdPerCompleted": 0.002204
+        "wholeMachineUsdPerCompleted": 0.002204,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -156,7 +160,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0082732,
-        "wholeMachineUsdPerCompleted": 0.0110074
+        "wholeMachineUsdPerCompleted": 0.0110074,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -229,7 +234,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.0171028,
-        "wholeMachineUsdPerCompleted": 0.0171028
+        "wholeMachineUsdPerCompleted": 0.0171028,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -254,7 +260,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0303202,
-        "wholeMachineUsdPerCompleted": 0.000868797
+        "wholeMachineUsdPerCompleted": 0.000868797,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -330,7 +337,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0166836,
-        "wholeMachineUsdPerCompleted": 0.0119625
+        "wholeMachineUsdPerCompleted": 0.0119625,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -363,7 +371,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0112312,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -393,7 +402,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0347545,
-        "wholeMachineUsdPerCompleted": 0.0401875
+        "wholeMachineUsdPerCompleted": 0.0401875,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -419,7 +429,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.002102,
-        "wholeMachineUsdPerCompleted": 0.002118
+        "wholeMachineUsdPerCompleted": 0.002118,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -445,7 +456,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0075674,
-        "wholeMachineUsdPerCompleted": 0.0158491
+        "wholeMachineUsdPerCompleted": 0.0158491,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -471,7 +483,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0112404,
-        "wholeMachineUsdPerCompleted": 0.0120901
+        "wholeMachineUsdPerCompleted": 0.0120901,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -497,7 +510,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0185249,
-        "wholeMachineUsdPerCompleted": 0.0186392
+        "wholeMachineUsdPerCompleted": 0.0186392,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -522,7 +536,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.0206956,
-        "wholeMachineUsdPerCompleted": 0.0206956
+        "wholeMachineUsdPerCompleted": 0.0206956,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -547,7 +562,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0585634,
-        "wholeMachineUsdPerCompleted": 0.033893
+        "wholeMachineUsdPerCompleted": 0.033893,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -636,7 +652,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0160686,
-        "wholeMachineUsdPerCompleted": 0.0097338
+        "wholeMachineUsdPerCompleted": 0.0097338,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -664,7 +681,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0163592,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -689,7 +707,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0209315,
-        "wholeMachineUsdPerCompleted": 0.0294609
+        "wholeMachineUsdPerCompleted": 0.0294609,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -714,7 +733,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.000876,
-        "wholeMachineUsdPerCompleted": 0.00089
+        "wholeMachineUsdPerCompleted": 0.00089,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -740,7 +760,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0039948,
-        "wholeMachineUsdPerCompleted": 0.00714168
+        "wholeMachineUsdPerCompleted": 0.00714168,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -813,7 +834,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.00996182,
-        "wholeMachineUsdPerCompleted": 0.00996182
+        "wholeMachineUsdPerCompleted": 0.00996182,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -838,7 +860,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0203124,
-        "wholeMachineUsdPerCompleted": 0.00117299
+        "wholeMachineUsdPerCompleted": 0.00117299,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -885,7 +908,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.00727012,
-        "wholeMachineUsdPerCompleted": 0.00727012
+        "wholeMachineUsdPerCompleted": 0.00727012,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -910,7 +934,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.00594205,
-        "wholeMachineUsdPerCompleted": 0.00383588
+        "wholeMachineUsdPerCompleted": 0.00383588,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -938,7 +963,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.00609761,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -963,7 +989,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0140907,
-        "wholeMachineUsdPerCompleted": 0.0150905
+        "wholeMachineUsdPerCompleted": 0.0150905,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -988,7 +1015,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.000946,
-        "wholeMachineUsdPerCompleted": 0.000964
+        "wholeMachineUsdPerCompleted": 0.000964,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1014,7 +1042,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0038042,
-        "wholeMachineUsdPerCompleted": 0.00912072
+        "wholeMachineUsdPerCompleted": 0.00912072,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1045,7 +1074,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0104858,
-        "wholeMachineUsdPerCompleted": 0.0109428
+        "wholeMachineUsdPerCompleted": 0.0109428,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1071,7 +1101,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.00998993,
-        "wholeMachineUsdPerCompleted": 0.0100832
+        "wholeMachineUsdPerCompleted": 0.0100832,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1096,7 +1127,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.00957581,
-        "wholeMachineUsdPerCompleted": 0.00957581
+        "wholeMachineUsdPerCompleted": 0.00957581,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1121,7 +1153,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0385125,
-        "wholeMachineUsdPerCompleted": 0.0224547
+        "wholeMachineUsdPerCompleted": 0.0224547,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1177,7 +1210,8 @@
       "cost": {
         "kind": "estimate",
         "usdPerCompleted": 0.0097888,
-        "wholeMachineUsdPerCompleted": 0.0097888
+        "wholeMachineUsdPerCompleted": 0.0097888,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1202,7 +1236,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0120613,
-        "wholeMachineUsdPerCompleted": 0.00528086
+        "wholeMachineUsdPerCompleted": 0.00528086,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -1230,7 +1265,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0120487,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1255,7 +1291,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0144585,
-        "wholeMachineUsdPerCompleted": 0.0182902
+        "wholeMachineUsdPerCompleted": 0.0182902,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1280,7 +1317,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.00709333,
-        "wholeMachineUsdPerCompleted": 0.00711333
+        "wholeMachineUsdPerCompleted": 0.00711333,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1303,7 +1341,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0113017,
-        "wholeMachineUsdPerCompleted": 0.0761128
+        "wholeMachineUsdPerCompleted": 0.0761128,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1331,7 +1370,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0983415,
-        "wholeMachineUsdPerCompleted": 0.0986926
+        "wholeMachineUsdPerCompleted": 0.0986926,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1354,7 +1394,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0675787,
-        "wholeMachineUsdPerCompleted": 0.0676813
+        "wholeMachineUsdPerCompleted": 0.0676813,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1377,7 +1418,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.274403,
-        "wholeMachineUsdPerCompleted": 0.157014
+        "wholeMachineUsdPerCompleted": 0.157014,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1405,7 +1447,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0196059,
-        "wholeMachineUsdPerCompleted": 0.0415365
+        "wholeMachineUsdPerCompleted": 0.0415365,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -1433,7 +1476,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.016495,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1456,7 +1500,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0513688,
-        "wholeMachineUsdPerCompleted": 0.141117
+        "wholeMachineUsdPerCompleted": 0.141117,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1503,7 +1548,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0438597,
-        "wholeMachineUsdPerCompleted": 0.396477
+        "wholeMachineUsdPerCompleted": 0.396477,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1550,7 +1596,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.344459,
-        "wholeMachineUsdPerCompleted": 0.344571
+        "wholeMachineUsdPerCompleted": 0.344571,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1573,7 +1620,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 1.37914,
-        "wholeMachineUsdPerCompleted": 0.788516
+        "wholeMachineUsdPerCompleted": 0.788516,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1601,7 +1649,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0188149,
-        "wholeMachineUsdPerCompleted": 0.217192
+        "wholeMachineUsdPerCompleted": 0.217192,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -1653,7 +1702,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.192051,
-        "wholeMachineUsdPerCompleted": 0.705835
+        "wholeMachineUsdPerCompleted": 0.705835,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1676,7 +1726,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.00112333,
-        "wholeMachineUsdPerCompleted": 0.00114333
+        "wholeMachineUsdPerCompleted": 0.00114333,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1699,7 +1750,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.00523633,
-        "wholeMachineUsdPerCompleted": 0.011926
+        "wholeMachineUsdPerCompleted": 0.011926,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1722,7 +1774,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0100129,
-        "wholeMachineUsdPerCompleted": 0.0103822
+        "wholeMachineUsdPerCompleted": 0.0103822,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1745,7 +1798,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0125333,
-        "wholeMachineUsdPerCompleted": 0.0126347
+        "wholeMachineUsdPerCompleted": 0.0126347,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1768,7 +1822,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0518705,
-        "wholeMachineUsdPerCompleted": 0.0298973
+        "wholeMachineUsdPerCompleted": 0.0298973,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1791,7 +1846,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0166876,
-        "wholeMachineUsdPerCompleted": 0.00660108
+        "wholeMachineUsdPerCompleted": 0.00660108,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": {
@@ -1819,7 +1875,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0167097,
-        "wholeMachineUsdPerCompleted": null
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1842,7 +1899,8 @@
       "cost": {
         "kind": "metered",
         "usdPerCompleted": 0.0212398,
-        "wholeMachineUsdPerCompleted": 0.024677
+        "wholeMachineUsdPerCompleted": 0.024677,
+        "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,

@@ -33,6 +33,8 @@ export interface WaterfallProvider {
   id: ProviderId;
   /** Cost per task as printed: "$0.00023", or "at least $0.00023" for a lower bound. */
   costText: string | null;
+  /** The cost's kind and status, in the cost charts' words ("metered, unreconciled"), or null without a cost. */
+  costTag: string | null;
   /** Failures the provider caused on each trace's test, and every attempt. */
   failures: Record<TraceKind, { failed: number; attempts: number }>;
 }
@@ -260,7 +262,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
 
         <div className="grid grid-cols-2 sm:grid-cols-4">
           <Stat label="Total time" value={formatMs(trace.total)} sub={ours > 0 ? `${formatMs(trace.providerMs)} provider · ${formatMs(ours)} ours` : trace.basis} />
-          <Stat label="Cost per task" value={provider.costText ?? "n/a"} sub="create, replay, delete" />
+          <Stat label="Cost per task" value={provider.costText ?? "n/a"} sub={provider.costTag ? `${provider.costTag} · create, replay, delete` : "create, replay, delete"} />
           <Stat label="Calls" value={String(trace.calls)} sub={trace.basis} />
           <Stat label="Failures" value={failures.failed.toLocaleString("en-US")} sub={`of ${failures.attempts.toLocaleString("en-US")} attempts`} tone={failures.failed > 0 ? "bad" : undefined} />
         </div>

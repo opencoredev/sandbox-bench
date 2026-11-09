@@ -129,6 +129,18 @@ export function partsByDigest(files: readonly unknown[]): Map<string, SummaryPar
 
 const partOf = (p: { usd: number; labels: string[] } | undefined) => (p && p.usd > 0 ? { usd: sig(p.usd), labels: p.labels } : null);
 
+/**
+ * The bound the harness puts on the whole-machine column ("lower" for Modal's
+ * default track, which prices only its 0.125 CPU request). A summary made
+ * before the harness wrote it has none, and that reads as exact.
+ */
+function wholeMachineBoundOf(r: Json, where: string) {
+  const b = r.wholeMachineBound;
+  if (b === undefined || b === null) return "exact";
+  need(b === "exact" || b === "lower", `${where}.wholeMachineBound must be "exact" or "lower", not ${JSON.stringify(b)}`);
+  return b;
+}
+
 function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, parts: SummaryParts) {
   const r = record(raw, where);
   const eligibility = typeof r.eligibility === "string" ? r.eligibility : "";
@@ -148,7 +160,15 @@ function rowFrom(raw: unknown, where: string, prepare: PrepareFailure | null, pa
     prepare,
     medianWallS: sig(numOrNull(r.medianWallS, `${where}.medianWallS`)),
     medianCpuS: sig(numOrNull(r.medianCpuS, `${where}.medianCpuS`)),
-    cost: usd === null || kind === null || kind === undefined ? null : { kind, usdPerCompleted: sig(usd), wholeMachineUsdPerCompleted: sig(numOrNull(r.wholeMachinePerCompletedUSD, `${where}.wholeMachinePerCompletedUSD`)) },
+    cost:
+      usd === null || kind === null || kind === undefined
+        ? null
+        : {
+            kind,
+            usdPerCompleted: sig(usd),
+            wholeMachineUsdPerCompleted: sig(numOrNull(r.wholeMachinePerCompletedUSD, `${where}.wholeMachinePerCompletedUSD`)),
+            wholeMachineBound: wholeMachineBoundOf(r, where),
+          },
     costNote: typeof r.costNote === "string" ? r.costNote : null,
     estimatedPart: estimatedFor(r, where, usd, parts),
     eligible: eligibility === "eligible",

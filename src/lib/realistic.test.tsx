@@ -12,6 +12,14 @@ import { buildRealistic, flagsOf as harnessFlags, prepareFailures, sourceName, w
 import { Columns, axisMax, layout } from "@/components/columns";
 import { IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
 import { planMinimum } from "@/lib/plan-minimum";
+import { providersOf } from "@/components/trace-waterfall";
+
+/** Text as React renders it in markup: apostrophes escaped. */
+const esc = (s: string) => s.replaceAll("'", "&#x27;");
+import { sentence } from "@/components/metric-chart";
+import { regionNote } from "@/lib/cost";
+import { providerBrand } from "@/lib/providers";
+import { publishedProviders, siteDescription } from "@/lib/seo/home";
 import { StatStrip } from "@/components/stat-strip";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
 import { billingBases, billingLabel } from "@/lib/cost";
@@ -25,7 +33,10 @@ import {
   holdStatuses,
   holdTag,
   idleGroups,
+  idleFailed,
   idleOutcome,
+  multipleNote,
+  multipleText,
   noCostReason,
   parseCoverage,
   parseRealistic,
@@ -52,7 +63,7 @@ const meter = "provisional: meter not reconciled with settled charges: pilot: no
 /** A small coverage: two providers, one workload and track, Upstash in the idle test. */
 const coverage = {
   headline: { attempts: 5, providers: ["upstash", "boat"], profiles: ["fix-and-test"], tracks: ["same-machine"] },
-  idle: { attempts: 3, profile: "fix-and-test", track: "same-machine", providers: ["upstash"], notTested: [{ provider: "boat", reason: "no per-sandbox billing" }] },
+  idle: { attempts: 3, profile: "fix-and-test", track: "same-machine", providers: ["upstash"], notTested: [{ provider: "boat", reason: "no per-sandbox billing", short: "no per-sandbox billing" }] },
 };
 
 /** A harness summary row, as summary.json writes it. */
@@ -154,7 +165,7 @@ describe("data script", () => {
   });
 
   test("a later complete summary replaces every row of the providers it has, and adds new ones", () => {
-    const withModal = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "modal"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "modal", reason: "later" }] } };
+    const withModal = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "modal"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "modal", reason: "later", short: "later" }] } };
     const later = summary({
       rows: [summaryRow({ provider: "modal", costKind: "metered", costPerCompletedUSD: 0.02, eligibility: meter }), summaryRow({ provider: "boat", costKind: "metered", costPerCompletedUSD: 0.0005, eligibility: meter })],
       heldOpen: [],
@@ -242,7 +253,7 @@ describe("data script", () => {
 
   // The code review's reproduction: a row with no cost skipped its parts check, so a missing or altered entry passed.
   test("a row with no cost still needs its parts entry, with no total", () => {
-    const cov = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "superserve"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "superserve", reason: "x" }] } };
+    const cov = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "superserve"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "superserve", reason: "x", short: "x" }] } };
     const failing = summaryRow({ provider: "superserve", completed: 0, incomplete: 5, reasons: { "check-failed": 5 }, costPerCompletedUSD: null, medianWallS: null, wholeMachinePerCompletedUSD: null, eligibility: "did not complete; 5 incomplete runs (at most 1)" });
     const raw = summary({ rows: [...summary().rows, failing] });
     const key = (r: Record<string, unknown>) => `${String(r.provider)}/${String(r.profile)}/${String(r.track)}/${String(r.variant)}`;
@@ -295,7 +306,7 @@ describe("data script", () => {
   });
 
   test("adds out-of-disk details from attempts, skipping dropped attempts, and checks the count", () => {
-    const cov = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "superserve"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "superserve", reason: "x" }] } };
+    const cov = { ...coverage, headline: { ...coverage.headline, providers: ["upstash", "boat", "superserve"] }, idle: { ...coverage.idle, notTested: [...coverage.idle.notTested, { provider: "superserve", reason: "x", short: "x" }] } };
     const attempt = (id: string, free: number) =>
       JSON.stringify({ attemptId: id, provider: "superserve", profile: "fix-and-test", track: "same-machine", variant: "headline", completion: { kind: "incomplete", reason: "prepare-failed", detail: JSON.stringify({ kind: "insufficient-disk", freeGiB: free, requiredGiB: 4 }) } });
     const failing = summaryRow({ provider: "superserve", completed: 0, incomplete: 5, reasons: { "prepare-failed": 5 }, costPerCompletedUSD: null, medianWallS: null, wholeMachinePerCompletedUSD: null, eligibility: "did not complete; 5 incomplete runs (at most 1)" });
@@ -403,7 +414,7 @@ describe("statuses and billing", () => {
   });
 
   test("tags use the cost charts' words: kind, then statuses, then qualifiers", () => {
-    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null }, eligible, flags, estimatedPart: null });
+    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" as const }, eligible, flags, estimatedPart: null });
     assert.equal(statusTag({ ...row("billed", true, []), estimatedPart: { usd: 0.1, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
     assert.equal(statusTag(row("billed", true, [])), "billed, verified");
     assert.equal(statusTag(row("metered", false, ["unsettled (5 attempts)", meter])), "metered, unsettled, unreconciled");
@@ -464,7 +475,7 @@ const costed = (provider: Costed["provider"], usd: number, eligible: boolean, ov
   prepare: null,
   medianWallS: 90,
   medianCpuS: 200,
-  cost: { kind: eligible ? "billed" : "metered", usdPerCompleted: usd, wholeMachineUsdPerCompleted: null },
+  cost: { kind: eligible ? "billed" : "metered", usdPerCompleted: usd, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" },
   costNote: null,
   estimatedPart: null,
   eligible,
@@ -613,7 +624,7 @@ describe("exports", () => {
       assert.match(text, /billed, verified/);
       assert.match(text, /metered, unreconciled/);
     }
-    assert.match(md, /\| Kind and status \| Change vs no wait \|/);
+    assert.match(md, /\| Kind and status \| vs no wait \|/);
     const section = llms.slice(llms.indexOf("## What a task costs"), llms.indexOf("## Quick picks"));
     assert.doesNotMatch(section.replace("There is no overall cheapest", ""), /cheapest/i);
     assert.match(section, /No certified winner/);
@@ -625,13 +636,92 @@ describe("exports", () => {
   });
 });
 
+describe("final review", () => {
+  test("a summary's whole-machine bound is read, and a missing one reads as exact", () => {
+    const raw = summary({ rows: [summaryRow({ wholeMachineBound: "lower" }), boatRow, ...idleRows("upstash")] });
+    const d = build([{ name: "x", raw }]);
+    assert.equal(d.rows.find((r) => r.provider === "upstash" && r.variant === "headline")?.cost?.wholeMachineBound, "lower");
+    assert.equal(d.rows.find((r) => r.provider === "boat")?.cost?.wholeMachineBound, "exact");
+    assert.throws(() => build([{ name: "x", raw: summary({ rows: [summaryRow({ wholeMachineBound: "upper" }), boatRow, ...idleRows("upstash")] }) }]), /wholeMachineBound must be "exact" or "lower"/);
+  });
+
+  test("a lower-bound whole-machine figure says so on the page and in both exports", () => {
+    const d = structuredClone(JSON.parse(JSON.stringify(realistic))) as { rows: { provider: string; track: string; variant: string; profile: string; cost: { wholeMachineBound: string; wholeMachineUsdPerCompleted: number | null } | null }[] };
+    const modal = d.rows.find((r) => r.provider === "modal" && r.track === "default" && r.variant === "headline" && r.cost?.wholeMachineUsdPerCompleted);
+    assert.ok(modal?.cost);
+    modal.cost.wholeMachineBound = "lower";
+    const parsed = parseRealistic(d);
+    const row = parsed.rows.find((r) => r.provider === "modal" && r.track === "default" && r.variant === "headline" && r.profile === modal.profile);
+    assert.ok(row);
+    const html = renderToStaticMarkup(<ProviderRows costed={[row as Costed]} uncosted={[]} track="default" />);
+    assert.match(html, /Whole machine at list price: at least \$/);
+    assert.match(html, /a lower bound/);
+  });
+
+  test("Modal's pinned-region multiplier is said beside it in both charts and in whatATaskCosts", () => {
+    const note = regionNote(tracks["same-spec"].providers.find((p) => p.id === "modal") ?? tracks["same-spec"].providers[0]!);
+    assert.ok(note, "Modal carries a region multiplier in the site data");
+    const task = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    assert.match(task, /us-east rate, 1.75× base price/);
+    assert.ok(task.includes(esc(sentence(note.replace(/^\w/, (c) => c.toUpperCase())))), "the long note is in Modal's row details");
+    assert.match(renderToStaticMarkup(<IdleChart />), /us-east rate, 1.75× base price/);
+    const exported = agentData().whatATaskCosts.tracks["same-spec"]?.workloads["fix-and-test"].providers.find((p) => p.provider === "modal");
+    assert.equal(exported && "regionNote" in exported ? exported.regionNote : null, note);
+    const idleModal = agentData().whatATaskCosts.idle.providers.find((g) => g.provider === "modal");
+    assert.equal(idleModal && "regionNote" in idleModal ? idleModal.regionNote : null, note);
+  });
+
+  test("the idle chart lists providers whose resume failed or whose sandbox stopped last, and mutes those figures", () => {
+    const groups = idleGroups(realistic);
+    const firstFailed = groups.findIndex((g) => idleFailed(g));
+    assert.ok(firstFailed > 0);
+    assert.ok(groups.slice(firstFailed).every((g) => idleFailed(g)), "no provider with a completed resume after a failed one");
+    assert.equal(groups.find((g) => g.provider === "upstash-ephemeral") && idleFailed(groups.find((g) => g.provider === "upstash-ephemeral")!), true);
+    const html = renderToStaticMarkup(<IdleChart />);
+    assert.match(html, /opacity-40/);
+    assert.match(html, /text-neutral-6[^"]*">\$12.15/);
+  });
+
+  test("the idle chart prints each wait against no wait as ×N, from the harness's ratio", () => {
+    assert.equal(multipleText({ changeVsZeroWait: null }), null);
+    assert.equal(multipleText({ changeVsZeroWait: 25.6 }), "×26.6");
+    assert.equal(multipleText({ changeVsZeroWait: -0.000172 }), "×1.00");
+    const html = renderToStaticMarkup(<IdleChart />);
+    assert.ok(html.includes(esc(multipleNote)));
+    for (const h of realistic.heldOpen.filter((x) => x.changeVsZeroWait !== null)) assert.ok(html.includes(multipleText(h) ?? ""), `${h.provider} ${h.idle}`);
+  });
+
+  test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
+    const html = renderToStaticMarkup(<IdleChart />);
+    const text = html.replace(/<[^>]+>/g, "");
+    assert.match(text, /Not in this test: Freestyle and Tenki \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
+    assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
+  });
+
+  test("the site description counts and names the published providers", () => {
+    const { count, names } = publishedProviders();
+    assert.equal(count, new Set(tracks["same-spec"].providers.concat(tracks.default.providers).map((p) => providerBrand(p.id))).size);
+    assert.ok(siteDescription.startsWith(`${count} cloud sandbox providers`));
+    for (const n of ["Vercel Sandbox", "Modal", "Upstash Box and Ephemeral Box"]) assert.ok(names.includes(n), n);
+  });
+
+  test("the trace panel's cost carries its kind and status", () => {
+    const priced = providersOf(tracks["same-spec"]).filter((p) => p.costText !== null);
+    assert.ok(priced.length > 0);
+    for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate)/);
+  });
+});
+
 describe("page", () => {
   test("each workload tab shows its pick, one line on lower costs, and why providers are missing", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks.default} />);
     assert.match(html, /Fix and test: cost per 1,000 completed tasks/);
     assert.match(html, /Build: cost per 1,000 completed tasks/);
     assert.match(html, /No certified winner/);
-    assert.match(html, /lower reported costs? (is|are) unverified or ineligible; reasons below/);
+    // Two lines under the pick: the pilot, the eligible set and the count of lower costs; then what the cost includes.
+    assert.match(html, /Pilot · 5 runs · Eligible: .*· \d+ lower costs? unverified or ineligible \(see table\)/s);
+    assert.ok(html.includes("Includes setup and failed attempts, through confirmed deletion."));
     assert.doesNotMatch(html, /Lower but not eligible/);
     assert.match(html, /Not in the chart:/);
     assert.match(html, /default machine is too small for this workload/);
@@ -718,7 +808,7 @@ describe("page", () => {
     for (const h of realistic.heldOpen.filter((x) => x.provider === "upstash" && x.estimatedPart && x.medianCostUsd))
       assert.ok(html.includes(shareText(h.estimatedPart?.usd ?? 0, h.medianCostUsd ?? 1)), `share for ${h.idle}`);
     // One fixed value column and outcomes on their own line, so every idle bar track has one width.
-    assert.match(html, /grid-cols-\[3.75rem_minmax\(0,1fr\)_4.5rem\]/);
+    assert.match(html, /grid-cols-\[3.75rem_minmax\(0,1fr\)_4.5rem\] items-center gap-x-2.5 sm:grid-cols-\[3.75rem_minmax\(0,1fr\)_3.25rem_4.5rem\]/);
     assert.doesNotMatch(html, /min-w-\[4.5rem\] items-baseline/);
   });
 

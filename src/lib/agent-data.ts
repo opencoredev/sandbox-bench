@@ -17,6 +17,7 @@ import {
   perThousandText,
   pickLabel,
   pricedTasks,
+  qualify,
   regionNote,
   statusNote,
   wholeMachine,
@@ -43,6 +44,9 @@ import {
   idleGroups,
   idleLabel,
   idleOutcome,
+  multipleNote,
+  multipleText,
+  resumeFailed,
   isCounterfactual,
   laterLine,
   noCostReason,
@@ -63,7 +67,7 @@ import {
 } from "@/lib/realistic";
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
-import { minimumLong, planMinimum } from "@/lib/plan-minimum";
+import { minimumLong, planMinimum, regionFor } from "@/lib/plan-minimum";
 import { advertised, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
@@ -284,7 +288,7 @@ const realisticHowToRead =
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
-function realisticRowData(row: RealisticRow) {
+function realisticRowData(row: RealisticRow, track: TrackId) {
   const billing = billingText(row.provider);
   const ci = wilson(row.completed, row.attempts);
   return {
@@ -306,12 +310,21 @@ function realisticRowData(row: RealisticRow) {
     whyNotEligible: flagsOf(row).map((f) => f.text),
     noCost: row.cost ? null : noCostReason(row),
     wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
+    // "lower": the whole-machine figure is a lower bound (Modal's default track prices only its request); read it as at least that.
+    wholeMachineBound: row.cost?.wholeMachineBound ?? null,
     wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
     ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, row.cost?.usdPerCompleted ?? null, "per1000CompletedUsd"),
     ...minimumData(row.provider),
+    ...regionData(row.provider, track),
   };
+}
+
+/** A pinned region's price multiplier, said as the quick-task exports say it (regionNote); nothing where none applies. */
+function regionData(id: ProviderId, track: TrackId) {
+  const r = regionFor(id, track);
+  return r ? { regionNote: r.long } : {};
 }
 
 /** The part of a cost we added at list price, per 1,000, with what it is; nothing when none was added. */
@@ -355,7 +368,7 @@ function realisticPickData(costed: readonly Costed[]) {
 
 function realisticProfile(id: TrackId, profile: ProfileId) {
   const { costed, uncosted } = headlineRows(realistic, runTrackOf[id], profile);
-  return { pick: realisticPickData(costed), providers: [...costed, ...uncosted].map(realisticRowData) };
+  return { pick: realisticPickData(costed), providers: [...costed, ...uncosted].map((row) => realisticRowData(row, id)) };
 }
 
 /** The realistic workloads as plain data: definitions, the pilot label, per track and workload the pick and every provider, and the idle test. */
@@ -375,12 +388,13 @@ export function realisticData() {
     }),
     tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
     idle: {
-      what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included.`,
-      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason })),
+      what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included. vsNoWait: ${multipleNote} Providers are listed with those whose sandbox stopped or couldn't resume last.`,
+      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
       providers: idleGroups(realistic).map((g) => ({
         provider: g.provider,
         name: providerName(g.provider),
         outcome: idleOutcome(g),
+        ...regionData(g.provider, "same-spec"),
         ...minimumData(g.provider),
         waits: g.points.map((p) => ({
           minutes: p.minutes,
@@ -391,6 +405,8 @@ export function realisticData() {
           kind: p.costKind,
           status: holdTag(p),
           changeVsNoWait: changeText(p),
+          vsNoWait: multipleText(p),
+          ...(resumeFailed(p) ? { resumeFailed: true, note: "No run resumed, so this figure is what the failed runs cost, not a price for leaving work open." } : {}),
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
@@ -426,18 +442,23 @@ function realisticMarkdown() {
         "| --- | --- | --- | --- | --- | --- | --- |",
         ...t.providers.map(
           (r) =>
-            `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.status ?? `no cost: ${r.noCost ?? ""}`}${r.whyNotEligible.length ? ` (${r.whyNotEligible.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE)}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
+            `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.status ?? `n/a: ${r.noCost ?? ""}`}${r.whyNotEligible.length ? ` (${r.whyNotEligible.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${qualify({ amount: perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE), bound: r.wholeMachineBound, style: "tight" })}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
         ),
         "",
-        ...t.providers.flatMap((r) => [...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []), ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : [])]),
+        ...t.providers.flatMap((r) => [
+          ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
+          ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : []),
+          ...("regionNote" in r && r.regionNote ? [`${r.name} is ${r.regionNote}.`] : []),
+          ...(r.wholeMachineBound === "lower" ? [`${r.name}'s whole machine at list price is a lower bound (≥): it prices only the resources requested, and ${r.name} also bills use above them.`] : []),
+        ]),
         "",
       );
     }
   }
-  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Kind and status | Change vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
+  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Kind and status | vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const g of d.idle.providers)
     for (const p of g.waits)
-      lines.push(`| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.changeVsNoWait ?? "n/a"} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`);
+      lines.push(`| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.vsNoWait ?? "n/a"}${"resumeFailed" in p ? " (resume failed)" : ""} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`);
   lines.push(
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),

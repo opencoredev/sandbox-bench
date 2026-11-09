@@ -33,6 +33,9 @@ export type IdleId = (typeof idleIds)[number];
 export const idleMinutes = { "zero-wait": 0, "held-10": 10, "held-60": 60 } as const satisfies Record<IdleId, number>;
 
 export const costKindIds = ["billed", "metered", "estimate"] as const;
+
+export const wholeMachineBounds = ["exact", "lower"] as const;
+export type WholeMachineBound = (typeof wholeMachineBounds)[number];
 export type CostKind = (typeof costKindIds)[number];
 
 /** One frozen workload's reference footprint on the 4 vCPU / 8 GiB machine, from the workload manifest. */
@@ -72,7 +75,17 @@ export interface RealisticRow {
   medianWallS: number | null;
   medianCpuS: number | null;
   /** All attempts' cost over completed tasks; null with no completed task. */
-  cost: { kind: CostKind; usdPerCompleted: number; wholeMachineUsdPerCompleted: number | null } | null;
+  cost: {
+    kind: CostKind;
+    usdPerCompleted: number;
+    wholeMachineUsdPerCompleted: number | null;
+    /**
+     * How the whole-machine figure relates to the bill: "lower" when it is a lower bound
+     * (Modal's default track prices its 0.125 CPU request, and bills burst use above it).
+     * A summary without the field is read as exact.
+     */
+    wholeMachineBound: WholeMachineBound;
+  } | null;
   /** The harness's note on how the cost was made, where it gives one. */
   costNote: string | null;
   /**
@@ -119,7 +132,7 @@ export interface Coverage {
     track: RunTrack;
     providers: readonly ProviderId[];
     /** Headline providers left out of the idle test, each with why. */
-    notTested: readonly { provider: ProviderId; reason: string }[];
+    notTested: readonly { provider: ProviderId; reason: string; short: string }[];
   };
 }
 
@@ -225,6 +238,7 @@ function parseRow(v: unknown, path: string): RealisticRow {
           kind: oneOf(costKindIds)(cost.kind, `${path}.cost.kind`),
           usdPerCompleted: num(cost.usdPerCompleted, `${path}.cost.usdPerCompleted`),
           wholeMachineUsdPerCompleted: nullable(num)(cost.wholeMachineUsdPerCompleted, `${path}.cost.wholeMachineUsdPerCompleted`),
+          wholeMachineBound: cost.wholeMachineBound === undefined ? "exact" : oneOf(wholeMachineBounds)(cost.wholeMachineBound, `${path}.cost.wholeMachineBound`),
         }
       : null,
     costNote: nullable(str)(o.costNote, `${path}.costNote`),
@@ -297,7 +311,12 @@ export function parseCoverage(v: unknown, path = "coverage"): Coverage {
     providers: ids(providerOf)(i.providers, `${path}.idle.providers`),
     notTested: arr(i.notTested, `${path}.idle.notTested`).map((n, j) => {
       const no = obj(n, `${path}.idle.notTested[${j}]`);
-      return { provider: providerOf(no.provider, `${path}.idle.notTested[${j}].provider`), reason: str(no.reason, `${path}.idle.notTested[${j}].reason`) };
+      return {
+        provider: providerOf(no.provider, `${path}.idle.notTested[${j}].provider`),
+        reason: str(no.reason, `${path}.idle.notTested[${j}].reason`),
+        /** The reason in a few words, for the one-sentence note under the idle chart. */
+        short: str(no.short, `${path}.idle.notTested[${j}].short`),
+      };
     }),
   };
   if (headline.attempts === 0 || idle.attempts === 0) fail(path, "run counts must be at least 1");
@@ -459,7 +478,7 @@ export function profileFootprint(profile: ProfileId, w: Workload | null): string
 }
 
 /** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
-export const costCovers = "Task cost includes setup and failed attempts, through confirmed deletion.";
+export const costCovers = "Includes setup and failed attempts, through confirmed deletion.";
 
 /**
  * Why a row can't be the pick. A reason the eligibility table names
@@ -673,9 +692,17 @@ export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): Idle
     const resumeFailedAt = points.filter((p) => !p.stopped && p.runs > 0 && p.completed === 0 && p.idle !== "zero-wait").at(-1) ?? null;
     return { provider, points, stoppedAt, resumeFailedAt };
   });
+  // A provider whose sandbox was stopped or couldn't resume isn't a cheap place to leave work open, whatever
+  // its figure: it goes after every provider whose resume completed, so the order never reads as a ranking of it.
   const last = (g: IdleGroup) => g.points.at(-1)?.medianCostUsd ?? Number.POSITIVE_INFINITY;
-  return groups.sort((a, b) => last(a) - last(b));
+  return groups.sort((a, b) => Number(idleFailed(a)) - Number(idleFailed(b)) || last(a) - last(b));
 }
+
+/** The provider stopped the sandbox, or every resume failed, at some wait. */
+export const idleFailed = (g: Pick<IdleGroup, "stoppedAt" | "resumeFailedAt">) => g.stoppedAt !== null || g.resumeFailedAt !== null;
+
+/** No run at this wait resumed, so its figure is what the failed runs cost, not a price for leaving work open. */
+export const resumeFailed = (p: Pick<IdlePoint, "completed" | "runs">) => p.runs > 0 && p.completed === 0;
 
 /** A held-open figure is verified only when billed (or metered) with no open status; anything else is striped, as on the cost charts. */
 export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.costKind !== null && p.costKind !== "estimate" && p.statuses.length === 0;
@@ -703,6 +730,15 @@ export function idleOutcome(g: IdleGroup): string | null {
   if (g.resumeFailedAt) return `the resume step failed after ${wait(g.resumeFailedAt)} in all ${g.resumeFailedAt.runs} runs, with no stop reported`;
   return null;
 }
+
+/**
+ * "×9.04": the wait's median cost over the no-wait median, from the harness's
+ * changeVsZeroWait, three significant figures; null for the no-wait point.
+ */
+export const multipleText = (p: Pick<HeldOpen, "changeVsZeroWait">) => (p.changeVsZeroWait === null ? null : `×${(1 + p.changeVsZeroWait).toPrecision(3)}`);
+
+/** Said once wherever the multiples are printed. */
+export const multipleNote = "×N is the wait's median cost divided by the no-wait median.";
 
 /** "+804% vs no wait", from the harness's ratio. */
 export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {

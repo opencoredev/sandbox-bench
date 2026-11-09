@@ -12,7 +12,6 @@ import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingText,
-  changeText,
   costCovers,
   estimatedPartText,
   completedText,
@@ -25,10 +24,13 @@ import {
   isCounterfactual,
   isVerifiedHold,
   laterLine,
+  multipleNote,
+  multipleText,
+  resumeFailed,
   noCostReason,
   perThousand,
   pickLabels,
-  pilotBrief,
+  pilotShort,
   pilotLine,
   profileFootprint,
   profileIds,
@@ -45,7 +47,9 @@ import {
 } from "@/lib/realistic";
 import type { Costed, IdleGroup, IdlePoint, ProfileId, RealisticData, RealisticRow, RunTrack } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
-import { minimumLong, minimumShort, planMinimum } from "@/lib/plan-minimum";
+import { minimumLong, minimumShort, planMinimum, regionFor } from "@/lib/plan-minimum";
+import { qualify } from "@/lib/cost";
+import type { TrackId } from "@/lib/data";
 
 /** The section id, shared with the stat strip and the nav that link here. */
 export const taskCostSection = "task-cost";
@@ -102,23 +106,27 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
             <span className="font-mono tabular-nums text-neutral-10">{perThousand(p.pick.cost.usdPerCompleted)}</span>{" "}
             <span className="text-neutral-7">per 1,000 ({statusTag(p.pick)})</span>
           </p>
-          <p className="text-xs text-neutral-7">
-            {pilotBrief(realistic)}
-            {p.eligible.length > 1 ? <> · Eligible: {names(p.eligible)}</> : null}
+          <p className="flex gap-1.5 text-xs text-neutral-7">
+            {p.lower.length > 0 ? <span aria-hidden className="mt-[0.4em] size-1.5 shrink-0 rounded-full bg-warning" /> : null}
+            <span>
+              {pilotShort(realistic)} · Eligible: {names(p.eligible)}
+              {p.lower.length > 0 ? ` · ${plural(p.lower.length, "lower cost", "lower costs")} unverified or ineligible (see table)` : ""}
+            </span>
           </p>
-          {p.lower.length > 0 ? (
-            <p className="flex gap-1.5 text-xs text-neutral-7">
-              <span aria-hidden className="mt-[0.4em] size-1.5 shrink-0 rounded-full bg-warning" />
-              <span>{plural(p.lower.length, "lower reported cost is", "lower reported costs are")} unverified or ineligible; reasons below.</span>
-            </p>
-          ) : null}
+          <p className="text-xs text-neutral-7">{costCovers}</p>
         </div>
       );
     case "none":
       return (
         <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
           <p className="font-medium">{p.label}: no provider has a verified cost here yet.</p>
-          <p className="text-xs text-neutral-7">{plural(p.lower.length, "reported cost is", "reported costs are")} unverified or ineligible; reasons below.</p>
+          <p className="flex gap-1.5 text-xs text-neutral-7">
+            <span aria-hidden className="mt-[0.4em] size-1.5 shrink-0 rounded-full bg-warning" />
+            <span>
+              {pilotShort(realistic)} · No provider eligible · {plural(p.lower.length, "reported cost", "reported costs")} unverified or ineligible (see table)
+            </span>
+          </p>
+          <p className="text-xs text-neutral-7">{costCovers}</p>
         </div>
       );
     case "empty":
@@ -133,14 +141,24 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
 /** "usage only; monthly minimum excluded" where the provider has a plan minimum the cost leaves out. */
 const minimumNote = (id: ProviderId) => (planMinimum(id) ? minimumShort : undefined);
 
+/**
+ * What a provider's figure leaves out or is priced at, in a few words beside
+ * it: a plan minimum outside the cost, and a pinned region's price multiplier
+ * (regionNote, as the quick-task charts say it). Undefined when there's none.
+ */
+function priceNote(id: ProviderId, track: TrackId | undefined) {
+  const notes = [minimumNote(id), track ? regionFor(id, track)?.short : undefined].filter(Boolean);
+  return notes.length ? notes.join(" · ") : undefined;
+}
+
 /** The chart's columns, one per costed provider. The phone rows draw their bars from the same columns. */
-export function columnsOf(costed: readonly Costed[]): Column[] {
+export function columnsOf(costed: readonly Costed[], track?: TrackId): Column[] {
   return costed.map((row) => ({
     provider: row.provider,
     label: perThousand(row.cost.usdPerCompleted),
     // Only the kind under the bar, as the plan asks; the full status is in the table below and in this bar's details.
     tag: row.cost.kind,
-    note: minimumNote(row.provider),
+    note: priceNote(row.provider, track),
     segments: [{ value: row.cost.usdPerCompleted, color: providerColor(row.provider), fill: row.eligible ? "solid" : "striped" }],
     detail: [
       ["Per 1,000 completed", perThousand(row.cost.usdPerCompleted)],
@@ -162,21 +180,24 @@ const Dot = ({ tone }: { tone: "ok" | "warn" | "none" }) => (
   <span aria-hidden className={`mt-[0.35em] size-1.5 shrink-0 rounded-full ${tone === "ok" ? "bg-success" : tone === "warn" ? "bg-warning" : "bg-neutral-6"}`} />
 );
 
-/** The whole machine at list price per 1,000, and whether it is a counterfactual. */
+/** The whole machine at list price per 1,000, "at least" where the comparator is a lower bound, and whether it is a counterfactual. */
 function wholeLine(row: RealisticRow) {
   const w = row.cost?.wholeMachineUsdPerCompleted ?? null;
-  if (w === null) return "Whole machine at list price: not available.";
-  return `Whole machine at list price: ${perThousand(w)} per 1,000${isCounterfactual(row.provider) ? ", a counterfactual: it bills usage, not the whole machine" : ""}.`;
+  if (w === null || !row.cost) return "Whole machine at list price: not available.";
+  const amount = qualify({ amount: perThousand(w), bound: row.cost.wholeMachineBound });
+  const lower = row.cost.wholeMachineBound === "lower" ? ", a lower bound: it prices only the resources requested, and the provider also bills use above them" : "";
+  return `Whole machine at list price: ${amount} per 1,000${lower}${isCounterfactual(row.provider) ? ", a counterfactual: it bills usage, not the whole machine" : ""}.`;
 }
 
 /** The longer explanations, folded under each provider's row. */
-function RowDetails({ row }: { row: RealisticRow }) {
+function RowDetails({ row, track }: { row: RealisticRow; track: TrackId | undefined }) {
   const lines = [
     ...(row.cost ? [] : [`${cap(noCostReason(row))}.`]),
     ...flagsOf(row).map((f) => sentence(cap(f.text))),
     ...(row.costNote ? [sentence(cap(row.costNote))] : []),
     ...(row.cost ? [estimatedPartText(row.cost.kind, row.estimatedPart, row.cost.usdPerCompleted, "per 1,000")].flatMap((t) => (t ? [cap(t)] : [])) : []),
     ...[planMinimum(row.provider)].flatMap((m) => (m ? [minimumLong(row.provider, m)] : [])),
+    ...[track ? regionFor(row.provider, track) : null].flatMap((r) => (r ? [sentence(cap(r.long))] : [])),
     ...(notRun(row) ? [] : [`Completed ${completedText(row)}, 95% interval ${wilsonText(row)}.`]),
     sentence(`Billing: ${billingText(row.provider)}`),
     ...(row.cost ? [wholeLine(row)] : []),
@@ -226,7 +247,7 @@ function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
  * explanation behind a disclosure. On phones the row also carries the bar, so
  * the chart isn't drawn a second time above the list.
  */
-function ProviderRow({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
+function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefined; track: TrackId | undefined }) {
   const status = row.cost ? statusTag(row) : shortReason(row);
   const tone = row.cost === null ? "none" : row.eligible ? "ok" : "warn";
   return (
@@ -248,12 +269,21 @@ function ProviderRow({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) 
               <Dot tone={tone} />
               <span>
                 <span className={tone === "warn" ? "text-warning" : tone === "ok" ? "text-neutral-10" : "text-neutral-8"}>{status}</span>
-                {minimumNote(row.provider) ? <span className="block text-xxs text-neutral-8">{minimumNote(row.provider)}</span> : null}
+                {priceNote(row.provider, track) ? <span className="block text-xxs text-neutral-8">{priceNote(row.provider, track)}</span> : null}
               </span>
             </span>
             <span className="col-span-3 font-mono text-xs text-neutral-8 tabular-nums sm:col-span-1">
-              <span className="font-sans sm:sr-only">Completed </span>
-              {notRun(row) ? "not run" : completedText(row)}
+              {notRun(row) ? (
+                <>
+                  <span className="font-sans sm:hidden">Not run</span>
+                  <span className="hidden sm:inline">not run</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-sans sm:sr-only">Completed </span>
+                  {completedText(row)}
+                </>
+              )}
               {row.medianWallS === null ? null : (
                 <span className="text-neutral-7 sm:hidden">
                   {" · "}
@@ -269,14 +299,14 @@ function ProviderRow({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) 
           </span>
         }
       >
-        <RowDetails row={row} />
+        <RowDetails row={row} track={track} />
       </Disclosure>
     </li>
   );
 }
 
 /** Every provider in the workload, run or not, one row each. */
-export function ProviderRows({ costed, uncosted }: { costed: readonly Costed[]; uncosted: readonly RealisticRow[] }) {
+export function ProviderRows({ costed, uncosted, track }: { costed: readonly Costed[]; uncosted: readonly RealisticRow[]; track?: TrackId }) {
   const bars = rowBars(costed);
   const rows = [...costed, ...uncosted];
   return (
@@ -290,7 +320,7 @@ export function ProviderRows({ costed, uncosted }: { costed: readonly Costed[]; 
       </p>
       <ul className="flex flex-col">
         {rows.map((row) => (
-          <ProviderRow key={row.provider} row={row} bar={bars.get(row.provider)} />
+          <ProviderRow key={row.provider} row={row} bar={bars.get(row.provider)} track={track} />
         ))}
       </ul>
     </div>
@@ -359,18 +389,17 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
         }
       />
       <Pick costed={costed} />
-      <p className="mb-s text-xs text-neutral-8">{costCovers}</p>
       {/* Phones get the bars inside the provider rows below instead, so nothing is listed twice. */}
       {costed.length > 0 ? (
         <div className="hidden sm:block">
-          <Columns columns={columnsOf(costed)} label={`${title} by provider`} />
+          <Columns columns={columnsOf(costed, track.id)} label={`${title} by provider`} />
         </div>
       ) : null}
       <Legend solid="Verified: eligible for the pick" striped="Not verified or not eligible: shown, never picked" short={{ solid: "Verified", striped: "Not verified or not eligible" }} />
       <div className="hidden sm:block">
         <NotInChart rows={uncosted} />
       </div>
-      <ProviderRows costed={costed} uncosted={uncosted} />
+      <ProviderRows costed={costed} uncosted={uncosted} track={track.id} />
       <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted], footprint)} />
     </>
   );
@@ -392,33 +421,41 @@ export function TaskCost({ track }: { track: Track }) {
 
 /** The wait's outcome in a word or two, or null when every run completed. */
 const idleOutcomeShort = (p: IdlePoint) =>
-  p.stopped ? { text: "stopped", tone: "text-error" } : p.completed === 0 && p.runs > 0 ? { text: "resume failed", tone: "text-warning" } : p.completed < p.runs ? { text: `${p.completed} of ${p.runs} done`, tone: "text-warning" } : null;
+  p.stopped ? { text: "stopped", tone: "text-error" } : resumeFailed(p) ? { text: "resume failed", tone: "text-warning" } : p.completed < p.runs ? { text: `${p.completed} of ${p.runs} done`, tone: "text-warning" } : null;
 
 /**
- * One wait's bar. The value column has one fixed width and the outcome sits on
- * its own line under the bar, so every bar track in the chart is the same width
- * and equal costs draw equal lengths.
+ * One wait's bar, on its provider's own scale. Fixed columns for the multiple
+ * and the cost, with the outcome on its own line, so every bar track has one
+ * width. Where no run resumed, the bar and figures are muted: they are what the
+ * failed runs cost, not a price for leaving work open.
  */
 function IdleBar({ point, provider, max }: { point: IdlePoint; provider: ProviderId; max: number }) {
   const usd = point.medianCostUsd;
   const share = usd === null ? 0 : Math.min(usd / max, 1);
-  const change = changeText(point);
+  const multiple = multipleText(point);
   const outcome = idleOutcomeShort(point);
-  const label = `${idleLabel(point)}: ${usd === null ? "n/a" : `${perThousand(usd)} per 1,000`}, ${holdTag(point)}${change ? `, ${change}` : ""}, ${point.completed} of ${point.runs} completed${point.stopped ? ", stopped while idle" : ""}`;
+  const failed = resumeFailed(point);
+  const label = `${idleLabel(point)}: ${usd === null ? "n/a" : `${perThousand(usd)} per 1,000`}${multiple ? ` (${multiple} the no-wait cost)` : ""}, ${holdTag(point)}, ${point.completed} of ${point.runs} completed${point.stopped ? ", stopped while idle" : ""}${failed ? ", resume failed, so not a price for leaving work open" : ""}`;
   return (
-    <div role="listitem" aria-label={label} className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.5rem] items-center gap-x-2.5">
+    // Phones put the multiple on the line under the bar, so the bar track keeps its width; wider screens give it a fixed column.
+    <div role="listitem" aria-label={label} className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.5rem] items-center gap-x-2.5 sm:grid-cols-[3.75rem_minmax(0,1fr)_3.25rem_4.5rem]">
       <span aria-hidden className="text-xs text-neutral-8">
         {idleLabel(point)}
       </span>
-      <div aria-hidden data-idle-share={share.toFixed(6)} className="relative flex h-3 items-stretch border-l border-neutral-4">
+      <div aria-hidden data-idle-share={share.toFixed(6)} className={`relative flex h-3 items-stretch border-l border-neutral-4 ${failed ? "opacity-40" : ""}`}>
         <div className="rounded-r-xs" style={{ width: `${share * 100}%`, minWidth: 2, ...markFill(isVerifiedHold(point) ? "solid" : "striped", providerColor(provider)) }} />
       </div>
-      <span aria-hidden className="text-right font-mono text-xs whitespace-nowrap text-neutral-10 tabular-nums">
+      <span aria-hidden className={`hidden text-right font-mono text-xxs whitespace-nowrap tabular-nums sm:block ${failed ? "text-neutral-6" : "text-neutral-8"}`}>
+        {multiple ?? ""}
+      </span>
+      <span aria-hidden className={`text-right font-mono text-xs whitespace-nowrap tabular-nums ${failed ? "text-neutral-6" : "text-neutral-10"}`}>
         {usd === null ? "n/a" : perThousand(usd)}
       </span>
-      {outcome ? (
-        <span aria-hidden className={`col-span-2 col-start-2 -mt-0.5 text-xxs leading-tight ${outcome.tone}`}>
-          {outcome.text}
+      {outcome || multiple ? (
+        <span aria-hidden className={`col-span-2 col-start-2 -mt-0.5 text-xxs leading-tight sm:col-span-3 ${outcome ? "" : "sm:hidden"}`}>
+          {multiple ? <span className={`font-mono tabular-nums sm:hidden ${failed ? "text-neutral-6" : "text-neutral-8"}`}>{multiple}</span> : null}
+          {multiple && outcome ? <span className="sm:hidden"> · </span> : null}
+          {outcome ? <span className={outcome.tone}>{outcome.text}</span> : null}
         </span>
       ) : null}
     </div>
@@ -433,14 +470,21 @@ function idleTags(points: readonly IdlePoint[]) {
   return [...byTag].map(([tag, waits]) => `${waits.join(" and ")}: ${tag}`).join("; ");
 }
 
-/** One provider's three waits, with their kind and status. Its outcome is said once, in the line above the grid; the bars only mark it. */
-function IdleProvider({ group, max }: { group: IdleGroup; max: number }) {
+/**
+ * One provider's three waits, with their kind and status, on the provider's own
+ * scale: costs run from about $1 to over $1,000 per 1,000, so one shared axis
+ * would leave most bars as slivers. Compare providers by the printed figures.
+ */
+function IdleProvider({ group }: { group: IdleGroup }) {
+  const max = Math.max(...group.points.map((p) => p.medianCostUsd ?? 0), Number.EPSILON);
+  const region = regionFor(group.provider, "same-spec");
   return (
     <div className="flex min-w-0 flex-col gap-xs">
       <p className="text-s">
         <Who id={group.provider} />
         <span className="block text-xs text-neutral-7">{idleTags(group.points)}</span>
-        {minimumNote(group.provider) ? <span className="block text-xxs text-neutral-8">{minimumNote(group.provider)}</span> : null}
+        {priceNote(group.provider, "same-spec") ? <span className="block text-xxs text-neutral-8">{priceNote(group.provider, "same-spec")}</span> : null}
+        {region ? <span className="sr-only">{region.long}</span> : null}
       </p>
       <div role="list" aria-label="Cost with the sandbox left open" className="flex flex-col gap-xxs">
         {group.points.map((p) => (
@@ -457,7 +501,7 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
       <table className="w-full min-w-[640px] border-collapse text-left text-xs">
         <thead>
           <tr className="text-neutral-7">
-            {["Provider", "Wait", "Completed", "Median cost, per 1,000", "Kind and status", "Change vs no wait", "Median wake", "State change while idle"].map((h) => (
+            {["Provider", "Wait", "Completed", "Median cost, per 1,000", "Kind and status", "vs no wait", "Median wake", "State change while idle"].map((h) => (
               <th key={h} scope="col" className="py-2 pr-4 font-normal">
                 {h}
               </th>
@@ -477,7 +521,7 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
                 </td>
                 <td className="py-1.5 pr-4 font-mono tabular-nums">{p.medianCostUsd === null ? "n/a" : perThousand(p.medianCostUsd)}</td>
                 <td className="py-1.5 pr-4 text-neutral-8">{holdTag(p)}</td>
-                <td className="py-1.5 pr-4 font-mono tabular-nums">{changeText(p)?.replace(" vs no wait", "") ?? "n/a"}</td>
+                <td className="py-1.5 pr-4 font-mono tabular-nums">{multipleText(p) ?? "n/a"}</td>
                 <td className="py-1.5 pr-4 font-mono tabular-nums">{p.medianWakeMs === null ? "n/a" : `${(p.medianWakeMs / 1000).toFixed(2)} s`}</td>
                 <td className="py-1.5 pr-4 text-neutral-8">{p.transitions.length ? p.transitions.join(", ") : "none seen"}</td>
               </tr>
@@ -489,12 +533,30 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
   );
 }
 
+/** "Not in this test: Freestyle and Tenki (no billing data we can read) and Superserve (account totals only).", one group per short reason. */
+function NotTested() {
+  const groups = new Map<string, ProviderId[]>();
+  for (const n of realistic.coverage.idle.notTested) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
+  const parts = [...groups];
+  return (
+    <p className="mt-s text-xs text-pretty text-neutral-8">
+      Not in this test:{" "}
+      {parts.map(([why, ids], i) => (
+        <span key={why}>
+          {i > 0 ? (i === parts.length - 1 ? " and " : ", ") : ""}
+          {names(ids)} ({why})
+        </span>
+      ))}
+      .
+    </p>
+  );
+}
+
 /** Cost of fix and test with the sandbox left open 0, 10 or 60 minutes, same machine, and who stopped it. */
 export function IdleChart() {
   const groups = idleGroups(realistic);
   if (groups.length === 0) return null;
   const { idle } = realistic.coverage;
-  const max = Math.max(...groups.flatMap((g) => g.points.map((p) => p.medianCostUsd ?? 0)), Number.EPSILON);
   const stopped = groups.filter((g) => g.stoppedAt).map((g) => g.provider);
   const failed = groups.filter((g) => !g.stoppedAt && g.resumeFailedAt);
   const lines: ReactNode[] = [
@@ -511,27 +573,16 @@ export function IdleChart() {
       <ChartHead
         title="What leaving the sandbox open costs"
         sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GB · US dollars"
-        meta={`${idle.attempts} runs per provider and wait. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts.`}
+        meta={`${idle.attempts} runs per provider and wait. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts. Each provider's bars use its own scale. ${multipleNote} Providers whose sandbox stopped or couldn't resume come last.`}
       />
       {lines.length ? <p className="mb-m text-s text-pretty">{lines}</p> : null}
       <div className="grid gap-x-xl gap-y-l md:grid-cols-2 xl:grid-cols-3">
         {groups.map((g) => (
-          <IdleProvider key={g.provider} group={g} max={max} />
+          <IdleProvider key={g.provider} group={g} />
         ))}
       </div>
       <Legend solid="Verified: billed and settled" striped="Unsettled, unreconciled or provisional" />
-      {idle.notTested.length ? (
-        <p className="mt-s text-xs text-pretty text-neutral-8">
-          Not in this test:{" "}
-          {idle.notTested.map((n, i) => (
-            <span key={n.provider}>
-              {i > 0 ? "; " : ""}
-              <Who id={n.provider} /> ({n.reason})
-            </span>
-          ))}
-          .
-        </p>
-      ) : null}
+      {idle.notTested.length ? <NotTested /> : null}
       <Disclosure className="mt-m gap-xs" triggerClassName="w-fit justify-start text-s text-neutral-7 hover:text-neutral-10" summary="Every number">
         <IdleTable groups={groups} />
       </Disclosure>
