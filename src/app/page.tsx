@@ -7,9 +7,10 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { ByLocation } from "@/components/by-location";
-import { CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
+import { CostLegend, CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
+import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -30,15 +31,17 @@ import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, hasTaskCosts, pricedTasks } from "@/lib/cost";
-import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
+import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
+import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
+import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
 import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
-import { allocationNotes, execNotes, farNotes, machineNotes, mergeNotes, probeNote, upstashTwinNote } from "@/lib/notes";
-import { providerColor } from "@/lib/providers";
+import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
+import { providerBrand, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
@@ -65,7 +68,8 @@ const sections = [
   ["scale", "Bursts", "burst-10"],
   ["machines", "Machines"],
   ["reliability", "Reliability"],
-  ["cost", "Cost", "task"],
+  // "Cost" opens What a task costs; the quick task and prices section follows it, so the item stays lit through both.
+  ["task-cost", "Cost", "fix-and-test"],
   ["method", "Method"],
 ] as const;
 
@@ -121,16 +125,18 @@ function PriceChart({ track }: { track: Track }) {
     const price = usdPrice(p, "hourly");
     return price ? [{ p, ...price }] : [];
   });
+  // A lower bound can't be ranked against a price, so lower bounds come after every exact price.
   const columns: Column[] = priced
-    .sort((a, b) => a.usd - b.usd)
-    .map(({ p, usd, converted, original }) => ({
+    .sort((a, b) => Number(isLowerBound(a)) - Number(isLowerBound(b)) || a.usd - b.usd)
+    .map(({ p, usd, converted, original, bound }) => ({
       provider: p.id,
-      label: formatMoney(usd, "USD"),
+      label: qualify({ amount: formatMoney(usd, "USD"), bound, style: "tight" }),
       mark: converted ? 1 : undefined,
       segments: [{ value: usd, color: providerColor(p.id), fill: "solid" }],
-      detail: [`${formatMoney(usd, "USD")} ${per("hourly")}${converted ? ` (${original})` : ""}`, ranOn(p)],
+      detail: [`${qualify({ amount: formatMoney(usd, "USD"), bound })} ${per("hourly")}${converted ? ` (${original})` : ""}${bound === "lower" ? ", a lower bound" : ""}`, ranOn(p)],
     }));
   const unpriced = track.providers.filter((p) => !usdPrice(p, "hourly"));
+  const lowerBounds = priced.filter(isLowerBound);
   return (
     <>
       <ChartHead title={title} sub={`${what} · From each provider's price list · US dollars · Lower is better`} />
@@ -139,6 +145,8 @@ function PriceChart({ track }: { track: Track }) {
         items={[
           ...priced.filter((x) => x.converted).map(({ p, original }) => ({ mark: 1, text: <><Who id={p.id} /> {conversionNote(original, per("hourly"))}</> })),
           ...(unpriced.length > 0 ? [{ text: <>No price for {unpriced.map((p, i) => <span key={p.id}>{i > 0 ? ", " : ""}<Who id={p.id} /></span>)}: its measured machine did not match a priced size.</> }] : []),
+          ...lowerBounds.map(({ p }) => ({ text: <><Who id={p.id} />: at least this much. Its price counts only the resources requested, and it also bills use above them, so it is listed after every exact price.</> })),
+          ...priced.flatMap(({ p }) => { const note = regionNote(p); return note ? [{ text: <><Who id={p.id} />: {sentence(note)}</> }] : []; }),
           { text: "CPU and memory only, at list price. Boat charges a flat rate per size. Upstash and boxd may cost less: they bill only part of the machine." },
           ...trackFootnotes(track),
         ]}
@@ -168,6 +176,7 @@ function CommonPriceChart({ track }: { track: Track }) {
       <Footnotes
         items={[
           ...track.providers.filter((p) => commonPrice(p) === null).map((p) => ({ text: <><Who id={p.id} /> does not list a {commonSize.label} machine, so no price is shown.</> })),
+          ...track.providers.flatMap((p) => { const note = regionNote(p); return note && commonPrice(p) !== null ? [{ text: <><Who id={p.id} />: {sentence(note)}</> }] : []; }),
           { text: "CPU and memory only, at list price. Disk, transfer, subscriptions and free credits are left out. Upstash bills only while the CPU is busy, so it may cost less. Boat charges a flat rate per size." },
         ]}
       />
@@ -181,10 +190,13 @@ const perTask = ([first, ...rest]: readonly [number, ...number[]]): readonly [nu
 /** The quadrant: agent work time across, cost per task up, one plain dot per provider. */
 function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
-  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
+  // A lower bound has no place on a cost axis: the charge could sit anywhere above it.
+  const bounded = pricedTasks(track).filter((t) => isLowerBound(t.cost));
+  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
+    if (isLowerBound(cost)) return [];
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), `Cost status: ${costStatuses[status.kind].label.toLowerCase()}`, ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
@@ -194,6 +206,14 @@ function CostQuadrant({ track }: { track: Track }) {
       <>
         {head}
         <NoCostResults />
+      </>
+    );
+  // Every cost here is a lower bound: nothing can be placed on the cost axis, so say why instead.
+  if (points.length === 0)
+    return (
+      <>
+        {head}
+        <Footnotes items={bounded.map((t) => ({ text: <><Who id={t.id} /> isn&apos;t plotted: its cost is a lower bound, so its place on the cost axis isn&apos;t known.</> }))} />
       </>
     );
   return (
@@ -212,7 +232,8 @@ function CostQuadrant({ track }: { track: Track }) {
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
-          { text: <><Who id="boat" /> and <Who id="boxd" /> run in Europe, so every call from our Florida server crosses the Atlantic.</> },
+          ...bounded.map((t) => ({ text: <><Who id={t.id} /> isn&apos;t plotted: its cost is a lower bound, so its place on the cost axis isn&apos;t known.</> })),
+          { text: <><Who id="boat" /> runs in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
       />
@@ -305,10 +326,11 @@ function Headlines({ track }: { track: Track }) {
       <Headline marker="var(--color-3)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
-      <Headline marker="var(--color-1)" title="Cost per 1,000 tasks" sub="USD · lower is better" section="cost" tab="task">
+      <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
+            <CostLegend track={track} compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
           </>
         ) : (
@@ -324,10 +346,13 @@ function Headlines({ track }: { track: Track }) {
 
 /** The facts line under the title, for one track. */
 function Facts({ track }: { track: Track }) {
+  // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
+  const configs = track.providers.length;
+  const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
   const facts = hasResults(track)
     ? [
-        "Oct 22–26, 2026",
-        "8 providers (9 configs)",
+        dayRange(track.window),
+        configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`,
         "2 caller locations: Florida, US & Frankfurt, DE",
         "100 runs per main test, 20 per location test",
       ]
@@ -367,6 +392,25 @@ function Facts({ track }: { track: Track }) {
   );
 }
 
+/** Runs a provider's export set aside and reran, one plain sentence each under the reliability chart, from the data. */
+function SetAsideNotes() {
+  const notes = allProviders.flatMap((id) => {
+    const s = setAsideSentence(id);
+    return s ? [{ id, s }] : [];
+  });
+  if (notes.length === 0) return null;
+  return (
+    <ul className="mt-m flex flex-col gap-xxs text-xs text-pretty text-neutral-8">
+      {notes.map(({ id, s }) => (
+        <li key={id} className="flex gap-1.5">
+          <span aria-hidden className="mt-[0.4em] size-1.5 shrink-0 rounded-full" style={{ backgroundColor: providerColor(id) }} />
+          <span>{s}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** Failures set aside in each track, for the Method section. */
 function SetAside() {
   const rows = trackIds.flatMap((id) =>
@@ -394,7 +438,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Two locations",
     line: "Network-sensitive tests ran from both US-East (Florida, US) and EU-Central (Frankfurt, Germany); the 100-run deep dive ran from Florida, US.",
-    more: "Distance to each provider's API gateway and sandbox region affects every call. Boat (Northern France) and boxd (Frankfurt) run their API and sandboxes in Europe, so calling from Frankfurt is 1.5×–3.9× faster than from Florida. The Hardware tab under Machines shows where each sandbox ran.",
+    more: "Distance to each provider's API gateway and sandbox region affects every call. Boat (Northern France) runs its API and sandboxes in Europe, so calling it from Frankfurt is 1.5×–2.9× faster than from Florida (7.6× for a preview's first byte). boxd runs in New York, so the gap goes the other way. The Hardware tab under Machines shows where each sandbox ran.",
   },
   {
     term: "Two tracks",
@@ -413,12 +457,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products and Daytona give a per-sandbox charge; Daytona's can still change for 48 hours. E2B, boxd and Tenki give a usage record, priced at their published rates. Freestyle has no billing API and Superserve reports usage only per account, so those use our measured time at list price. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge; Daytona's is unsettled and can still change for 48 hours. E2B and boxd give a usage record, priced at their published rates. A usage record stays unreconciled, and can't be the pick, until it is checked against the charges the provider settled; boxd's is also provisional, for the reason shown beside it. Freestyle and Tenki have no billing API, so they use our measured time at list price. Boat's is an estimate from its docs, because its per-sandbox usage wasn't pulled for that run; with no settled-charge source for Boat, it can't be a pick yet. Only a billed cost that has settled and isn't provisional can be the pick, which is the lowest verified cost among eligible providers. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -580,7 +624,7 @@ export default function Page() {
                       notes: Object.fromEntries(Object.entries(left).map(([id, why]) => [id, `left out: ${why}`])),
                     },
                     { id: "reconnect", what: "Attach to an existing sandbox by ID and run a command" },
-                    { id: "destroy", what: "Delete the sandbox and wait for confirmation" },
+                    { id: "destroy", what: "Delete the sandbox and wait for confirmation", notes: forTrack(track, destroyNotes) },
                   ])}
                 />
               );
@@ -606,8 +650,8 @@ export default function Page() {
                     : []),
                   { id: "pause-resume", label: "Pause + resume", content: <PauseChart track={track} /> },
                   ...metricTabs(track, [
-                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: mergeNotes(blockedNotes(track, "snapshot"), notRunNotes(track, "snapshot")) },
-                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot")) },
+                    { id: "snapshot", what: "Save a prepared sandbox as a snapshot", notes: mergeNotes(blockedNotes(track, "snapshot"), notRunNotes(track, "snapshot"), forTrack(track, snapshotNotes)) },
+                    { id: "create-from-snapshot", tab: "Start from snapshot", what: "New sandbox from that snapshot, then a command", notes: mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot"), forTrack(track, snapshotNotes)) },
                   ]),
                 ]}
               />
@@ -701,19 +745,47 @@ export default function Page() {
             {(track) => (
               <Card>
                 <Reliability track={track} />
+                <SetAsideNotes />
               </Card>
             )}
           </PerTrack>
         </Section>
 
-        <Section id="cost" title="Cost" lede="What the same agent task cost on each provider, and what each charges per hour.">
+        <Section
+          id={taskCostSection}
+          title="What a task costs"
+          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider; each chart says how far its prices are verified.</span>
+          </p>
+          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
+          <Card className="mt-m">
+            <IdleChart />
+          </Card>
+        </Section>
+
+        <Section
+          id="cost"
+          title="Quick task and prices"
+          lede={
+            <>
+              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
+              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+                What a task costs
+              </JumpLink>
+              .
+            </>
+          }
+        >
           <PerTrack>
             {(track) => (
               <>
                 <TabCard
                   label="Cost" section="cost"
                   tabs={[
-                    { id: "task", label: "Cost per 1,000 tasks", content: <CostPerTaskChart track={track} /> },
+                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
                     { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
                     { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
                   ]}

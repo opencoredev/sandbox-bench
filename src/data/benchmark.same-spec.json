@@ -265,14 +265,67 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "vercel",
+   "track": "same-spec",
+   "requested": {
+    "size": "large",
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 63.9375
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "modal",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 512
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-10-23T23:43:51.006Z"
+  "end": "2026-11-09T19:50:43.004Z"
  },
- "observations": 25743,
+ "observations": 34598,
  "runs": [
   {
    "id": "sbx53-same-spec-burst-r8b2",
@@ -448,6 +501,71 @@
    "id": "sbx53-same-spec-burst25-r8boat2-3",
    "suite": "burst",
    "samples": 101
+  },
+  {
+   "id": "sbx93-same-spec-main",
+   "suite": "main",
+   "samples": 2182
+  },
+  {
+   "id": "sbx93-same-spec-snapshot",
+   "suite": "snapshot",
+   "samples": 329
+  },
+  {
+   "id": "sbx93-same-spec-burst",
+   "suite": "burst",
+   "samples": 416
+  },
+  {
+   "id": "sbx93-same-spec-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx103-same-spec-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbx103-same-spec-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbx103-same-spec-burst",
+   "suite": "burst",
+   "samples": 426
+  },
+  {
+   "id": "sbx103-same-spec-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbx103m-same-spec-main",
+   "suite": "main",
+   "samples": 1996
+  },
+  {
+   "id": "sbx103m-same-spec-main-makeup",
+   "suite": "main",
+   "samples": 209
+  },
+  {
+   "id": "sbx103m-same-spec-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbx103m-same-spec-burst",
+   "suite": "burst",
+   "samples": 426
+  },
+  {
+   "id": "sbx103m-same-spec-cost",
+   "suite": "cost",
+   "samples": 50
   }
  ],
  "excluded": [
@@ -456,6 +574,47 @@
    "reason": "Aborted: snapshot timeouts blocked Daytona; discarded in full, including successful rows."
   }
  ],
+ "exclusions": {
+  "modal": {
+   "removed": {
+    "documented-not-run": 100,
+    "superseded-by-rerun": 22
+   },
+   "superseded": [
+    {
+     "provider": "modal",
+     "suite": "main",
+     "sourceRunId": "sbx103m-same-spec-main",
+     "iterations": [
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99
+     ],
+     "rerunSourceRunIds": [
+      "sbx103m-same-spec-main-makeup"
+     ],
+     "reason": "Our side: Modal's 200-deployed-App limit (one App per iteration) refused the App lookup, so no create reached Modal (journal: appId null, 0 allocations). Rerun in the default App."
+    }
+   ],
+   "notRun": [
+    {
+     "provider": "modal",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "reason": "Modal Sandboxes have no pause/resume; the adapter does not offer it"
+    }
+   ],
+   "replacements": []
+  }
+ },
  "providers": [
   {
    "id": "e2b",
@@ -764,7 +923,7 @@
   {
    "id": "boxd",
    "costPerTask": {
-    "usd": 0.001999,
+    "usd": 0.0001275,
     "kind": "metered",
     "source": "boxd orgs.usage / orgs.billingActivityPage",
     "confidence": "medium",
@@ -832,13 +991,13 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2967,
-    "failures": 5,
-    "raw": 0.9983176312247645,
-    "adjusted": 0.9983176312247645,
+    "successes": 2938,
+    "failures": 11,
+    "raw": 0.9962699220074601,
+    "adjusted": 0.9962699220074601,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 5
+    "provider": 11
    },
    "hardware": {
     "fingerprints": 130,
@@ -863,42 +1022,105 @@
     "kernel": "6.18.0+",
     "location": [
      {
-      "value": "Frankfurt am Main, DE",
-      "count": 129
+      "value": "New York City, US",
+      "count": 130
      }
     ],
     "network": [
      {
       "value": "AS396356 Latitude.sh",
-      "count": 129
+      "count": 130
      }
     ]
    },
    "failureReasons": [
     {
      "kind": "provider-operation",
-     "reason": "boxd request failed. (provider)",
+     "reason": "boxd request failed: the provider rejected the request as invalid. (invalid_argument)",
      "count": 2,
      "runs": 2,
      "tests": [
-      "Write + read 10 MB"
+      "Pause + resume"
      ]
     },
     {
      "kind": "provider-operation",
-     "reason": "boxd request failed. (invalid_argument)",
+     "reason": "23/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 2,
+     "runs": 2,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Scenario timed out after 29999.999000000003ms",
      "count": 1,
      "runs": 1,
      "tests": [
-      "Pause + resume"
+      "snapshot-cleanup"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-06fcc719-b135-4bcf-8c49-c87099a6dea9 entered terminal state 'failed' while waiting. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-50706be7-b35d-44ba-89d5-aa1857f52e7f entered terminal state 'failed' while waiting. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "24/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-311f16a2-3aee-4433-9138-cc3d79384c1b entered terminal state 'failed' while waiting. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-40550ede-e31b-4a73-970e-a954419a06d1 entered terminal state 'failed' while waiting. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-9e284c3f-daf5-47af-be8e-e2c90f6d80c3 entered terminal state 'failed' while waiting. (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
      ]
     }
    ],
    "ourFailures": [],
    "pauseSplit": {
-    "pause": 0.12380898099998013,
-    "resume": 0.4039313779999502,
-    "n": 99
+    "pause": 0.03985310299997218,
+    "resume": 0.13115715799992905,
+    "n": 98
    }
   },
   {
@@ -1486,6 +1708,270 @@
     }
    ],
    "pauseSplit": null
+  },
+  {
+   "id": "vercel",
+   "costPerTask": {
+    "usd": 0.0031066799999999997,
+    "kind": "metered",
+    "source": "@vercel/sandbox Sandbox.get: totalActiveCpuDurationMs, totalDurationMs, memory",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": "large",
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 63.9375
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.6816,
+   "commonHourly": 0.6816,
+   "perVcpuHour": 0.1704,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.128,
+    "memoryGiBHour": 0.0212,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 1,
+      "memoryGiB": 2
+     },
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 6,
+      "memoryGiB": 12
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16
+     }
+    ]
+   },
+   "pricingSource": "https://vercel.com/docs/sandbox/pricing",
+   "pricingNotes": "Pro, iad1: active CPU $0.128 per vCPU-hour of CPU time (I/O wait not billed), memory $0.0212 per GB-hour of wall time in one-minute minimum increments, $0.60 per million creations. Vercel's docs leave rounding after the first minute open; we charge whole minutes, the dearer reading. Metered: the bench stops each sandbox to read Vercel's meter before deleting it, so the meter includes the stop's disk snapshot (about 3% in one probe; approximate, not corrected per task). Hourly assumes every vCPU busy. Pro's $20 credit, data transfer and snapshot storage excluded.",
+   "reliability": {
+    "successes": 2987,
+    "failures": 2,
+    "raw": 0.9993308798929408,
+    "adjusted": 0.9993308798929408,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 2
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 8,
+    "diskGiB": 63.9375,
+    "cpuModels": [
+     {
+      "value": "Intel Xeon Processor @ 2.90GHz",
+      "count": 111
+     },
+     {
+      "value": "Intel Xeon Processor @ 2.50GHz",
+      "count": 19
+     }
+    ],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.56",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Scenario timed out after 180000ms",
+     "count": 2,
+     "runs": 2,
+     "tests": [
+      "Agent tool replay",
+      "25 at once"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 2.1458290039999413,
+    "resume": 0.978493996999925,
+    "n": 100
+   }
+  },
+  {
+   "id": "modal",
+   "costPerTask": {
+    "usd": 0.00443106,
+    "kind": "billed",
+    "source": "Modal billing report (workspaceBillingReport, cost per App per hour by resource; the call behind `modal billing report`)",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true,
+    "bound": null
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 512
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 1.329552,
+   "pricingBound": "exact",
+   "pricingRegion": "us-east",
+   "regionMultiplier": 1.75,
+   "commonHourly": 1.329552,
+   "perVcpuHour": 0.332388,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.14191199999999998,
+    "memoryGiBHour": 0.024012,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://modal.com/pricing",
+   "pricingNotes": "Sandbox rates ($0.1419 per CPU-hour, $0.024 per GiB-hour; one Modal CPU is a physical core). Billed per second on max(request, usage), minimum request 0.125 CPU. Priced on the requested allocation, never on the guest's MemTotal, which shows the host's memory without a size. A sized sandbox pins request = limit, so its estimate is exact. The default track (0.125 CPU, 128 MiB request) bursts into spare host capacity and that usage is billed too, so its estimate is a lower bound. A pinned region adds 1.15x (broad, such as us) or 1.75x (narrow, such as us-east). No disk charge or creation fee listed; plan credits excluded.",
+   "reliability": {
+    "successes": 2889,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": 4,
+    "memoryGiB": 8,
+    "diskGiB": 512,
+    "cpuModels": [],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": null,
+    "kernel": "4.19.0-gvisor",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 55
+     },
+     {
+      "value": "New York City, US",
+      "count": 47
+     },
+     {
+      "value": "Boydton, US",
+      "count": 21
+     },
+     {
+      "value": "Dulles Town Center, US",
+      "count": 6
+     },
+     {
+      "value": "Washington, US",
+      "count": 1
+     }
+    ],
+    "network": [
+     {
+      "value": "AS398465 Rackdog, LLC",
+      "count": 66
+     },
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 36
+     },
+     {
+      "value": "AS8075 Microsoft Corporation",
+      "count": 27
+     },
+     {
+      "value": "AS396982 Google LLC",
+      "count": 1
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": null
   }
  ],
  "metrics": [
@@ -1541,11 +2027,11 @@
     {
      "provider": "boxd",
      "n": 100,
-     "p50": 1.1520704670003616,
-     "p95": 1.3397071639997884,
-     "min": 1.0595868119997904,
-     "ciLow": 1.1446542639997788,
-     "ciHigh": 1.1638795970000793,
+     "p50": 0.303919636000006,
+     "p95": 0.3233531860000221,
+     "min": 0.2833366790001746,
+     "ciLow": 0.3015961899999529,
+     "ciHigh": 0.3052112090000883,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -1615,6 +2101,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.5167638710003812,
+     "p95": 0.7097269730002154,
+     "min": 0.39567616299993824,
+     "ciLow": 0.48535491100023503,
+     "ciHigh": 0.5335777229999658,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.3757397330000531,
+     "p95": 0.44384090800001286,
+     "min": 0.3173764519999968,
+     "ciLow": 0.36859432400006337,
+     "ciHigh": 0.3817384050000037,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1669,18 +2181,16 @@
     },
     {
      "provider": "boxd",
-     "n": 98,
-     "p50": 0.3026217380003072,
-     "p95": 0.31431819500005803,
-     "min": 0.24484079700009898,
-     "ciLow": 0.3017296609999612,
-     "ciHigh": 0.30337458800012246,
-     "successes": 98,
+     "n": 99,
+     "p50": 0.09001988300005906,
+     "p95": 0.09445915200002492,
+     "min": 0.08241773699992337,
+     "ciLow": 0.08947005200001877,
+     "ciHigh": 0.09070011900004465,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 2,
-     "blockedNote": "98 of 100: on 2 sandboxes boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -1746,6 +2256,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.33588060800009406,
+     "p95": 0.44302755200001415,
+     "min": 0.25321386600006374,
+     "ciLow": 0.32678767200000586,
+     "ciHigh": 0.34747115300013687,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.07659381400002167,
+     "p95": 0.08924105599999893,
+     "min": 0.061524877000018026,
+     "ciLow": 0.07423130300000776,
+     "ciHigh": 0.07959740500000771,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1800,18 +2336,16 @@
     },
     {
      "provider": "boxd",
-     "n": 99,
-     "p50": 0.5052919109999202,
-     "p95": 0.5223823009999469,
-     "min": 0.45841027999995276,
-     "ciLow": 0.5048823040002026,
-     "ciHigh": 0.5067255679997615,
-     "successes": 99,
+     "n": 100,
+     "p50": 0.1712460930000525,
+     "p95": 0.1764681939999573,
+     "min": 0.1634932220000046,
+     "ciLow": 0.1703207859999966,
+     "ciHigh": 0.17156337099999655,
+     "successes": 100,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -1877,6 +2411,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.25396997599990573,
+     "p95": 0.4297501620000112,
+     "min": 0.18214543299993965,
+     "ciLow": 0.24622073299996555,
+     "ciHigh": 0.26509053899999707,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.18860323900007644,
+     "p95": 0.21018192299999966,
+     "min": 0.15243736900005025,
+     "ciLow": 0.17841893500002334,
+     "ciHigh": 0.19269004500005393,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -1931,18 +2491,16 @@
     },
     {
      "provider": "boxd",
-     "n": 95,
-     "p50": 3.4481424790001474,
-     "p95": 7.08234726900002,
-     "min": 3.1887480330001563,
-     "ciLow": 3.42733109599998,
-     "ciHigh": 3.55319728600001,
-     "successes": 95,
-     "failures": 2,
+     "n": 99,
+     "p50": 1.211078283000039,
+     "p95": 3.1961851850000675,
+     "min": 0.892517464999808,
+     "ciLow": 1.1933573630000465,
+     "ciHigh": 1.23048301299999,
+     "successes": 99,
+     "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 3,
-     "blockedNote": "97 of 100: on 3 sandboxes boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -2008,6 +2566,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.6960201359998901,
+     "p95": 0.9194910140000284,
+     "min": 0.49042823499999944,
+     "ciLow": 0.6690628259999795,
+     "ciHigh": 0.7454491900000721,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.920677079999994,
+     "p95": 2.9968771939999423,
+     "min": 0.742651342000001,
+     "ciLow": 0.8847016759999969,
+     "ciHigh": 0.9510087439999916,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2062,18 +2646,16 @@
     },
     {
      "provider": "boxd",
-     "n": 99,
-     "p50": 0.9461123989997432,
-     "p95": 0.9917381529998965,
-     "min": 0.8435435859998688,
-     "ciLow": 0.9443082460000296,
-     "ciHigh": 0.9487359179998748,
-     "successes": 99,
+     "n": 98,
+     "p50": 0.29731246499996633,
+     "p95": 0.30577384000003804,
+     "min": 0.28194632999994795,
+     "ciLow": 0.2966684879999375,
+     "ciHigh": 0.29859453900007066,
+     "successes": 98,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -2139,6 +2721,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.7858861529999412,
+     "p95": 1.1325549550000578,
+     "min": 0.6284002090001013,
+     "ciLow": 0.7602647639999632,
+     "ciHigh": 0.8136804329999723,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.18941410799999722,
+     "p95": 0.20813927000004334,
+     "min": 0.15853708599996755,
+     "ciLow": 0.1833709670000244,
+     "ciHigh": 0.19443771800003015,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2193,14 +2801,14 @@
     },
     {
      "provider": "boxd",
-     "n": 99,
-     "p50": 0.5277883840000722,
-     "p95": 1.0775770809999667,
-     "min": 0.4669702820000239,
-     "ciLow": 0.5260100730000995,
-     "ciHigh": 0.52972657300008,
-     "successes": 99,
-     "failures": 1,
+     "n": 98,
+     "p50": 0.17229287499992643,
+     "p95": 0.17840329399995972,
+     "min": 0.16184708199999295,
+     "ciLow": 0.1716165490000276,
+     "ciHigh": 0.17311465499992482,
+     "successes": 98,
+     "failures": 2,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -2238,6 +2846,19 @@
      "min": 0.8108219729999546,
      "ciLow": 0.9095201369998976,
      "ciHigh": 0.952939366000006,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 3.05684123999998,
+     "p95": 3.435084622000111,
+     "min": 2.0170463580000213,
+     "ciLow": 2.995528955999995,
+     "ciHigh": 3.097507346000057,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2297,11 +2918,11 @@
     {
      "provider": "boxd",
      "n": 100,
-     "p50": 0.1557952940003015,
-     "p95": 0.16853782200004208,
-     "min": 0.1504446149999276,
-     "ciLow": 0.1549117129999213,
-     "ciHigh": 0.15728209200012497,
+     "p50": 0.04243064999999478,
+     "p95": 0.04565505299996585,
+     "min": 0.03871508300001733,
+     "ciLow": 0.04203538299992215,
+     "ciHigh": 0.04293280100000266,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2371,6 +2992,41 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 0.12585188600001856,
+     "p95": 0.19983343700016848,
+     "min": 0.09600651700003072,
+     "ciLow": 0.11926168200001121,
+     "ciHigh": 0.13266260499996133,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 0.044,
+     "p95": 0.078,
+     "min": 0.035,
+     "ciLow": 0.042,
+     "ciHigh": 0.046,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0,
+     "timed": "terminate-request",
+     "requestUnknown": 0,
+     "confirmedStop": {
+      "n": 100,
+      "p50": 0.363,
+      "p95": 0.407,
+      "max": 0.682,
+      "unconfirmed": 0
+     }
     }
    ]
   },
@@ -2426,11 +3082,11 @@
     {
      "provider": "boxd",
      "n": 30,
-     "p50": 3.8172246510000116,
-     "p95": 4.265959688999996,
-     "min": 3.528888706000056,
-     "ciLow": 3.812520426000003,
-     "ciHigh": 3.8497925579999572,
+     "p50": 0.667857268999971,
+     "p95": 0.6735286239999987,
+     "min": 0.6499736930000363,
+     "ciLow": 0.6665093579999811,
+     "ciHigh": 0.6692199590000091,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2483,6 +3139,32 @@
      "min": 2.11469683500001,
      "ciLow": 2.1200994050000155,
      "ciHigh": 2.1232255099999966,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.1498411820000038,
+     "p95": 1.1965583980000083,
+     "min": 1.1257714160000032,
+     "ciLow": 1.143598061000026,
+     "ciHigh": 1.1546389259999996,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.9442986160000001,
+     "p95": 1.209448424000002,
+     "min": 0.7015290440000099,
+     "ciLow": 0.8792757439999986,
+     "ciHigh": 0.981190466,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2542,11 +3224,11 @@
     {
      "provider": "boxd",
      "n": 30,
-     "p50": 1.1415747340000235,
-     "p95": 1.1947366050000419,
-     "min": 1.088799151999934,
-     "ciLow": 1.1266281149999995,
-     "ciHigh": 1.145124994999962,
+     "p50": 0.4557205519999552,
+     "p95": 0.4808537940000242,
+     "min": 0.42531888700000126,
+     "ciLow": 0.45178845400000867,
+     "ciHigh": 0.4591294380000036,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2599,6 +3281,32 @@
      "min": 0.8715878790000279,
      "ciLow": 1.1077401240000035,
      "ciHigh": 1.1344692809999979,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.1238527449999964,
+     "p95": 1.562157594999997,
+     "min": 1.0167284760000184,
+     "ciLow": 1.0663840639999835,
+     "ciHigh": 1.1760023130000337,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.9799464029999799,
+     "p95": 1.4258538150000022,
+     "min": 0.8538078789999709,
+     "ciLow": 0.9404866130000447,
+     "ciHigh": 1.0333605590000006,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -2657,13 +3365,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 1.5305685420000228,
-     "p95": 1.9396496830000542,
-     "min": 1.4237719010000582,
-     "ciLow": 1.4813933850000613,
-     "ciHigh": 1.632075988000026,
-     "successes": 30,
+     "n": 29,
+     "p50": 0.5996684489999898,
+     "p95": 0.7071505610000167,
+     "min": 0.5428319790000096,
+     "ciLow": 0.5775079670000123,
+     "ciHigh": 0.6171320989999803,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2732,6 +3440,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.43131209499994294,
+     "p95": 0.5802885259999894,
+     "min": 0.34092556400003377,
+     "ciLow": 0.41043868200003636,
+     "ciHigh": 0.4377974669999676,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.5939141900000104,
+     "p95": 1.1013134409999474,
+     "min": 0.4127078319999855,
+     "ciLow": 0.5536463809999405,
+     "ciHigh": 0.6193622070000274,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2786,13 +3520,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 1.4250100929997862,
-     "p95": 1.6818501649999527,
-     "min": 1.1638752349999268,
-     "ciLow": 1.3265989710000576,
-     "ciHigh": 1.5228897540000035,
-     "successes": 30,
+     "n": 29,
+     "p50": 1.1109302459999453,
+     "p95": 1.3272826210000204,
+     "min": 0.9137918979999958,
+     "ciLow": 1.0327369760000147,
+     "ciHigh": 1.1597001759999548,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2861,6 +3595,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.2182938529998064,
+     "p95": 1.5747487269998528,
+     "min": 1.0271529210000299,
+     "ciLow": 1.174669264000142,
+     "ciHigh": 1.2513752180000302,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 1.1828804099999835,
+     "p95": 1.3530108020000045,
+     "min": 0.9136193600000115,
+     "ciLow": 1.1678696449999988,
+     "ciHigh": 1.2117027569999919,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -2915,13 +3675,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 4.539207864999997,
-     "p95": 5.00586422099988,
-     "min": 4.1288765989998355,
-     "ciLow": 4.490137715000019,
-     "ciHigh": 4.5464976700000115,
-     "successes": 30,
+     "n": 29,
+     "p50": 3.827132375999994,
+     "p95": 4.146742486999952,
+     "min": 3.6636309440000914,
+     "ciLow": 3.8047982510000002,
+     "ciHigh": 3.8562206560000196,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -2990,6 +3750,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 4.214066630000016,
+     "p95": 5.30946969399997,
+     "min": 3.8026595830000005,
+     "ciLow": 4.167344494999969,
+     "ciHigh": 4.353768060999981,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 4.057888738999958,
+     "p95": 4.9744032279999955,
+     "min": 2.528588560999953,
+     "ciLow": 3.672973922999998,
+     "ciHigh": 4.29433125399996,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3044,13 +3830,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 3.999065339999972,
-     "p95": 4.928417498999974,
-     "min": 3.859778477999964,
-     "ciLow": 3.976212792000006,
-     "ciHigh": 4.071656714999932,
-     "successes": 30,
+     "n": 29,
+     "p50": 0.9333562110000058,
+     "p95": 1.0022646660000318,
+     "min": 0.7002276109999511,
+     "ciLow": 0.7156942330000456,
+     "ciHigh": 0.9537192669999786,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3119,6 +3905,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 1.5591027910000412,
+     "p95": 1.9044221929998604,
+     "min": 1.153217042000033,
+     "ciLow": 1.5236074240000452,
+     "ciHigh": 1.689256393000018,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.8948055300000124,
+     "p95": 0.9560491870000005,
+     "min": 0.6566626299999989,
+     "ciLow": 0.7647377860000124,
+     "ciHigh": 0.9224408729999559,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3173,13 +3985,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.8358017510001082,
-     "p95": 0.9927775689999108,
-     "min": 0.7195642870000011,
-     "ciLow": 0.8150720289999736,
-     "ciHigh": 0.8587706299999845,
-     "successes": 30,
+     "n": 29,
+     "p50": 0.24786558899999364,
+     "p95": 0.3827472730000009,
+     "min": 0.22089760199998273,
+     "ciLow": 0.23341708999997354,
+     "ciHigh": 0.28141321900003824,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3248,6 +4060,32 @@
      "failures": 0,
      "ourFailures": 1,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.1452525870000245,
+     "p95": 0.18068870599986986,
+     "min": 0.13066548299998976,
+     "ciLow": 0.14256185599998572,
+     "ciHigh": 0.14706822399999964,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.16117383499996504,
+     "p95": 0.18458179899991956,
+     "min": 0.14632214199996088,
+     "ciLow": 0.15332171499999822,
+     "ciHigh": 0.16975771599999281,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3302,13 +4140,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 1.0725754100000486,
-     "p95": 1.4823477890000214,
-     "min": 1.0632397819999606,
-     "ciLow": 1.0695415999999969,
-     "ciHigh": 1.0776786899999715,
-     "successes": 30,
+     "n": 29,
+     "p50": 0.31907036100002006,
+     "p95": 0.32871563299998524,
+     "min": 0.2886487070000148,
+     "ciLow": 0.31747001800010916,
+     "ciHigh": 0.3215648710000096,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3377,6 +4215,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 30,
+     "p50": 0.2713410379998386,
+     "p95": 0.5061185490000062,
+     "min": 0.22462446800002364,
+     "ciLow": 0.2529427930000238,
+     "ciHigh": 0.2932453139999416,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 0.2227621480000089,
+     "p95": 0.2588300589999999,
+     "min": 0.18614617899991573,
+     "ciLow": 0.21138976299999923,
+     "ciHigh": 0.23522918200003914,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3431,13 +4295,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 33.53679772799999,
-     "p95": 40.140554344000066,
-     "min": 32.5391049589999,
-     "ciLow": 33.258020959999996,
-     "ciHigh": 33.82159851300006,
-     "successes": 30,
+     "n": 29,
+     "p50": 12.890505245999986,
+     "p95": 13.220408426000038,
+     "min": 12.56988094199996,
+     "ciLow": 12.842551976999996,
+     "ciHigh": 12.997686640000088,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -3506,6 +4370,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 29,
+     "p50": 22.509566489999997,
+     "p95": 24.87179413700011,
+     "min": 21.310913416999973,
+     "ciLow": 22.110050787999995,
+     "ciHigh": 22.845282135999994,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 30,
+     "p50": 12.110413467000006,
+     "p95": 12.691934191000001,
+     "min": 10.062244796999963,
+     "ciLow": 10.668317631999992,
+     "ciHigh": 12.242327419999986,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3548,11 +4438,11 @@
     {
      "provider": "boxd",
      "n": 3,
-     "p50": 2.5321920920000123,
-     "p95": 2.9987600190000085,
-     "min": 2.5059655970000003,
-     "ciLow": 2.5059655970000003,
-     "ciHigh": 2.9987600190000085,
+     "p50": 0.5908508779999975,
+     "p95": 0.7559187399999937,
+     "min": 0.5451095840000001,
+     "ciLow": 0.5451095840000001,
+     "ciHigh": 0.7559187399999937,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -3622,6 +4512,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 3,
+     "p50": 0.92705842,
+     "p95": 1.8753968920000479,
+     "min": 0.5964066210000311,
+     "ciLow": 0.5964066210000311,
+     "ciHigh": 1.8753968920000479,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 3,
+     "p50": 0.41972377799999777,
+     "p95": 0.5824446970000001,
+     "min": 0.4052057290000012,
+     "ciLow": 0.4052057290000012,
+     "ciHigh": 0.5824446970000001,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3676,14 +4592,14 @@
     },
     {
      "provider": "boxd",
-     "n": 3,
-     "p50": 5.932648025000002,
-     "p95": 7.661076058999985,
-     "min": 5.924225867000059,
-     "ciLow": 5.924225867000059,
-     "ciHigh": 7.661076058999985,
-     "successes": 3,
-     "failures": 0,
+     "n": 0,
+     "p50": null,
+     "p95": null,
+     "min": null,
+     "ciLow": null,
+     "ciHigh": null,
+     "successes": 0,
+     "failures": 3,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -3751,6 +4667,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 3,
+     "p50": 1.9178557019999989,
+     "p95": 2.3387735770000146,
+     "min": 1.819956759999972,
+     "ciLow": 1.819956759999972,
+     "ciHigh": 2.3387735770000146,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 3,
+     "p50": 0.6221893720000008,
+     "p95": 0.6233221229999999,
+     "min": 0.5867400909999997,
+     "ciLow": 0.5867400909999997,
+     "ciHigh": 0.6233221229999999,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3806,17 +4748,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 12500550.807167348,
-     "p95": 12956061.461984389,
-     "min": 9197491.80186662,
-     "ciLow": 12393994.32355499,
-     "ciHigh": 12568367.67841591,
+     "p50": 12617928.261622366,
+     "p95": 12906544.70359151,
+     "min": 7598219.986276112,
+     "ciLow": 12568793.247362038,
+     "ciHigh": 12665384.1108066,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -3882,6 +4822,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 10829841.124714596,
+     "p95": 11860523.423163768,
+     "min": 5597079.448421645,
+     "ciLow": 10236386.100392127,
+     "ciHigh": 11277418.06761245,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 13380440.154128196,
+     "p95": 24263341.301333744,
+     "min": 11455027.567497518,
+     "ciLow": 13170416.857259197,
+     "ciHigh": 13540362.772045292,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3937,17 +4903,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 29234225.256144557,
-     "p95": 31565477.96309769,
-     "min": 22854949.956458602,
-     "ciLow": 28643418.284549832,
-     "ciHigh": 29667677.873120032,
+     "p50": 29902105.589714658,
+     "p95": 32058900.40714973,
+     "min": 22759053.547216382,
+     "ciLow": 28975391.47524636,
+     "ciHigh": 30333926.786193457,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4013,6 +4977,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 26718791.1093647,
+     "p95": 39609322.949326426,
+     "min": 14577038.694705525,
+     "ciLow": 25564781.302819345,
+     "ciHigh": 31256978.853114013,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 36574449.829981886,
+     "p95": 62919741.52821885,
+     "min": 28137506.61609502,
+     "ciLow": 34331666.43651576,
+     "ciHigh": 37539446.92006667,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4068,17 +5058,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 23174.54372462618,
-     "p95": 25169.091255169016,
-     "min": 16231.012014555045,
-     "ciLow": 22651.758429442678,
-     "ciHigh": 23454.056786711564,
+     "p50": 31275.20182267408,
+     "p95": 32202.65414279623,
+     "min": 28212.538580775134,
+     "ciLow": 31147.425170702605,
+     "ciHigh": 31379.029770249545,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4144,6 +5132,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 7830.429019984136,
+     "p95": 14492.10183546187,
+     "min": 3361.604106390879,
+     "ciLow": 6810.149867566509,
+     "ciHigh": 9222.054250965102,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 31988.27982210749,
+     "p95": 51140.506223184995,
+     "min": 16197.360857727557,
+     "ciLow": 29168.733368092388,
+     "ciHigh": 35651.04429053854,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4199,17 +5213,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 744.3976582847687,
-     "p95": 823.0269750507142,
-     "min": 547.0824554905124,
-     "ciLow": 741.5207584527288,
-     "ciHigh": 748.1925453291651,
+     "p50": 712.4493830957313,
+     "p95": 727.3624073576137,
+     "min": 586.3902760638586,
+     "ciLow": 710.8328093337185,
+     "ciHigh": 713.3861919181892,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4275,6 +5287,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 2394.6370925107435,
+     "p95": 2689.88970744439,
+     "min": 355.29217311923446,
+     "ciLow": 2192.802167600692,
+     "ciHigh": 2432.2537015115354,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 8275.03623086998,
+     "p95": 10500.986430325858,
+     "min": 3797.5033496798583,
+     "ciLow": 7887.408539889204,
+     "ciHigh": 9043.113514084522,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4330,17 +5368,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 11586.333119353598,
-     "p95": 14998.465474552399,
-     "min": 5362.918030944907,
-     "ciLow": 11469.150017855707,
-     "ciHigh": 11935.3746519364,
+     "p50": 13080.71920863252,
+     "p95": 17064.33625583338,
+     "min": 8042.048967918952,
+     "ciLow": 12932.176130200196,
+     "ciHigh": 13354.628398586143,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4406,6 +5442,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 6900.988623716627,
+     "p95": 7960.813770033393,
+     "min": 4317.343430765473,
+     "ciLow": 6713.6188428674905,
+     "ciHigh": 7075.619738729363,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 1565.607762727762,
+     "p95": 12866.350463385721,
+     "min": 1332.6920045804366,
+     "ciLow": 1552.8084836655185,
+     "ciHigh": 2780.1423634294456,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4461,17 +5523,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 7979.277073393084,
-     "p95": 12763.2857604658,
-     "min": 5053.838581619005,
-     "ciLow": 7467.047861094868,
-     "ciHigh": 8700.10476632118,
+     "p50": 8675.114194704669,
+     "p95": 13331.494003833886,
+     "min": 5638.674487730315,
+     "ciLow": 8481.79596194999,
+     "ciHigh": 9002.737254147645,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4537,6 +5597,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 26746.597200738208,
+     "p95": 37817.9849927646,
+     "min": 9738.216947692885,
+     "ciLow": 25210.373674847986,
+     "ciHigh": 29415.181381937855,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 121212.52295818664,
+     "p95": 187062.71350545308,
+     "min": 65473.27974074671,
+     "ciLow": 109873.93253828994,
+     "ciHigh": 124688.94734764332,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4592,17 +5678,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 438862.65436593624,
-     "p95": 465780.5820801977,
-     "min": 168306.44809525937,
-     "ciLow": 431599.85161129886,
-     "ciHigh": 444456.0166615683,
+     "p50": 482318.1412990331,
+     "p95": 505928.85389557976,
+     "min": 193423.45154976603,
+     "ciLow": 477317.1789978979,
+     "ciHigh": 487711.015923964,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4664,6 +5748,32 @@
      "min": 123840.14752451413,
      "ciLow": 731978.6010173904,
      "ciHigh": 853689.0371099971,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 595672.9941411542,
+     "p95": 694037.7816823134,
+     "min": 296158.1577113077,
+     "ciLow": 562411.1621044127,
+     "ciHigh": 613586.6295651208,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 316189.91156565567,
+     "p95": 415677.5381497276,
+     "min": 111389.6335411628,
+     "ciLow": 308197.5739071009,
+     "ciHigh": 321570.87371799035,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4734,17 +5844,15 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 1.5958637988660485,
-     "p95": 2.038556197658181,
-     "min": 1.4833703986369073,
-     "ciLow": 1.577331603039056,
-     "ciHigh": 1.6311324026901275,
+     "p50": 1.7882515999190218,
+     "p95": 2.3676463999436237,
+     "min": 1.450998400014214,
+     "ciLow": 1.757303399972443,
+     "ciHigh": 1.8713342001319688,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
-     "limitFailures": 0,
-     "blocked": 1,
-     "blockedNote": "99 of 100: on 1 sandbox boxd's pause and resume failed first, so this test could not run there."
+     "limitFailures": 0
     },
     {
      "provider": "superserve",
@@ -4806,6 +5914,32 @@
      "min": 5.02790579998873,
      "ciLow": 5.895953199996029,
      "ciHigh": 6.3367137999932766,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "vercel",
+     "n": 100,
+     "p50": 1.927139399998623,
+     "p95": 2.551802800000047,
+     "min": 1.31092360000018,
+     "ciLow": 1.8754667999971275,
+     "ciHigh": 2.018194000001472,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "modal",
+     "n": 100,
+     "p50": 2.5691182000002755,
+     "p95": 6.884681199999854,
+     "min": 1.3556288000003747,
+     "ciLow": 2.452142000000057,
+     "ciHigh": 2.727898799999995,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5122,106 +6256,106 @@
    5.419
   ],
   "boxd": [
-   1.06,
-   1.066,
-   1.069,
-   1.078,
-   1.087,
-   1.09,
-   1.09,
-   1.091,
-   1.094,
-   1.096,
-   1.096,
-   1.097,
-   1.099,
-   1.1,
-   1.101,
-   1.102,
-   1.112,
-   1.113,
-   1.114,
-   1.114,
-   1.116,
-   1.116,
-   1.118,
-   1.118,
-   1.119,
-   1.121,
-   1.121,
-   1.121,
-   1.123,
-   1.125,
-   1.131,
-   1.131,
-   1.132,
-   1.132,
-   1.138,
-   1.141,
-   1.143,
-   1.143,
-   1.144,
-   1.145,
-   1.145,
-   1.145,
-   1.146,
-   1.147,
-   1.147,
-   1.148,
-   1.15,
-   1.15,
-   1.151,
-   1.152,
-   1.153,
-   1.154,
-   1.156,
-   1.158,
-   1.159,
-   1.161,
-   1.161,
-   1.162,
-   1.164,
-   1.167,
-   1.167,
-   1.168,
-   1.17,
-   1.173,
-   1.174,
-   1.175,
-   1.176,
-   1.176,
-   1.179,
-   1.179,
-   1.18,
-   1.18,
-   1.185,
-   1.19,
-   1.191,
-   1.192,
-   1.192,
-   1.199,
-   1.2,
-   1.205,
-   1.211,
-   1.214,
-   1.22,
-   1.221,
-   1.223,
-   1.224,
-   1.231,
-   1.244,
-   1.252,
-   1.254,
-   1.265,
-   1.291,
-   1.304,
-   1.331,
-   1.34,
-   1.371,
-   1.694,
-   1.861,
-   2.298,
-   2.496
+   0.283,
+   0.289,
+   0.289,
+   0.291,
+   0.294,
+   0.294,
+   0.295,
+   0.295,
+   0.295,
+   0.296,
+   0.296,
+   0.296,
+   0.296,
+   0.296,
+   0.297,
+   0.297,
+   0.297,
+   0.298,
+   0.298,
+   0.298,
+   0.298,
+   0.298,
+   0.299,
+   0.299,
+   0.299,
+   0.299,
+   0.299,
+   0.299,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.3,
+   0.301,
+   0.301,
+   0.301,
+   0.302,
+   0.302,
+   0.302,
+   0.302,
+   0.302,
+   0.303,
+   0.303,
+   0.303,
+   0.303,
+   0.304,
+   0.304,
+   0.304,
+   0.304,
+   0.304,
+   0.304,
+   0.305,
+   0.305,
+   0.305,
+   0.305,
+   0.305,
+   0.306,
+   0.306,
+   0.307,
+   0.307,
+   0.307,
+   0.308,
+   0.308,
+   0.308,
+   0.308,
+   0.308,
+   0.308,
+   0.309,
+   0.309,
+   0.309,
+   0.309,
+   0.309,
+   0.31,
+   0.311,
+   0.311,
+   0.311,
+   0.312,
+   0.312,
+   0.312,
+   0.312,
+   0.312,
+   0.313,
+   0.313,
+   0.313,
+   0.313,
+   0.315,
+   0.316,
+   0.319,
+   0.321,
+   0.323,
+   0.323,
+   0.326,
+   0.327,
+   0.379,
+   0.522,
+   0.821
   ],
   "superserve": [
    0.481,
@@ -5732,6 +6866,210 @@
    1.884,
    1.923,
    2.061
+  ],
+  "vercel": [
+   0.396,
+   0.418,
+   0.42,
+   0.424,
+   0.428,
+   0.429,
+   0.433,
+   0.445,
+   0.446,
+   0.449,
+   0.449,
+   0.45,
+   0.453,
+   0.453,
+   0.455,
+   0.455,
+   0.456,
+   0.457,
+   0.457,
+   0.459,
+   0.461,
+   0.461,
+   0.462,
+   0.462,
+   0.462,
+   0.464,
+   0.467,
+   0.469,
+   0.473,
+   0.474,
+   0.474,
+   0.475,
+   0.476,
+   0.476,
+   0.479,
+   0.481,
+   0.482,
+   0.483,
+   0.485,
+   0.485,
+   0.487,
+   0.49,
+   0.498,
+   0.5,
+   0.501,
+   0.504,
+   0.506,
+   0.509,
+   0.515,
+   0.517,
+   0.519,
+   0.519,
+   0.519,
+   0.52,
+   0.52,
+   0.521,
+   0.522,
+   0.527,
+   0.534,
+   0.536,
+   0.537,
+   0.537,
+   0.539,
+   0.541,
+   0.544,
+   0.546,
+   0.55,
+   0.55,
+   0.554,
+   0.558,
+   0.57,
+   0.574,
+   0.575,
+   0.576,
+   0.577,
+   0.579,
+   0.58,
+   0.585,
+   0.587,
+   0.589,
+   0.589,
+   0.592,
+   0.596,
+   0.599,
+   0.609,
+   0.611,
+   0.611,
+   0.62,
+   0.623,
+   0.634,
+   0.661,
+   0.672,
+   0.679,
+   0.709,
+   0.71,
+   0.744,
+   0.771,
+   0.773,
+   1.22,
+   1.482
+  ],
+  "modal": [
+   0.317,
+   0.334,
+   0.339,
+   0.339,
+   0.341,
+   0.341,
+   0.343,
+   0.346,
+   0.347,
+   0.348,
+   0.349,
+   0.35,
+   0.351,
+   0.351,
+   0.353,
+   0.354,
+   0.354,
+   0.354,
+   0.354,
+   0.355,
+   0.356,
+   0.356,
+   0.356,
+   0.357,
+   0.357,
+   0.357,
+   0.358,
+   0.361,
+   0.361,
+   0.361,
+   0.361,
+   0.361,
+   0.363,
+   0.364,
+   0.364,
+   0.364,
+   0.365,
+   0.366,
+   0.369,
+   0.369,
+   0.369,
+   0.37,
+   0.37,
+   0.371,
+   0.372,
+   0.372,
+   0.373,
+   0.374,
+   0.375,
+   0.376,
+   0.376,
+   0.376,
+   0.376,
+   0.376,
+   0.379,
+   0.379,
+   0.38,
+   0.381,
+   0.381,
+   0.382,
+   0.383,
+   0.383,
+   0.384,
+   0.384,
+   0.385,
+   0.385,
+   0.386,
+   0.386,
+   0.388,
+   0.39,
+   0.39,
+   0.392,
+   0.392,
+   0.393,
+   0.394,
+   0.394,
+   0.394,
+   0.395,
+   0.396,
+   0.396,
+   0.396,
+   0.396,
+   0.397,
+   0.399,
+   0.4,
+   0.402,
+   0.404,
+   0.405,
+   0.407,
+   0.409,
+   0.415,
+   0.416,
+   0.429,
+   0.43,
+   0.444,
+   0.473,
+   0.491,
+   0.506,
+   0.583,
+   0.748
   ]
  },
  "missing": {
@@ -5740,6 +7078,6 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 4 re-run in New York. Vercel's is from its Nov 9 run (SBX-103)."
  }
 }

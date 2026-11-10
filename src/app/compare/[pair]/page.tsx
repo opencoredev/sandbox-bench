@@ -8,7 +8,7 @@ import { Card } from "@/components/tabs";
 import { trackInfo } from "@/lib/data";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { compareResults, costKindsDiffer, rowOf } from "@/lib/seo/compare";
+import { compareResults, costKindsDiffer, costLowerBound, rowOf } from "@/lib/seo/compare";
 import type { CompareRow, CompareTrack, Side } from "@/lib/seo/compare";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
@@ -169,7 +169,7 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         <Fact term="Cost per 1,000 tasks">
           {t.cost.kind === "priced" ? (
             <>
-              {t.cost.perThousand} <span className="text-neutral-7">({t.cost.label.toLowerCase()})</span>
+              {t.cost.perThousand} <span className="text-neutral-7">({t.cost.tag})</span>
             </>
           ) : (
             <span className="text-neutral-7">{t.cost.note}</span>
@@ -187,9 +187,10 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         <li>Asked for: {t.machine.asked}.</li>
         {t.machine.note ? <li>Machine: {t.machine.note}</li> : null}
         {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
+        <li>Billing: {t.billing}.</li>
         {t.cost.kind === "priced" ? (
           <li>
-            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).
+            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).{t.cost.statusNote ? ` ${t.cost.statusNote}; not eligible for the cost pick.` : ""}
           </li>
         ) : null}
         <li>
@@ -221,7 +222,11 @@ function TrackSection({ p, t }: { p: ComparePage; t: CompareTrack }) {
           <SideFacts id={p.a} t={a} />
           <SideFacts id={p.b} t={b} />
         </div>
-        {costKindsDiffer(a, b) && a.cost.kind === "priced" && b.cost.kind === "priced" ? (
+        {costLowerBound(a, b) ? (
+          <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-8">
+            {[p.a, p.b].filter((_, i) => { const side = i === 0 ? a : b; return side.cost.kind === "priced" && side.cost.lowerBound; }).map(providerName).join(" and ")}&apos;s cost is a lower bound, at least the amount shown, so the two aren&apos;t directly comparable. {taskText()}
+          </p>
+        ) : costKindsDiffer(a, b) && a.cost.kind === "priced" && b.cost.kind === "priced" ? (
           <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-8">
             {providerName(p.a)}&apos;s cost is {a.cost.label.toLowerCase()} and {providerName(p.b)}&apos;s is {b.cost.label.toLowerCase()}, so the two aren&apos;t directly comparable. {taskText()}
           </p>

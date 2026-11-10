@@ -1,0 +1,58 @@
+{
+  "headline": {
+    "attempts": 5,
+    "providers": [
+      "boat",
+      "boxd",
+      "daytona",
+      "e2b",
+      "freestyle",
+      "superserve",
+      "tenki",
+      "upstash",
+      "upstash-ephemeral",
+      "vercel",
+      "modal"
+    ],
+    "profiles": [
+      "fix-and-test",
+      "build"
+    ],
+    "tracks": [
+      "same-machine",
+      "default"
+    ]
+  },
+  "idle": {
+    "attempts": 3,
+    "profile": "fix-and-test",
+    "track": "same-machine",
+    "providers": [
+      "boat",
+      "boxd",
+      "daytona",
+      "e2b",
+      "upstash",
+      "upstash-ephemeral",
+      "vercel",
+      "modal"
+    ],
+    "notTested": [
+      {
+        "provider": "freestyle",
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
+      },
+      {
+        "provider": "superserve",
+        "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "account totals only"
+      },
+      {
+        "provider": "tenki",
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
+      }
+    ]
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "ff43ddad6d623aa4689676a029d861a961c4108aa2652611dd3355b04815e81f",
+  "harness": {
+    "commit": "0beaae1"
+  },
+  "rows": [
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.020312446,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.030320210000000004,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.058563394000000005,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.038512472,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "totalPerCompletedUSD": 0.05187049,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "totalPerCompletedUSD": 1.3791430766666668,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "totalPerCompletedUSD": 0.27440311666666667,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    }
+  ],
+  "heldOpen": [
+    {
+      "provider": "modal",
+      "idle": "zero-wait",
+      "medianTotalUSD": 0.05184168,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "idle": "held-60",
+      "medianTotalUSD": 1.380387,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "modal",
+      "idle": "held-10",
+      "medianTotalUSD": 0.27425089999999996,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    }
+  ]
+}

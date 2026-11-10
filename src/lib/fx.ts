@@ -10,13 +10,17 @@ export const eurUsd = {
 
 export type PriceKey = "hourly" | "perVcpuHour";
 
-/** A provider's price in dollars, converted from euros where it bills in euros. */
+/**
+ * A provider's price in dollars, converted from euros where it bills in euros.
+ * `bound` says whether it is a lower bound (both keys come from the same
+ * priced allocation, so they share it).
+ */
 export function usdPrice(p: Provider, key: PriceKey) {
   const value = p[key];
   if (value === null) return null;
   return p.currency === "EUR"
-    ? { usd: value * eurUsd.rate, converted: true, original: formatMoney(value, "EUR") }
-    : { usd: value, converted: false, original: formatMoney(value, p.currency) };
+    ? { usd: value * eurUsd.rate, converted: true, original: formatMoney(value, "EUR"), bound: p.pricingBound }
+    : { usd: value, converted: false, original: formatMoney(value, p.currency), bound: p.pricingBound };
 }
 
 /** The footnote for a converted price. */

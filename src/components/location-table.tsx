@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ProviderName } from "@/components/provider-name";
-import { hardware } from "@/lib/hardware";
+import { hardware, notProbed } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -15,6 +15,7 @@ export const Place = ({ children }: { children: ReactNode }) => (
 /** Where a provider's sandboxes run, from the hardware probe; the full text on hover. */
 export function RunsIn({ id }: { id: ProviderId }) {
   const h = hardware[id];
+  if (h === undefined) return <span className="mt-0.5 block text-xs font-normal text-neutral-7 sm:whitespace-nowrap">{notProbed}</span>;
   return (
     <span className="mt-0.5 block text-xs font-normal text-neutral-7 sm:whitespace-nowrap" title={`Where its sandboxes run: ${h.region}`}>
       {h.regionShort === null ? "Location not shown" : `Runs in ${h.regionShort}`}

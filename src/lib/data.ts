@@ -4,7 +4,7 @@ import defaultExtras from "@/data/extras.default.json";
 import sameSpecExtras from "@/data/extras.same-spec.json";
 
 import type { Unit } from "@/lib/format";
-import type { ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport } from "@/lib/inputs";
+import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport } from "@/lib/inputs";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { trackIds } from "@/lib/tracks";
@@ -27,9 +27,22 @@ export interface Allocation {
   diskGiB: number;
 }
 
-export type Provider = Omit<SiteProviderExport, "id" | "track" | "currency" | "costPerTask"> & {
+/**
+ * How a price relates to the bill: "lower" is a lower bound (Modal's default
+ * track bills burst usage above its request), so it is never ranked or picked
+ * as if it were the price. "exact" and "observed" are prices as usual.
+ */
+export type PriceBound = "exact" | "lower" | "observed";
+
+export type Provider = Omit<SiteProviderExport, "id" | "track" | "currency" | "costPerTask" | "pricingBound" | "pricingRegion" | "regionMultiplier"> & {
   id: ProviderId;
   currency: "USD" | "EUR" | null;
+  /** How `hourly` and `perVcpuHour` relate to the bill; null when there is no price or the export predates it. */
+  pricingBound: PriceBound | null;
+  /** The pinned region behind `regionMultiplier`, or null. */
+  pricingRegion: string | null;
+  /** Region price multiplier already in `hourly` and `commonHourly`; 1 when none applies. */
+  regionMultiplier: number;
 };
 
 export interface MetricValue {
@@ -60,7 +73,7 @@ export interface Metric {
  * estimate is list price, where the provider has no billing amount.
  */
 export type TaskCost =
-  | { kind: "billed" | "metered" | "estimate"; usd: number; n: number; confidence: "high" | "medium" | "low" | null; source: string | null }
+  | { kind: "billed" | "metered" | "estimate"; usd: number; n: number; confidence: "high" | "medium" | "low" | null; source: string | null; settled: boolean; bound: PriceBound | null }
   | { kind: "none"; why: string };
 
 export type SdkReady = NonNullable<ExtrasProviderExport["sdkReady"]>;
@@ -76,6 +89,8 @@ export interface Track {
   generatedFrom: string;
   /** Source runs discarded in full, with why. */
   excludedRuns: readonly { runId: string; reason: string }[];
+  /** Per provider, the main-suite runs left out or rerun, from the harness's exclusions; empty for providers without one. */
+  exclusions: Partial<Record<ProviderId, ExclusionsExport>>;
   /** Every timed operation against the providers on the page, failures included. */
   timedOperations: number;
   costs: Partial<Record<ProviderId, TaskCost>>;
@@ -90,6 +105,23 @@ export interface Track {
   preview: boolean;
 }
 
+/**
+ * The exclusions block, keyed by provider. An unknown provider, or an entry
+ * filed under a provider other than its own, stops the build rather than
+ * disclosing the wrong provider's runs.
+ */
+export function readExclusions(raw: Pick<SiteExport, "exclusions" | "track">): Partial<Record<ProviderId, ExclusionsExport>> {
+  const out: Partial<Record<ProviderId, ExclusionsExport>> = {};
+  for (const [pid, ex] of Object.entries(raw.exclusions ?? {})) {
+    if (!isProviderId(pid)) throw new Error(`${raw.track}: exclusions name an unknown provider "${pid}"`);
+    const entries = [...ex.superseded, ...ex.notRun, ...ex.replacements];
+    if (entries.some((e) => e.provider !== pid)) throw new Error(`${raw.track}: exclusions for ${pid} hold another provider's entries`);
+    if (ex.superseded.some((s) => s.iterations.length === 0 || s.rerunSourceRunIds.length === 0)) throw new Error(`${raw.track}: a superseded entry for ${pid} names no iterations or no rerun`);
+    out[pid] = ex;
+  }
+  return out;
+}
+
 const units = ["s", "ms", "ops/s", "MB/s", "IOPS"] as const satisfies readonly Unit[];
 const isUnit = (u: string): u is Unit => (units as readonly string[]).includes(u);
 const isBetter = (b: string): b is Metric["better"] => b === "lower" || b === "higher";
@@ -97,23 +129,48 @@ const toCurrency = (c: string | null) => (c === "USD" || c === "EUR" ? c : null)
 const toConfidence = (c: string | null) => (c === "high" || c === "medium" || c === "low" ? c : null);
 const costKinds = ["billed", "metered", "estimate"] as const;
 const isCostKind = (k: string): k is (typeof costKinds)[number] => (costKinds as readonly string[]).includes(k);
+const bounds = ["exact", "lower", "observed"] as const satisfies readonly PriceBound[];
+const isBound = (b: string): b is PriceBound => (bounds as readonly string[]).includes(b);
+
+/** A bound from the export. An unknown one stops the build: guessing could show a lower bound as a price. */
+function toBound(b: string | null | undefined, where: string): PriceBound | null {
+  if (b === undefined || b === null) return null;
+  if (!isBound(b)) throw new Error(`${where}: unknown price bound "${b}"`);
+  return b;
+}
+
+/** A region multiplier from the export: 1 when absent, and never below 1 or non-finite. */
+function toMultiplier(m: number | undefined, where: string): number {
+  if (m === undefined) return 1;
+  if (!Number.isFinite(m) || m < 1) throw new Error(`${where}: region multiplier ${m} is not a finite number of at least 1`);
+  return m;
+}
 
 /**
  * The one place that reads cost per task from an export. Only the cost
  * suite's per-task result counts: whole benchmark sandboxes ran different
  * scenarios per provider, so their bills are not comparable and are never used.
  */
-function readCostPerTask(p: SiteProviderExport): TaskCost {
+export function readCostPerTask(p: SiteProviderExport): TaskCost {
   const c = p.costPerTask;
   if (c === undefined || c === null || c.usd === null || c.n === 0) return { kind: "none", why: "coming in the next update" };
   if (!isCostKind(c.kind)) return { kind: "none", why: `unknown cost kind "${c.kind}"` };
-  return { kind: c.kind, usd: c.usd, n: c.n, confidence: toConfidence(c.confidence), source: c.source };
+  return { kind: c.kind, usd: c.usd, n: c.n, confidence: toConfidence(c.confidence), source: c.source, settled: c.settled, bound: toBound(c.bound, `${p.id} cost per task`) };
 }
 
-function parseProvider(p: SiteProviderExport): Provider[] {
+export function parseProvider(p: SiteProviderExport): Provider[] {
   if (!isProviderId(p.id)) return [];
-  const { track: _track, costPerTask: _cost, ...rest } = p;
-  return [{ ...rest, id: p.id, currency: toCurrency(p.currency) }];
+  const { track: _track, costPerTask: _cost, pricingBound, pricingRegion, regionMultiplier, ...rest } = p;
+  return [
+    {
+      ...rest,
+      id: p.id,
+      currency: toCurrency(p.currency),
+      pricingBound: toBound(pricingBound, `${p.id} hourly price`),
+      pricingRegion: pricingRegion ?? null,
+      regionMultiplier: toMultiplier(regionMultiplier, `${p.id} hourly price`),
+    },
+  ];
 }
 
 function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Track, "absent"> {
@@ -140,6 +197,7 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
     runs: raw.runs,
     generatedFrom: raw.generatedFrom,
     excludedRuns: raw.excluded,
+    exclusions: readExclusions(raw),
     timedOperations,
     costs: Object.fromEntries(raw.providers.flatMap((p) => (isProviderId(p.id) ? [[p.id, readCostPerTask(p)]] : []))),
     sdkReady: Object.fromEntries(providers.flatMap((p) => { const s = extra(p.id)?.sdkReady; return s ? [[p.id, s]] : []; })),
@@ -154,8 +212,14 @@ const parsed = {
   "same-spec": parseTrack("same-spec", sameSpecExport satisfies SiteExport, sameSpecExtras satisfies ExtrasExport),
 };
 
-// Every provider the site covers, so one missing from a track's data is named as absent, not silently dropped.
-const everyone = new Set<ProviderId>(Object.keys(providerInfo).filter(isProviderId));
+// Every provider with results in at least one track, so one missing from a track's data is named as
+// absent there, not silently dropped. A provider registered in providerInfo with no data anywhere yet
+// (one whose runs haven't landed) is left out everywhere rather than named absent in both tracks.
+const everyone = new Set<ProviderId>(
+  Object.keys(providerInfo)
+    .filter(isProviderId)
+    .filter((pid) => trackIds.some((t) => parsed[t].providers.some((p) => p.id === pid))),
+);
 
 export const tracks: Record<TrackId, Track> = {
   default: { ...parsed.default, absent: [...everyone].filter((pid) => !parsed.default.providers.some((p) => p.id === pid)) },
@@ -165,7 +229,7 @@ export const tracks: Record<TrackId, Track> = {
 /** Tracks with results, in page order. A track collected later shows a placeholder until then. */
 export const hasResults = (t: Track) => t.providers.length > 0;
 
-/** Every provider on the site, in the fixed order of providerInfo. */
+/** Every provider with results on the site, in the fixed order of providerInfo. */
 export const allProviders = Object.keys(providerInfo).filter(isProviderId).filter((pid) => everyone.has(pid));
 
 export const isPreview = trackIds.some((t) => tracks[t].preview);

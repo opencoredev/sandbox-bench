@@ -2,11 +2,12 @@ import { ArrowRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
-import { formatPerThousand, pricedTasks } from "@/lib/cost";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { perThousand, pickFor, pilotShort, runTrackOf, statusTag } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
   label: string;
@@ -14,6 +15,8 @@ interface Stat {
   provider: ProviderId;
   /** A qualifier under the provider, such as how a cost was priced. */
   note?: string;
+  /** A line that must always show in full, under the clamped provider line, such as the pilot label. */
+  badge?: string;
   section: string;
   tab: string;
 }
@@ -27,20 +30,50 @@ function fastest(track: Track, id: string) {
   return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
 }
 
+/**
+ * The cost tile: fix and test, the realistic workload closest to everyday
+ * agent work, rather than the quick synthetic task. It shows the lowest
+ * verified cost among eligible providers (saying so when it is the only
+ * one), or the lowest reported cost marked unverified when none is eligible.
+ */
+function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
+  const p = pickFor(realistic, runTrackOf[track.id], "fix-and-test");
+  switch (p.kind) {
+    case "verified":
+      return {
+        label: `${p.eligible.length === 1 ? "Only verified" : "Lowest verified"} fix-and-test cost, per 1,000`,
+        provider: p.pick.provider,
+        value: perThousand(p.pick.cost.usdPerCompleted),
+        note: statusTag(p.pick),
+        badge: `${pilotShort(realistic)}${p.lower.length ? " · lower unverified costs exist" : ""}`,
+      };
+    case "none": {
+      const [lowest] = p.lower;
+      return lowest
+        ? { label: "Fix and test: none verified", provider: lowest.provider, value: perThousand(lowest.cost.usdPerCompleted), note: statusTag(lowest), badge: `${pilotShort(realistic)} · lowest reported, unverified` }
+        : null;
+    }
+    case "empty":
+      return null;
+    default: {
+      const _exhaustive: never = p;
+      return _exhaustive;
+    }
+  }
+}
+
 function stats(track: Track): Stat[] {
   const cold = fastest(track, "cold");
   const replay = fastest(track, "tool-replay");
   const restore = fastest(track, "create-from-snapshot");
-  const cheapest = pricedTasks(track)[0];
+  const cost = costTile(track);
   const resume = track.providers
     .flatMap((p) => (p.pauseSplit ? [{ provider: p.id, resume: p.pauseSplit.resume }] : []))
     .sort((a, b) => a.resume - b.resume)[0];
   return [
     ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
     ...(replay ? [{ label: "Fastest agent work", ...replay, section: "agent", tab: "tool-replay" }] : []),
-    ...(cheapest
-      ? [{ label: "Cheapest per 1,000 tasks", provider: cheapest.id, value: formatPerThousand(cheapest.cost.usd), note: cheapest.cost.kind === "billed" ? undefined : "not from a bill yet", section: "cost", tab: "task" }]
-      : []),
+    ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
     ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, section: "state", tab: "resume" }] : []),
   ];
@@ -69,13 +102,16 @@ export function StatStrip({ track }: { track: Track }) {
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
                   <ProviderName id={s.provider} />
                 </span>
-                {s.note ? <span className="text-neutral-7"> · {s.note}</span> : null}
+                {s.note && !s.badge ? <span className="text-neutral-7"> · {s.note}</span> : null}
               </span>
               <ArrowRight
                 aria-hidden
                 className="size-4 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:text-accent motion-reduce:transition-none"
               />
             </span>
+            {/* A tile with a badge carries a status that must never be cut, so both sit outside the clamped line. */}
+            {s.badge && s.note ? <span className="text-xs text-pretty text-neutral-8">{s.note}</span> : null}
+            {s.badge ? <span className="text-xs text-pretty text-neutral-7">{s.badge}</span> : null}
           </JumpLink>
         </li>
       ))}

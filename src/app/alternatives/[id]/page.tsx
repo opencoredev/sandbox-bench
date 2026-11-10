@@ -101,7 +101,7 @@ function Cost({ t }: { t: ProviderTrack }) {
     case "priced":
       return (
         <>
-          <span className="font-mono">{t.cost.perThousand}</span> <span className="text-s text-neutral-7">({t.cost.label.toLowerCase()})</span>
+          <span className="font-mono">{t.cost.perThousand}</span> <span className="text-s text-neutral-7">({t.cost.tag})</span>
         </>
       );
     case "none":
@@ -318,7 +318,10 @@ export default async function AlternativesPage(props: Props) {
                     {landing.picks.map((q) => (
                       <tr key={q.need} className="align-top">
                         <th scope="row" className="py-xxs pr-m font-normal text-neutral-7">{q.need}</th>
-                        <td className="py-xxs pr-m text-neutral-10">{q.pick}</td>
+                        <td className="py-xxs pr-m text-neutral-10">
+                          {q.pick}
+                          {q.note ? <span className="mt-xxs block text-xs text-pretty text-neutral-7">{q.note}</span> : null}
+                        </td>
                         <td className="py-xxs text-neutral-8">{q.runnerUp}</td>
                       </tr>
                     ))}
