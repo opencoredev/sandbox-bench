@@ -3,18 +3,19 @@
  * (SBX-94, SBX-103), from the harness's `summary.json` files. Never edit the
  * JSON by hand: change the inputs and run this again.
  *
+ * The command that built the committed data:
+ *
  *   bun scripts/realistic-site-data.ts \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-vercel/merged/summary.json \
  *     --parts scripts/realistic-parts/sbx103-vercel.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal-r2/summary.json \
+ *     --parts scripts/realistic-parts/sbx103-modal.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
- * Adding a provider run later (Modal, for example): add the provider to
- * scripts/realistic-coverage.json (headline, and idle or notTested with why),
- * then run the same command with one more `--summary`:
- *
- *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal/summary.json
- *     --parts scripts/realistic-parts/sbx103-modal.json
+ * Adding a provider run later: add the provider to scripts/realistic-coverage.json
+ * (headline, and idle or notTested with why), then run the same command with one
+ * more `--summary <its summary.json>` and `--parts <its parts file>`.
  *
  * Each --parts file comes from scripts/realistic-estimated-parts.ts, run once
  * per summary against the harness checkout that built it (see its header).
