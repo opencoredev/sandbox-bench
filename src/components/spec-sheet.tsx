@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Disclosure } from "@/components/disclosure";
 import { ProviderName } from "@/components/provider-name";
 import type { Provider, TrackId } from "@/lib/data";
-import { chipBasisLabel, hardware, notProbed, probeDate } from "@/lib/hardware";
+import { chipBasisLabel, fromFingerprints, hardware, notProbed, probeDate } from "@/lib/hardware";
 import type { HardwareDetail } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import { advertised } from "@/lib/sizes";
@@ -111,7 +111,7 @@ export function SpecSheet({ providers, track }: { providers: readonly Provider[]
     <>
       <p className="mb-m max-w-[80ch] text-xs text-neutral-7">
         Named means the CPU reports its own model. Inferred means we worked it out from what the sandbox shows, such as model number, cache and clock, or from the chip&apos;s published spec.
-        Measured memory was read inside the sandbox. From a hardware probe on {probeDate}, checked against the benchmark&apos;s fingerprints. Open a row for what each sandbox hides.
+        Measured memory was read inside the sandbox. From a hardware probe on {probeDate}, checked against the benchmark&apos;s fingerprints; Vercel Sandbox and Modal from the fingerprints of their {fromFingerprints.date} runs. Open a row for what each sandbox hides.
       </p>
       <div className={`${grid} hidden pb-xs text-xs text-neutral-7 sm:grid`} aria-hidden>
         <span>Provider</span>

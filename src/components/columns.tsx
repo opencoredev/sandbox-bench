@@ -149,7 +149,7 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
                     key={i}
                     aria-hidden
                     className={`relative w-full ${i === column.segments.length - 1 ? "rounded-t-xs" : ""}`}
-                    style={{ height: `${((bar.shares[i] ?? 0) / bar.length) * 100}%`, ...markFill(s.fill, s.color) }}
+                    style={{ height: `${segmentPercent(bar, i)}%`, ...markFill(s.fill, s.color) }}
                   >
                     {bar.broken === i ? <Break color={s.color} along="y" /> : null}
                   </div>
@@ -210,7 +210,7 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
                   <div
                     key={i}
                     className={`relative h-full ${i === column.segments.length - 1 ? "rounded-r-xs" : ""}`}
-                    style={{ width: `${((bar.shares[i] ?? 0) / bar.length) * 100}%`, ...markFill(s.fill, s.color) }}
+                    style={{ width: `${segmentPercent(bar, i)}%`, ...markFill(s.fill, s.color) }}
                   >
                     {bar.broken === i ? <Break color={s.color} along="x" /> : null}
                   </div>
@@ -244,6 +244,11 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
  * rotate. Compact charts are short read-only columns: no focus stops, hover cards or breakdowns.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
+/** A segment's share of its bar, in percent. A zero-length bar (no failures, say) has nothing to share out, so 0, never NaN. */
+function segmentPercent(bar: { length: number; shares: readonly number[] }, i: number) {
+  return bar.length > 0 ? ((bar.shares[i] ?? 0) / bar.length) * 100 : 0;
+}
+
 export function Columns({
   columns,
   label,

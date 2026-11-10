@@ -9,7 +9,7 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { buildRealistic, flagsOf as harnessFlags, prepareFailures, sourceName, workloadsFrom } from "../../scripts/realistic-site-data";
-import { Columns, axisMax, layout } from "@/components/columns";
+import { Columns, axisMax, layout, type Column } from "@/components/columns";
 import { IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
 import { planMinimum } from "@/lib/plan-minimum";
 import { providersOf } from "@/components/trace-waterfall";
@@ -805,6 +805,15 @@ describe("page", () => {
     assert.equal(planMinimum("upstash"), null);
     assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /usage only; monthly minimum excluded/);
     assert.match(renderToStaticMarkup(<IdleChart />), /usage only; monthly minimum excluded/);
+  });
+
+  // Found on the built page: a provider with no failures drew a bar segment with width NaN%.
+  test("a zero-length bar never renders NaN", () => {
+    const columns: Column[] = [
+      { provider: "modal", label: "0", segments: [{ value: 0, color: "red", fill: "solid" }], detail: [] },
+      { provider: "e2b", label: "1", segments: [{ value: 1, color: "red", fill: "solid" }], detail: [] },
+    ];
+    assert.doesNotMatch(renderToStaticMarkup(<Columns columns={columns} label="x" />), /NaN/);
   });
 
   test("phone bars share the chart's axis: lengths follow cost, an outlier is cut and marked the same way", () => {

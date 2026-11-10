@@ -29,7 +29,7 @@ import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/dat
 import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
-import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
+import { chipBasisLabel, fromFingerprints, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { isProviderId, providerName } from "@/lib/providers";
@@ -514,7 +514,7 @@ function hardwareOf(id: ProviderId) {
     region: h.region,
     runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
     hidden: h.hidden,
-    probed: probeDate,
+    probed: (fromFingerprints.providers as readonly ProviderId[]).includes(id) ? `${fromFingerprints.date}, from the benchmark's fingerprints` : probeDate,
   };
 }
 
