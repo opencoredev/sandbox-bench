@@ -32,7 +32,8 @@ import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
-import { hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
+import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
+import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
 import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
@@ -391,6 +392,25 @@ function Facts({ track }: { track: Track }) {
   );
 }
 
+/** Runs a provider's export set aside and reran, one plain sentence each under the reliability chart, from the data. */
+function SetAsideNotes() {
+  const notes = allProviders.flatMap((id) => {
+    const s = setAsideSentence(id);
+    return s ? [{ id, s }] : [];
+  });
+  if (notes.length === 0) return null;
+  return (
+    <ul className="mt-m flex flex-col gap-xxs text-xs text-pretty text-neutral-8">
+      {notes.map(({ id, s }) => (
+        <li key={id} className="flex gap-1.5">
+          <span aria-hidden className="mt-[0.4em] size-1.5 shrink-0 rounded-full" style={{ backgroundColor: providerColor(id) }} />
+          <span>{s}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** Failures set aside in each track, for the Method section. */
 function SetAside() {
   const rows = trackIds.flatMap((id) =>
@@ -725,6 +745,7 @@ export default function Page() {
             {(track) => (
               <Card>
                 <Reliability track={track} />
+                <SetAsideNotes />
               </Card>
             )}
           </PerTrack>

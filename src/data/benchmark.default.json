@@ -1029,6 +1029,48 @@
    "reason": "Aborted: snapshot timeouts blocked Daytona; discarded in full, including successful rows."
   }
  ],
+ "exclusions": {
+  "modal": {
+   "removed": {
+    "documented-not-run": 100,
+    "superseded-by-rerun": 24
+   },
+   "superseded": [
+    {
+     "provider": "modal",
+     "suite": "main",
+     "sourceRunId": "sbx103m-default-main",
+     "iterations": [
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99
+     ],
+     "rerunSourceRunIds": [
+      "sbx103m-default-main-makeup"
+     ],
+     "reason": "Our side: Modal's 200-deployed-App limit (one App per iteration) refused the App lookup, so no create reached Modal (journal: appId null, 0 allocations). Rerun in the default App."
+    }
+   ],
+   "notRun": [
+    {
+     "provider": "modal",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "reason": "Modal Sandboxes have no pause/resume; the adapter does not offer it"
+    }
+   ],
+   "replacements": []
+  }
+ },
  "providers": [
   {
    "id": "e2b",

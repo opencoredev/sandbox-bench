@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-09T23:47:32.776Z",
+  "generatedAt": "2026-11-10T00:08:44.557Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -77,8 +77,8 @@
       ]
     },
     {
-      "name": "provider-runs/sbx103-modal",
-      "generatedAt": "2026-11-09T23:31:07.649Z",
+      "name": "provider-runs/sbx103-modal-r2",
+      "generatedAt": "2026-11-09T23:57:27.172Z",
       "providers": [
         "modal"
       ]
@@ -260,8 +260,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0303202,
-        "wholeMachineUsdPerCompleted": 0.000868797,
-        "wholeMachineBound": "exact"
+        "wholeMachineUsdPerCompleted": 0.00152039,
+        "wholeMachineBound": "lower"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -562,7 +562,7 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0585634,
-        "wholeMachineUsdPerCompleted": 0.033893,
+        "wholeMachineUsdPerCompleted": 0.0593128,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -860,8 +860,8 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0203124,
-        "wholeMachineUsdPerCompleted": 0.00117299,
-        "wholeMachineBound": "exact"
+        "wholeMachineUsdPerCompleted": 0.00205273,
+        "wholeMachineBound": "lower"
       },
       "costNote": null,
       "estimatedPart": null,
@@ -1153,7 +1153,7 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0385125,
-        "wholeMachineUsdPerCompleted": 0.0224547,
+        "wholeMachineUsdPerCompleted": 0.0392956,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -1418,7 +1418,7 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.274403,
-        "wholeMachineUsdPerCompleted": 0.157014,
+        "wholeMachineUsdPerCompleted": 0.274774,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -1620,7 +1620,7 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 1.37914,
-        "wholeMachineUsdPerCompleted": 0.788516,
+        "wholeMachineUsdPerCompleted": 1.3799,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -1822,7 +1822,7 @@
       "cost": {
         "kind": "billed",
         "usdPerCompleted": 0.0518705,
-        "wholeMachineUsdPerCompleted": 0.0298973,
+        "wholeMachineUsdPerCompleted": 0.0523203,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

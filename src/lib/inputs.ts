@@ -120,6 +120,19 @@ export interface SiteMetricExport {
   }[];
 }
 
+/**
+ * What a provider's main-suite export left out or reran, as the harness's
+ * site-data step writes it (per track, for one provider's merge): samples
+ * removed by reason, iterations superseded by a rerun and why, scenarios not
+ * run, and scenarios whose data came from replacement runs.
+ */
+export interface ExclusionsExport {
+  removed: Readonly<Record<string, number>> | null;
+  superseded: readonly { provider: string; suite: string; sourceRunId: string; iterations: readonly number[]; rerunSourceRunIds: readonly string[]; reason: string }[];
+  notRun: readonly { provider: string; suite: string; scenario: string; reason: string }[];
+  replacements: readonly { provider: string; suite: string; scenario: string; sourceRunIds: readonly string[] }[];
+}
+
 export interface SiteExport {
   track: string;
   generatedFrom: string;
@@ -127,6 +140,12 @@ export interface SiteExport {
   runs: readonly { id: string; suite: string; samples: number }[];
   /** Source runs discarded in full before merging, with why. */
   excluded: readonly { runId: string; reason: string }[];
+  /**
+   * Per provider, the harness's exclusions for that provider's merge (Modal's
+   * applied rows carry one). Keyed by provider because removed counts describe
+   * that provider's runs only, not the whole track.
+   */
+  exclusions?: Readonly<Record<string, ExclusionsExport>>;
   providers: readonly SiteProviderExport[];
   metrics: readonly SiteMetricExport[];
   coldSamples: Readonly<Record<string, readonly number[]>>;

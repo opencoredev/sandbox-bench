@@ -4,7 +4,7 @@ import defaultExtras from "@/data/extras.default.json";
 import sameSpecExtras from "@/data/extras.same-spec.json";
 
 import type { Unit } from "@/lib/format";
-import type { ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport } from "@/lib/inputs";
+import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport } from "@/lib/inputs";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { trackIds } from "@/lib/tracks";
@@ -89,6 +89,8 @@ export interface Track {
   generatedFrom: string;
   /** Source runs discarded in full, with why. */
   excludedRuns: readonly { runId: string; reason: string }[];
+  /** Per provider, the main-suite runs left out or rerun, from the harness's exclusions; empty for providers without one. */
+  exclusions: Partial<Record<ProviderId, ExclusionsExport>>;
   /** Every timed operation against the providers on the page, failures included. */
   timedOperations: number;
   costs: Partial<Record<ProviderId, TaskCost>>;
@@ -101,6 +103,23 @@ export interface Track {
   missing: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Built from the local preview fixture: never real numbers. */
   preview: boolean;
+}
+
+/**
+ * The exclusions block, keyed by provider. An unknown provider, or an entry
+ * filed under a provider other than its own, stops the build rather than
+ * disclosing the wrong provider's runs.
+ */
+export function readExclusions(raw: Pick<SiteExport, "exclusions" | "track">): Partial<Record<ProviderId, ExclusionsExport>> {
+  const out: Partial<Record<ProviderId, ExclusionsExport>> = {};
+  for (const [pid, ex] of Object.entries(raw.exclusions ?? {})) {
+    if (!isProviderId(pid)) throw new Error(`${raw.track}: exclusions name an unknown provider "${pid}"`);
+    const entries = [...ex.superseded, ...ex.notRun, ...ex.replacements];
+    if (entries.some((e) => e.provider !== pid)) throw new Error(`${raw.track}: exclusions for ${pid} hold another provider's entries`);
+    if (ex.superseded.some((s) => s.iterations.length === 0 || s.rerunSourceRunIds.length === 0)) throw new Error(`${raw.track}: a superseded entry for ${pid} names no iterations or no rerun`);
+    out[pid] = ex;
+  }
+  return out;
 }
 
 const units = ["s", "ms", "ops/s", "MB/s", "IOPS"] as const satisfies readonly Unit[];
@@ -178,6 +197,7 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
     runs: raw.runs,
     generatedFrom: raw.generatedFrom,
     excludedRuns: raw.excluded,
+    exclusions: readExclusions(raw),
     timedOperations,
     costs: Object.fromEntries(raw.providers.flatMap((p) => (isProviderId(p.id) ? [[p.id, readCostPerTask(p)]] : []))),
     sdkReady: Object.fromEntries(providers.flatMap((p) => { const s = extra(p.id)?.sdkReady; return s ? [[p.id, s]] : []; })),

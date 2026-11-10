@@ -20,6 +20,8 @@ import { sentence } from "@/components/metric-chart";
 import { regionNote } from "@/lib/cost";
 import { providerBrand } from "@/lib/providers";
 import { publishedProviders, siteDescription } from "@/lib/seo/home";
+import { readExclusions } from "@/lib/data";
+import { iterationRanges, setAside, setAsideSentence } from "@/lib/exclusions";
 import { StatStrip } from "@/components/stat-strip";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
 import { billingBases, billingLabel } from "@/lib/cost";
@@ -710,6 +712,48 @@ describe("final review", () => {
     const priced = providersOf(tracks["same-spec"]).filter((p) => p.costText !== null);
     assert.ok(priced.length > 0);
     for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate)/);
+  });
+});
+
+describe("Modal's set-aside runs (item 9)", () => {
+  test("the exclusions are read per provider, and a wrong key or entry stops the build", () => {
+    const ex = tracks.default.exclusions.modal;
+    assert.ok(ex);
+    assert.equal(ex.superseded[0]?.iterations.length, 12);
+    assert.equal(tracks["same-spec"].exclusions.modal?.superseded[0]?.iterations.length, 11);
+    const entry = { provider: "modal", suite: "main", sourceRunId: "r", iterations: [1], rerunSourceRunIds: ["m"], reason: "x" };
+    const block = { removed: null, superseded: [entry], notRun: [], replacements: [] };
+    assert.throws(() => readExclusions({ track: "t", exclusions: { nimbus: block } }), /unknown provider "nimbus"/);
+    assert.throws(() => readExclusions({ track: "t", exclusions: { e2b: block } }), /another provider's entries/);
+    assert.throws(() => readExclusions({ track: "t", exclusions: { modal: { ...block, superseded: [{ ...entry, iterations: [] }] } } }), /no iterations/);
+  });
+
+  test("one plain sentence on the page, with the data's counts, and the full detail in every export", () => {
+    const total = setAside("modal").reduce((n, e) => n + e.runs, 0);
+    const sentence = setAsideSentence("modal") ?? "";
+    assert.match(sentence, new RegExp(`^${total} Modal main-suite runs \\(11 same machine, 12 default\\) were set aside as our-side failures and rerun: Modal's 200-deployed-App limit`));
+    assert.equal(setAsideSentence("e2b"), null);
+    assert.equal(iterationRanges([88, 89, 90, 99, 97, 98]), "88–90, 97–99");
+    const results = agentData();
+    assert.equal(results.tracks.default?.exclusions.modal?.superseded[0]?.sourceRunId, "sbx103m-default-main");
+    const md = agentMarkdown();
+    assert.match(md, /## Runs set aside and rerun/);
+    assert.match(md, /iterations 88–99 of sbx103m-default-main set aside \(12 runs\) and rerun in sbx103m-default-main-makeup/);
+    assert.ok(llmsTxt().includes(sentence));
+  });
+
+  test("Modal's default-track whole-machine figure reads as at least, from the regenerated summary", () => {
+    const modal = realistic.rows.filter((r) => r.provider === "modal" && r.variant === "headline");
+    assert.ok(modal.filter((r) => r.track === "default").every((r) => r.cost?.wholeMachineBound === "lower"));
+    assert.ok(modal.filter((r) => r.track === "same-machine").every((r) => r.cost?.wholeMachineBound === "exact"));
+    const html = renderToStaticMarkup(<TaskCost track={tracks.default} />);
+    assert.match(html, /Whole machine at list price: at least \$[\d.]+ per 1,000, a lower bound/);
+    const md = agentMarkdown();
+    const fixDefault = md.slice(md.indexOf("## Fix and test, Default machines")).split("\n").find((l) => l.startsWith("| Modal |")) ?? "";
+    assert.match(fixDefault, /\| ≥ \$[\d.]+ \|$/);
+    assert.match(md, /Modal's whole machine at list price is a lower bound \(≥\)/);
+    const json = agentData().whatATaskCosts.tracks.default?.workloads["fix-and-test"].providers.find((x) => x.provider === "modal");
+    assert.equal(json?.wholeMachineBound, "lower");
   });
 });
 

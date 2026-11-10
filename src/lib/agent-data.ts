@@ -25,7 +25,8 @@ import {
   wholeMachineText,
 } from "@/lib/cost";
 import type { PricedTask } from "@/lib/cost";
-import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
+import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
+import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, hardware, probeDate } from "@/lib/hardware";
@@ -580,6 +581,9 @@ function trackData(track: Track) {
     published: hasResults(track),
     run: { source: track.generatedFrom, start: track.window.start, end: track.window.end, runs: track.runs.map((r) => r.id), observations: track.timedOperations },
     absent: track.absent.map((id) => ({ provider: id, reason: absentNote(track, id) })),
+    // Per provider, the harness's record of main-suite runs left out or rerun: samples removed by reason,
+    // superseded iterations with the rerun that replaced them and why, and scenarios not run.
+    exclusions: track.exclusions,
     providers: track.providers.map((p) => {
       const rel = successRate(track, p);
       return {
@@ -729,6 +733,8 @@ function trackMarkdown(id: TrackId) {
     lines.push(`- ${p.name}: ${counted}${aside}`);
   }
   lines.push("");
+  const rerun = d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`));
+  if (rerun.length) lines.push("## Runs set aside and rerun", "", ...rerun, "");
   return lines;
 }
 
@@ -792,6 +798,9 @@ function qualifierNotes() {
   return [...seen.values()].flat().map((s) => ` ${s}`).join("");
 }
 
+/** " 23 Modal main-suite runs (…) were set aside as our-side failures and rerun: …", for every provider with some; "" otherwise. */
+const setAsideSummary = () => allProviders.flatMap((id) => { const s = setAsideSentence(id); return s ? [` ${s}`] : []; }).join("");
+
 /** "boxd: bills active CPU and memory in use; E2B, Boat: bills the whole machine while it exists; …", grouped by label. */
 function billingSummary() {
   const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))];
@@ -827,7 +836,7 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither has a billing API. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} Billing models: ${billingSummary()}. ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle and Tenki costs are list-price estimates on our measured sandbox lifetime, because neither has a billing API. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} Billing models: ${billingSummary()}. ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 
