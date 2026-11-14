@@ -35,6 +35,20 @@ export const advertised = {
     source: "https://docs.superserve.ai",
     note: "Superserve ran a template we built with Node 22 and Python 3.11 preinstalled, at its default 1 vCPU, 1 GB RAM and 4 GB disk. Superserve's own templates have Node (node-22) or Python (python-3.11), not both, and our tests need both.",
   },
+  vercel: {
+    vcpu: null,
+    memoryGiB: null,
+    diskGiB: null,
+    source: "https://vercel.com/docs/vercel-sandbox",
+    note: "Vercel gives 2048 MiB per vCPU and has no disk setting. The sources we checked don't state its default vCPU count, so the size shown is what we measured.",
+  },
+  modal: {
+    vcpu: 0.125,
+    memoryGiB: 0.125,
+    diskGiB: null,
+    source: "https://modal.com/docs/guide/sandbox-resources",
+    note: "Modal's default is a request of 0.125 CPU (Modal counts a CPU as a physical core) and 128 MiB, which bursts into spare host capacity, up to 16 CPUs above the request. Inside, the sandbox shows the host's whole memory. Modal bills the higher of the request and what the sandbox uses.",
+  },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }

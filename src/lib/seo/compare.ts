@@ -101,3 +101,6 @@ export const rowOf = (t: CompareTrack, metricId: string) => t.groups.flatMap((g)
 
 /** True when two sides' costs are of different kinds and so can't be compared directly. */
 export const costKindsDiffer = (x: ProviderTrack, y: ProviderTrack) => x.cost.kind === "priced" && y.cost.kind === "priced" && x.cost.label !== y.cost.label;
+
+/** True when either side's cost is a lower bound, so the two can't be compared as amounts. */
+export const costLowerBound = (x: ProviderTrack, y: ProviderTrack) => x.cost.kind === "priced" && y.cost.kind === "priced" && (x.cost.lowerBound || y.cost.lowerBound);

@@ -36,13 +36,23 @@ export interface HardwareDetail {
 
 export const probeDate = "Oct 22, 2026";
 
+/** Providers whose entry comes from the benchmark's fingerprints of their runs, and when. */
+export const fromFingerprints = { providers: ["vercel", "modal"] as const satisfies readonly ProviderId[], date: "Nov 9, 2026" };
+
 export const chipBasisLabel = {
   named: "named by the CPU",
   inferred: "inferred",
   conflicting: "conflicting",
 } as const satisfies Record<ChipBasis, string>;
 
-export const hardware = {
+/**
+ * Only providers with hardware evidence. Vercel Sandbox and Modal come from
+ * the benchmark's own fingerprints (every sample of their Nov 9 runs: CPU
+ * model and features, cgroup limits, disks, kernel, outbound IP), not the
+ * Oct 22 probe; `fromFingerprints` lists them. A provider without an entry
+ * shows as not probed, never with guessed hardware.
+ */
+export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
   e2b: {
     chip: "Intel Xeon Platinum 8373C",
     family: "Ice Lake, 2.6 GHz, 54 MB L3",
@@ -122,19 +132,19 @@ export const hardware = {
     sameSpec: "The medium size (4 vCPU, 8 GB) runs on the same m8gd.12xlarge hosts.",
   },
   boxd: {
-    chip: "AMD EPYC 9554P, likely",
-    family: "Zen 4 (Genoa), 3.1 GHz",
+    chip: "AMD EPYC 9354P, likely",
+    family: "Zen 4 (Genoa), 3.25 GHz",
     chipBasis: "inferred",
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5-4800, the Genoa platform's memory" },
     cloud: "Latitude.sh bare metal",
-    region: "Frankfurt, Germany",
-    regionShort: "Frankfurt",
+    region: "New York, US",
+    regionShort: "New York",
     runsAs: "Firecracker microVM",
     runsAsDetail: "with Docker installed inside the VM",
     storage: "100 GB virtio disk, ext4",
     kernel: "Linux 6.18 (custom build), Ubuntu 24.04",
     hidden: [
-      "The CPU name is trimmed to \"AMD EPYC\" and the microcode and topology are hidden. The chip is inferred from its 3.1 GHz clock and the Genoa servers Latitude.sh sells; a dual-socket 9554 can't be ruled out.",
+      "The CPU name is trimmed to \"AMD EPYC\" and the microcode and topology are hidden. The chip is inferred from its 3.25 GHz clock (read in New York on Nov 4; the Frankfurt hosts probed on Oct 22 ran at 3.1 GHz) and the Genoa servers Latitude.sh sells; a dual-socket 9354 can't be ruled out.",
       "No DMI, so the memory type is inferred.",
       "AVX-512 is exposed, which can help vectorised work against hosts that hide it.",
       "The disk reports itself as rotational although it is virtual, so tools that tune for hard drives may behave differently.",
@@ -216,4 +226,45 @@ export const hardware = {
     ],
     sameSpec: null,
   },
-} as const satisfies Record<ProviderId, HardwareDetail>;
+  vercel: {
+    chip: "Intel Xeon, Ice Lake on most hosts, Cascade Lake on the rest",
+    family: "Likely Xeon Platinum 8375C at 2.9 GHz; the rest a 2.5 GHz Cascade Lake part",
+    chipBasis: "inferred",
+    memory: { kind: "known", type: "DDR4", basis: "inferred", detail: "DDR4, the memory both chip generations take" },
+    cloud: "AWS, from its outbound IPs",
+    region: "Outbound IPs are Amazon's in Ashburn, Virginia, consistent with us-east-1; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "Virginia",
+    runsAs: "microVM",
+    runsAsDetail: "per Vercel's docs; inside, a hypervisor flag, virtual disks and Linux 6.18",
+    storage: "64 GiB virtual disk, XFS, plus a second disk reported as 33 GiB",
+    kernel: "Linux 6.18, Ubuntu 26.04",
+    hidden: [
+      "The CPU names itself only as a generic Intel Xeon at 2.90 or 2.50 GHz. The 2.9 GHz parts have Ice Lake's instructions (VAES, GFNI); the 2.5 GHz ones don't, which fits Cascade Lake. About 4 in 5 sandboxes landed on the 2.9 GHz parts.",
+      "No DMI, so the memory type is inferred from the chips.",
+      "It runs as a regular user, ubuntu, with sudo.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB size ran on the same CPUs in the same region, with an 8 GiB memory limit and no CPU quota.",
+  },
+  modal: {
+    chip: "Not named; AMD and Intel feature sets",
+    family: "From CPU features: AMD Zen 4 or later on most sandboxes, some Zen 5-class; Intel mostly Ice Lake-like, one Cascade Lake-like",
+    chipBasis: "inferred",
+    memory: { kind: "unknown", why: "gVisor hides the hardware, and the hosts vary" },
+    cloud: "Outbound networks: Rackdog, Amazon, Microsoft and Google",
+    region: "Configured for us-east; outbound IPs geolocate to Ashburn, Boydton and Dulles Town Center, Virginia, New York City and Washington, DC. These are where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "US East",
+    runsAs: "gVisor sandbox",
+    runsAsDetail: "a user-space kernel between the workload and the host",
+    storage: "512 GiB overlay root as reported; no block devices visible",
+    kernel: "gVisor, reporting Linux 4.19; Debian 12",
+    hidden: [
+      "gVisor hides the CPU name, DMI and block devices, so the chip and memory can't be read inside. The families come from CPU features: AMD flags (SSE4a, SVM) on about 65% of sandboxes on the default size and 70% on 4 vCPU, 8 GB, with AVX-512 BF16 (Zen 4 or later) and on some VP2INTERSECT (Zen 5-class). The rest show Intel sets, mostly fitting Ice Lake; one sandbox's set fits Cascade Lake.",
+      "On its default size the sandbox reports 1 CPU, a CPU quota of 16.125 and about 203 to 1,024 GiB of memory. Those readings don't establish the host's RAM or how much is usable: the sandbox requests 0.125 CPU and 128 MiB, and Modal bills use above that.",
+      "It runs as root.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB size ran with a 4-CPU quota and an 8 GiB limit on the same mix of hosts.",
+  },
+};
+
+/** Said where a provider has no hardware probe yet. */
+export const notProbed = "Not probed yet";

@@ -1,7 +1,7 @@
 import { TraceWaterfallView } from "@/components/trace-waterfall-view";
 import type { WaterfallProvider } from "@/components/trace-waterfall-view";
 import { Tracked } from "@/components/track";
-import { isPriced } from "@/lib/cost";
+import { costStatus, costTag, isPriced, perTaskText } from "@/lib/cost";
 import { hasResults } from "@/lib/data";
 import type { Track } from "@/lib/data";
 import type { ProviderId } from "@/lib/providers";
@@ -19,10 +19,15 @@ function failures(track: Track, id: ProviderId): WaterfallProvider["failures"] {
   return { cold: of("cold"), pause: of("pause"), replay: of("replay") };
 }
 
-const providersOf = (track: Track): WaterfallProvider[] =>
+export const providersOf = (track: Track): WaterfallProvider[] =>
   track.providers.map((p) => {
     const c = track.costs[p.id];
-    return { id: p.id, costUsd: c && isPriced(c) ? c.usd : null, failures: failures(track, p.id) };
+    return {
+      id: p.id,
+      costText: c && isPriced(c) ? perTaskText(c) : null,
+      costTag: c && isPriced(c) ? costTag(p.id, c, costStatus(p.id, c)) : null,
+      failures: failures(track, p.id),
+    };
   });
 
 /** The trace waterfall section: median timings per provider, step by step. Follows the track switch. */

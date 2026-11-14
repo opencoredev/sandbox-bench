@@ -54,6 +54,10 @@ const isMeasured = (v: MetricValue): v is Measured => v.p50 !== null;
 const missingReason = (v: MetricValue | undefined) =>
   !v ? "not supported" : v.limitFailures > 0 ? "stopped by our plan's limit" : v.failures > 0 ? "failed every attempt" : "not supported";
 
+/** Why a provider has no bar. Failed attempts come first, so a machine note never reads as the cause. */
+const noResultReason = (v: MetricValue | undefined, note: string | undefined) =>
+  (v && v.failures > 0 ? `${missingReason(v)}${note ? `; ${note}` : ""}` : (note ?? missingReason(v))).replace(/\.$/, "");
+
 /** Attempts "100" or "30, 1 failed": every attempt counts, failed ones included. */
 const attemptsRow = (v: Pick<MetricValue, "n" | "failures">): DetailLine => [
   "Attempts",
@@ -169,7 +173,7 @@ export function MetricChart({
                         {missing.map(({ id, value }, i) => (
                           <span key={id}>
                             {i > 0 ? "; " : ""}
-                            <Who id={id} /> ({(notes[id] ?? missingReason(value)).replace(/\.$/, "")})
+                            <Who id={id} /> ({noResultReason(value, notes[id])})
                           </span>
                         ))}
                         .

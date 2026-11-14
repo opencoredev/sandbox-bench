@@ -1,0 +1,2300 @@
+{
+  "schema": "realistic-site/1",
+  "generatedAt": "2026-11-10T00:08:44.557Z",
+  "coverage": {
+    "headline": {
+      "attempts": 5,
+      "providers": [
+        "boat",
+        "boxd",
+        "daytona",
+        "e2b",
+        "freestyle",
+        "superserve",
+        "tenki",
+        "upstash",
+        "upstash-ephemeral",
+        "vercel",
+        "modal"
+      ],
+      "profiles": [
+        "fix-and-test",
+        "build"
+      ],
+      "tracks": [
+        "same-machine",
+        "default"
+      ]
+    },
+    "idle": {
+      "attempts": 3,
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "providers": [
+        "boat",
+        "boxd",
+        "daytona",
+        "e2b",
+        "upstash",
+        "upstash-ephemeral",
+        "vercel",
+        "modal"
+      ],
+      "notTested": [
+        {
+          "provider": "freestyle",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
+        },
+        {
+          "provider": "superserve",
+          "reason": "its billing reports account totals over a time window, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "account totals only"
+        },
+        {
+          "provider": "tenki",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "name": "sbx103-vercel/merged",
+      "generatedAt": "2026-11-09T17:48:33.661Z",
+      "providers": [
+        "boat",
+        "boxd",
+        "daytona",
+        "e2b",
+        "freestyle",
+        "superserve",
+        "tenki",
+        "upstash",
+        "upstash-ephemeral",
+        "vercel"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx103-modal-r2",
+      "generatedAt": "2026-11-09T23:57:27.172Z",
+      "providers": [
+        "modal"
+      ]
+    }
+  ],
+  "fx": {
+    "eurToUsd": 1.08,
+    "date": "2026-11-05"
+  },
+  "workloads": {
+    "fix-and-test": {
+      "repo": "https://github.com/vuejs/core",
+      "commit": "70599b52fbf1a9e91ee2bf112090c7e520937b56",
+      "workCpuS": {
+        "min": 174.9,
+        "max": 204.2
+      },
+      "memoryGiB": {
+        "min": 2.452,
+        "max": 2.469
+      },
+      "tests": 4028
+    },
+    "build": {
+      "repo": "https://github.com/jitsi/jitsi-meet",
+      "commit": "a8da96188402dfffac31e2f0f94b794dedf41167",
+      "workCpuS": {
+        "min": 162.5,
+        "max": 175
+      },
+      "memoryGiB": {
+        "min": 4.815,
+        "max": 5.565
+      },
+      "tests": null
+    }
+  },
+  "rows": [
+    {
+      "provider": "boat",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 217.56,
+      "medianCpuS": 242.798,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00219,
+        "wholeMachineUsdPerCompleted": 0.002204,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boxd",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 200.877,
+      "medianCpuS": 269.565,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0082732,
+        "wholeMachineUsdPerCompleted": 0.0110074,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "daytona",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "freestyle",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 231.022,
+      "medianCpuS": 420.156,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0171028,
+        "wholeMachineUsdPerCompleted": 0.0171028,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "modal",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 160.022,
+      "medianCpuS": 400.35,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0303202,
+        "wholeMachineUsdPerCompleted": 0.00152039,
+        "wholeMachineBound": "lower"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "superserve",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "tenki",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 226.816,
+      "medianCpuS": 279.02,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0166836,
+        "wholeMachineUsdPerCompleted": 0.0119625,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.00016387,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 217.393,
+      "medianCpuS": 280.33,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0112312,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "vercel",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 2,
+      "incomplete": 3,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 3
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 217.434,
+      "medianCpuS": 281.401,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0347545,
+        "wholeMachineUsdPerCompleted": 0.0401875,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "3 incomplete runs (at most 1)",
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boat",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 211.621,
+      "medianCpuS": 237.935,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.002102,
+        "wholeMachineUsdPerCompleted": 0.002118,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boxd",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 146.251,
+      "medianCpuS": 288.813,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0075674,
+        "wholeMachineUsdPerCompleted": 0.0158491,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
+        "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
+      ]
+    },
+    {
+      "provider": "daytona",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 138.062,
+      "medianCpuS": 256.669,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0112404,
+        "wholeMachineUsdPerCompleted": 0.0120901,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "e2b",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 208.176,
+      "medianCpuS": 367.911,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0185249,
+        "wholeMachineUsdPerCompleted": 0.0186392,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "freestyle",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 274.943,
+      "medianCpuS": 446.36,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0206956,
+        "wholeMachineUsdPerCompleted": 0.0206956,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "modal",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 160.45,
+      "medianCpuS": 328.39,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0585634,
+        "wholeMachineUsdPerCompleted": 0.0593128,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "superserve",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "prepare-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": {
+        "kind": "insufficient-disk",
+        "freeGiB": 1.45618,
+        "requiredGiB": 4,
+        "runs": 5
+      },
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "not attributable to our sandbox IDs (5 attempts)"
+      ]
+    },
+    {
+      "provider": "tenki",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "prepare-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": {
+        "kind": "insufficient-disk",
+        "freeGiB": 2.06042,
+        "requiredGiB": 4,
+        "runs": 5
+      },
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "upstash",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 173.869,
+      "medianCpuS": 287.697,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0160686,
+        "wholeMachineUsdPerCompleted": 0.0097338,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000671296,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 172.69,
+      "medianCpuS": 298.283,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0163592,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "vercel",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 157.552,
+      "medianCpuS": 304.242,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0209315,
+        "wholeMachineUsdPerCompleted": 0.0294609,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boat",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 85.784,
+      "medianCpuS": 144.961,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.000876,
+        "wholeMachineUsdPerCompleted": 0.00089,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 132.045,
+      "medianCpuS": 209.54,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0039948,
+        "wholeMachineUsdPerCompleted": 0.00714168,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "daytona",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "freestyle",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 134.39,
+      "medianCpuS": 322.004,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00996182,
+        "wholeMachineUsdPerCompleted": 0.00996182,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 216.096,
+      "medianCpuS": 278.97,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0203124,
+        "wholeMachineUsdPerCompleted": 0.00205273,
+        "wholeMachineBound": "lower"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "superserve",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "tenki",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 177.49,
+      "medianCpuS": 267.816,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00727012,
+        "wholeMachineUsdPerCompleted": 0.00727012,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "upstash",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 135.764,
+      "medianCpuS": 211.607,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.00594205,
+        "wholeMachineUsdPerCompleted": 0.00383588,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000525463,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 133.372,
+      "medianCpuS": 218.229,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.00609761,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 147.75,
+      "medianCpuS": 241.794,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0140907,
+        "wholeMachineUsdPerCompleted": 0.0150905,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boat",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 95.691,
+      "medianCpuS": 177.383,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.000946,
+        "wholeMachineUsdPerCompleted": 0.000964,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 85.649,
+      "medianCpuS": 214.059,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0038042,
+        "wholeMachineUsdPerCompleted": 0.00912072,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
+        "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
+      ]
+    },
+    {
+      "provider": "daytona",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 92.8005,
+      "medianCpuS": 218.127,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0104858,
+        "wholeMachineUsdPerCompleted": 0.0109428,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 112.638,
+      "medianCpuS": 278.721,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00998993,
+        "wholeMachineUsdPerCompleted": 0.0100832,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "freestyle",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 128.837,
+      "medianCpuS": 312.072,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00957581,
+        "wholeMachineUsdPerCompleted": 0.00957581,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 104.65,
+      "medianCpuS": 281.31,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0385125,
+        "wholeMachineUsdPerCompleted": 0.0392956,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "superserve",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "prepare-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": {
+        "kind": "insufficient-disk",
+        "freeGiB": 1.45618,
+        "requiredGiB": 1.5,
+        "runs": 5
+      },
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "not attributable to our sandbox IDs (5 attempts)"
+      ]
+    },
+    {
+      "provider": "tenki",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 95.76,
+      "medianCpuS": 176.76,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0097888,
+        "wholeMachineUsdPerCompleted": 0.0097888,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "upstash",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 92.053,
+      "medianCpuS": 215.6,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0120613,
+        "wholeMachineUsdPerCompleted": 0.00528086,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000364198,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 89.515,
+      "medianCpuS": 216.501,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0120487,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: storage coverage of the billing source unknown"
+      ]
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 95.023,
+      "medianCpuS": 231.053,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0144585,
+        "wholeMachineUsdPerCompleted": 0.0182902,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+      ]
+    },
+    {
+      "provider": "boat",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 709.461,
+      "medianCpuS": 222.286,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00709333,
+        "wholeMachineUsdPerCompleted": 0.00711333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 711.576,
+      "medianCpuS": 298.833,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0113017,
+        "wholeMachineUsdPerCompleted": 0.0761128,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "daytona",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 2,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 712.598,
+      "medianCpuS": 339.257,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0983415,
+        "wholeMachineUsdPerCompleted": 0.0986926,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 727.441,
+      "medianCpuS": 342.188,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0675787,
+        "wholeMachineUsdPerCompleted": 0.0676813,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 742.983,
+      "medianCpuS": 408.6,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.274403,
+        "wholeMachineUsdPerCompleted": 0.274774,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 2,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 711.506,
+      "medianCpuS": 291.663,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0196059,
+        "wholeMachineUsdPerCompleted": 0.0415365,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.000286458,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 712.697,
+      "medianCpuS": 299.616,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.016495,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 738.629,
+      "medianCpuS": 364.643,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0513688,
+        "wholeMachineUsdPerCompleted": 0.141117,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "boat",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 0,
+      "incomplete": 3,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 3
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 3711.39,
+      "medianCpuS": 299.49,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0438597,
+        "wholeMachineUsdPerCompleted": 0.396477,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "daytona",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 0,
+      "incomplete": 3,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 3
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 3739.41,
+      "medianCpuS": 390.09,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.344459,
+        "wholeMachineUsdPerCompleted": 0.344571,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 3739.91,
+      "medianCpuS": 402.17,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 1.37914,
+        "wholeMachineUsdPerCompleted": 1.3799,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 2,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 3720.8,
+      "medianCpuS": 305.76,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0188149,
+        "wholeMachineUsdPerCompleted": 0.217192,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.00149788,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 0,
+      "incomplete": 3,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 3
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 3726.78,
+      "medianCpuS": 331.934,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.192051,
+        "wholeMachineUsdPerCompleted": 0.705835,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "boat",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 105.224,
+      "medianCpuS": 185.906,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00112333,
+        "wholeMachineUsdPerCompleted": 0.00114333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 111.884,
+      "medianCpuS": 293.303,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00523633,
+        "wholeMachineUsdPerCompleted": 0.011926,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "daytona",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 112.2,
+      "medianCpuS": 329.794,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0100129,
+        "wholeMachineUsdPerCompleted": 0.0103822,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 141.812,
+      "medianCpuS": 371.139,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0125333,
+        "wholeMachineUsdPerCompleted": 0.0126347,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "modal",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 141.396,
+      "medianCpuS": 402.22,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0518705,
+        "wholeMachineUsdPerCompleted": 0.0523203,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 117.842,
+      "medianCpuS": 295.403,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0166876,
+        "wholeMachineUsdPerCompleted": 0.00660108,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": {
+        "usd": 0.0000455247,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 111.884,
+      "medianCpuS": 296.187,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0167097,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 129.275,
+      "medianCpuS": 343.289,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0212398,
+        "wholeMachineUsdPerCompleted": 0.024677,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    }
+  ],
+  "heldOpen": [
+    {
+      "provider": "boat",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.00104,
+      "changeVsZeroWait": null,
+      "status": "unsettled; metered, unreconciled (provisional)",
+      "statuses": [
+        "unsettled",
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 805,
+      "transitions": []
+    },
+    {
+      "provider": "boat",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.00708,
+      "changeVsZeroWait": 5.80769,
+      "status": "unsettled; metered, unreconciled (provisional)",
+      "statuses": [
+        "unsettled",
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 850,
+      "transitions": []
+    },
+    {
+      "provider": "boat",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 0,
+      "costKind": "metered",
+      "medianCostUsd": 0.03604,
+      "changeVsZeroWait": 33.6538,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 423,
+      "transitions": [
+        "running -> stopped"
+      ]
+    },
+    {
+      "provider": "boxd",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.005189,
+      "changeVsZeroWait": null,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 118,
+      "transitions": []
+    },
+    {
+      "provider": "boxd",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.011206,
+      "changeVsZeroWait": 1.15957,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 120,
+      "transitions": []
+    },
+    {
+      "provider": "boxd",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.043337,
+      "changeVsZeroWait": 7.35171,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 150,
+      "transitions": []
+    },
+    {
+      "provider": "daytona",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.0100504,
+      "changeVsZeroWait": null,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 129,
+      "transitions": []
+    },
+    {
+      "provider": "daytona",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 2,
+      "costKind": "billed",
+      "medianCostUsd": 0.0655776,
+      "changeVsZeroWait": 5.5249,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 253,
+      "transitions": []
+    },
+    {
+      "provider": "daytona",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 0,
+      "costKind": "billed",
+      "medianCostUsd": 0.0904276,
+      "changeVsZeroWait": 7.99745,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 1839,
+      "transitions": [
+        "running -> stopped"
+      ]
+    },
+    {
+      "provider": "e2b",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0129873,
+      "changeVsZeroWait": null,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 140,
+      "transitions": []
+    },
+    {
+      "provider": "e2b",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0668761,
+      "changeVsZeroWait": 4.14936,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 229,
+      "transitions": []
+    },
+    {
+      "provider": "e2b",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.343964,
+      "changeVsZeroWait": 25.4847,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 258,
+      "transitions": []
+    },
+    {
+      "provider": "modal",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.0518417,
+      "changeVsZeroWait": null,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 325,
+      "transitions": []
+    },
+    {
+      "provider": "modal",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.274251,
+      "changeVsZeroWait": 4.29016,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 400,
+      "transitions": []
+    },
+    {
+      "provider": "modal",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 1.38039,
+      "changeVsZeroWait": 25.627,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 428,
+      "transitions": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.0164579,
+      "changeVsZeroWait": null,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 243,
+      "transitions": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.0166487,
+      "changeVsZeroWait": 0.0115882,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 238,
+      "transitions": []
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 0,
+      "costKind": "billed",
+      "medianCostUsd": 0.0121473,
+      "changeVsZeroWait": -0.26192,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": null,
+      "medianWakeMs": 138,
+      "transitions": []
+    },
+    {
+      "provider": "upstash",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.0164627,
+      "changeVsZeroWait": null,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": {
+        "usd": 0.0000455247,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "medianWakeMs": 253,
+      "transitions": []
+    },
+    {
+      "provider": "upstash",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 2,
+      "costKind": "billed",
+      "medianCostUsd": 0.0164599,
+      "changeVsZeroWait": -0.000172258,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": {
+        "usd": 0.000274691,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "medianWakeMs": 407,
+      "transitions": []
+    },
+    {
+      "provider": "upstash",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 2,
+      "costKind": "billed",
+      "medianCostUsd": 0.0181627,
+      "changeVsZeroWait": 0.103266,
+      "status": "settled",
+      "statuses": [],
+      "estimatedPart": {
+        "usd": 0.00143403,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "medianWakeMs": 418.5,
+      "transitions": []
+    },
+    {
+      "provider": "vercel",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0212419,
+      "changeVsZeroWait": null,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 306,
+      "transitions": []
+    },
+    {
+      "provider": "vercel",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0505672,
+      "changeVsZeroWait": 1.38054,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 404,
+      "transitions": []
+    },
+    {
+      "provider": "vercel",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.191921,
+      "changeVsZeroWait": 8.03501,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 631,
+      "transitions": []
+    }
+  ]
+}

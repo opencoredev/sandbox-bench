@@ -67,7 +67,7 @@ function CostCell({ t }: { t: ProviderTrack | null }) {
       return (
         <span>
           <span className="font-mono whitespace-nowrap text-neutral-10">{t.cost.perThousand}</span>{" "}
-          <span className="block text-xs text-neutral-7 sm:inline">({t.cost.label.toLowerCase()})</span>
+          <span className="block text-xs text-neutral-7 sm:inline">({t.cost.tag})</span>
         </span>
       );
     case "none":
