@@ -20,6 +20,11 @@
  * entries kept as collected), and the summary read the settled-charge audit
  * sbx-verify/audit.json (`--audit`), which records per provider why each meter
  * is not reconciled. The other run folders are the originals.
+ * Rebuilt again on 2026-11-16 (harness 36a1a23) with no new runs: Upstash
+ * Ephemeral's billing rule now knows that its compute charge leaves storage
+ * out (a probe's billing line itemized storage apart), and the audit's boxd
+ * entry records a clean-window rerun (sbx-verify2/headline, rw-verify2) that
+ * couldn't be isolated. The rerun's attempts are not in the summary.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

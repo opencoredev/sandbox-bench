@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-16T13:45:35.932Z",
+  "generatedAt": "2026-11-16T15:51:33.255Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -62,7 +62,7 @@
   "sources": [
     {
       "name": "sbx-verify/merged",
-      "generatedAt": "2026-11-16T13:45:35.817Z",
+      "generatedAt": "2026-11-16T15:51:23.621Z",
       "providers": [
         "boat",
         "boxd",
@@ -167,7 +167,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs: 4 machines outside these runs (leftovers from earlier smoke runs and one long-running machine) had $0.015487 of the org's $0.314878 usage in 2026-11-05 21:00 to 2026-11-06 03:00 UTC, and the 22:15 bucket's posted charge (22,532 micro-USD) misses its machines' rounded parts (22,517) by more than the 2 micro-USD exact-split tolerance"
+        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows"
       ]
     },
     {
@@ -370,16 +370,19 @@
       "medianCpuS": 280.33,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0112312,
+        "usdPerCompleted": 0.0113445,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.000113233,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -463,7 +466,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs: 4 machines outside these runs (leftovers from earlier smoke runs and one long-running machine) had $0.015487 of the org's $0.314878 usage in 2026-11-05 21:00 to 2026-11-06 03:00 UTC, and the 22:15 bucket's posted charge (22,532 micro-USD) misses its machines' rounded parts (22,517) by more than the 2 micro-USD exact-split tolerance",
+        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -677,16 +680,19 @@
       "medianCpuS": 298.283,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0163592,
+        "usdPerCompleted": 0.0164251,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000659722,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -764,7 +770,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs: 4 machines outside these runs (leftovers from earlier smoke runs and one long-running machine) had $0.015487 of the org's $0.314878 usage in 2026-11-05 21:00 to 2026-11-06 03:00 UTC, and the 22:15 bucket's posted charge (22,532 micro-USD) misses its machines' rounded parts (22,517) by more than the 2 micro-USD exact-split tolerance"
+        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows"
       ]
     },
     {
@@ -959,16 +965,19 @@
       "medianCpuS": 218.229,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.00609761,
+        "usdPerCompleted": 0.00614931,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000516975,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -1046,7 +1055,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs: 4 machines outside these runs (leftovers from earlier smoke runs and one long-running machine) had $0.015487 of the org's $0.314878 usage in 2026-11-05 21:00 to 2026-11-06 03:00 UTC, and the 22:15 bucket's posted charge (22,532 micro-USD) misses its machines' rounded parts (22,517) by more than the 2 micro-USD exact-split tolerance",
+        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -1258,16 +1267,19 @@
       "medianCpuS": 216.501,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0120487,
+        "usdPerCompleted": 0.0120835,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000347222,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -1469,12 +1481,17 @@
       "medianCpuS": 299.616,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.016495,
+        "usdPerCompleted": 0.0167697,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.000274691,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -1868,12 +1885,17 @@
       "medianCpuS": 296.187,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0167097,
+        "usdPerCompleted": 0.0167537,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.0000439815,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -2143,11 +2165,16 @@
       "runs": 3,
       "completed": 3,
       "costKind": "billed",
-      "medianCostUsd": 0.0164579,
+      "medianCostUsd": 0.0165011,
       "changeVsZeroWait": null,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.0000432099,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 243,
       "transitions": []
     },
@@ -2157,11 +2184,16 @@
       "runs": 3,
       "completed": 3,
       "costKind": "billed",
-      "medianCostUsd": 0.0166487,
-      "changeVsZeroWait": 0.0115882,
+      "medianCostUsd": 0.0169241,
+      "changeVsZeroWait": 0.0256328,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.000275077,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 238,
       "transitions": []
     },
@@ -2171,11 +2203,16 @@
       "runs": 3,
       "completed": 0,
       "costKind": "billed",
-      "medianCostUsd": 0.0121473,
-      "changeVsZeroWait": -0.26192,
+      "medianCostUsd": 0.0135705,
+      "changeVsZeroWait": -0.177603,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.00142323,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 138,
       "transitions": []
     },

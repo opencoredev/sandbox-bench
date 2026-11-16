@@ -458,9 +458,10 @@ describe("statuses and billing", () => {
     assert.match(line, /setup and failed attempts included/);
     assert.match(costCovers, /through confirmed deletion/);
     assert.match(line, /through confirmed deletion/);
-    assert.match(line, /Upstash Box's billing leaves disk out, so disk is added at list price/);
-    // Daytona's analytics price itemizes disk (harness billing rule), so only Ephemeral Box is unknown.
-    assert.match(line, /For Upstash Ephemeral Box it isn't known whether the billing source includes disk/);
+    // Upstash bills storage on its own line, apart from the compute charge both products report
+    // (harness billing rules), and Daytona's analytics price itemizes disk, so no storage is unknown.
+    assert.match(line, /Upstash Box and Upstash Ephemeral Box's billing leaves disk out, so disk is added at list price/);
+    assert.doesNotMatch(line, /isn't known whether the billing source includes disk/);
     assert.doesNotMatch(line, /Daytona/);
     assert.match(line, /snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them/);
   });
@@ -566,10 +567,10 @@ describe("idle", () => {
     assert.deepEqual(groups.map((g) => g.provider), ["upstash", "boat"]);
   });
 
-  test("a provider whose billing may leave disk out stays provisional in the idle test, as on the cost charts", () => {
+  test("a provider whose billing leaves disk out shows disk estimated in the idle test, as on the cost charts", () => {
     const eph = idleGroups(realistic).find((g) => g.provider === "upstash-ephemeral");
     assert.ok(eph);
-    for (const p of eph.points) assert.equal(holdTag(p), "billed, provisional");
+    for (const p of eph.points) assert.equal(holdTag(p), "compute verified (billed, settled); disk estimated");
   });
 });
 
@@ -683,7 +684,7 @@ describe("final review", () => {
     assert.equal(groups.find((g) => g.provider === "upstash-ephemeral") && idleFailed(groups.find((g) => g.provider === "upstash-ephemeral")!), true);
     const html = renderToStaticMarkup(<IdleChart />);
     assert.match(html, /opacity-40/);
-    assert.match(html, /text-neutral-6[^"]*">\$12.15/);
+    assert.match(html, /text-neutral-6[^"]*">\$13.57/);
   });
 
   test("the idle chart prints each wait against no wait as ×N, from the harness's ratio", () => {
@@ -794,9 +795,9 @@ describe("page", () => {
     assert.doesNotMatch(html, /\b0\.3[–-]1\.0%/);
   });
 
-  test("only Upstash Box has an estimated part in this data", () => {
+  test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {
     const withPart = new Set([...realistic.rows.filter((r) => r.estimatedPart), ...realistic.heldOpen.filter((h) => h.estimatedPart)].map((r) => r.provider));
-    assert.deepEqual([...withPart], ["upstash"]);
+    assert.deepEqual([...withPart].sort(), ["upstash", "upstash-ephemeral"]);
   });
 
   test("Boat's monthly minimum comes from the site's pricing notes and is said beside it in both charts", () => {
