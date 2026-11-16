@@ -501,7 +501,11 @@ const qualifier = (short: string, text: string): Flag => ({ status: null, short,
 export function readFlag(flag: string): Flag {
   if (flag.startsWith("unsettled")) return withStatus("unsettled", "the provider hasn't settled the charge yet, so it can still change");
   if (flag.startsWith("provisional")) {
-    if (flag.includes("meter not reconciled")) return withStatus("unreconciled", "its usage meter hasn't been checked against settled charges yet");
+    if (flag.includes("meter not reconciled")) {
+      // The harness says why after the colon (the audit's checked reason); keep it for the reader.
+      const why = /meter not reconciled with settled charges:\s*(.+)$/s.exec(flag)?.[1];
+      return withStatus("unreconciled", why ? `its usage meter hasn't been checked against settled charges: ${why}` : "its usage meter hasn't been checked against settled charges yet");
+    }
     if (flag.includes("storage coverage")) return withStatus("provisional", "it isn't known yet whether its billing source includes disk");
     return withStatus("provisional", flag.replace(/^provisional:\s*/, ""));
   }

@@ -407,7 +407,16 @@ describe("statuses and billing", () => {
   test("each harness reason reads as an eligibility-table status or a qualifier", () => {
     assert.equal(readFlag("unsettled (5 attempts)").status, "unsettled");
     assert.equal(readFlag(meter).status, "unreconciled");
-    assert.equal(readFlag(meter).text, "its usage meter hasn't been checked against settled charges yet");
+    assert.equal(readFlag(meter).text, "its usage meter hasn't been checked against settled charges: pilot: no settled-charge reconciliation was run");
+    assert.equal(readFlag("provisional: meter not reconciled").text, "its usage meter hasn't been checked against settled charges yet");
+    // The audit's checked reason, when the harness gives one, is kept for the reader.
+    assert.equal(
+      readFlag("provisional: meter not reconciled with settled charges: the API key reads no billing").text,
+      "its usage meter hasn't been checked against settled charges: the API key reads no billing",
+    );
+    const boxd = realistic.rows.find((r) => r.provider === "boxd" && r.variant === "headline");
+    assert.ok(boxd);
+    assert.match(readFlag(boxd.flags[0] ?? "").text, /rerun on 2026-11-16 \(rw-verify2, 14:00 to 15:30 UTC\) wasn't isolated/);
     assert.equal(readFlag("provisional: storage coverage of the billing source unknown").status, "provisional");
     assert.equal(readFlag("unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation").status, "estimate");
     assert.equal(readFlag("wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB").text, "it ran with 15.6 GiB of memory, not the 8 GiB this track asks for");
