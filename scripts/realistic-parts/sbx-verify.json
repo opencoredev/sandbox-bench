@@ -1,6 +1,6 @@
 {
   "schema": "realistic-estimated-parts/2",
-  "summarySha256": "f7e04ef1a6395b8968d5adafe22944d6a82fde894f75ba70b6e69815df63d1e2",
+  "summarySha256": "dac58cab69d1687b430a913dbcfd985a2b8de323cfc0729192cc730f98b548d2",
   "harness": {
     "commit": "0f42bd9"
   },

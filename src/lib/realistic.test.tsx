@@ -638,7 +638,7 @@ describe("exports", () => {
       assert.ok(text.includes(scopeLine(realistic)));
       assert.ok(text.includes("What a task costs"));
       assert.match(text, /billed, verified/);
-      assert.match(text, /metered, unreconciled/);
+      assert.match(text, /metered, (unsettled, )?unreconciled/);
     }
     assert.match(md, /\| Kind and status \| vs no wait \|/);
     const section = llms.slice(llms.indexOf("## What a task costs"), llms.indexOf("## Quick picks"));
@@ -882,8 +882,8 @@ describe("page", () => {
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Lowest verified fix-and-test cost, per 1,000/);
-    // Same-machine fix-and-test's pick is Daytona's billed, settled cost, with no estimated part.
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">billed, verified<\/span>/, "the status sits outside the clamped line");
+    // Same-machine fix-and-test's pick is a verified cost with no estimated part (E2B's reconciled meter since 2026-11-16).
+    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">(billed|metered), verified<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });
 });

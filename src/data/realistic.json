@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-16T19:05:40.745Z",
+  "generatedAt": "2026-11-16T19:44:07.280Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -62,7 +62,7 @@
   "sources": [
     {
       "name": "sbx-verify/merged",
-      "generatedAt": "2026-11-16T19:05:40.632Z",
+      "generatedAt": "2026-11-16T19:44:07.126Z",
       "providers": [
         "boat",
         "boxd",
@@ -512,10 +512,8 @@
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: E2B's API key reads no billing: the public API has no usage, cost or invoice endpoint, so the meter (lifecycle execution segments at published rates) was not checked against charges"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "freestyle",
@@ -1103,10 +1101,8 @@
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: E2B's API key reads no billing: the public API has no usage, cost or invoice endpoint, so the meter (lifecycle execution segments at published rates) was not checked against charges"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "freestyle",
