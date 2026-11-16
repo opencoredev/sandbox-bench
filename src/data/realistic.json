@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-16T15:51:33.255Z",
+  "generatedAt": "2026-11-16T19:05:40.745Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -62,7 +62,7 @@
   "sources": [
     {
       "name": "sbx-verify/merged",
-      "generatedAt": "2026-11-16T15:51:23.621Z",
+      "generatedAt": "2026-11-16T19:05:40.632Z",
       "providers": [
         "boat",
         "boxd",
@@ -155,20 +155,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 200.877,
-      "medianCpuS": 269.565,
+      "medianWallS": 295.155,
+      "medianCpuS": 374.709,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0082732,
-        "wholeMachineUsdPerCompleted": 0.0110074,
+        "usdPerCompleted": 0.0118586,
+        "wholeMachineUsdPerCompleted": 0.0162599,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "daytona",
@@ -454,19 +452,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 146.251,
-      "medianCpuS": 288.813,
+      "medianWallS": 266.329,
+      "medianCpuS": 457.51,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0075674,
-        "wholeMachineUsdPerCompleted": 0.0158491,
+        "usdPerCompleted": 0.0128744,
+        "wholeMachineUsdPerCompleted": 0.0299467,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -505,12 +502,12 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 208.176,
-      "medianCpuS": 367.911,
+      "medianWallS": 175.591,
+      "medianCpuS": 314.56,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0185249,
-        "wholeMachineUsdPerCompleted": 0.0186392,
+        "usdPerCompleted": 0.0174057,
+        "wholeMachineUsdPerCompleted": 0.0175168,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -758,20 +755,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 132.045,
-      "medianCpuS": 209.54,
+      "medianWallS": 175.327,
+      "medianCpuS": 272.205,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0039948,
-        "wholeMachineUsdPerCompleted": 0.00714168,
+        "usdPerCompleted": 0.0050078,
+        "wholeMachineUsdPerCompleted": 0.009009,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "daytona",
@@ -1043,19 +1038,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 85.649,
-      "medianCpuS": 214.059,
+      "medianWallS": 133.183,
+      "medianCpuS": 312.494,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0038042,
-        "wholeMachineUsdPerCompleted": 0.00912072,
+        "usdPerCompleted": 0.0054996,
+        "wholeMachineUsdPerCompleted": 0.0142044,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: boxd's org charges can't be tied to these runs. In 2026-11-05 21:00 to 2026-11-06 03:00 UTC, 4 machines outside these runs had $0.015487 of the org's $0.314878 usage. A rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated either: the org's one other machine (cb2627ec, made through the sandbox SDK on 2026-10-22, hibernated) was woken at 14:00 by the bench's own boxd adapter, whose list() reads every SDK machine's metadata file, and its usage parts were $0.006355 of the window's $0.221442 posted charges (our 19 machines' meter: $0.214990). The per-bucket exact split fails as well: buckets with several running machines were charged up to 53 micro-USD (0.14%) more than their machines' rounded parts, beyond the 2 micro-USD tolerance, in both windows",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -1099,12 +1093,12 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 112.638,
-      "medianCpuS": 278.721,
+      "medianWallS": 111.966,
+      "medianCpuS": 280.717,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.00998993,
-        "wholeMachineUsdPerCompleted": 0.0100832,
+        "usdPerCompleted": 0.0100671,
+        "wholeMachineUsdPerCompleted": 0.0101568,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

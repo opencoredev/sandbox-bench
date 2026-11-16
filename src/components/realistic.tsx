@@ -24,6 +24,7 @@ import {
   isCounterfactual,
   isVerifiedHold,
   laterLine,
+  runsLine,
   multipleNote,
   multipleText,
   resumeFailed,
@@ -363,6 +364,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(track === "default" ? [{ text: "Default machines: each provider's own default size, so sizes differ. Where the default is too small for the workload (checked locally before any paid run), the provider wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ text: <><Who id="boxd" /> bills in euros, converted at {data.fx.eurToUsd} dollars per euro, the rate frozen on {data.fx.date}.</> }] : []),
     ...minimums,
+    { text: runsLine },
     { text: `${pilotLine(data)} ${laterLine}` },
   ];
 }
@@ -601,6 +603,7 @@ export function IdleChart() {
           }),
           { text: "Nothing runs in the sandbox while it waits: no command, open stream or keepalive from us. Each provider's default idle, standby and pause behaviour applies." },
           { text: scopeLine(realistic) },
+          { text: runsLine },
           { text: `${pilotLine(realistic)} ${laterLine}` },
         ]}
       />

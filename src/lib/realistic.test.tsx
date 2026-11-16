@@ -414,9 +414,11 @@ describe("statuses and billing", () => {
       readFlag("provisional: meter not reconciled with settled charges: the API key reads no billing").text,
       "its usage meter hasn't been checked against settled charges: the API key reads no billing",
     );
-    const boxd = realistic.rows.find((r) => r.provider === "boxd" && r.variant === "headline");
-    assert.ok(boxd);
-    assert.match(readFlag(boxd.flags[0] ?? "").text, /rerun on 2026-11-16 \(rw-verify2, 14:00 to 15:30 UTC\) wasn't isolated/);
+    // A long reason with parentheses and dates, as an audit entry writes it, is kept whole.
+    assert.match(
+      readFlag("provisional: meter not reconciled with settled charges: a rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated").text,
+      /rerun on 2026-11-16 \(rw-verify2, 14:00 to 15:30 UTC\) wasn't isolated/,
+    );
     assert.equal(readFlag("provisional: storage coverage of the billing source unknown").status, "provisional");
     assert.equal(readFlag("unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation").status, "estimate");
     assert.equal(readFlag("wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB").text, "it ran with 15.6 GiB of memory, not the 8 GiB this track asks for");

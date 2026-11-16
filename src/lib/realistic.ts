@@ -439,6 +439,9 @@ export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 /** "Pilot · 5 runs", for places with room for a word or two. */
 export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs`;
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
+/** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
+export const runsLine =
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Vercel and Modal on 2026-11-09. boxd's and E2B's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC) with nothing else on either account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05.";
 
 export const profileInfo = {
   "fix-and-test": { label: "Fix and test", task: "fix-and-test run" },

@@ -25,6 +25,14 @@
  * out (a probe's billing line itemized storage apart), and the audit's boxd
  * entry records a clean-window rerun (sbx-verify2/headline, rw-verify2) that
  * couldn't be isolated. The rerun's attempts are not in the summary.
+ * Rebuilt on 2026-11-16 (harness 0f42bd9) with boxd's and E2B's headline
+ * attempts from reruns of the same plan and seed on 2026-11-16 in place of
+ * rw-head1's (2026-11-05): sbx-verify3/headline (boxd, rw-verify3, 16:45 to
+ * 18:00 UTC) and sbx-verify3/e2b-headline (E2B, rw-e2b-verify3, 17:00 to
+ * 17:25 UTC), added with `--out` and `--drop boxd@rw-head1 --drop
+ * e2b@rw-head1`; their held-open rows still come from sbx99-held-open2.
+ * bench/scripts/boxd-settled.ts and e2b-settled.ts wrote each provider's
+ * entries in the audit (sbx-verify3/README.md and finish.sh have the commands).
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one
