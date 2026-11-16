@@ -72,8 +72,24 @@ export interface SiteProviderExport {
   }[];
   ourFailures: readonly { reason: string; count: number; runs: number }[];
   pauseSplit: { pause: number; resume: number; n: number } | null;
+  /**
+   * For a provider with no pause call whose sandbox goes on standby by itself
+   * when idle (Baseten): the median resume, the first command after standby, in
+   * seconds, how long each attempt sent no requests and the median standby gap
+   * the sandbox's own ticker showed. Its pause-resume metric is resume alone.
+   * Absent in exports made before it, null for every other provider.
+   */
+  standbyResume?: StandbyResumeExport | null;
   /** From the cost suite, once the harness exports it; absent until then. See readCostPerTask in data.ts. */
   costPerTask?: CostPerTaskExport | null;
+}
+
+/** The harness's standbyResume (bench/src/site-data.ts), in seconds. */
+export interface StandbyResumeExport {
+  resume: number;
+  idleS: number;
+  medianGapS: number;
+  n: number;
 }
 
 /**

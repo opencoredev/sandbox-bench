@@ -197,6 +197,11 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   superserve: { kind: "unconfirmed", evidence: "Published vCPU and GiB-hour rates; our data doesn't say whether they apply to the allocation or to use." },
   freestyle: { kind: "unconfirmed", evidence: "Published overage rates and no billing API; our data doesn't say whether they apply to the allocation or to use." },
   tenki: { kind: "unconfirmed", evidence: "Per-second pricing and no billing API; our data doesn't say whether it applies to the allocation or to use." },
+  baseten: {
+    kind: "unconfirmed",
+    evidence:
+      "baseten.co/pricing (checked Nov 16, 2026): usage-based, $0.0655 per vCPU-hour and $0.0211 per GB of RAM per hour, with no billing data we can read; our data doesn't say whether the rates apply to the allocation or to use. Its docs say a sandbox on standby is billed for storage only.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time and the memory it allocates",

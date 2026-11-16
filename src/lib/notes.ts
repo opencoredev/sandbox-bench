@@ -99,6 +99,18 @@ export const noRealPause: Notes = {
   vercel: "Vercel Sandbox's pause keeps files but not processes: pause stops the session, and resume starts a new one from the saved file system, ending every running process.",
 };
 
+/**
+ * No pause call at all: the sandbox goes on standby by itself once it stops
+ * getting requests, keeping memory and processes, and the next request
+ * resumes it. Only its resume is timed; the page never shows it as a pause +
+ * resume total or as a pause that took no time. Every provider whose export
+ * has a standby resume needs a line here (pause.ts stops the build without one).
+ * Each reads after "<Provider>: ", so it doesn't repeat the name.
+ */
+export const autoStandby: Notes = {
+  baseten: "no pause call. A sandbox goes on standby by itself about 15 s after its last request, keeping its memory, files and running processes, and the next request resumes it.",
+};
+
 /** Snapshot caveats from each provider's docs, for the snapshot charts. */
 export const snapshotNotes: Notes = {
   modal: "Modal's snapshots keep the file system only, not running processes or memory.",

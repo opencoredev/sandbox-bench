@@ -49,6 +49,13 @@ export const advertised = {
     source: "https://modal.com/docs/guide/sandbox-resources",
     note: "Modal's default is a request of 0.125 CPU (Modal counts a CPU as a physical core) and 128 MiB, which bursts into spare host capacity, up to 16 CPUs above the request. Inside, the sandbox shows the host's whole memory. Modal bills the higher of the request and what the sandbox uses.",
   },
+  baseten: {
+    vcpu: 2,
+    memoryGiB: 4,
+    diskGiB: null,
+    source: "https://docs.baseten.co/reference/management-api/sandboxes/create-a-sandbox",
+    note: "Baseten's default is 4096 MB of memory, which sets 2 vCPU (2048 MB per vCPU). It has no disk: files live in the sandbox's memory and count against it.",
+  },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }
