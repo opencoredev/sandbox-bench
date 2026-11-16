@@ -4,7 +4,7 @@ import { ProviderLogo } from "@/components/provider-logo";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumb, Fact, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
-import { providerName } from "@/lib/providers";
+import { providerFormerName, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
@@ -245,6 +245,7 @@ export default async function ProviderPage(props: Props) {
   const id = await pageId(props);
   const r = providerResults(id);
   const name = r.name;
+  const formerly = providerFormerName(id);
   const url = `${site}${providerPath(id)}`;
   const others = providerPages.filter((p) => p !== id);
   const h = r.hardware;
@@ -292,6 +293,7 @@ export default async function ProviderPage(props: Props) {
             {name} sandbox benchmark
           </h1>
           <p className="max-w-[72ch] text-m text-pretty text-neutral-8">
+            {formerly ? `${name} was called ${formerly} before its rebrand. ` : ""}
             {h ? `Our hardware probe found ${name} runs each sandbox as a ${h.runsAs.split(",")[0]}. ` : ""}
             We timed it through one SDK against {Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1)}{" "}other sandbox providers: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same {trackInfo["same-spec"].short}{" "}machine for every provider, and each provider&apos;s default machine.
           </p>

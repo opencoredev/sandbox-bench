@@ -57,16 +57,16 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath |
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-09",
+  "/": "2026-11-16",
   "/providers/e2b/": "2026-11-03",
-  "/providers/": "2026-11-03",
+  "/providers/": "2026-11-16",
   "/providers/daytona/": "2026-11-02",
   "/providers/superserve/": "2026-11-02",
   "/providers/upstash/": "2026-11-02",
   "/providers/upstash-ephemeral/": "2026-11-02",
   "/providers/boat/": "2026-11-02",
   "/providers/freestyle/": "2026-11-02",
-  "/providers/tenki/": "2026-11-02",
+  "/providers/tenki/": "2026-11-16",
   "/compare/e2b-vs-daytona/": "2026-11-03",
   "/compare/upstash-box-vs-e2b/": "2026-11-03",
   "/compare/upstash-box-vs-daytona/": "2026-10-30",

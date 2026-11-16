@@ -25,8 +25,8 @@ export const advertised = {
     vcpu: null,
     memoryGiB: null,
     diskGiB: 5,
-    source: "https://tenki.cloud/docs/sandbox/cli.md",
-    note: "Tenki documents a 5 GiB default disk but not a default vCPU or RAM, so those are what we measured.",
+    source: "https://luxor.ai/docs/sandbox/cli.md",
+    note: "Luxor documents a 5 GiB default disk but not a default vCPU or RAM, so those are what we measured.",
   },
   superserve: {
     vcpu: 1,
