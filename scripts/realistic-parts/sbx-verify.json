@@ -1,8 +1,8 @@
 {
   "schema": "realistic-estimated-parts/2",
-  "summarySha256": "eaff7a5e89ab3353e553a378f5913f4c4406177f35b586a18e1b7baeb961b351",
+  "summarySha256": "04b543d6168beebad1b8b63831660c4ad9d6a264d5498277a39779f80e56d0f0",
   "harness": {
-    "commit": "5b43002"
+    "commit": "b1d6ecb"
   },
   "rows": [
     {

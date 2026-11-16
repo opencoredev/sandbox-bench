@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-16T13:33:54.876Z",
+  "generatedAt": "2026-11-16T13:45:35.932Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -62,7 +62,7 @@
   "sources": [
     {
       "name": "sbx-verify/merged",
-      "generatedAt": "2026-11-16T13:33:45.972Z",
+      "generatedAt": "2026-11-16T13:45:35.817Z",
       "providers": [
         "boat",
         "boxd",
