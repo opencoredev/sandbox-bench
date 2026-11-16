@@ -19,8 +19,10 @@
  * The run folders are the summary command's inputs; for sbx-verify/merged
  * they are sbx-verify/sbx100-headline, sbx100-boat,
  * sbx-verify/sbx100-daytona-makeup, sbx-verify/sbx99-held-open2,
- * sbx99-held-open-boat, sbx103-vercel/headline and sbx103-vercel/held-open
- * (all under provider-runs). The drop rules come from summary.json.
+ * sbx99-held-open-boat, sbx103-vercel/headline, sbx103-vercel/held-open,
+ * sbx-verify3/headline and sbx-verify3/e2b-headline (all under
+ * provider-runs; sbx-verify3/finish.sh runs it). The drop rules come from
+ * summary.json.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
