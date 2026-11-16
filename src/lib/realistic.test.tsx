@@ -407,7 +407,18 @@ describe("statuses and billing", () => {
   test("each harness reason reads as an eligibility-table status or a qualifier", () => {
     assert.equal(readFlag("unsettled (5 attempts)").status, "unsettled");
     assert.equal(readFlag(meter).status, "unreconciled");
-    assert.equal(readFlag(meter).text, "its usage meter hasn't been checked against settled charges yet");
+    assert.equal(readFlag(meter).text, "its usage meter hasn't been checked against settled charges: pilot: no settled-charge reconciliation was run");
+    assert.equal(readFlag("provisional: meter not reconciled").text, "its usage meter hasn't been checked against settled charges yet");
+    // The audit's checked reason, when the harness gives one, is kept for the reader.
+    assert.equal(
+      readFlag("provisional: meter not reconciled with settled charges: the API key reads no billing").text,
+      "its usage meter hasn't been checked against settled charges: the API key reads no billing",
+    );
+    // A long reason with parentheses and dates, as an audit entry writes it, is kept whole.
+    assert.match(
+      readFlag("provisional: meter not reconciled with settled charges: a rerun on 2026-11-16 (rw-verify2, 14:00 to 15:30 UTC) wasn't isolated").text,
+      /rerun on 2026-11-16 \(rw-verify2, 14:00 to 15:30 UTC\) wasn't isolated/,
+    );
     assert.equal(readFlag("provisional: storage coverage of the billing source unknown").status, "provisional");
     assert.equal(readFlag("unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation").status, "estimate");
     assert.equal(readFlag("wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB").text, "it ran with 15.6 GiB of memory, not the 8 GiB this track asks for");
@@ -458,8 +469,11 @@ describe("statuses and billing", () => {
     assert.match(line, /setup and failed attempts included/);
     assert.match(costCovers, /through confirmed deletion/);
     assert.match(line, /through confirmed deletion/);
-    assert.match(line, /Upstash Box's billing leaves disk out, so disk is added at list price/);
-    assert.match(line, /For (Daytona and Upstash Ephemeral Box|Upstash Ephemeral Box and Daytona) it isn't known whether the billing source includes disk/);
+    // Upstash bills storage on its own line, apart from the compute charge both products report
+    // (harness billing rules), and Daytona's analytics price itemizes disk, so no storage is unknown.
+    assert.match(line, /Upstash Box and Upstash Ephemeral Box's billing leaves disk out, so disk is added at list price/);
+    assert.doesNotMatch(line, /isn't known whether the billing source includes disk/);
+    assert.doesNotMatch(line, /Daytona/);
     assert.match(line, /snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them/);
   });
 });
@@ -564,10 +578,10 @@ describe("idle", () => {
     assert.deepEqual(groups.map((g) => g.provider), ["upstash", "boat"]);
   });
 
-  test("a provider whose billing may leave disk out stays provisional in the idle test, as on the cost charts", () => {
+  test("a provider whose billing leaves disk out shows disk estimated in the idle test, as on the cost charts", () => {
     const eph = idleGroups(realistic).find((g) => g.provider === "upstash-ephemeral");
     assert.ok(eph);
-    for (const p of eph.points) assert.equal(holdTag(p), "billed, provisional");
+    for (const p of eph.points) assert.equal(holdTag(p), "compute verified (billed, settled); disk estimated");
   });
 });
 
@@ -624,7 +638,7 @@ describe("exports", () => {
       assert.ok(text.includes(scopeLine(realistic)));
       assert.ok(text.includes("What a task costs"));
       assert.match(text, /billed, verified/);
-      assert.match(text, /metered, unreconciled/);
+      assert.match(text, /metered, (unsettled, )?unreconciled/);
     }
     assert.match(md, /\| Kind and status \| vs no wait \|/);
     const section = llms.slice(llms.indexOf("## What a task costs"), llms.indexOf("## Quick picks"));
@@ -681,7 +695,7 @@ describe("final review", () => {
     assert.equal(groups.find((g) => g.provider === "upstash-ephemeral") && idleFailed(groups.find((g) => g.provider === "upstash-ephemeral")!), true);
     const html = renderToStaticMarkup(<IdleChart />);
     assert.match(html, /opacity-40/);
-    assert.match(html, /text-neutral-6[^"]*">\$12.15/);
+    assert.match(html, /text-neutral-6[^"]*">\$13.57/);
   });
 
   test("the idle chart prints each wait against no wait as ×N, from the harness's ratio", () => {
@@ -792,9 +806,9 @@ describe("page", () => {
     assert.doesNotMatch(html, /\b0\.3[–-]1\.0%/);
   });
 
-  test("only Upstash Box has an estimated part in this data", () => {
+  test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {
     const withPart = new Set([...realistic.rows.filter((r) => r.estimatedPart), ...realistic.heldOpen.filter((h) => h.estimatedPart)].map((r) => r.provider));
-    assert.deepEqual([...withPart], ["upstash"]);
+    assert.deepEqual([...withPart].sort(), ["upstash", "upstash-ephemeral"]);
   });
 
   test("Boat's monthly minimum comes from the site's pricing notes and is said beside it in both charts", () => {
@@ -868,7 +882,8 @@ describe("page", () => {
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Lowest verified fix-and-test cost, per 1,000/);
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">compute verified \(billed, settled\); disk estimated<\/span>/, "the status sits outside the clamped line");
+    // Same-machine fix-and-test's pick is a verified cost with no estimated part (E2B's reconciled meter since 2026-11-16).
+    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">(billed|metered), verified<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });
 });

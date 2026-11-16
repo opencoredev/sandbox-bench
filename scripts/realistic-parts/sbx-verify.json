@@ -1,19 +1,10 @@
 {
   "schema": "realistic-estimated-parts/2",
-  "summarySha256": "ea17d70460d4cbecd91da47380303659bc12786fccfdbde2e6cf1cc6bfbacee3",
+  "summarySha256": "dac58cab69d1687b430a913dbcfd985a2b8de323cfc0729192cc730f98b548d2",
   "harness": {
-    "commit": "be57fd3"
+    "commit": "0f42bd9"
   },
   "rows": [
-    {
-      "provider": "e2b",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": null,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
     {
       "provider": "daytona",
       "profile": "fix-and-test",
@@ -48,18 +39,11 @@
       "profile": "fix-and-test",
       "track": "default",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.006097609122222223,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "boxd",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.003994800000000001,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.00614930665308642,
+      "estimatedPerCompletedUSD": 0.00005169753086419753,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "freestyle",
@@ -76,15 +60,6 @@
       "track": "default",
       "variant": "headline",
       "totalPerCompletedUSD": 0.00727012,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "e2b",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": null,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -131,18 +106,11 @@
       "profile": "build",
       "track": "default",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.011231242743055557,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "boxd",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.0082732,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.011344475767746914,
+      "estimatedPerCompletedUSD": 0.00011323302469135804,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "freestyle",
@@ -150,15 +118,6 @@
       "track": "default",
       "variant": "headline",
       "totalPerCompletedUSD": 0.017102848000000004,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "e2b",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.0185248624,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -178,18 +137,11 @@
       "profile": "build",
       "track": "same-machine",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.016359176166666666,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "boxd",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.007567399999999999,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.01642514838888889,
+      "estimatedPerCompletedUSD": 0.00006597222222222223,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "freestyle",
@@ -219,15 +171,6 @@
       "estimatedLabels": []
     },
     {
-      "provider": "e2b",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.0099899304,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
       "provider": "upstash",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -243,18 +186,11 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.012048730366666668,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "boxd",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.0038041999999999998,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.012083452588888887,
+      "estimatedPerCompletedUSD": 0.00003472222222222222,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "freestyle",
@@ -371,9 +307,11 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "zero-wait",
-      "totalPerCompletedUSD": 0.016709677944444445,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.016753659425925924,
+      "estimatedPerCompletedUSD": 0.000043981481481481486,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",
@@ -420,7 +358,9 @@
       "variant": "held-60",
       "totalPerCompletedUSD": null,
       "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",
@@ -465,9 +405,11 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "held-10",
-      "totalPerCompletedUSD": 0.016494998722222223,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
+      "totalPerCompletedUSD": 0.016769690080246914,
+      "estimatedPerCompletedUSD": 0.00027469135802469136,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",
@@ -567,6 +509,78 @@
       "totalPerCompletedUSD": 0.051368848888888895,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0050078,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0118586,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0128744,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "boxd",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0054996,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": null,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": null,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0174057008,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "e2b",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0100671184,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
     }
   ],
   "heldOpen": [
@@ -596,9 +610,11 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "zero-wait",
-      "medianTotalUSD": 0.01645793972222222,
-      "medianEstimatedUSD": 0,
-      "estimatedLabels": []
+      "medianTotalUSD": 0.01650114959876543,
+      "medianEstimatedUSD": 0.00004320987654320988,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",
@@ -633,9 +649,11 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "held-60",
-      "medianTotalUSD": 0.012147272666666667,
-      "medianEstimatedUSD": 0,
-      "estimatedLabels": []
+      "medianTotalUSD": 0.013570497975308642,
+      "medianEstimatedUSD": 0.0014232253086419754,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",
@@ -670,9 +688,11 @@
     {
       "provider": "upstash-ephemeral",
       "idle": "held-10",
-      "medianTotalUSD": 0.01664865683333333,
-      "medianEstimatedUSD": 0,
-      "estimatedLabels": []
+      "medianTotalUSD": 0.016924119796296294,
+      "medianEstimatedUSD": 0.0002750771604938272,
+      "estimatedLabels": [
+        "disk at list price"
+      ]
     },
     {
       "provider": "boxd",

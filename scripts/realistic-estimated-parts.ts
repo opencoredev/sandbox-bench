@@ -11,15 +11,18 @@
  * computes matches the summary's, so the parts belong to the published numbers.
  *
  *   bun scripts/realistic-estimated-parts.ts \
- *     --harness ~/agents/sbx103/sandbox-sdk/bench \
- *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-vercel/merged/summary.json \
+ *     --harness ~/.t3/worktrees/sandbox-sdk/sbx-103-modal-export/bench \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-verify/merged/summary.json \
  *     --run-dir <each --out the summary command read> ... \
- *     --out scripts/realistic-parts/sbx103-vercel.json
+ *     --out scripts/realistic-parts/sbx-verify.json
  *
- * The run folders are the summary command's inputs; for sbx103-vercel/merged
- * they are sbx100-headline, sbx100-boat, sbx100-daytona-makeup,
- * sbx99-held-open2, sbx99-held-open-boat, sbx103-vercel/headline and
- * sbx103-vercel/held-open. The drop rules come from summary.json.
+ * The run folders are the summary command's inputs; for sbx-verify/merged
+ * they are sbx-verify/sbx100-headline, sbx100-boat,
+ * sbx-verify/sbx100-daytona-makeup, sbx-verify/sbx99-held-open2,
+ * sbx99-held-open-boat, sbx103-vercel/headline, sbx103-vercel/held-open,
+ * sbx-verify3/headline and sbx-verify3/e2b-headline (all under
+ * provider-runs; sbx-verify3/finish.sh runs it). The drop rules come from
+ * summary.json.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

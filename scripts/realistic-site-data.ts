@@ -6,12 +6,33 @@
  * The command that built the committed data:
  *
  *   bun scripts/realistic-site-data.ts \
- *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-vercel/merged/summary.json \
- *     --parts scripts/realistic-parts/sbx103-vercel.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-verify/merged/summary.json \
+ *     --parts scripts/realistic-parts/sbx-verify.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal-r2/summary.json \
  *     --parts scripts/realistic-parts/sbx103-modal.json \
- *     --attempts ~/agents/realistic-workloads/provider-runs/sbx100-headline/attempts.jsonl \
+ *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
+ *
+ * sbx-verify/merged (2026-11-16) is the sbx103-vercel/merged summary rebuilt
+ * after settlement: copies of sbx100-headline, sbx100-daytona-makeup and
+ * sbx99-held-open2 had Daytona and boxd billing recollected
+ * (`bun bench realistic billing --providers daytona,boxd`; other providers'
+ * entries kept as collected), and the summary read the settled-charge audit
+ * sbx-verify/audit.json (`--audit`), which records per provider why each meter
+ * is not reconciled. The other run folders are the originals.
+ * Rebuilt again on 2026-11-16 (harness 36a1a23) with no new runs: Upstash
+ * Ephemeral's billing rule now knows that its compute charge leaves storage
+ * out (a probe's billing line itemized storage apart), and the audit's boxd
+ * entry records a clean-window rerun (sbx-verify2/headline, rw-verify2) that
+ * couldn't be isolated. The rerun's attempts are not in the summary.
+ * Rebuilt on 2026-11-16 (harness 0f42bd9) with boxd's and E2B's headline
+ * attempts from reruns of the same plan and seed on 2026-11-16 in place of
+ * rw-head1's (2026-11-05): sbx-verify3/headline (boxd, rw-verify3, 16:45 to
+ * 18:00 UTC) and sbx-verify3/e2b-headline (E2B, rw-e2b-verify3, 17:00 to
+ * 17:25 UTC), added with `--out` and `--drop boxd@rw-head1 --drop
+ * e2b@rw-head1`; their held-open rows still come from sbx99-held-open2.
+ * bench/scripts/boxd-settled.ts and e2b-settled.ts wrote each provider's
+ * entries in the audit (sbx-verify3/README.md and finish.sh have the commands).
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

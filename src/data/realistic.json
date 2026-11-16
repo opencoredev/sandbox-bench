@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-10T00:08:44.557Z",
+  "generatedAt": "2026-11-16T19:44:07.280Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -61,8 +61,8 @@
   },
   "sources": [
     {
-      "name": "sbx103-vercel/merged",
-      "generatedAt": "2026-11-09T17:48:33.661Z",
+      "name": "sbx-verify/merged",
+      "generatedAt": "2026-11-16T19:44:07.126Z",
       "providers": [
         "boat",
         "boxd",
@@ -141,7 +141,7 @@
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: Boat has no settled-charge source for these runs: its per-sandbox usage API reports list-price dollars and returns 404 once a sandbox is deleted, it has no charges or invoice API, and the account's VM time is drawn from a flat monthly plan's included hours (wallet $0), so no per-window charge exists"
       ]
     },
     {
@@ -155,20 +155,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 200.877,
-      "medianCpuS": 269.565,
+      "medianWallS": 295.155,
+      "medianCpuS": 374.709,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0082732,
-        "wholeMachineUsdPerCompleted": 0.0110074,
+        "usdPerCompleted": 0.0118586,
+        "wholeMachineUsdPerCompleted": 0.0162599,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "daytona",
@@ -370,16 +368,19 @@
       "medianCpuS": 280.33,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0112312,
+        "usdPerCompleted": 0.0113445,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.000113233,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -410,7 +411,7 @@
       "eligible": false,
       "flags": [
         "3 incomplete runs (at most 1)",
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
       ]
     },
     {
@@ -437,7 +438,7 @@
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: Boat has no settled-charge source for these runs: its per-sandbox usage API reports list-price dollars and returns 404 once a sandbox is deleted, it has no charges or invoice API, and the account's VM time is drawn from a flat monthly plan's included hours (wallet $0), so no per-window charge exists"
       ]
     },
     {
@@ -451,19 +452,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 146.251,
-      "medianCpuS": 288.813,
+      "medianWallS": 266.329,
+      "medianCpuS": 457.51,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0075674,
-        "wholeMachineUsdPerCompleted": 0.0158491,
+        "usdPerCompleted": 0.0128744,
+        "wholeMachineUsdPerCompleted": 0.0299467,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -488,11 +488,8 @@
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "e2b",
@@ -505,20 +502,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 208.176,
-      "medianCpuS": 367.911,
+      "medianWallS": 175.591,
+      "medianCpuS": 314.56,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0185249,
-        "wholeMachineUsdPerCompleted": 0.0186392,
+        "usdPerCompleted": 0.0174057,
+        "wholeMachineUsdPerCompleted": 0.0175168,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "freestyle",
@@ -680,16 +675,19 @@
       "medianCpuS": 298.283,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0163592,
+        "usdPerCompleted": 0.0164251,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000659722,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -714,7 +712,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
       ]
     },
     {
@@ -741,7 +739,7 @@
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: Boat has no settled-charge source for these runs: its per-sandbox usage API reports list-price dollars and returns 404 once a sandbox is deleted, it has no charges or invoice API, and the account's VM time is drawn from a flat monthly plan's included hours (wallet $0), so no per-window charge exists"
       ]
     },
     {
@@ -755,20 +753,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 132.045,
-      "medianCpuS": 209.54,
+      "medianWallS": 175.327,
+      "medianCpuS": 272.205,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0039948,
-        "wholeMachineUsdPerCompleted": 0.00714168,
+        "usdPerCompleted": 0.0050078,
+        "wholeMachineUsdPerCompleted": 0.009009,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "daytona",
@@ -962,16 +958,19 @@
       "medianCpuS": 218.229,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.00609761,
+        "usdPerCompleted": 0.00614931,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000516975,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -996,7 +995,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
       ]
     },
     {
@@ -1023,7 +1022,7 @@
       "eligible": false,
       "flags": [
         "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: Boat has no settled-charge source for these runs: its per-sandbox usage API reports list-price dollars and returns 404 once a sandbox is deleted, it has no charges or invoice API, and the account's VM time is drawn from a flat monthly plan's included hours (wallet $0), so no per-window charge exists"
       ]
     },
     {
@@ -1037,19 +1036,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 85.649,
-      "medianCpuS": 214.059,
+      "medianWallS": 133.183,
+      "medianCpuS": 312.494,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0038042,
-        "wholeMachineUsdPerCompleted": 0.00912072,
+        "usdPerCompleted": 0.0054996,
+        "wholeMachineUsdPerCompleted": 0.0142044,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run",
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
       ]
     },
@@ -1079,11 +1077,8 @@
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "e2b",
@@ -1096,20 +1091,18 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 112.638,
-      "medianCpuS": 278.721,
+      "medianWallS": 111.966,
+      "medianCpuS": 280.717,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.00998993,
-        "wholeMachineUsdPerCompleted": 0.0100832,
+        "usdPerCompleted": 0.0100671,
+        "wholeMachineUsdPerCompleted": 0.0101568,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
-      ]
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "freestyle",
@@ -1264,16 +1257,19 @@
       "medianCpuS": 216.501,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0120487,
+        "usdPerCompleted": 0.0120835,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "provisional: storage coverage of the billing source unknown"
-      ]
+      "estimatedPart": {
+        "usd": 0.0000347222,
+        "labels": [
+          "disk at list price"
+        ]
+      },
+      "eligible": true,
+      "flags": []
     },
     {
       "provider": "vercel",
@@ -1298,7 +1294,7 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: pilot: no settled-charge reconciliation was run"
+        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
       ]
     },
     {
@@ -1475,12 +1471,17 @@
       "medianCpuS": 299.616,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.016495,
+        "usdPerCompleted": 0.0167697,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.000274691,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -1874,12 +1875,17 @@
       "medianCpuS": 296.187,
       "cost": {
         "kind": "billed",
-        "usdPerCompleted": 0.0167097,
+        "usdPerCompleted": 0.0167537,
         "wholeMachineUsdPerCompleted": null,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.0000439815,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "eligible": false,
       "flags": []
     },
@@ -2017,10 +2023,8 @@
       "costKind": "billed",
       "medianCostUsd": 0.0100504,
       "changeVsZeroWait": null,
-      "status": "unsettled",
-      "statuses": [
-        "unsettled"
-      ],
+      "status": "settled",
+      "statuses": [],
       "estimatedPart": null,
       "medianWakeMs": 129,
       "transitions": []
@@ -2033,10 +2037,8 @@
       "costKind": "billed",
       "medianCostUsd": 0.0655776,
       "changeVsZeroWait": 5.5249,
-      "status": "unsettled",
-      "statuses": [
-        "unsettled"
-      ],
+      "status": "settled",
+      "statuses": [],
       "estimatedPart": null,
       "medianWakeMs": 253,
       "transitions": []
@@ -2049,10 +2051,8 @@
       "costKind": "billed",
       "medianCostUsd": 0.0904276,
       "changeVsZeroWait": 7.99745,
-      "status": "unsettled",
-      "statuses": [
-        "unsettled"
-      ],
+      "status": "settled",
+      "statuses": [],
       "estimatedPart": null,
       "medianWakeMs": 1839,
       "transitions": [
@@ -2155,11 +2155,16 @@
       "runs": 3,
       "completed": 3,
       "costKind": "billed",
-      "medianCostUsd": 0.0164579,
+      "medianCostUsd": 0.0165011,
       "changeVsZeroWait": null,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.0000432099,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 243,
       "transitions": []
     },
@@ -2169,11 +2174,16 @@
       "runs": 3,
       "completed": 3,
       "costKind": "billed",
-      "medianCostUsd": 0.0166487,
-      "changeVsZeroWait": 0.0115882,
+      "medianCostUsd": 0.0169241,
+      "changeVsZeroWait": 0.0256328,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.000275077,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 238,
       "transitions": []
     },
@@ -2183,11 +2193,16 @@
       "runs": 3,
       "completed": 0,
       "costKind": "billed",
-      "medianCostUsd": 0.0121473,
-      "changeVsZeroWait": -0.26192,
+      "medianCostUsd": 0.0135705,
+      "changeVsZeroWait": -0.177603,
       "status": "settled",
       "statuses": [],
-      "estimatedPart": null,
+      "estimatedPart": {
+        "usd": 0.00142323,
+        "labels": [
+          "disk at list price"
+        ]
+      },
       "medianWakeMs": 138,
       "transitions": []
     },
