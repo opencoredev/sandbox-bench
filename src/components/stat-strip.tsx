@@ -4,6 +4,7 @@ import { JumpLink } from "@/components/jump";
 import { ProviderName } from "@/components/provider-name";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
+import { pauses, resumeOf } from "@/lib/pause";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { perThousand, pickFor, pilotShort, runTrackOf, statusTag } from "@/lib/realistic";
@@ -67,15 +68,19 @@ function stats(track: Track): Stat[] {
   const replay = fastest(track, "tool-replay");
   const restore = fastest(track, "create-from-snapshot");
   const cost = costTile(track);
-  const resume = track.providers
-    .flatMap((p) => (p.pauseSplit ? [{ provider: p.id, resume: p.pauseSplit.resume }] : []))
+  // The Resume tab's ranking: a resume call's, or the first command after a sandbox went on standby by itself.
+  const resume = pauses(track)
+    .flatMap(({ p, r }) => {
+      const v = resumeOf(r);
+      return v === null ? [] : [{ provider: p.id, resume: v, standby: r.kind === "standby" }];
+    })
     .sort((a, b) => a.resume - b.resume)[0];
   return [
     ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
     ...(replay ? [{ label: "Fastest agent work", ...replay, section: "agent", tab: "tool-replay" }] : []),
     ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
-    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, section: "state", tab: "resume" }] : []),
+    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { note: "from standby, no pause call" } : {}), section: "state", tab: "resume" }] : []),
   ];
 }
 

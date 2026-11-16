@@ -2,7 +2,8 @@
  * Display names and chart colours of the providers on the page. Each hue is
  * the provider's own brand colour (Daytona blue, Luxor's gold, muted to stay clear of Modal's lime, Upstash emerald,
  * Upstash Ephemeral Box a deeper teal of the same emerald, Superserve mint, boxd rose, Freestyle periwinkle, E2B orange, Boat's
- * near-white mark, Vercel's white, Modal's lime), with lightness spread so every pair stays apart under
+ * near-white mark, Vercel's white, Modal's lime, Baseten's pink, warmed toward rose because its brand green sits
+ * between Upstash, Superserve and Modal), with lightness spread so every pair stays apart under
  * protanopia and deuteranopia (OKLab ΔE ≥ 6.8; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
@@ -19,6 +20,7 @@ export const providerInfo = {
   superserve: { name: "Superserve", color: "oklch(0.92 0.1 148)" },
   vercel: { name: "Vercel Sandbox", color: "oklch(0.985 0 0)" },
   modal: { name: "Modal", color: "oklch(0.86 0.19 128)" },
+  baseten: { name: "Baseten", color: "oklch(0.72 0.18 351)" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;

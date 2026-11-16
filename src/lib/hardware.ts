@@ -36,8 +36,16 @@ export interface HardwareDetail {
 
 export const probeDate = "Oct 22, 2026";
 
-/** Providers whose entry comes from the benchmark's fingerprints of their runs, and when. */
-export const fromFingerprints = { providers: ["vercel", "modal"] as const satisfies readonly ProviderId[], date: "Nov 9, 2026" };
+/** Providers whose entry comes from the benchmark's fingerprints of their runs, and when, one group per run date. */
+export const fromFingerprints = [
+  { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
+  { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
+] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
+
+/** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
+export function fingerprintDate(id: ProviderId): string | null {
+  return fromFingerprints.find((g) => (g.providers as readonly ProviderId[]).includes(id))?.date ?? null;
+}
 
 export const chipBasisLabel = {
   named: "named by the CPU",
@@ -46,10 +54,10 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox and Modal come from
- * the benchmark's own fingerprints (every sample of their Nov 9 runs: CPU
+ * Only providers with hardware evidence. Vercel Sandbox, Modal and Baseten
+ * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
- * Oct 22 probe; `fromFingerprints` lists them. A provider without an entry
+ * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
  * shows as not probed, never with guessed hardware.
  */
 export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
@@ -263,6 +271,26 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "It runs as root.",
     ],
     sameSpec: "The 4 vCPU, 8 GB size ran with a 4-CPU quota and an 8 GiB limit on the same mix of hosts.",
+  },
+  baseten: {
+    chip: "Intel Xeon, Sapphire Rapids or later",
+    family: "From CPU features: AMX and AVX-512 FP16, first in Sapphire Rapids; the model and clock are hidden",
+    chipBasis: "inferred",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory those chips take" },
+    cloud: "AWS, from its outbound IPs",
+    region: "Outbound IPs are Amazon's in Boardman, Oregon, consistent with us-west-2; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "Oregon",
+    runsAs: "virtual machine",
+    runsAsDetail: "a hypervisor flag and Linux 6.12 inside; Baseten's docs don't name the isolation",
+    storage: "No disk: files live in the sandbox's memory, on an overlay of about 3 GiB on the default size",
+    kernel: "Linux 6.12, Alpine Linux 3.21",
+    hidden: [
+      "The CPU names itself only as a generic Intel Xeon Processor, with no model number or clock. Its AMX and AVX-512 FP16 instructions first shipped in Sapphire Rapids, so it is that generation or later. Every sandbox showed the same feature set.",
+      "Files count against memory: Baseten keeps the file system in RAM, so a large workspace leaves less memory to run in. Our build workload needed an 8 GiB volume for its files.",
+      "Outbound traffic is IPv6-only for now, so a raw IPv4 address can't be reached; hostnames work.",
+      "No DMI, so the memory type is inferred from the chips. It runs as root.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB size ran on the same CPU type in the same region, with about 6 GiB of in-memory file space.",
   },
 };
 

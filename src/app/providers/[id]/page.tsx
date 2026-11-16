@@ -11,6 +11,7 @@ import { caveats, disclosure } from "@/lib/seo/copy";
 import { alternativesPath, comparePath, comparisonsWith, isAlternativesPage, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { trackInfo } from "@/lib/data";
+import { fingerprintDate } from "@/lib/hardware";
 import { headline, providerNotes, providerResults, taskText } from "@/lib/seo/provider";
 import type { MetricRow, ProviderTrack } from "@/lib/seo/provider";
 
@@ -294,7 +295,7 @@ export default async function ProviderPage(props: Props) {
           </h1>
           <p className="max-w-[72ch] text-m text-pretty text-neutral-8">
             {formerly ? `${name} was called ${formerly} before its rebrand. ` : ""}
-            {h ? `Our hardware probe found ${name} runs each sandbox as a ${h.runsAs.split(",")[0]}. ` : ""}
+            {h ? `${fingerprintDate(id) === null ? "Our hardware probe found" : "The fingerprints of our runs show"} ${name} runs each sandbox as a ${h.runsAs.split(",")[0]}. ` : ""}
             We timed it through one SDK against {Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1)}{" "}other sandbox providers: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same {trackInfo["same-spec"].short}{" "}machine for every provider, and each provider&apos;s default machine.
           </p>
           <p className="max-w-[72ch] text-s text-pretty text-neutral-7">{disclosure}</p>
