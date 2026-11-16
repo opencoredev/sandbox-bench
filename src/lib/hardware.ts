@@ -5,7 +5,7 @@ import type { ProviderId } from "@/lib/providers";
  * one default and one 4 vCPU sandbox per provider on Oct 22, 2026, checked
  * against the benchmark's own fingerprints. Only what the evidence supports:
  * a chip the CPU names itself is "named", one worked out from its model
- * number, cache and clock is "inferred", and Tenki's, which reports two
+ * number, cache and clock is "inferred", and Luxor's, which reports two
  * different chips, is "conflicting".
  */
 export type ChipBasis = "named" | "inferred" | "conflicting";
@@ -175,7 +175,7 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     family: "Zen 3 (Milan), 2.25 GHz. The 4 vCPU VM also showed EPYC 9575F (Zen 5, Turin) cores",
     chipBasis: "conflicting",
     memory: { kind: "unknown", why: "No memory data inside the VM" },
-    cloud: "Luxor (AS19538)",
+    cloud: "Luxor's own network (AS19538)",
     region: "Seattle",
     regionShort: "Seattle",
     runsAs: "Cloud Hypervisor microVM",

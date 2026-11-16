@@ -1,6 +1,6 @@
 /**
  * Display names and chart colours of the providers on the page. Each hue is
- * the provider's own brand colour (Tenki and Daytona blues, Upstash emerald,
+ * the provider's own brand colour (Daytona blue, Luxor's gold, muted to stay clear of Modal's lime, Upstash emerald,
  * Upstash Ephemeral Box a deeper teal of the same emerald, Superserve mint, boxd rose, Freestyle periwinkle, E2B orange, Boat's
  * near-white mark, Vercel's white, Modal's lime), with lightness spread so every pair stays apart under
  * protanopia and deuteranopia (OKLab ΔE ≥ 6.8; names and logos sit beside
@@ -15,11 +15,11 @@ export const providerInfo = {
   boat: { name: "Boat", color: "oklch(0.9 0.02 270)" },
   boxd: { name: "boxd", color: "oklch(0.68 0.15 12)" },
   freestyle: { name: "Freestyle", color: "oklch(0.72 0.1 298)" },
-  tenki: { name: "Tenki", color: "oklch(0.66 0.17 257)" },
+  tenki: { name: "Luxor", color: "oklch(0.8 0.1 78)", formerly: "Tenki" },
   superserve: { name: "Superserve", color: "oklch(0.92 0.1 148)" },
   vercel: { name: "Vercel Sandbox", color: "oklch(0.985 0 0)" },
   modal: { name: "Modal", color: "oklch(0.86 0.19 128)" },
-} as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string }>;
+} as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;
 
@@ -27,6 +27,12 @@ export const isProviderId = (id: string): id is ProviderId => Object.hasOwn(prov
 
 export const providerName = (id: ProviderId) => providerInfo[id].name;
 export const providerColor = (id: ProviderId) => providerInfo[id].color;
+
+/** A provider's name before a rebrand, kept so its page still says who it was (Luxor was Tenki). The id and URL keep the old name. */
+export function providerFormerName(id: ProviderId): string | undefined {
+  const info = providerInfo[id];
+  return "formerly" in info ? info.formerly : undefined;
+}
 
 /** The company behind a row: a second product shows its provider's own logo, in that provider's colour. */
 export function providerBrand(id: ProviderId): ProviderId {

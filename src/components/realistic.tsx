@@ -533,7 +533,7 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
   );
 }
 
-/** "Not in this test: Freestyle and Tenki (no billing data we can read) and Superserve (account totals only).", one group per short reason. */
+/** "Not in this test: Freestyle and Luxor (no billing data we can read) and Superserve (account totals only).", one group per short reason. */
 function NotTested() {
   const groups = new Map<string, ProviderId[]>();
   for (const n of realistic.coverage.idle.notTested) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
