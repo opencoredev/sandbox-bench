@@ -6,12 +6,20 @@
  * The command that built the committed data:
  *
  *   bun scripts/realistic-site-data.ts \
- *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-vercel/merged/summary.json \
- *     --parts scripts/realistic-parts/sbx103-vercel.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-verify/merged/summary.json \
+ *     --parts scripts/realistic-parts/sbx-verify.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal-r2/summary.json \
  *     --parts scripts/realistic-parts/sbx103-modal.json \
- *     --attempts ~/agents/realistic-workloads/provider-runs/sbx100-headline/attempts.jsonl \
+ *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
+ *
+ * sbx-verify/merged (2026-11-16) is the sbx103-vercel/merged summary rebuilt
+ * after settlement: copies of sbx100-headline, sbx100-daytona-makeup and
+ * sbx99-held-open2 had Daytona and boxd billing recollected
+ * (`bun bench realistic billing --providers daytona,boxd`; other providers'
+ * entries kept as collected), and the summary read the settled-charge audit
+ * sbx-verify/audit.json (`--audit`), which records per provider why each meter
+ * is not reconciled. The other run folders are the originals.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

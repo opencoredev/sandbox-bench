@@ -459,7 +459,9 @@ describe("statuses and billing", () => {
     assert.match(costCovers, /through confirmed deletion/);
     assert.match(line, /through confirmed deletion/);
     assert.match(line, /Upstash Box's billing leaves disk out, so disk is added at list price/);
-    assert.match(line, /For (Daytona and Upstash Ephemeral Box|Upstash Ephemeral Box and Daytona) it isn't known whether the billing source includes disk/);
+    // Daytona's analytics price itemizes disk (harness billing rule), so only Ephemeral Box is unknown.
+    assert.match(line, /For Upstash Ephemeral Box it isn't known whether the billing source includes disk/);
+    assert.doesNotMatch(line, /Daytona/);
     assert.match(line, /snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them/);
   });
 });
@@ -868,7 +870,8 @@ describe("page", () => {
   test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Lowest verified fix-and-test cost, per 1,000/);
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">compute verified \(billed, settled\); disk estimated<\/span>/, "the status sits outside the clamped line");
+    // Same-machine fix-and-test's pick is Daytona's billed, settled cost, with no estimated part.
+    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">billed, verified<\/span>/, "the status sits outside the clamped line");
     assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
   });
 });
