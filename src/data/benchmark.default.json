@@ -788,14 +788,43 @@
      "Restored allocation differs from source"
     ]
    }
+  },
+  {
+   "provider": "baseten",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 0
+    }
+   },
+   "measured": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.8465805053710938,
+     "diskGiB": 3.0772666931152344
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-09T19:49:55.720Z"
+  "end": "2026-11-17T04:45:49.065Z"
  },
- "observations": 34418,
+ "observations": 37177,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1021,6 +1050,31 @@
    "id": "sbx103m-default-cost",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbxbt-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxbt-default-burst",
+   "suite": "burst",
+   "samples": 123
+  },
+  {
+   "id": "sbxbt-default-burst25",
+   "suite": "burst",
+   "samples": 426
+  },
+  {
+   "id": "sbxbt-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxbt-default-pause",
+   "suite": "main",
+   "samples": 500
   }
  ],
  "excluded": [
@@ -1069,6 +1123,45 @@
     }
    ],
    "replacements": []
+  },
+  "baseten": {
+   "removed": {
+    "documented-not-run": 100,
+    "replaced-source": 100,
+    "above-target": 203,
+    "unselected-cohort-member": 120
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "baseten",
+     "suite": "main",
+     "scenario": "tcp-ms",
+     "reason": "Not available yet: Baseten sandboxes' outbound network is IPv6-only for now, so the probe's TCP connect to a raw IPv4 address failed with \"Network is unreachable\" on every attempt (hostnames resolve and work). Set aside, not counted as failures."
+    },
+    {
+     "provider": "baseten",
+     "suite": "snapshot",
+     "scenario": "snapshot",
+     "reason": "Not available yet: Baseten's sandbox API has no snapshots yet"
+    },
+    {
+     "provider": "baseten",
+     "suite": "snapshot",
+     "scenario": "create-from-snapshot",
+     "reason": "Not available yet: Baseten's sandbox API has no snapshots yet"
+    }
+   ],
+   "replacements": [
+    {
+     "provider": "baseten",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "sourceRunIds": [
+      "sbxbt-default-pause"
+     ]
+    }
+   ]
   }
  },
  "providers": [
@@ -2883,6 +2976,140 @@
    "failureReasons": [],
    "ourFailures": [],
    "pauseSplit": null
+  },
+  {
+   "id": "baseten",
+   "costPerTask": {
+    "usd": 0.00116675,
+    "kind": "estimate",
+    "source": "https://www.baseten.co/pricing/",
+    "confidence": "low",
+    "n": 10,
+    "settled": true,
+    "bound": "exact"
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 0
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.8465805053710938,
+     "diskGiB": 3.0772666931152344
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.2154,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.4308,
+   "perVcpuHour": 0.1077,
+   "pricingAllocation": {
+    "cpu": 2,
+    "memoryGiB": 4
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0655,
+    "memoryGiBHour": 0.0211,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 1,
+      "memoryGiB": 2
+     },
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     }
+    ]
+   },
+   "pricingSource": "https://www.baseten.co/pricing/",
+   "pricingNotes": "Published Sandboxes runtime rates ($0.0655/vCPU-hour, $0.0211/GB RAM-hour), priced on the allocation. Billing increment and minimum not stated; one-second estimate. Free promotional period excluded. Realistic runs mount an 8 GiB volume, priced at $0.16/GB-month for the sandbox's lifetime. Snapshots and stored images not used.",
+   "reliability": {
+    "successes": 2758,
+    "failures": 1,
+    "raw": 0.9996375498368975,
+    "adjusted": 0.9996375498368975,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 1
+   },
+   "hardware": {
+    "fingerprints": 200,
+    "vcpu": 2,
+    "visibleCpus": [
+     2
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 3.8465805053710938,
+    "diskGiB": 3.0772666931152344,
+    "cpuModels": [
+     {
+      "value": "Intel Xeon Processor",
+      "count": 200
+     }
+    ],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.12.114",
+    "location": [
+     {
+      "value": "Boardman, US",
+      "count": 200
+     }
+    ],
+    "network": [
+     {
+      "value": "AS16509 Amazon.com, Inc.",
+      "count": 200
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Scenario timed out after 180000ms",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Pause + resume"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": null,
+   "standbyResume": {
+    "resume": 0.2644759770000819,
+    "idleS": 30,
+    "medianGapS": 15,
+    "n": 99
+   }
   }
  ],
  "metrics": [
@@ -3034,6 +3261,19 @@
      "min": 0.31341763699999864,
      "ciLow": 0.36428582399999143,
      "ciHigh": 0.3826133629999822,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 0.7154047600000631,
+     "p95": 0.8958773100000108,
+     "min": 0.6093215360001195,
+     "ciLow": 0.7033351430000039,
+     "ciHigh": 0.7316852220001165,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3193,6 +3433,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 0.18087509300000967,
+     "p95": 0.23700250299996697,
+     "min": 0.10042645199999971,
+     "ciLow": 0.17374014599993826,
+     "ciHigh": 0.1850013780000154,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3344,6 +3597,19 @@
      "min": 0.147305234999978,
      "ciLow": 0.1699388649999164,
      "ciHigh": 0.1866250299999956,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 0.17454997600009664,
+     "p95": 0.21093884899979456,
+     "min": 0.15266898999991826,
+     "ciLow": 0.16149006500001997,
+     "ciHigh": 0.1923079030001536,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3503,6 +3769,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 1.2071685399999843,
+     "p95": 1.513733629000024,
+     "min": 1.01184777699993,
+     "ciLow": 1.1689714440000243,
+     "ciHigh": 1.2395917979998048,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3658,6 +3937,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 0.46704571799980477,
+     "p95": 0.6099891949999147,
+     "min": 0.3803929210000206,
+     "ciLow": 0.45929629199998456,
+     "ciHigh": 0.4767295109999832,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3772,6 +4064,19 @@
      "ciHigh": 3.121432426000014,
      "successes": 100,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 99,
+     "p50": 0.2644759770000819,
+     "p95": 0.3589842949998565,
+     "min": 0.1803465739999956,
+     "ciLow": 0.24800342099997216,
+     "ciHigh": 0.2822699910001829,
+     "successes": 99,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -3938,6 +4243,19 @@
       "max": 0.651,
       "unconfirmed": 0
      }
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 0.27731598099996335,
+     "p95": 0.753043796999962,
+     "min": 0.25628968299995175,
+     "ciLow": 0.2723552310001105,
+     "ciHigh": 0.28406380099989476,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4377,6 +4695,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 0.8580900880000554,
+     "p95": 1.1395307280000124,
+     "min": 0.7934016249999404,
+     "ciLow": 0.8425560540000006,
+     "ciHigh": 0.8951036169999279,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4528,6 +4859,19 @@
      "min": 0.905879117000004,
      "ciLow": 1.125533453000011,
      "ciHigh": 1.167566605,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 1.2002271539999638,
+     "p95": 1.392055188999977,
+     "min": 1.08602795899997,
+     "ciLow": 1.1644377899999963,
+     "ciHigh": 1.2646038189999527,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -4687,6 +5031,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 5.468222949999967,
+     "p95": 6.0729971700000025,
+     "min": 4.663829886000022,
+     "ciLow": 5.27178410400002,
+     "ciHigh": 5.523915930000003,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4838,6 +5195,19 @@
      "min": 0.605876002999983,
      "ciLow": 0.7514023959999904,
      "ciHigh": 0.8646215049999882,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 1.254775774000038,
+     "p95": 1.4682170029999688,
+     "min": 1.1236430640000035,
+     "ciLow": 1.2041908079999848,
+     "ciHigh": 1.2739385080000503,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -4997,6 +5367,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 0.42824073099996895,
+     "p95": 0.5547102260000538,
+     "min": 0.3568483000000124,
+     "ciLow": 0.40443339700001524,
+     "ciHigh": 0.46930514900000164,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5148,6 +5531,19 @@
      "min": 0.17840028500003974,
      "ciLow": 0.19109268000000157,
      "ciHigh": 0.21448326599999565,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 0.48047048700007144,
+     "p95": 0.5856222050000215,
+     "min": 0.4585281309999991,
+     "ciLow": 0.47141284599993377,
+     "ciHigh": 0.4988820769999875,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5307,6 +5703,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 30,
+     "p50": 15.589260738000041,
+     "p95": 16.642083148999998,
+     "min": 15.041242758000037,
+     "ciLow": 15.498451319999994,
+     "ciHigh": 15.99095085700002,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5462,6 +5871,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 3,
+     "p50": 0.7459229210000003,
+     "p95": 1.2375471879999997,
+     "min": 0.728761117,
+     "ciLow": 0.728761117,
+     "ciHigh": 1.2375471879999997,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5600,6 +6022,19 @@
      "min": 0.5600047489999997,
      "ciLow": 0.5600047489999997,
      "ciHigh": 0.6010053050000024,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 3,
+     "p50": 0.8344556139999986,
+     "p95": 1.0832534449999993,
+     "min": 0.8001249699999989,
+     "ciLow": 0.8001249699999989,
+     "ciHigh": 1.0832534449999993,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -5759,6 +6194,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 12762185.867888013,
+     "p95": 12897592.969945079,
+     "min": 10018266.907147802,
+     "ciLow": 12734624.310117844,
+     "ciHigh": 12800520.0492881,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5910,6 +6358,19 @@
      "min": 9548401.750798777,
      "ciLow": 11071131.532969503,
      "ciHigh": 11318025.748780219,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 17708521.403364565,
+     "p95": 18631466.956562366,
+     "min": 12938586.880922418,
+     "ciLow": 17590741.598663993,
+     "ciHigh": 17775160.010212865,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -6069,6 +6530,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 14590.52312794547,
+     "p95": 14731.18916744267,
+     "min": 12538.533574665065,
+     "ciLow": 14543.11357301277,
+     "ciHigh": 14618.167481160674,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6220,6 +6694,19 @@
      "min": 3846.3268132090457,
      "ciLow": 5702.425555999964,
      "ciHigh": 8287.509705046547,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 1125.121364189869,
+     "p95": 1911.0822262243496,
+     "min": 953.5120278179613,
+     "ciLow": 1114.3951368972287,
+     "ciHigh": 1131.0725623056512,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -6379,6 +6866,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 2870.3295246254233,
+     "p95": 2946.2952969288754,
+     "min": 957.5588493797455,
+     "ciLow": 2838.599155731913,
+     "ciHigh": 2888.572847394608,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6534,6 +7034,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 501106.9373947217,
+     "p95": 543974.841163809,
+     "min": 116599.11357348932,
+     "ciLow": 491552.4031341897,
+     "ciHigh": 516697.8165478747,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6685,6 +7198,19 @@
      "min": 127266.94241171278,
      "ciLow": 301092.51890948135,
      "ciHigh": 313301.228116386,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "baseten",
+     "n": 100,
+     "p50": 276412.51112118125,
+     "p95": 686218.5337956466,
+     "min": 133295.913282716,
+     "ciLow": 273819.9270315834,
+     "ciHigh": 277639.1991845177,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7981,6 +8507,108 @@
    0.464,
    0.744,
    1.425
+  ],
+  "baseten": [
+   0.609,
+   0.614,
+   0.615,
+   0.618,
+   0.622,
+   0.625,
+   0.628,
+   0.635,
+   0.635,
+   0.636,
+   0.637,
+   0.641,
+   0.643,
+   0.645,
+   0.646,
+   0.648,
+   0.651,
+   0.652,
+   0.661,
+   0.665,
+   0.667,
+   0.667,
+   0.669,
+   0.672,
+   0.674,
+   0.674,
+   0.674,
+   0.678,
+   0.68,
+   0.685,
+   0.687,
+   0.687,
+   0.689,
+   0.689,
+   0.69,
+   0.691,
+   0.693,
+   0.693,
+   0.698,
+   0.703,
+   0.704,
+   0.708,
+   0.708,
+   0.709,
+   0.71,
+   0.711,
+   0.713,
+   0.714,
+   0.714,
+   0.715,
+   0.717,
+   0.717,
+   0.718,
+   0.718,
+   0.721,
+   0.726,
+   0.729,
+   0.73,
+   0.732,
+   0.732,
+   0.734,
+   0.738,
+   0.739,
+   0.742,
+   0.747,
+   0.753,
+   0.758,
+   0.762,
+   0.767,
+   0.768,
+   0.769,
+   0.772,
+   0.779,
+   0.78,
+   0.785,
+   0.79,
+   0.791,
+   0.792,
+   0.794,
+   0.796,
+   0.804,
+   0.806,
+   0.816,
+   0.817,
+   0.818,
+   0.819,
+   0.822,
+   0.825,
+   0.825,
+   0.826,
+   0.84,
+   0.867,
+   0.877,
+   0.885,
+   0.896,
+   0.92,
+   0.928,
+   0.941,
+   1.109,
+   8.676
   ]
  },
  "missing": {
@@ -7989,6 +8617,6 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 4 re-run in New York. Vercel's is from its Nov 9 run (SBX-103)."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 4 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby."
  }
 }
