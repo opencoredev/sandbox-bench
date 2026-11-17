@@ -1,7 +1,7 @@
 import { TraceWaterfallView } from "@/components/trace-waterfall-view";
 import type { WaterfallProvider } from "@/components/trace-waterfall-view";
 import { Tracked } from "@/components/track";
-import { costStatus, costTag, isPriced, perTaskText } from "@/lib/cost";
+import { costStatus, costTag, isPriced, perTaskText, taskCostOf } from "@/lib/cost";
 import { hasResults } from "@/lib/data";
 import type { Track } from "@/lib/data";
 import type { ProviderId } from "@/lib/providers";
@@ -21,7 +21,7 @@ function failures(track: Track, id: ProviderId): WaterfallProvider["failures"] {
 
 export const providersOf = (track: Track): WaterfallProvider[] =>
   track.providers.map((p) => {
-    const c = track.costs[p.id];
+    const c = taskCostOf(track, p.id);
     return {
       id: p.id,
       costText: c && isPriced(c) ? perTaskText(c) : null,

@@ -5,21 +5,22 @@ import {
   costBasis,
   costPick,
   costStatus,
-  costStatuses,
   costTag,
   hasLowerBounds,
   isEligible,
   isLowerBound,
   isPriced,
+  monthlyPlanWhy,
   noPickLabel,
+  noPickWhy,
   perTaskLifetimeNote,
   perTaskText,
   perThousandText,
   pickLabel,
-  pricedTasks,
   qualify,
   regionNote,
   statusNote,
+  taskCostOf,
   wholeMachine,
   wholeMachineLabel,
   wholeMachineText,
@@ -36,11 +37,11 @@ import { pauseOf } from "@/lib/pause";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
+  billingTag,
   billingText,
   changeText,
   completedText,
   estimatedPartText,
-  flagsOf,
   headlineRows,
   holdTag,
   idleGroups,
@@ -62,7 +63,9 @@ import {
   profileWhat,
   runTrackOf,
   scopeLine,
-  statusTag,
+  hasMonthlyPlan,
+  isCounted,
+  notCountedWhy,
   taskPick,
   uncertifiedWhy,
   wallText,
@@ -251,24 +254,19 @@ const lowerBoundField = (lower: boolean) => (lower ? { bound: "lower" as const }
 
 const nameList = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
-/** The cost row of the quick picks: the lowest verified cost among eligible providers, never "cheapest". */
+/** The cost row of the quick picks: the cheapest exact cost. */
 function costPickRow(track: Track): QuickPick {
   const c = costPick(track);
   switch (c.kind) {
-    case "verified": {
-      // The tag in costCell already names the status, so only the reason follows it.
-      const lower = c.lower.map((t) => `${costCell(t)}${"why" in t.status ? `, because ${t.status.why}` : ""}`);
+    case "picked":
       return {
         need: `Quick task: ${pickLabel.toLowerCase()}`,
         pick: costCell(c.pick),
         runnerUp: c.runnerUp ? costCell(c.runnerUp) : "n/a",
-        note: `Eligible: ${nameList(c.eligible)}.${lower.length ? ` Lower but not eligible: ${lower.join("; ")}.` : ""}`,
+        note: c.lower.length ? `Not counted, a different machine: ${c.lower.map(costCell).join("; ")}.` : null,
       };
-    }
     case "none":
-      return c.lowest
-        ? { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: `Lowest reported: ${costCell(c.lowest)}`, runnerUp: "n/a", note: `${statusNote(c.lowest.status) ?? ""}.` }
-        : { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: "Every reported cost is a lower bound, so none is ranked", runnerUp: "n/a", note: null };
+      return { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: noPickWhy(c).replace(/^\w/, (ch) => ch.toUpperCase()), runnerUp: "n/a", note: null };
     case "empty":
       return { need: `Quick task: ${pickLabel.toLowerCase()}`, pick: "n/a", runnerUp: "n/a", note: null };
     default: {
@@ -278,17 +276,17 @@ function costPickRow(track: Track): QuickPick {
   }
 }
 
-/** The cost pick as data for agents: who, the eligible set, and every lower cost that isn't eligible, with why. */
+/** The cost pick as data for agents: the cheapest exact cost, the runner-up, and any cheaper cost on a different machine. */
 function costPickData(track: Track) {
-  const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), ...lowerBoundField(isLowerBound(t.cost)), kind: t.cost.kind, status: t.status.kind, why: "why" in t.status ? t.status.why : null });
+  const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), ...lowerBoundField(isLowerBound(t.cost)), kind: t.cost.kind });
   const c = costPick(track);
   switch (c.kind) {
-    case "verified":
-      return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, eligible: c.eligible, lowerNotEligible: c.lower.map(row) };
+    case "picked":
+      return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, lowerDifferentMachine: c.lower.map(row) };
     case "none":
-      return { label: noPickLabel, pick: null, lowestReported: c.lowest ? row(c.lowest) : null, eligible: [], lowerNotEligible: [] };
+      return { label: noPickLabel, why: noPickWhy(c), pick: null, runnerUp: null, lowerDifferentMachine: c.lower.map(row) };
     case "empty":
-      return { label: noPickLabel, pick: null, eligible: [], lowerNotEligible: [] };
+      return { label: noPickLabel, pick: null, runnerUp: null, lowerDifferentMachine: [] };
     default: {
       const _exhaustive: never = c;
       return _exhaustive;
@@ -337,7 +335,7 @@ const realisticAbout =
   "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `status` adds the eligibility-table statuses in the same words as `costEligibility`: verified, unreconciled, provisional, unsettled, estimate, plus qualifiers of these runs (wrong size, too many failures). Only a row with eligible: true can be a pick: billed and settled (or a meter reconciled with settled charges), tied to our own sandboxes, at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. There is no overall cheapest pick: each workload and track has its own, and this pilot names no certified winner.";
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; how the cost was priced doesn't affect it. Boat bills a monthly plan, so it has no per-task cost and isn't in these workloads. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
@@ -358,9 +356,10 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     costPerCompletedUsd: usd6(row.cost?.usdPerCompleted ?? null),
     per1000CompletedUsd: usd6(row.cost ? row.cost.usdPerCompleted * TASKS_PER_PRICE : null),
     kind: row.cost?.kind ?? null,
-    eligible: row.eligible,
-    status: row.cost ? statusTag(row) : null,
-    whyNotEligible: flagsOf(row).map((f) => f.text),
+    counted: row.cost !== null && isCounted(row),
+    whyNotCounted: notCountedWhy(row),
+    // Billing evidence only; the pick doesn't read it.
+    billingStatus: row.cost ? billingTag(row) : null,
     noCost: row.cost ? null : noCostReason(row),
     wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
     // "lower": the whole-machine figure is a lower bound (Modal's default track prices only its request); read it as at least that.
@@ -396,22 +395,19 @@ const pickRow = (r: Costed) => ({
   provider: r.provider,
   per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE),
   kind: r.cost.kind,
-  status: statusTag(r),
-  whyNotEligible: flagsOf(r).map((f) => f.text),
-  ...estimatedPartData(r.cost.kind, r.estimatedPart, r.cost.usdPerCompleted, "per1000CompletedUsd"),
-  ...minimumData(r.provider),
+  whyNotCounted: notCountedWhy(r),
 });
 
 function realisticPickData(costed: readonly Costed[]) {
   const p = taskPick(costed);
   const uncertified = { certified: false, certification: `${pickLabels.uncertified}: ${uncertifiedWhy(realistic)}.` };
   switch (p.kind) {
-    case "verified":
-      return { label: p.label, ...uncertified, pick: pickRow(p.pick), eligible: p.eligible, lowerNotEligible: p.lower.map(pickRow) };
+    case "picked":
+      return { label: p.label, ...uncertified, pick: pickRow(p.pick), counted: p.counted, lowerNotCounted: p.lower.map(pickRow) };
     case "none":
-      return { label: p.label, ...uncertified, pick: null, eligible: [], lowerNotEligible: p.lower.map(pickRow) };
+      return { label: p.label, ...uncertified, pick: null, counted: [], lowerNotCounted: p.lower.map(pickRow) };
     case "empty":
-      return { label: pickLabels.none, ...uncertified, pick: null, eligible: [], lowerNotEligible: [] };
+      return { label: pickLabels.none, ...uncertified, pick: null, counted: [], lowerNotCounted: [] };
     default: {
       const _exhaustive: never = p;
       return _exhaustive;
@@ -420,8 +416,12 @@ function realisticPickData(costed: readonly Costed[]) {
 }
 
 function realisticProfile(id: TrackId, profile: ProfileId) {
-  const { costed, uncosted } = headlineRows(realistic, runTrackOf[id], profile);
-  return { pick: realisticPickData(costed), providers: [...costed, ...uncosted].map((row) => realisticRowData(row, id)) };
+  const { costed, uncosted, monthly } = headlineRows(realistic, runTrackOf[id], profile);
+  return {
+    pick: realisticPickData(costed),
+    providers: [...costed, ...uncosted].map((row) => realisticRowData(row, id)),
+    notPriced: monthly.map((provider) => ({ provider, name: providerName(provider), reason: monthlyPlanWhy })),
+  };
 }
 
 /** The realistic workloads as plain data: definitions, the pilot label, per track and workload the pick and every provider, and the idle test. */
@@ -443,7 +443,10 @@ export function realisticData() {
     tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
     idle: {
       what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included. vsNoWait: ${multipleNote} Providers are listed with those whose sandbox stopped or couldn't resume last.`,
-      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
+      notTested: [
+        ...realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
+        ...[...new Set(realistic.heldOpen.map((h) => h.provider))].filter(hasMonthlyPlan).map((provider) => ({ provider, name: providerName(provider), reason: monthlyPlanWhy, short: monthlyPlanWhy })),
+      ],
       providers: idleGroups(realistic).map((g) => ({
         provider: g.provider,
         name: providerName(g.provider),
@@ -473,9 +476,9 @@ export function realisticData() {
 
 const pickLine = (track: TrackId, profile: ProfileId) => {
   const p = realisticProfile(track, profile).pick;
-  const lower = p.lowerNotEligible.map((r) => `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.status})`).join("; ");
-  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000 (${p.pick.status}). Eligible: ${nameList(p.eligible)}.` : `${p.label}: no provider has a verified cost yet.`;
-  return `${head} ${p.certification}${lower ? ` ${p.pick ? "Lower but not eligible" : "Reported, none eligible"}: ${lower}.` : ""}`;
+  const lower = p.lowerNotCounted.map((r) => `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.whyNotCounted.join("; ")})`).join("; ");
+  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000.` : `${p.label}: no provider meets the pick rule.`;
+  return `${head} ${p.certification}${lower ? ` Not counted: ${lower}.` : ""}`;
 };
 
 function realisticMarkdown() {
@@ -496,9 +499,11 @@ function realisticMarkdown() {
         "| --- | --- | --- | --- | --- | --- | --- |",
         ...t.providers.map(
           (r) =>
-            `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.status ?? `n/a: ${r.noCost ?? ""}`}${r.whyNotEligible.length ? ` (${r.whyNotEligible.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${qualify({ amount: perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE), bound: r.wholeMachineBound, style: "tight" })}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
+            `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.billingStatus ?? `n/a: ${r.noCost ?? ""}`}${r.whyNotCounted.length ? ` (not counted: ${r.whyNotCounted.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${qualify({ amount: perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE), bound: r.wholeMachineBound, style: "tight" })}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
         ),
         "",
+        ...t.notPriced.map((n) => `Not priced: ${n.name}, because it ${n.reason}.`),
+        ...(t.notPriced.length ? [""] : []),
         ...t.providers.flatMap((r) => [
           ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
           ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : []),
@@ -572,7 +577,7 @@ function hardwareOf(id: ProviderId) {
 }
 
 function costOf(track: Track, id: ProviderId) {
-  const c = track.costs[id];
+  const c = taskCostOf(track, id);
   if (!c) return { kind: "none", perTaskUsd: null, note: "no cost data" };
   switch (c.kind) {
     case "billed":
@@ -589,8 +594,9 @@ function costOf(track: Track, id: ProviderId) {
         source: c.source,
         basis: costBasis(c),
         settled: c.settled,
-        status: s.kind,
-        eligible: isEligible(s),
+        // Billing evidence only; the cost pick doesn't read it.
+        billingStatus: s.kind,
+        billingVerified: isEligible(s),
         statusNote: statusNote(s),
         tag: costTag(id, c, s),
       };
@@ -684,13 +690,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. `costPerTask.status` comes from one eligibility table (`costEligibility`): verified (billed and settled, and not provisional) can be the cost pick; unreconciled (metered, not yet checked against settled charges), provisional, unsettled and estimate are shown but never picked. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers (`costPick`), with the eligible set and every lower cost that isn't eligible, with its reason. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
-
-/** The eligibility table as data, in the order a cost is checked against it. The lower-bound row is listed once a track has one. */
-const costEligibility = () =>
-  Object.entries(costStatuses)
-    .filter(([status]) => status !== "lowerBound" || anyLowerBound())
-    .map(([status, s]) => ({ status, label: s.label, eligible: s.eligible, rule: s.rule }));
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. Boat bills a monthly plan, so it has no per-task cost. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
@@ -713,7 +713,6 @@ export function agentData() {
     task: "The quick task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox. It is a small synthetic task; whatATaskCosts has real workloads.",
     whatATaskCosts: realisticData(),
     commonSize: commonSize.label,
-    costEligibility: costEligibility(),
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
   };
@@ -740,22 +739,20 @@ function trackMarkdown(id: TrackId) {
     ...d.quickPicks.flatMap((q) => (q.note ? [`${q.need}: ${q.note}`, ""] : [])),
     "## Machines and cost",
     "",
-    `Cost status: ${costEligibility().map((r) => `${r.label.toLowerCase()} (${r.eligible ? "can be the cost pick" : "shown, never picked"}): ${r.rule}`).join(" ")}`,
-    "",
     `${wholeMachineLabel}: ${perTaskLifetimeNote} For a provider that bills usage it is a counterfactual, not its price.`,
     "",
-    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GB? | Ran in | Cost per task | Per 1,000 tasks | Cost kind | Cost status | Billing model | Whole machine at list price, per hour | Success rate |",
+    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GB? | Ran in | Cost per task | Per 1,000 tasks | Cost kind | Billing status | Billing model | Whole machine at list price, per hour | Success rate |",
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"status" in p.costPerTask ? (p.costPerTask.status === "estimate" || p.costPerTask.status === "lowerBound" ? p.costPerTask.tag : p.costPerTask.status) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
     ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),
     ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),
     ...d.providers.flatMap((p) =>
       "basis" in p.costPerTask
-        ? [`Cost on ${p.name}: ${p.costPerTask.basis}, ${p.costPerTask.eligible ? "verified" : (p.costPerTask.statusNote ?? "").replace(/^\w/, (ch) => ch.toLowerCase())}. ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`]
+        ? [`Cost on ${p.name}: ${p.costPerTask.basis}. ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`]
         : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}). ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`],
     ),
     "",
@@ -793,7 +790,7 @@ function trackMarkdown(id: TrackId) {
 
 /** A provider's cost per task and per 1,000 for a table cell: "≥ $X" for a lower bound, "n/a" without a cost. */
 function costCells(track: Track, id: ProviderId) {
-  const c = track.costs[id];
+  const c = taskCostOf(track, id);
   return c && isPriced(c) ? { perTask: perTaskText(c, "tight"), perThousand: perThousandText(c, "tight") } : { perTask: "n/a", perThousand: "n/a" };
 }
 
@@ -818,15 +815,6 @@ export function agentMarkdown() {
   return `${lines.join("\n")}\n`;
 }
 
-/** "boxd (provisional: …); E2B (unreconciled: …); Daytona (unsettled: …)": every billed or metered cost that isn't eligible, once across both tracks. */
-function notEligibleSummary() {
-  const seen = new Map<ProviderId, string>();
-  for (const id of trackIds)
-    for (const t of pricedTasks(tracks[id]))
-      if (t.status.kind === "provisional" || t.status.kind === "unsettled" || t.status.kind === "unreconciled") seen.set(t.id, `${providerName(t.id)}'s ${t.cost.kind} cost is ${costStatuses[t.status.kind].label.toLowerCase()}: ${t.status.why}`);
-  return seen.size ? [...seen.values()].join("; ") : "none";
-}
-
 /**
  * Sentences on lower bounds, region multipliers, destroy timing and snapshot
  * caveats for the notes section, per provider with data, so its provider page
@@ -837,7 +825,7 @@ function qualifierNotes() {
   const add = (id: ProviderId, s: string) => seen.set(id, [...new Set([...(seen.get(id) ?? []), s])]);
   for (const id of trackIds)
     for (const p of tracks[id].providers) {
-      const c = tracks[id].costs[p.id];
+      const c = taskCostOf(tracks[id], p.id);
       const where = id === "default" ? "on its default machine" : `on the ${trackInfo[id].short} machine`;
       if (c && isPriced(c) && isLowerBound(c)) add(p.id, `${providerName(p.id)}'s cost per task ${where} is a lower bound: it counts only the resources requested, and ${providerName(p.id)} also bills use above them, so it is shown as at least that amount and never ranked or picked.`);
       if (p.hourly !== null && p.pricingBound === "lower") add(p.id, `${providerName(p.id)}'s hourly price ${where} is a lower bound for the same reason.`);
@@ -894,11 +882,11 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle, Luxor and Baseten costs are list-price estimates on our measured sandbox lifetime, because none has billing data we can read. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor and Baseten costs use their list prices on our measured sandbox lifetime. Boat bills a monthly plan, so it has no per-task cost.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 
-- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the pick, its eligible set, lower costs that aren't eligible, and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
+- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the cheapest provider, any cheaper cost that wasn't counted (too many failures or a different machine), and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
 - [results.md](/results.md): the same numbers as Markdown tables, one section per track.
 
 ## How to read it

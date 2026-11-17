@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { costPick, costStatus, costTag, isEligible, pricedTasks } from "@/lib/cost";
+import { costPick, costStatus, costTag, isEligible, monthlyPlanWhy, pricedTasks, taskCostOf, unpricedTasks } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
+import type { TaskCost, Track } from "@/lib/data";
+import type { ProviderId } from "@/lib/providers";
 
 // The cost eligibility table and the pick built on it. Run with `bun test`.
 
@@ -44,30 +46,56 @@ describe("cost status", () => {
 describe("cost pick", () => {
   // The published data, pinned: a change to the rule or the data must change these on purpose.
   const expected = {
-    "same-spec": { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "superserve", "modal"], lower: ["boxd"] },
-    default: { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "modal", "superserve"], lower: ["boxd"] },
-  } as const satisfies Record<(typeof trackIds)[number], { pick: string; eligible: readonly string[]; lower: readonly string[] }>;
+    "same-spec": { pick: "upstash-ephemeral", lower: ["boxd"] },
+    default: { pick: "boxd", lower: [] },
+  } as const satisfies Record<(typeof trackIds)[number], { pick: string; lower: readonly string[] }>;
 
   for (const id of trackIds) {
-    test(`${id}: the published pick, its eligible set and the lower costs it flags`, () => {
+    test(`${id}: the cheapest exact cost, and any cheaper one on a different machine`, () => {
       const c = costPick(tracks[id]);
-      assert.equal(c.kind, "verified");
-      if (c.kind !== "verified") return;
+      assert.ok(c.kind === "picked");
       assert.equal(c.pick.id, expected[id].pick);
-      assert.deepEqual(c.eligible, expected[id].eligible);
-      assert.deepEqual(
-        c.lower.map((t) => t.id),
-        expected[id].lower,
-      );
+      assert.deepEqual(c.lower.map((t) => t.id), expected[id].lower);
     });
   }
 
-  test("no eligible cost: no pick, and the lowest reported cost is still shown", () => {
-    const base = tracks["same-spec"];
-    const costs = Object.fromEntries(Object.entries(base.costs).map(([k, v]) => [k, v && v.kind === "billed" ? { ...v, settled: false } : v]));
-    const c = costPick({ ...base, costs } as typeof base);
-    assert.equal(c.kind, "none");
-    if (c.kind === "none") assert.equal(c.lowest?.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
+  test("a monthly-plan provider has no per-task cost: out of the chart and the pick, listed as unpriced", () => {
+    for (const id of trackIds) {
+      assert.ok(!pricedTasks(tracks[id]).some((t) => t.id === "boat"));
+      assert.ok(unpricedTasks(tracks[id]).some((t) => t.id === "boat" && t.why === monthlyPlanWhy));
+    }
+  });
+
+  /** The default track with one provider's cost replaced, cheaper than every published one. */
+  const withCost = (id: ProviderId, cost: TaskCost): Track => ({ ...tracks.default, costs: { ...tracks.default.costs, [id]: cost } });
+  const cheap: Omit<Priced, "kind" | "settled"> = { usd: 0.000001, n: 10, confidence: "high", source: null, bound: null };
+
+  test("an unsettled billed cost can be the cheapest", () => {
+    const c = costPick(withCost("daytona", { kind: "billed", settled: false, ...cheap }));
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, "daytona");
+    assert.equal(c.pick.status.kind, "unsettled");
+  });
+
+  test("an exact estimate can be the cheapest", () => {
+    const c = costPick(withCost("freestyle", { kind: "estimate", settled: false, ...cheap }));
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, "freestyle");
+    assert.equal(c.pick.cost.kind, "estimate");
+  });
+
+  test("a monthly-plan provider never gets a per-task cost, even with one in the data", () => {
+    assert.equal(taskCostOf(withCost("boat", { kind: "billed", settled: true, ...cheap }), "boat")?.kind, "none");
+  });
+
+  test("on Same machine, with only a wrong-size exact cost, there is no pick, and the reason is the machine", () => {
+    const t = tracks["same-spec"];
+    const boxd = t.costs.boxd;
+    assert.ok(boxd && boxd.kind !== "none");
+    const c = costPick({ ...t, costs: { boxd } });
+    assert.ok(c.kind === "none");
+    assert.equal(c.why, "machine");
+    assert.deepEqual(c.lower.map((x) => x.id), ["boxd"]);
   });
 
   test("no costs at all: empty", () => {

@@ -61,28 +61,19 @@ describe("lower-bound cost", () => {
     assert.equal(costTag("modal", c, s), "estimate, lower bound");
   });
 
-  test("never becomes the pick, never counts as lower than the pick, and sorts after every exact cost", () => {
+  test("never becomes the pick and sorts after every exact cost", () => {
     const published = costPick(tracks["same-spec"]);
     const t = withModal("lower");
     const c = costPick(t);
-    assert.equal(c.kind, "verified");
-    assert.equal(published.kind, "verified");
-    if (c.kind !== "verified" || published.kind !== "verified") return;
+    assert.ok(c.kind === "picked" && published.kind === "picked");
     assert.equal(c.pick.id, published.pick.id);
-    // The fixture swaps the published (billed, eligible) Modal for a lower bound, so only Modal leaves the eligible set.
-    assert.deepEqual(c.eligible, published.eligible.filter((id) => id !== "modal"));
+    assert.notEqual(c.runnerUp?.id, "modal");
     assert.ok(!c.lower.some((x) => x.id === "modal"));
     assert.equal(pricedTasks(t).at(-1)?.id, "modal");
   });
 
-  test("an exact Modal estimate at the same amount would be listed as lower, so the bound is what keeps it out", () => {
-    const c = costPick(withModal("exact"));
-    assert.ok(c.kind === "verified" && c.lower.some((x) => x.id === "modal"));
-  });
-
-  test("with only lower bounds there is no pick and no lowest figure", () => {
-    const c = costPick(onlyModalLowerBound());
-    assert.deepEqual(c, { kind: "none", lowest: null });
+  test("with only lower bounds there is no pick", () => {
+    assert.deepEqual(costPick(onlyModalLowerBound()), { kind: "none", why: "lower-bounds", lower: [] });
   });
 
   test("prints as at least, or ≥ in tight cells", () => {
@@ -96,11 +87,9 @@ describe("lower-bound cost", () => {
     const html = renderToStaticMarkup(<CostPerTaskChart track={withModal("lower")} />);
     assert.match(html, /at least \$/);
     assert.match(html, /≥ \$/);
-    assert.match(html, /estimate, lower bound/i);
-    assert.match(html, /never ranked or picked/);
-    const pickLine = html.split("Lowest verified cost among eligible providers")[1]?.split("</p>")[0] ?? "";
-    assert.ok(!pickLine.includes("Modal"));
-    for (const line of html.split("Lower but not eligible:").slice(1)) assert.ok(!(line.split("</p>")[0] ?? "").includes("Modal"));
+    assert.match(html, /never called cheapest/);
+    const pickLine = html.split("Cheapest:")[1]?.split("</p>")[0] ?? "";
+    assert.ok(pickLine.length > 0 && !pickLine.includes("Modal"));
   });
 
   test("the cost chart without lower bounds says nothing about them", () => {

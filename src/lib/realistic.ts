@@ -1,4 +1,5 @@
 import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
+import { planMinimum } from "@/lib/plan-minimum";
 import type { CostStatusKind } from "@/lib/cost";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -445,7 +446,7 @@ export const runsLine =
 
 /** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
 export const vercelTransferLine =
-  "Vercel bills sandbox data transfer, which its published Nov 9 costs left out; the headline costs now come from the 2026-11-16 rerun and count ingress plus egress at $0.15 per GB. That day's settled Sandbox charges were $1.47 against our meter's $1.70 (15.7% apart): CPU matched, memory was 2.4% higher on the bill, and the bill counted 7.16 GB of data transfer against our 8.71 GB. That is outside the 10% limit, so Vercel stays unverified.";
+  "Vercel bills sandbox data transfer, which its published Nov 9 costs left out; the headline costs now come from the 2026-11-16 rerun and count ingress plus egress at $0.15 per GB. That day's settled Sandbox charges were $1.47 against our meter's $1.70 (15.7% apart): CPU matched, memory was 2.4% higher on the bill, and the bill counted 7.16 GB of data transfer against our 8.71 GB.";
 
 export const vercelHeldOpenLine =
   "Vercel's held-open costs are from 2026-11-09 and leave out data transfer, which Vercel bills, so they are understated.";
@@ -565,6 +566,17 @@ export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" 
   return [base, ...rest].join(", ");
 }
 
+/**
+ * The billing evidence alone ("metered, unreconciled", "billed, verified"):
+ * statusTag without the run qualifiers (wrong size, too many failures), which
+ * notCountedWhy says apart. "n/a" without a cost.
+ */
+export function billingTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+  if (!row.cost) return "n/a";
+  const statuses = row.eligible ? (["verified"] as const) : flagsOf(row).flatMap((f) => (f.status ? [f.status] : []));
+  return kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+}
+
 /** Why a row has no cost: never run, or run without a completed task. */
 export function noCostReason(row: RealisticRow): string {
   const reasons = new Map(row.reasons.map((r) => [r.reason, r.runs]));
@@ -617,17 +629,25 @@ export const isCounterfactual = (id: ProviderId) => billingBases[id].kind === "u
 export type Costed = RealisticRow & { cost: NonNullable<RealisticRow["cost"]> };
 const isCosted = (r: RealisticRow): r is Costed => r.cost !== null;
 
-/** One profile's headline rows on one track: costed rows lowest first, then rows with no cost, by name. */
+/** A provider billed by a monthly plan: a per-task cost can't show what it charges, so it is left out of the cost charts. */
+export const hasMonthlyPlan = (id: ProviderId) => planMinimum(id) !== null;
+
+/**
+ * One profile's headline rows on one track: costed rows lowest first, then
+ * rows with no cost, by name. Monthly-plan providers are kept apart in
+ * `monthly`, outside the chart and the pick.
+ */
 export function headlineRows(data: Pick<RealisticData, "rows">, track: RunTrack, profile: ProfileId) {
-  const rows = data.rows.filter((r) => r.variant === "headline" && r.track === track && r.profile === profile);
+  const all = data.rows.filter((r) => r.variant === "headline" && r.track === track && r.profile === profile);
+  const monthly = all.filter((r) => hasMonthlyPlan(r.provider)).map((r) => r.provider);
+  const rows = all.filter((r) => !hasMonthlyPlan(r.provider));
   const costed = rows.filter(isCosted).sort((a, b) => a.cost.usdPerCompleted - b.cost.usdPerCompleted);
   const uncosted = rows.filter((r) => !isCosted(r)).sort((a, b) => providerName(a.provider).localeCompare(providerName(b.provider)));
-  return { costed, uncosted };
+  return { costed, uncosted, monthly };
 }
 
 export const pickLabels = {
-  lowest: "Lowest verified cost among eligible providers",
-  only: "Only eligible provider",
+  cheapest: "Cheapest",
   none: "No clear winner",
   uncertified: "No certified winner",
 } as const;
@@ -636,31 +656,42 @@ export const pickLabels = {
 export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.coverage.headline.attempts} pilot runs there is no statistical test, so the result is descriptive`;
 
 /**
- * The pick, by the plan's rules. Only an eligible row can be picked: billed
- * and settled (or a reconciled meter), attributable to our sandboxes, at most
- * one incomplete run and, on the same-machine track, the right size. The pilot
- * runs no statistical test, so even the lowest verified cost is shown beside
- * "no certified winner". With one eligible provider the label says so. Every
- * lower cost that isn't eligible is listed with its reasons. With none
- * eligible there is no clear winner, and every cost is listed.
+ * Why a row can't be called cheapest, in plain words, or [] when it can: more
+ * than one incomplete run, or, on the same-machine track, the wrong machine
+ * size. How the cost was priced doesn't matter. Selection, the chart and the
+ * exports all read this one list.
+ */
+export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track">): string[] {
+  const failed = r.incomplete > 1 ? [`${r.incomplete} of its runs didn't complete, and the pick allows at most 1`] : [];
+  const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
+  return [...failed, ...size];
+}
+
+export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track">) => notCountedWhy(r).length === 0;
+
+/**
+ * The pick: the cheapest counted row. `counted` is every provider that could
+ * be picked; `lower` is every cheaper row that couldn't (too many failures or
+ * the wrong machine size), so the chart can say why its bar lost. With none
+ * counted there is no clear winner, and every cost is listed.
  */
 export type TaskPick =
-  | { kind: "verified"; label: string; pick: Costed; eligible: readonly ProviderId[]; lower: readonly Costed[] }
+  | { kind: "picked"; label: string; pick: Costed; counted: readonly ProviderId[]; lower: readonly Costed[] }
   | { kind: "none"; label: string; lower: readonly Costed[] }
   | { kind: "empty" };
 
 export function taskPick(costed: readonly Costed[]): TaskPick {
   if (costed.length === 0) return { kind: "empty" };
   const sorted = [...costed].sort((a, b) => a.cost.usdPerCompleted - b.cost.usdPerCompleted);
-  const eligible = sorted.filter((r) => r.eligible && r.incomplete <= 1);
-  const [pick] = eligible;
+  const counted = sorted.filter(isCounted);
+  const [pick] = counted;
   if (!pick) return { kind: "none", label: pickLabels.none, lower: sorted };
   return {
-    kind: "verified",
-    label: eligible.length === 1 ? pickLabels.only : pickLabels.lowest,
+    kind: "picked",
+    label: pickLabels.cheapest,
     pick,
-    eligible: eligible.map((r) => r.provider),
-    lower: sorted.filter((r) => !eligible.includes(r) && r.cost.usdPerCompleted < pick.cost.usdPerCompleted),
+    counted: counted.map((r) => r.provider),
+    lower: sorted.filter((r) => !counted.includes(r) && r.cost.usdPerCompleted < pick.cost.usdPerCompleted),
   };
 }
 
@@ -693,7 +724,7 @@ const isStop = (t: string) => /->\s*(stopped|paused|terminated|deleted)$/.test(t
  * provisional here too, as on the cost charts.
  */
 export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): IdleGroup[] {
-  const ids = [...new Set(data.heldOpen.map((h) => h.provider))];
+  const ids = [...new Set(data.heldOpen.map((h) => h.provider))].filter((id) => !hasMonthlyPlan(id));
   const groups = ids.map((provider): IdleGroup => {
     const storageUnknown = data.rows.some((r) => r.provider === provider && r.flags.some((f) => f.includes("storage coverage")));
     const points = idleIds.flatMap((idle) => {
@@ -778,9 +809,9 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
-    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "disk estimated"; only the billed part counts as verified.` : "",
-    unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
-    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
+    added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price.` : "",
+    unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
+    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time.` : "",
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
       : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

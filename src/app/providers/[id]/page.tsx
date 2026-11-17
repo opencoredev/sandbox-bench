@@ -184,7 +184,7 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
           {t.cost.kind === "priced" ? (
             <li>
-              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). {t.cost.statusNote ? `${t.cost.statusNote}; not eligible for the cost pick. ` : ""}{taskText()}
+              Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}). {taskText()}
             </li>
           ) : null}
           <li>Billing: {t.billing}.</li>

@@ -43,14 +43,14 @@ import {
   parseCoverage,
   parseRealistic,
   pickFor,
-  perThousand,
+  isCounted,
+  notCountedWhy,
   pickLabels,
   pilotLine,
   profileIds,
   readFlag,
   runTracks,
   scopeLine,
-  shareText,
   statusTag,
   taskPick,
   wilson,
@@ -294,10 +294,6 @@ describe("data script", () => {
     assert.equal(readFileSync(out, "utf8"), "previous output\n");
   });
 
-  test("stops when the summary's own pick disagrees with the site's rule", () => {
-    assert.throws(() => build([{ name: "x", raw: summary({ picks: [pick({ lowest: "boat" })] }) }]), /lowest eligible is boat/);
-    assert.throws(() => build([{ name: "x", raw: summary({ picks: [pick({ lowerUnverified: [] })] }) }]), /lower unverified/);
-  });
 
   test("stops on a certified verdict, which the site can't show without intervals", () => {
     assert.throws(() => build([{ name: "x", raw: summary({ picks: [pick({ verdict: "certified" })] }) }]), /isn't supported/);
@@ -501,43 +497,77 @@ const costed = (provider: Costed["provider"], usd: number, eligible: boolean, ov
 });
 
 describe("pick", () => {
-  test("one eligible provider: the only verified cost, with every lower one that isn't eligible", () => {
-    const p = taskPick([costed("upstash", 0.012, true), costed("boat", 0.001, false), costed("vercel", 0.014, false)]);
-    assert.equal(p.kind, "verified");
-    if (p.kind !== "verified") return;
-    assert.equal(p.label, pickLabels.only);
-    assert.equal(p.pick.provider, "upstash");
-    assert.deepEqual(p.lower.map((r) => r.provider), ["boat"]);
+  test("the cheapest counted row wins, whatever its cost kind or status", () => {
+    const p = taskPick([costed("upstash", 0.012, true), costed("freestyle", 0.009, false), costed("vercel", 0.014, false)]);
+    assert.ok(p.kind === "picked");
+    assert.equal(p.label, pickLabels.cheapest);
+    assert.equal(p.pick.provider, "freestyle");
+    assert.deepEqual(p.counted, ["freestyle", "upstash", "vercel"]);
+    assert.deepEqual(p.lower, []);
   });
 
-  test("two eligible providers: the lowest verified cost, and the eligible set", () => {
-    const p = taskPick([costed("upstash", 0.012, true), costed("daytona", 0.01, true), costed("boat", 0.001, false)]);
-    assert.ok(p.kind === "verified");
-    assert.equal(p.label, pickLabels.lowest);
-    assert.equal(p.pick.provider, "daytona");
-    assert.deepEqual(p.eligible, ["daytona", "upstash"]);
+  test("a cheaper row on the wrong machine size isn't counted, and is listed as lower", () => {
+    const wrong = costed("boxd", 0.005, false, { flags: ["wrong machine size: 15.6 GiB memory, not within 10% of 8 GiB"] });
+    const p = taskPick([costed("e2b", 0.01, true), wrong]);
+    assert.ok(p.kind === "picked");
+    assert.equal(p.pick.provider, "e2b");
+    assert.deepEqual(p.lower.map((r) => r.provider), ["boxd"]);
   });
 
-  test("more than one incomplete run can't be a pick, whatever the flags say", () => {
+  test("more than one incomplete run can't be a pick", () => {
     assert.equal(taskPick([costed("upstash", 0.012, true, { completed: 3, incomplete: 2 })]).kind, "none");
   });
 
-  test("nothing eligible: no clear winner, every cost listed", () => {
-    const p = taskPick([costed("boat", 0.001, false), costed("e2b", 0.01, false)]);
+  test("nothing counted: no clear winner, every cost listed", () => {
+    const p = taskPick([costed("e2b", 0.01, false, { completed: 3, incomplete: 2 })]);
     assert.ok(p.kind === "none");
     assert.equal(p.label, pickLabels.none);
-    assert.deepEqual(p.lower.map((r) => r.provider), ["boat", "e2b"]);
+    assert.deepEqual(p.lower.map((r) => r.provider), ["e2b"]);
     assert.equal(taskPick([]).kind, "empty");
   });
 
-  test("every pick in the data is eligible, and every lower cost is cheaper and not eligible", () => {
+  test("every pick in the data is counted, every lower cost is cheaper and not counted, and Boat is never in the chart", () => {
     for (const track of runTracks)
       for (const profile of profileIds) {
+        assert.ok(!headlineRows(realistic, track, profile).costed.some((r) => r.provider === "boat"));
         const p = pickFor(realistic, track, profile);
-        if (p.kind !== "verified") continue;
-        assert.ok(p.pick.eligible && p.pick.incomplete <= 1);
-        for (const r of p.lower) assert.ok(!r.eligible && r.cost.usdPerCompleted < p.pick.cost.usdPerCompleted);
+        if (p.kind !== "picked") continue;
+        assert.ok(isCounted(p.pick));
+        for (const r of p.lower) assert.ok(!isCounted(r) && r.cost.usdPerCompleted < p.pick.cost.usdPerCompleted);
       }
+  });
+
+  test("billing evidence is exported apart from the pick's reasons", () => {
+    const boxd = agentData().whatATaskCosts.tracks["same-spec"]?.workloads["fix-and-test"].providers.find((r) => r.provider === "boxd");
+    assert.ok(boxd);
+    assert.equal(boxd.billingStatus, "metered");
+    assert.equal(boxd.counted, false);
+    assert.match(boxd.whyNotCounted.join(), /15\.6 GiB/);
+  });
+
+  test("with only a wrong-size row, the chart says no provider meets the rule and why, not that runs failed", () => {
+    const wrong = costed("boxd", 0.005, false, { flags: ["wrong machine size: 15.6 GiB memory, not within 10% of 8 GiB"] });
+    assert.ok(taskPick([wrong]).kind === "none");
+    assert.deepEqual(notCountedWhy(wrong), ["it ran with 15.6 GiB of memory, not the 8 GiB this track asks for"]);
+    assert.deepEqual(notCountedWhy({ ...wrong, track: "default" }), [], "size only counts on Same machine");
+  });
+
+  test("results.md names Boat as not priced under each workload", () => {
+    const md = agentMarkdown();
+    assert.equal(md.split("Not priced: Boat, because it bills a monthly plan, not per task.").length - 1, 4);
+  });
+
+  test("the published picks, pinned: a change to the rule or the data must change these on purpose", () => {
+    const picks = runTracks.flatMap((track) => profileIds.map((profile) => {
+      const p = pickFor(realistic, track, profile);
+      return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
+    }));
+    assert.deepEqual(picks.sort(), [
+      "default/build: upstash-ephemeral []",
+      "default/fix-and-test: boxd []",
+      "same-machine/build: daytona []",
+      "same-machine/fix-and-test: freestyle [boxd]",
+    ]);
   });
 
   test("providers with no completed task are kept apart, never costed as zero", () => {
@@ -551,7 +581,7 @@ describe("pick", () => {
 });
 
 describe("idle", () => {
-  const held = (provider: "boat" | "upstash", idle: "zero-wait" | "held-10" | "held-60", completed: number, transitions: string[], usd: number): HeldOpen => ({
+  const held = (provider: "boat" | "upstash" | "e2b", idle: "zero-wait" | "held-10" | "held-60", completed: number, transitions: string[], usd: number): HeldOpen => ({
     provider,
     idle,
     runs: 3,
@@ -569,14 +599,19 @@ describe("idle", () => {
   test("a stop while idle is named, and a failed resume without one is said apart", () => {
     const groups = idleGroups({
       ...realistic,
-      heldOpen: [held("boat", "zero-wait", 3, [], 0.001), held("boat", "held-60", 0, ["running -> stopped"], 0.03), held("upstash", "zero-wait", 3, [], 0.01), held("upstash", "held-60", 0, [], 0.012)],
+      heldOpen: [held("e2b", "zero-wait", 3, [], 0.001), held("e2b", "held-60", 0, ["running -> stopped"], 0.03), held("upstash", "zero-wait", 3, [], 0.01), held("upstash", "held-60", 0, [], 0.012)],
     });
-    const boat = groups.find((g) => g.provider === "boat");
+    const stopped = groups.find((g) => g.provider === "e2b");
     const upstash = groups.find((g) => g.provider === "upstash");
-    assert.ok(boat && upstash);
-    assert.match(idleOutcome(boat) ?? "", /^stopped the sandbox during the hour, so the work couldn't resume \(0 of 3 resumed\)$/);
+    assert.ok(stopped && upstash);
+    assert.match(idleOutcome(stopped) ?? "", /^stopped the sandbox during the hour, so the work couldn't resume \(0 of 3 resumed\)$/);
     assert.match(idleOutcome(upstash) ?? "", /resume step failed after the hour in all 3 runs, with no stop reported/);
-    assert.deepEqual(groups.map((g) => g.provider), ["upstash", "boat"]);
+    assert.deepEqual(groups.map((g) => g.provider), ["upstash", "e2b"]);
+  });
+
+  test("a monthly-plan provider is left out of the idle chart", () => {
+    const groups = idleGroups({ ...realistic, heldOpen: [held("boat", "zero-wait", 3, [], 0.001), held("upstash", "zero-wait", 3, [], 0.01)] });
+    assert.deepEqual(groups.map((g) => g.provider), ["upstash"]);
   });
 
   test("a provider whose billing leaves disk out shows disk estimated in the idle test, as on the cost charts", () => {
@@ -598,7 +633,7 @@ describe("exports", () => {
         assert.ok(w, `${track} ${profile}`);
         assert.equal(w.pick.certified, false);
         assert.ok(w.providers.every((p) => p.kind === null || ["billed", "metered", "estimate"].includes(p.kind)));
-        assert.ok(w.pick.lowerNotEligible.every((r) => r.whyNotEligible.length > 0));
+        assert.ok(w.pick.lowerNotCounted.every((r) => r.whyNotCounted.length > 0));
       }
     assert.ok(d.idle.providers.length > 0);
     for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute)\b.*, /);
@@ -622,29 +657,28 @@ describe("exports", () => {
 
   test("every export names the providers left out of the idle test, with why", () => {
     const d = agentData().whatATaskCosts;
-    assert.deepEqual(d.idle.notTested.map((n) => n.provider), realistic.coverage.idle.notTested.map((n) => n.provider));
+    // Boat ran the idle test but bills a monthly plan, so it is listed as left out, with that reason.
+    assert.deepEqual(d.idle.notTested.map((n) => n.provider), [...realistic.coverage.idle.notTested.map((n) => n.provider), "boat"]);
+    assert.ok(!d.idle.providers.some((g) => g.provider === "boat"));
     const md = agentMarkdown();
     const llms = llmsTxt();
-    for (const n of realistic.coverage.idle.notTested) {
+    for (const n of d.idle.notTested) {
       assert.ok(md.includes(n.reason), `results.md misses ${n.provider}`);
       assert.ok(llms.includes(n.reason), `llms.txt misses ${n.provider}`);
     }
   });
 
-  test("llms.txt and results.md carry the pilot line, scope, kinds and statuses, and no single cheapest", () => {
+  test("llms.txt and results.md carry the pilot line, scope and the cheapest per workload", () => {
     const llms = llmsTxt();
     const md = agentMarkdown();
     for (const text of [llms, md]) {
       assert.ok(text.includes(pilotLine(realistic)));
       assert.ok(text.includes(scopeLine(realistic)));
       assert.ok(text.includes("What a task costs"));
-      assert.match(text, /billed, verified/);
-      assert.match(text, /metered, (unsettled, )?unreconciled/);
     }
-    assert.match(md, /\| Kind and status \| vs no wait \|/);
     const section = llms.slice(llms.indexOf("## What a task costs"), llms.indexOf("## Quick picks"));
-    assert.doesNotMatch(section.replace("There is no overall cheapest", ""), /cheapest/i);
-    assert.match(section, /No certified winner/);
+    assert.match(section, /Cheapest: /);
+    assert.doesNotMatch(section, /lowest verified|eligible providers/i);
   });
 
   test("the quick task's pick says it is the quick task", () => {
@@ -705,13 +739,13 @@ describe("final review", () => {
     assert.equal(multipleText({ changeVsZeroWait: -0.000172 }), "×1.00");
     const html = renderToStaticMarkup(<IdleChart />);
     assert.ok(html.includes(esc(multipleNote)));
-    for (const h of realistic.heldOpen.filter((x) => x.changeVsZeroWait !== null)) assert.ok(html.includes(multipleText(h) ?? ""), `${h.provider} ${h.idle}`);
+    for (const h of realistic.heldOpen.filter((x) => x.changeVsZeroWait !== null && x.provider !== "boat")) assert.ok(html.includes(multipleText(h) ?? ""), `${h.provider} ${h.idle}`);
   });
 
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\), Superserve \(account totals only\) and Boat \(bills a monthly plan, not per task\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -773,38 +807,32 @@ describe("Modal's set-aside runs (item 9)", () => {
 });
 
 describe("page", () => {
-  test("each workload tab shows its pick, one line on lower costs, and why providers are missing", () => {
+  test("each workload tab shows the cheapest, and why providers are missing, with no verified wording or stripes", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks.default} />);
+    const text = html.replace(/<[^>]+>/g, "");
     assert.match(html, /Fix and test: cost per 1,000 completed tasks/);
     assert.match(html, /Build: cost per 1,000 completed tasks/);
-    assert.match(html, /No certified winner/);
-    // Two lines under the pick: the pilot, the eligible set and the count of lower costs; then what the cost includes.
-    assert.match(html, /Pilot · 5 runs · Eligible: .*· \d+ lower costs? unverified or ineligible \(see table\)/s);
+    assert.match(text, /Cheapest:/);
     assert.ok(html.includes("Includes setup and failed attempts, through confirmed deletion."));
-    assert.doesNotMatch(html, /Lower but not eligible/);
-    assert.match(html, /Not in the chart:/);
-    assert.match(html, /default machine is too small for this workload/);
-    assert.doesNotMatch(html.replaceAll("There is no overall cheapest", ""), /cheapest/i);
+    assert.match(text, /Not in the chart:/);
+    assert.match(text, /default machine is too small for this workload/);
+    assert.match(text, /Boat \(bills a monthly plan, not per task\)/);
+    for (const gone of [/verified/i, /eligible/i, /never picked/, /monthly minimum/, /unreconciled/, /provisional/, /certified/i]) assert.doesNotMatch(text, gone);
+    assert.doesNotMatch(html, /repeating-linear-gradient/, "every bar is solid");
   });
 
-  test("the footprint is in the notes, the cost line is above the chart, and the eligible set is named only when there is more than one", () => {
+  test("the footprint is in the notes and the cost line is above the chart", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
     assert.match(html, /<span class="max-w-\[90ch\]">Workload CPU and memory, excluding installation: about/);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
     assert.ok(html.includes(costCovers));
-    // With Modal billed and settled, Upstash Box and Modal are both eligible on every tab, so the set is named.
-    assert.match(html, /Eligible: /);
   });
 
-  test("Upstash Box's pick, row and details say its cost has an estimated disk part, with the amount", () => {
-    const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /Lowest verified cost among eligible providers:.*compute verified \(billed, settled\); disk estimated/s);
-    const part = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.estimatedPart;
-    assert.ok(part);
-    const total = realistic.rows.find((r) => r.provider === "upstash" && r.variant === "headline" && r.profile === "fix-and-test" && r.track === "same-machine")?.cost?.usdPerCompleted ?? 1;
-    assert.ok(html.includes(`${perThousand(part.usd)} per 1,000 of it (${shareText(part.usd, total)}) is disk added at list price, an estimate; the rest is billed compute.`));
-    assert.doesNotMatch(html, /\b0\.3[–-]1\.0%/);
+  test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
+    const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
+    assert.match(text, /Cheapest: Freestyle \$9\.58 per 1,000/);
+    assert.match(text, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
   test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {
@@ -812,14 +840,16 @@ describe("page", () => {
     assert.deepEqual([...withPart].sort(), ["upstash", "upstash-ephemeral"]);
   });
 
-  test("Boat's monthly minimum comes from the site's pricing notes and is said beside it in both charts", () => {
+  test("Boat's monthly plan comes from the site's pricing notes and keeps it out of both charts", () => {
     const m = planMinimum("boat");
     assert.ok(m);
     const boat = tracks["same-spec"].providers.find((p) => p.id === "boat");
     assert.ok(boat?.pricingNotes?.includes(`$${m.usdPerMonth} monthly minimum`));
     assert.equal(planMinimum("upstash"), null);
-    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /usage only; monthly minimum excluded/);
-    assert.match(renderToStaticMarkup(<IdleChart />), /usage only; monthly minimum excluded/);
+    for (const html of [renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), renderToStaticMarkup(<IdleChart />)]) {
+      assert.match(html, /bills a monthly plan, not per task/);
+      assert.doesNotMatch(html, /monthly minimum/);
+    }
   });
 
   // Found on the built page: a provider with no failures drew a bar segment with width NaN%.
@@ -870,21 +900,16 @@ describe("page", () => {
     assert.doesNotMatch(html, /Lower is better/);
     assert.match(html, /couldn&#x27;t resume/);
     assert.match(html, /Not in this test:/);
-    assert.match(html, /compute verified \(billed, settled\); disk estimated/);
-    assert.match(html, /metered, unreconciled/);
-    // Each idle share is said beside its own wait, never as one range.
-    for (const h of realistic.heldOpen.filter((x) => x.provider === "upstash" && x.estimatedPart && x.medianCostUsd))
-      assert.ok(html.includes(shareText(h.estimatedPart?.usd ?? 0, h.medianCostUsd ?? 1)), `share for ${h.idle}`);
+    for (const gone of [/verified/i, /unreconciled/, /Kind and status/, /repeating-linear-gradient/]) assert.doesNotMatch(html, gone);
     // One fixed value column and outcomes on their own line, so every idle bar track has one width.
     assert.match(html, /grid-cols-\[3.75rem_minmax\(0,1fr\)_4.5rem\] items-center gap-x-2.5 sm:grid-cols-\[3.75rem_minmax\(0,1fr\)_3.25rem_4.5rem\]/);
     assert.doesNotMatch(html, /min-w-\[4.5rem\] items-baseline/);
   });
 
-  test("the stat card shows the pick's kind and status, and the pilot label outside the clamped line", () => {
+  test("the stat card shows the cheapest fix and test and the pilot label", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
-    assert.match(html, /Lowest verified fix-and-test cost, per 1,000/);
-    // Same-machine fix-and-test's pick is a verified cost with no estimated part (E2B's reconciled meter since 2026-11-16).
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-8">(billed|metered), verified<\/span>/, "the status sits outside the clamped line");
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs · lower unverified costs exist<\/span>/);
+    assert.match(html, /Cheapest fix and test, per 1,000/);
+    assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs<\/span>/);
+    assert.doesNotMatch(html, /verified/i);
   });
 });
