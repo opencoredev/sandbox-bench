@@ -37,6 +37,7 @@ import { pauseOf } from "@/lib/pause";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
+  billingTag,
   billingText,
   changeText,
   completedText,
@@ -62,7 +63,6 @@ import {
   profileWhat,
   runTrackOf,
   scopeLine,
-  statusTag,
   hasMonthlyPlan,
   isCounted,
   notCountedWhy,
@@ -359,7 +359,7 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     counted: row.cost !== null && isCounted(row),
     whyNotCounted: notCountedWhy(row),
     // Billing evidence only; the pick doesn't read it.
-    billingStatus: row.cost ? statusTag(row) : null,
+    billingStatus: row.cost ? billingTag(row) : null,
     noCost: row.cost ? null : noCostReason(row),
     wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
     // "lower": the whole-machine figure is a lower bound (Modal's default track prices only its request); read it as at least that.
@@ -477,8 +477,8 @@ export function realisticData() {
 const pickLine = (track: TrackId, profile: ProfileId) => {
   const p = realisticProfile(track, profile).pick;
   const lower = p.lowerNotCounted.map((r) => `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.whyNotCounted.join("; ")})`).join("; ");
-  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000.` : `${p.label}: no provider finished enough runs.`;
-  return `${head} ${p.certification}${lower ? ` ${p.pick ? "Lower but not counted" : "Reported"}: ${lower}.` : ""}`;
+  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000.` : `${p.label}: no provider meets the pick rule.`;
+  return `${head} ${p.certification}${lower ? ` Not counted: ${lower}.` : ""}`;
 };
 
 function realisticMarkdown() {
@@ -502,6 +502,8 @@ function realisticMarkdown() {
             `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.billingStatus ?? `n/a: ${r.noCost ?? ""}`}${r.whyNotCounted.length ? ` (not counted: ${r.whyNotCounted.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${qualify({ amount: perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE), bound: r.wholeMachineBound, style: "tight" })}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
         ),
         "",
+        ...t.notPriced.map((n) => `Not priced: ${n.name}, because it ${n.reason}.`),
+        ...(t.notPriced.length ? [""] : []),
         ...t.providers.flatMap((r) => [
           ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
           ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : []),
@@ -688,7 +690,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. Boat bills a monthly plan, so it has no per-task cost. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. Boat bills a monthly plan, so it has no per-task cost. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {

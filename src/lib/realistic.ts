@@ -566,6 +566,17 @@ export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" 
   return [base, ...rest].join(", ");
 }
 
+/**
+ * The billing evidence alone ("metered, unreconciled", "billed, verified"):
+ * statusTag without the run qualifiers (wrong size, too many failures), which
+ * notCountedWhy says apart. "n/a" without a cost.
+ */
+export function billingTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+  if (!row.cost) return "n/a";
+  const statuses = row.eligible ? (["verified"] as const) : flagsOf(row).flatMap((f) => (f.status ? [f.status] : []));
+  return kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+}
+
 /** Why a row has no cost: never run, or run without a completed task. */
 export function noCostReason(row: RealisticRow): string {
   const reasons = new Map(row.reasons.map((r) => [r.reason, r.runs]));

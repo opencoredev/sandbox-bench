@@ -80,7 +80,12 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
     case "none":
       return (
         <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
-          <p className="font-medium">{p.label}: no provider finished enough runs.</p>
+          <p className="font-medium">{p.label}: no provider meets the pick rule.</p>
+          {p.lower.map((r) => (
+            <p key={r.provider} className="text-xs text-neutral-7">
+              Not counted: <Who id={r.provider} /> {perThousand(r.cost.usdPerCompleted)} ({lowerWhy(r)}).
+            </p>
+          ))}
           <p className="text-xs text-neutral-7">{costCovers}</p>
         </div>
       );

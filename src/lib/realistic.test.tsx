@@ -44,6 +44,7 @@ import {
   parseRealistic,
   pickFor,
   isCounted,
+  notCountedWhy,
   pickLabels,
   pilotLine,
   profileIds,
@@ -534,6 +535,26 @@ describe("pick", () => {
         assert.ok(isCounted(p.pick));
         for (const r of p.lower) assert.ok(!isCounted(r) && r.cost.usdPerCompleted < p.pick.cost.usdPerCompleted);
       }
+  });
+
+  test("billing evidence is exported apart from the pick's reasons", () => {
+    const boxd = agentData().whatATaskCosts.tracks["same-spec"]?.workloads["fix-and-test"].providers.find((r) => r.provider === "boxd");
+    assert.ok(boxd);
+    assert.equal(boxd.billingStatus, "metered");
+    assert.equal(boxd.counted, false);
+    assert.match(boxd.whyNotCounted.join(), /15\.6 GiB/);
+  });
+
+  test("with only a wrong-size row, the chart says no provider meets the rule and why, not that runs failed", () => {
+    const wrong = costed("boxd", 0.005, false, { flags: ["wrong machine size: 15.6 GiB memory, not within 10% of 8 GiB"] });
+    assert.ok(taskPick([wrong]).kind === "none");
+    assert.deepEqual(notCountedWhy(wrong), ["it ran with 15.6 GiB of memory, not the 8 GiB this track asks for"]);
+    assert.deepEqual(notCountedWhy({ ...wrong, track: "default" }), [], "size only counts on Same machine");
+  });
+
+  test("results.md names Boat as not priced under each workload", () => {
+    const md = agentMarkdown();
+    assert.equal(md.split("Not priced: Boat, because it bills a monthly plan, not per task.").length - 1, 4);
   });
 
   test("the published picks, pinned: a change to the rule or the data must change these on purpose", () => {
