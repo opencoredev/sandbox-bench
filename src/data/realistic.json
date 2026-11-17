@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-17T10:01:17.802Z",
+  "generatedAt": "2026-11-17T11:31:49.826Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -15,7 +15,8 @@
         "upstash",
         "upstash-ephemeral",
         "vercel",
-        "modal"
+        "modal",
+        "baseten"
       ],
       "profiles": [
         "fix-and-test",
@@ -55,6 +56,11 @@
           "provider": "tenki",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
+        },
+        {
+          "provider": "baseten",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         }
       ]
     }
@@ -81,6 +87,13 @@
       "generatedAt": "2026-11-09T23:57:27.172Z",
       "providers": [
         "modal"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-baseten-finish",
+      "generatedAt": "2026-11-17T11:31:49.756Z",
+      "providers": [
+        "baseten"
       ]
     }
   ],
@@ -117,6 +130,32 @@
     }
   },
   "rows": [
+    {
+      "provider": "baseten",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 298.651,
+      "medianCpuS": 277.268,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0225262,
+        "wholeMachineUsdPerCompleted": 0.0225262,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
     {
       "provider": "boat",
       "profile": "build",
@@ -411,6 +450,32 @@
       "eligible": false,
       "flags": [
         "provisional: meter settled charges differ by 15.7%"
+      ]
+    },
+    {
+      "provider": "baseten",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 229.431,
+      "medianCpuS": 289.895,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0277811,
+        "wholeMachineUsdPerCompleted": 0.0277811,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
       ]
     },
     {
@@ -715,6 +780,32 @@
       ]
     },
     {
+      "provider": "baseten",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 140.856,
+      "medianCpuS": 196.838,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00842453,
+        "wholeMachineUsdPerCompleted": 0.00842453,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "boat",
       "profile": "fix-and-test",
       "track": "default",
@@ -995,6 +1086,32 @@
       "eligible": false,
       "flags": [
         "provisional: meter settled charges differ by 15.7%"
+      ]
+    },
+    {
+      "provider": "baseten",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 100.084,
+      "medianCpuS": 209.772,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0120624,
+        "wholeMachineUsdPerCompleted": 0.0120624,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
       ]
     },
     {

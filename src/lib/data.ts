@@ -4,7 +4,7 @@ import defaultExtras from "@/data/extras.default.json";
 import sameSpecExtras from "@/data/extras.same-spec.json";
 
 import type { Unit } from "@/lib/format";
-import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport } from "@/lib/inputs";
+import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport, StandbyResumeExport } from "@/lib/inputs";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { trackIds } from "@/lib/tracks";
@@ -34,7 +34,7 @@ export interface Allocation {
  */
 export type PriceBound = "exact" | "lower" | "observed";
 
-export type Provider = Omit<SiteProviderExport, "id" | "track" | "currency" | "costPerTask" | "pricingBound" | "pricingRegion" | "regionMultiplier"> & {
+export type Provider = Omit<SiteProviderExport, "id" | "track" | "currency" | "costPerTask" | "pricingBound" | "pricingRegion" | "regionMultiplier" | "standbyResume"> & {
   id: ProviderId;
   currency: "USD" | "EUR" | null;
   /** How `hourly` and `perVcpuHour` relate to the bill; null when there is no price or the export predates it. */
@@ -43,6 +43,8 @@ export type Provider = Omit<SiteProviderExport, "id" | "track" | "currency" | "c
   pricingRegion: string | null;
   /** Region price multiplier already in `hourly` and `commonHourly`; 1 when none applies. */
   regionMultiplier: number;
+  /** Resume after the sandbox went on standby by itself, for a provider with no pause call; null otherwise or when the export predates it. */
+  standbyResume: StandbyResumeExport | null;
 };
 
 export interface MetricValue {
@@ -147,6 +149,17 @@ function toMultiplier(m: number | undefined, where: string): number {
 }
 
 /**
+ * A standby resume from the export. One that comes with a pause split stops the
+ * build: a provider either has a pause call or pauses on its own, never both.
+ */
+function toStandby(s: StandbyResumeExport | null | undefined, p: SiteProviderExport): StandbyResumeExport | null {
+  if (s === undefined || s === null) return null;
+  if (p.pauseSplit !== null) throw new Error(`${p.id}: export has both a pause split and a standby resume`);
+  if (![s.resume, s.idleS, s.medianGapS].every((v) => Number.isFinite(v) && v >= 0) || !Number.isInteger(s.n) || s.n < 1) throw new Error(`${p.id}: malformed standby resume`);
+  return s;
+}
+
+/**
  * The one place that reads cost per task from an export. Only the cost
  * suite's per-task result counts: whole benchmark sandboxes ran different
  * scenarios per provider, so their bills are not comparable and are never used.
@@ -160,7 +173,7 @@ export function readCostPerTask(p: SiteProviderExport): TaskCost {
 
 export function parseProvider(p: SiteProviderExport): Provider[] {
   if (!isProviderId(p.id)) return [];
-  const { track: _track, costPerTask: _cost, pricingBound, pricingRegion, regionMultiplier, ...rest } = p;
+  const { track: _track, costPerTask: _cost, pricingBound, pricingRegion, regionMultiplier, standbyResume, ...rest } = p;
   return [
     {
       ...rest,
@@ -169,6 +182,7 @@ export function parseProvider(p: SiteProviderExport): Provider[] {
       pricingBound: toBound(pricingBound, `${p.id} hourly price`),
       pricingRegion: pricingRegion ?? null,
       regionMultiplier: toMultiplier(regionMultiplier, `${p.id} hourly price`),
+      standbyResume: toStandby(standbyResume, p),
     },
   ];
 }

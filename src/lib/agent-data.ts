@@ -29,9 +29,10 @@ import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/dat
 import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
-import { chipBasisLabel, fromFingerprints, hardware, probeDate } from "@/lib/hardware";
+import { chipBasisLabel, fingerprintDate, hardware, probeDate } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
-import { absentNote, allocationNotes, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
+import { absentNote, allocationNotes, autoStandby, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
+import { pauseOf } from "@/lib/pause";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
@@ -109,12 +110,36 @@ const handNotRun: NotRun = {
   },
 };
 
+/** The harness scenarios a metric id differs from (bench/src/attempts.ts mainTests). */
+const metricOfScenario: Readonly<Record<string, string>> = { "tcp-ms": "tcp" };
+const notAvailable = /^Not available yet: /;
+
+/**
+ * Tests the attempt policy recorded as not run because the provider doesn't
+ * offer them yet (reason "Not available yet: …", such as Baseten's snapshots),
+ * as "not-available: …" statuses, so they read as missing features, never as
+ * failures. Other policy reasons are left to the hand-written map.
+ */
+function unavailable(id: TrackId): NotRun[TrackId] {
+  const out: NotRun[TrackId] = {};
+  for (const [pid, ex] of Object.entries(tracks[id].exclusions)) {
+    if (!isProviderId(pid)) continue;
+    for (const n of ex?.notRun ?? []) {
+      if (!notAvailable.test(n.reason)) continue;
+      const m = metricOfScenario[n.scenario] ?? n.scenario;
+      out[m] = { ...out[m], [pid]: `not-available: ${n.reason.replace(notAvailable, "")}` };
+    }
+  }
+  return out;
+}
+
 /** The hand-written reasons above plus the ones each track's data works out from its runs; the data wins for a provider it names. */
 function withData(id: TrackId): NotRun[TrackId] {
   const fromData = tracks[id].missing;
+  const policy = unavailable(id);
   const out: NotRun[TrackId] = {};
-  for (const m of new Set([...Object.keys(handNotRun[id]), ...Object.keys(fromData)])) {
-    const row: Partial<Record<ProviderId, string>> = { ...handNotRun[id][m] };
+  for (const m of new Set([...Object.keys(handNotRun[id]), ...Object.keys(policy), ...Object.keys(fromData)])) {
+    const row: Partial<Record<ProviderId, string>> = { ...handNotRun[id][m], ...policy[m] };
     for (const [pid, why] of Object.entries(fromData[m] ?? {})) if (isProviderId(pid)) row[pid] = why;
     out[m] = row;
   }
@@ -123,7 +148,7 @@ function withData(id: TrackId): NotRun[TrackId] {
 export const notRun: NotRun = { default: withData("default"), "same-spec": withData("same-spec") };
 
 /** A notRun reason as chart text: "not run: …", or the reason alone for a stopped run. */
-export const notRunText = (why: string) => why.replace(/^not-run: /, "not run: ").replace(/^stopped-early: /, "");
+export const notRunText = (why: string) => why.replace(/^not-run: /, "not run: ").replace(/^not-available: /, "not available yet: ").replace(/^stopped-early: /, "");
 
 /**
  * Results we measured but leave out of rankings, with the reason, keyed by
@@ -148,12 +173,38 @@ function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["val
   const left = excludedFor(track)[id]?.[provider];
   if (left) return `excluded: ${left}`;
   if (id === "pause-resume" && noRealPause[provider]) return `unsupported: ${noRealPause[provider]}`;
+  if (id === "pause-resume" && autoStandby[provider]) return standbyStatus(track, provider);
   if (!v) return "unsupported";
   if (v.n > 0) return "measured";
   if (v.ourFailures > 0 && v.failures === 0) return "not-measured: our harness could not run this test on this provider";
   if (v.failures > 0 && v.limitFailures === v.failures) return "not-run: our account or plan limit";
   if (v.failures > 0) return "all-failed";
   return "unsupported";
+}
+
+/**
+ * The pause + resume status of a provider that pauses by itself: never a
+ * measured total, since there is no pause to add, but its resume after
+ * standby where the data has one.
+ */
+function standbyStatus(track: Track, id: ProviderId) {
+  const p = track.providers.find((x) => x.id === id);
+  const r = p ? pauseOf(track, p) : null;
+  const resume = r?.kind === "standby" ? ` Only its resume is timed, so it isn't ranked as a pause + resume total: the first command after standby took ${formatValue(r.resume, "s")} (median of ${r.n}, after ${formatValue(r.idleS, "s")} with no requests).` : " No resume after standby was measured in this track.";
+  return `standby: ${autoStandby[id] ?? ""}${resume}`;
+}
+
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** The pause field of a provider in the agent files. */
+function pauseData(track: Track, p: Provider) {
+  const restart = noRealPause[p.id];
+  if (restart) return { supported: false, note: restart };
+  const r = pauseOf(track, p);
+  const note = (s: string) => capitalise(s.replace(/^standby: /, ""));
+  if (r.kind === "standby") return { supported: true, note: note(standbyStatus(track, p.id)), standby: { resumeAfterStandby: round(r.resume), idleSeconds: r.idleS, n: r.n } };
+  if (autoStandby[p.id]) return { supported: true, note: note(standbyStatus(track, p.id)), standby: null };
+  return { supported: p.pauseSplit !== null || track.metric("pause-resume").values.some((v) => v.provider === p.id && v.p50 !== null), split: p.pauseSplit };
 }
 
 const results = (track: Track, m: Metric) =>
@@ -516,7 +567,7 @@ function hardwareOf(id: ProviderId) {
     region: h.region,
     runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
     hidden: h.hidden,
-    probed: (fromFingerprints.providers as readonly ProviderId[]).includes(id) ? `${fromFingerprints.date}, from the benchmark's fingerprints` : probeDate,
+    probed: fingerprintDate(id) === null ? probeDate : `${fingerprintDate(id)}, from the benchmark's fingerprints`,
   };
 }
 
@@ -612,7 +663,7 @@ function trackData(track: Track) {
           usdNote: p.currency === "EUR" ? `Converted at the ECB rate of ${eurUsd.rate} USD per EUR on ${eurUsd.date}.` : null,
           source: p.pricingSource,
         },
-        pause: noRealPause[p.id] ? { supported: false, note: noRealPause[p.id] } : { supported: p.pauseSplit !== null || track.metric("pause-resume").values.some((v) => v.provider === p.id && v.p50 !== null), split: p.pauseSplit },
+        pause: pauseData(track, p),
         reliability: { attempts: rel.attempts, succeeded: rel.succeeded, successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5 },
         failures: p.failureReasons,
         setAside: p.ourFailures,
@@ -803,7 +854,12 @@ function qualifierNotes() {
 /** " 23 Modal main-suite runs (…) were set aside as our-side failures and rerun: …", for every provider with some; "" otherwise. */
 const setAsideSummary = () => allProviders.flatMap((id) => { const s = setAsideSentence(id); return s ? [` ${s}`] : []; }).join("");
 
-/** "boxd: bills active CPU and memory in use; E2B, Boat: bills the whole machine while it exists; …", grouped by label. */
+/**
+ * "Billing model of boxd: bills active CPU and memory in use. Billing model of
+ * E2B, Boat: bills the whole machine while it exists. …", one sentence per
+ * label, so a provider page quoting the sentences that name it gets only its
+ * own group, never the others'.
+ */
 function billingSummary() {
   const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))];
   const byLabel = new Map<string, ProviderId[]>();
@@ -811,7 +867,7 @@ function billingSummary() {
     const label = billingLabel(billingBases[id]);
     byLabel.set(label, [...(byLabel.get(label) ?? []), id]);
   }
-  return [...byLabel].map(([label, group]) => `${nameList(group)}: ${label}`).join("; ");
+  return [...byLabel].map(([label, group]) => `Billing model of ${nameList(group)}: ${label}.`).join(" ");
 }
 
 /** The llms.txt guide: what the site is and where agents find each piece. */
@@ -838,7 +894,7 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle and Luxor costs are list-price estimates on our measured sandbox lifetime, because neither has a billing API. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} Billing models: ${billingSummary()}. ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. There is no overall cheapest pick: the cost pick is the lowest verified cost among eligible providers, and only a cost that is billed and settled, and not provisional, is eligible. Metered costs stay unreconciled until checked against the provider's settled charges, which none has been yet. Shown but not eligible yet: ${notEligibleSummary()}. Daytona settles up to 48 hours after a run. Freestyle, Luxor and Baseten costs are list-price estimates on our measured sandbox lifetime, because none has billing data we can read. Boat's is an estimate from its docs: its documented price on our measured sandbox lifetime, because its per-sandbox usage wasn't pulled for that run. Boat can't be a pick yet because no settled-charge source for Boat is available. Estimates are shown, never picked.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 

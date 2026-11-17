@@ -42,6 +42,7 @@ export const blankWhy = (status: string) => {
     .replace(/^unsupported$/, "not supported")
     .replace(/^excluded: /, "left out of the ranking: ")
     .replace(/^coming-next-update: /, "")
+    .replace(/^standby: /, "")
     .replace(/^not-measured: /, "")
     .replace(/^all-failed$/, "every attempt failed");
   return text.charAt(0).toUpperCase() + text.slice(1);

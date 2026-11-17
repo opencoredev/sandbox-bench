@@ -8,7 +8,7 @@ export const site = "https://aisandboxbench.com";
  * roll out a few at a time, and only for providers with published results on
  * the live site.
  */
-export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki"] as const satisfies readonly ProviderId[];
+export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten"] as const satisfies readonly ProviderId[];
 export type ProviderPageId = (typeof providerPages)[number];
 export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
 
@@ -57,20 +57,21 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath |
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-16",
-  "/providers/e2b/": "2026-11-16",
-  "/providers/": "2026-11-16",
-  "/providers/daytona/": "2026-11-16",
-  "/providers/superserve/": "2026-11-16",
-  "/providers/upstash/": "2026-11-16",
-  "/providers/upstash-ephemeral/": "2026-11-16",
-  "/providers/boat/": "2026-11-16",
-  "/providers/freestyle/": "2026-11-16",
-  "/providers/tenki/": "2026-11-16",
-  "/compare/e2b-vs-daytona/": "2026-11-16",
-  "/compare/upstash-box-vs-e2b/": "2026-11-16",
-  "/compare/upstash-box-vs-daytona/": "2026-11-16",
-  "/alternatives/e2b/": "2026-11-16",
+  "/": "2026-11-17",
+  "/providers/e2b/": "2026-11-17",
+  "/providers/": "2026-11-17",
+  "/providers/daytona/": "2026-11-17",
+  "/providers/superserve/": "2026-11-17",
+  "/providers/upstash/": "2026-11-17",
+  "/providers/upstash-ephemeral/": "2026-11-17",
+  "/providers/boat/": "2026-11-17",
+  "/providers/freestyle/": "2026-11-17",
+  "/providers/tenki/": "2026-11-17",
+  "/providers/baseten/": "2026-11-17",
+  "/compare/e2b-vs-daytona/": "2026-11-17",
+  "/compare/upstash-box-vs-e2b/": "2026-11-17",
+  "/compare/upstash-box-vs-daytona/": "2026-11-17",
+  "/alternatives/e2b/": "2026-11-17",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */

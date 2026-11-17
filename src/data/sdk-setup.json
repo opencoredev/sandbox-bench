@@ -13,6 +13,13 @@
     "superserve": 0.2,
     "boat": 0.2,
     "vercel": 0.2,
-    "modal": 0.2
+    "modal": 0.2,
+    "baseten": 0.2
+  },
+  "runs": {
+    "baseten": {
+      "sdkCommit": "9e2a752",
+      "date": "Nov 13, 2026"
+    }
   }
 }

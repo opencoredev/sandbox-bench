@@ -1,0 +1,46 @@
+{
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "ee77550807f255fb278db4e281e32b888bef2a0242858a6715f8a1e9c49880a7",
+  "harness": {
+    "commit": "73aee6e"
+  },
+  "rows": [
+    {
+      "provider": "baseten",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.008424533333333331,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "baseten",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.022526161728395062,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "baseten",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.02778110617283951,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "baseten",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.012062400000000001,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    }
+  ],
+  "heldOpen": []
+}

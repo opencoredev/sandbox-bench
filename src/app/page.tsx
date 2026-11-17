@@ -457,12 +457,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge; Daytona's is unsettled and can still change for 48 hours. E2B and boxd give a usage record, priced at their published rates. A usage record stays unreconciled, and can't be the pick, until it is checked against the charges the provider settled; boxd's is also provisional, for the reason shown beside it. Freestyle and Luxor have no billing API, so they use our measured time at list price. Boat's is an estimate from its docs, because its per-sandbox usage wasn't pulled for that run; with no settled-charge source for Boat, it can't be a pick yet. Only a billed cost that has settled and isn't provisional can be the pick, which is the lowest verified cost among eligible providers. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge; Daytona's is unsettled and can still change for 48 hours. E2B and boxd give a usage record, priced at their published rates. A usage record stays unreconciled, and can't be the pick, until it is checked against the charges the provider settled; boxd's is also provisional, for the reason shown beside it. Freestyle, Luxor and Baseten have no billing data we can read, so they use our measured time at list price. Boat's is an estimate from its docs, because its per-sandbox usage wasn't pulled for that run; with no settled-charge source for Boat, it can't be a pick yet. Only a billed cost that has settled and isn't provisional can be the pick, which is the lowest verified cost among eligible providers. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -477,7 +477,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",
@@ -635,7 +635,7 @@ export default function Page() {
         <Section
           id="state"
           title="Pause & snapshots"
-          lede="Pausing stops paying for idle time while an agent waits on a human, with every process kept. Where stop and start restarts the sandbox instead, we mark pause as not supported. Snapshots start many sandboxes from one prepared state."
+          lede="Pausing stops paying for idle time while an agent waits on a human, with every process kept. Where stop and start restarts the sandbox instead, we mark pause as not supported; where a sandbox pauses by itself when idle, only its resume is timed. Snapshots start many sandboxes from one prepared state."
         >
           <PerTrack>
             {(track) => (
