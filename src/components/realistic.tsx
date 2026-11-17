@@ -20,6 +20,7 @@ import {
   idleLabel,
   idleOutcome,
   hasMonthlyPlan,
+  notCountedWhy,
   isCounterfactual,
   laterLine,
   runsLine,
@@ -92,12 +93,8 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
   }
 }
 
-/** Why a cheaper bar isn't the pick, in its own words: the wrong size, or too many failed runs. */
-const lowerWhy = (r: Costed) =>
-  flagsOf(r)
-    .filter((f) => f.short === "wrong size" || f.short === "too many failures")
-    .map((f) => f.text)
-    .join("; ") || `${r.incomplete} runs didn't complete`;
+/** Why a cheaper bar isn't the pick: the wrong size, or too many failed runs. */
+const lowerWhy = (r: Costed) => notCountedWhy(r).join("; ");
 
 /** A pinned region's price multiplier beside the figure ("us-east rate, 1.75× base price"), as the quick-task charts say it. */
 const priceNote = (id: ProviderId, track: TrackId | undefined) => (track ? regionFor(id, track)?.short : undefined);
@@ -331,6 +328,10 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
       ) : null}
       <div className="hidden sm:block">
         <NotInChart rows={uncosted} monthly={monthly} />
+      </div>
+      {/* Phones list the uncosted providers as rows below, so only the monthly plans need saying here. */}
+      <div className="sm:hidden">
+        <NotInChart rows={[]} monthly={monthly} />
       </div>
       <ProviderRows costed={costed} uncosted={uncosted} track={track.id} />
       <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted], footprint)} />

@@ -636,10 +636,12 @@ describe("exports", () => {
 
   test("every export names the providers left out of the idle test, with why", () => {
     const d = agentData().whatATaskCosts;
-    assert.deepEqual(d.idle.notTested.map((n) => n.provider), realistic.coverage.idle.notTested.map((n) => n.provider));
+    // Boat ran the idle test but bills a monthly plan, so it is listed as left out, with that reason.
+    assert.deepEqual(d.idle.notTested.map((n) => n.provider), [...realistic.coverage.idle.notTested.map((n) => n.provider), "boat"]);
+    assert.ok(!d.idle.providers.some((g) => g.provider === "boat"));
     const md = agentMarkdown();
     const llms = llmsTxt();
-    for (const n of realistic.coverage.idle.notTested) {
+    for (const n of d.idle.notTested) {
       assert.ok(md.includes(n.reason), `results.md misses ${n.provider}`);
       assert.ok(llms.includes(n.reason), `llms.txt misses ${n.provider}`);
     }

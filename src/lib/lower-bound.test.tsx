@@ -73,7 +73,7 @@ describe("lower-bound cost", () => {
   });
 
   test("with only lower bounds there is no pick", () => {
-    assert.deepEqual(costPick(onlyModalLowerBound()), { kind: "none" });
+    assert.deepEqual(costPick(onlyModalLowerBound()), { kind: "none", why: "lower-bounds", lower: [] });
   });
 
   test("prints as at least, or ≥ in tight cells", () => {

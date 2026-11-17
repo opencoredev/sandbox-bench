@@ -11,6 +11,7 @@ import {
   isLowerBound,
   machineText,
   noPickLabel,
+  noPickWhy,
   perTaskLifetimeNote,
   perThousandText,
   pickLabel,
@@ -73,7 +74,7 @@ export function CostPick({ track }: { track: Track }) {
         </div>
       );
     case "none":
-      return <p className="mb-m text-s font-medium text-pretty">{noPickLabel}: every reported cost is a lower bound, so none is ranked.</p>;
+      return <p className="mb-m text-s font-medium text-pretty">{noPickLabel}: {noPickWhy(c)}.</p>;
     case "empty":
       return null;
     default: {
@@ -201,7 +202,7 @@ export function CostPerTaskChart({ track }: { track: Track }) {
           ...(missing.length > 0
             ? [{ text: <>No cost for {missing.map(({ id, why }, i) => <span key={id}>{i > 0 ? "; " : ""}<Who id={id} /> ({why.replace(/\.$/, "")})</span>)}.</> }]
             : []),
-          { text: "Usage charges only: credits, tax and plan minimums are left out." },
+          { text: "Usage charges only: credits and tax are left out." },
           ...trackFootnotes(track, "cost"),
         ]}
       />

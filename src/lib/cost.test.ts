@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { costPick, costStatus, costTag, isEligible, monthlyPlanWhy, pricedTasks, unpricedTasks } from "@/lib/cost";
+import { costPick, costStatus, costTag, isEligible, monthlyPlanWhy, pricedTasks, taskCostOf, unpricedTasks } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
+import type { TaskCost, Track } from "@/lib/data";
+import type { ProviderId } from "@/lib/providers";
 
 // The cost eligibility table and the pick built on it. Run with `bun test`.
 
@@ -64,12 +66,36 @@ describe("cost pick", () => {
     }
   });
 
-  test("an unsettled or estimated cost can still be the cheapest", () => {
-    const base = tracks.default;
-    const costs = Object.fromEntries(Object.entries(base.costs).map(([k, v]) => [k, v && v.kind === "billed" ? { ...v, settled: false } : v]));
-    const c = costPick({ ...base, costs } as typeof base);
+  /** The default track with one provider's cost replaced, cheaper than every published one. */
+  const withCost = (id: ProviderId, cost: TaskCost): Track => ({ ...tracks.default, costs: { ...tracks.default.costs, [id]: cost } });
+  const cheap: Omit<Priced, "kind" | "settled"> = { usd: 0.000001, n: 10, confidence: "high", source: null, bound: null };
+
+  test("an unsettled billed cost can be the cheapest", () => {
+    const c = costPick(withCost("daytona", { kind: "billed", settled: false, ...cheap }));
     assert.ok(c.kind === "picked");
-    assert.equal(c.pick.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
+    assert.equal(c.pick.id, "daytona");
+    assert.equal(c.pick.status.kind, "unsettled");
+  });
+
+  test("an exact estimate can be the cheapest", () => {
+    const c = costPick(withCost("freestyle", { kind: "estimate", settled: false, ...cheap }));
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, "freestyle");
+    assert.equal(c.pick.cost.kind, "estimate");
+  });
+
+  test("a monthly-plan provider never gets a per-task cost, even with one in the data", () => {
+    assert.equal(taskCostOf(withCost("boat", { kind: "billed", settled: true, ...cheap }), "boat")?.kind, "none");
+  });
+
+  test("on Same machine, with only a wrong-size exact cost, there is no pick, and the reason is the machine", () => {
+    const t = tracks["same-spec"];
+    const boxd = t.costs.boxd;
+    assert.ok(boxd && boxd.kind !== "none");
+    const c = costPick({ ...t, costs: { boxd } });
+    assert.ok(c.kind === "none");
+    assert.equal(c.why, "machine");
+    assert.deepEqual(c.lower.map((x) => x.id), ["boxd"]);
   });
 
   test("no costs at all: empty", () => {

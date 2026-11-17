@@ -152,11 +152,20 @@ export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKi
 export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
   s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : s.kind === "lowerBound" ? kindStatusText(c.kind, [s.kind]) : costKinds[c.kind].label.toLowerCase();
 
+/**
+ * A provider's cost per task on a track, as every chart, page and export reads
+ * it: a provider billed by a monthly plan has none, with that reason.
+ */
+export function taskCostOf(track: Pick<Track, "costs" | "providers">, id: ProviderId): TaskCost | undefined {
+  const p = track.providers.find((x) => x.id === id);
+  return p && hasMonthlyPlan(p) ? { kind: "none", why: monthlyPlanWhy } : track.costs[id];
+}
+
 /** Whether any track has a lower-bound cost or hourly price, so notes about lower bounds appear only once one does. */
 export const hasLowerBounds = (ts: readonly Track[]) =>
   ts.some((t) =>
     t.providers.some((p) => {
-      const c = t.costs[p.id];
+      const c = taskCostOf(t, p.id);
       return p.pricingBound === "lower" || (c !== undefined && isPriced(c) && isLowerBound(c));
     }),
   );
@@ -290,9 +299,8 @@ export function wholeMachineText(w: WholeMachine) {
  */
 export function pricedTasks(track: Track) {
   return track.providers
-    .filter((p) => !hasMonthlyPlan(p))
     .flatMap((p) => {
-      const c = track.costs[p.id];
+      const c = taskCostOf(track, p.id);
       return c && isPriced(c) ? [{ id: p.id, cost: c, status: costStatus(p.id, c) }] : [];
     })
     .sort((a, b) => Number(isLowerBound(a.cost)) - Number(isLowerBound(b.cost)) || a.cost.usd - b.cost.usd);
@@ -301,7 +309,7 @@ export function pricedTasks(track: Track) {
 export type PricedTask = ReturnType<typeof pricedTasks>[number];
 
 export const pickLabel = "Cheapest";
-export const noPickLabel = "No exact cost yet";
+export const noPickLabel = "No cheapest";
 
 /**
  * Whether a provider bills a monthly plan ("$20 monthly minimum" in its
@@ -322,8 +330,12 @@ export const monthlyPlanWhy = "bills a monthly plan, not per task";
  */
 export type CostPick =
   | { kind: "picked"; pick: PricedTask; runnerUp: PricedTask | null; lower: readonly PricedTask[] }
-  | { kind: "none" }
+  | { kind: "none"; why: "lower-bounds" | "machine"; lower: readonly PricedTask[] }
   | { kind: "empty" };
+
+/** Why there is no pick, in a sentence. */
+export const noPickWhy = (c: Extract<CostPick, { kind: "none" }>) =>
+  c.why === "machine" ? "no exact cost ran on 4 vCPU and 8 GB, so none is ranked" : "every reported cost is a lower bound, so none is ranked";
 
 export function costPick(track: Track): CostPick {
   const all = pricedTasks(track);
@@ -331,16 +343,15 @@ export function costPick(track: Track): CostPick {
   const sized = (t: PricedTask) => track.id === "default" || track.providers.some((p) => p.id === t.id && p.equalSpec);
   const [pick, runnerUp] = exact.filter(sized);
   if (pick) return { kind: "picked", pick, runnerUp: runnerUp ?? null, lower: exact.filter((t) => !sized(t) && t.cost.usd < pick.cost.usd) };
-  return all.length === 0 ? { kind: "empty" } : { kind: "none" };
+  if (all.length === 0) return { kind: "empty" };
+  return exact.length ? { kind: "none", why: "machine", lower: exact } : { kind: "none", why: "lower-bounds", lower: [] };
 }
 
 /** Providers with no cost at all, and why: no data, a failed run, or a monthly plan. */
 export const unpricedTasks = (track: Track) =>
   track.providers.flatMap((p): { id: ProviderId; why: string }[] => {
-    const c = track.costs[p.id];
-    if (!c) return [{ id: p.id, why: "no cost data" }];
-    if (c.kind === "none") return [{ id: p.id, why: c.why }];
-    return hasMonthlyPlan(p) ? [{ id: p.id, why: monthlyPlanWhy }] : [];
+    const c = taskCostOf(track, p.id);
+    return !c ? [{ id: p.id, why: "no cost data" }] : c.kind === "none" ? [{ id: p.id, why: c.why }] : [];
   });
 
 /** One line on where a cost came from, for hover cards and agent files. */

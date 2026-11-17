@@ -645,10 +645,18 @@ export const pickLabels = {
 export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.coverage.headline.attempts} pilot runs there is no statistical test, so the result is descriptive`;
 
 /**
- * Whether a row can be called cheapest: at most one incomplete run and, on the
- * same-machine track, the size it asks for. How the cost was priced doesn't matter.
+ * Why a row can't be called cheapest, in plain words, or [] when it can: more
+ * than one incomplete run, or, on the same-machine track, the wrong machine
+ * size. How the cost was priced doesn't matter. Selection, the chart and the
+ * exports all read this one list.
  */
-export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags">) => r.incomplete <= 1 && !flagsOf(r).some((f) => f.short === "wrong size");
+export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track">): string[] {
+  const failed = r.incomplete > 1 ? [`${r.incomplete} of its runs didn't complete, and the pick allows at most 1`] : [];
+  const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
+  return [...failed, ...size];
+}
+
+export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track">) => notCountedWhy(r).length === 0;
 
 /**
  * The pick: the cheapest counted row. `counted` is every provider that could

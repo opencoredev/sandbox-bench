@@ -228,7 +228,7 @@ function TrackSection({ p, t }: { p: ComparePage; t: CompareTrack }) {
           </p>
         ) : costKindsDiffer(a, b) && a.cost.kind === "priced" && b.cost.kind === "priced" ? (
           <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-8">
-            {providerName(p.a)}&apos;s cost is {a.cost.label.toLowerCase()} and {providerName(p.b)}&apos;s is {b.cost.label.toLowerCase()}, so the two aren&apos;t directly comparable. {taskText()}
+            {providerName(p.a)}&apos;s cost is {a.cost.label.toLowerCase()} and {providerName(p.b)}&apos;s is {b.cost.label.toLowerCase()}. {taskText()}
           </p>
         ) : (
           <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-7">{taskText()}</p>

@@ -221,7 +221,7 @@ function TrackSection({ id, t }: { id: AlternativesPageId; t: AlternativesTrack 
           </Fact>
         </dl>
         <p className="mt-l max-w-[80ch] text-s text-pretty text-neutral-7">
-          {taskText()}{" "}Cost kinds differ between providers (billed, metered, estimate) and aren&apos;t directly comparable.
+          {taskText()}{" "}Costs come from each provider&apos;s bill or usage records where it gives one, otherwise from its list price.
         </p>
       </Card>
       <div className="mt-m grid gap-m md:grid-cols-2">
