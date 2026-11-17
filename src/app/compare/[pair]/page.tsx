@@ -190,7 +190,7 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         <li>Billing: {t.billing}.</li>
         {t.cost.kind === "priced" ? (
           <li>
-            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).{t.cost.statusNote ? ` ${t.cost.statusNote}; not eligible for the cost pick.` : ""}
+            Cost: {t.cost.perTask} per task, {t.cost.source} ({t.cost.basis.toLowerCase()}).
           </li>
         ) : null}
         <li>

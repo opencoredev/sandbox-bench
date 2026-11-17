@@ -7,7 +7,7 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { ByLocation } from "@/components/by-location";
-import { CostLegend, CostPerTaskChart, NoCostResults, NotFromBill, costColumns } from "@/components/cost";
+import { CostPerTaskChart, NoCostResults, costColumns } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
@@ -31,7 +31,7 @@ import { Tracked } from "@/components/track";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, costStatuses, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
@@ -192,11 +192,11 @@ function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
   // A lower bound has no place on a cost axis: the charge could sit anywhere above it.
   const bounded = pricedTasks(track).filter((t) => isLowerBound(t.cost));
-  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
+  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
     if (isLowerBound(cost)) return [];
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), `Cost status: ${costStatuses[status.kind].label.toLowerCase()}`, ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
@@ -227,13 +227,11 @@ function CostQuadrant({ track }: { track: Track }) {
         xTitle="Median time for 100 tool calls, seconds (log scale)"
         yTitle="Cost per 1,000 tasks (USD)"
       />
-      <NotFromBill track={track} />
       <Footnotes
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
           ...points.flatMap((p) => (machine[p.provider] ? [{ text: <><Who id={p.provider} />: {sentence(machine[p.provider] ?? "")}</> }] : [])),
           ...bounded.map((t) => ({ text: <><Who id={t.id} /> isn&apos;t plotted: its cost is a lower bound, so its place on the cost axis isn&apos;t known.</> })),
-          { text: <><Who id="boat" /> runs in Europe, so every call from our Florida server crosses the Atlantic.</> },
           ...trackFootnotes(track),
         ]}
       />
@@ -330,7 +328,6 @@ function Headlines({ track }: { track: Track }) {
         {hasTaskCosts(track) ? (
           <>
             <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
-            <CostLegend track={track} compact />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
           </>
         ) : (
@@ -462,7 +459,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge; Daytona's is unsettled and can still change for 48 hours. E2B and boxd give a usage record, priced at their published rates. A usage record stays unreconciled, and can't be the pick, until it is checked against the charges the provider settled; boxd's is also provisional, for the reason shown beside it. Freestyle, Luxor and Baseten have no billing data we can read, so they use our measured time at list price. Boat's is an estimate from its docs, because its per-sandbox usage wasn't pulled for that run; with no settled-charge source for Boat, it can't be a pick yet. Only a billed cost that has settled and isn't provisional can be the pick, which is the lowest verified cost among eligible providers. Credits, tax and plan minimums are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B and boxd give a usage record, priced at their published rates. Freestyle, Luxor and Baseten use our measured time at their list prices. Boat bills a monthly plan, so it has no per-task cost. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -758,7 +755,7 @@ export default function Page() {
         >
           <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
             <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>Early results from {realistic.coverage.headline.attempts} runs per provider; each chart says how far its prices are verified.</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
           </p>
           <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
           <Card className="mt-m">

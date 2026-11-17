@@ -7,7 +7,7 @@ import { formatShort } from "@/lib/format";
 import { pauses, resumeOf } from "@/lib/pause";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { perThousand, pickFor, pilotShort, runTrackOf, statusTag } from "@/lib/realistic";
+import { perThousand, pickFor, pilotShort, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
@@ -33,27 +33,15 @@ function fastest(track: Track, id: string) {
 
 /**
  * The cost tile: fix and test, the realistic workload closest to everyday
- * agent work, rather than the quick synthetic task. It shows the lowest
- * verified cost among eligible providers (saying so when it is the only
- * one), or the lowest reported cost marked unverified when none is eligible.
+ * agent work, rather than the quick synthetic task. It shows the cheapest
+ * provider, or nothing when none finished enough runs.
  */
 function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
   const p = pickFor(realistic, runTrackOf[track.id], "fix-and-test");
   switch (p.kind) {
-    case "verified":
-      return {
-        label: `${p.eligible.length === 1 ? "Only verified" : "Lowest verified"} fix-and-test cost, per 1,000`,
-        provider: p.pick.provider,
-        value: perThousand(p.pick.cost.usdPerCompleted),
-        note: statusTag(p.pick),
-        badge: `${pilotShort(realistic)}${p.lower.length ? " · lower unverified costs exist" : ""}`,
-      };
-    case "none": {
-      const [lowest] = p.lower;
-      return lowest
-        ? { label: "Fix and test: none verified", provider: lowest.provider, value: perThousand(lowest.cost.usdPerCompleted), note: statusTag(lowest), badge: `${pilotShort(realistic)} · lowest reported, unverified` }
-        : null;
-    }
+    case "picked":
+      return { label: "Cheapest fix and test, per 1,000", provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), badge: pilotShort(realistic) };
+    case "none":
     case "empty":
       return null;
     default: {

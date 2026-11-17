@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { costPick, costStatus, costTag, isEligible, pricedTasks } from "@/lib/cost";
+import { costPick, costStatus, costTag, isEligible, monthlyPlanWhy, pricedTasks, unpricedTasks } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 
@@ -44,30 +44,32 @@ describe("cost status", () => {
 describe("cost pick", () => {
   // The published data, pinned: a change to the rule or the data must change these on purpose.
   const expected = {
-    "same-spec": { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "superserve", "modal"], lower: ["boxd"] },
-    default: { pick: "upstash-ephemeral", eligible: ["upstash-ephemeral", "upstash", "modal", "superserve"], lower: ["boxd"] },
-  } as const satisfies Record<(typeof trackIds)[number], { pick: string; eligible: readonly string[]; lower: readonly string[] }>;
+    "same-spec": { pick: "upstash-ephemeral", lower: ["boxd"] },
+    default: { pick: "boxd", lower: [] },
+  } as const satisfies Record<(typeof trackIds)[number], { pick: string; lower: readonly string[] }>;
 
   for (const id of trackIds) {
-    test(`${id}: the published pick, its eligible set and the lower costs it flags`, () => {
+    test(`${id}: the cheapest exact cost, and any cheaper one on a different machine`, () => {
       const c = costPick(tracks[id]);
-      assert.equal(c.kind, "verified");
-      if (c.kind !== "verified") return;
+      assert.ok(c.kind === "picked");
       assert.equal(c.pick.id, expected[id].pick);
-      assert.deepEqual(c.eligible, expected[id].eligible);
-      assert.deepEqual(
-        c.lower.map((t) => t.id),
-        expected[id].lower,
-      );
+      assert.deepEqual(c.lower.map((t) => t.id), expected[id].lower);
     });
   }
 
-  test("no eligible cost: no pick, and the lowest reported cost is still shown", () => {
-    const base = tracks["same-spec"];
+  test("a monthly-plan provider has no per-task cost: out of the chart and the pick, listed as unpriced", () => {
+    for (const id of trackIds) {
+      assert.ok(!pricedTasks(tracks[id]).some((t) => t.id === "boat"));
+      assert.ok(unpricedTasks(tracks[id]).some((t) => t.id === "boat" && t.why === monthlyPlanWhy));
+    }
+  });
+
+  test("an unsettled or estimated cost can still be the cheapest", () => {
+    const base = tracks.default;
     const costs = Object.fromEntries(Object.entries(base.costs).map(([k, v]) => [k, v && v.kind === "billed" ? { ...v, settled: false } : v]));
     const c = costPick({ ...base, costs } as typeof base);
-    assert.equal(c.kind, "none");
-    if (c.kind === "none") assert.equal(c.lowest?.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, pricedTasks({ ...base, costs } as typeof base)[0]?.id);
   });
 
   test("no costs at all: empty", () => {
