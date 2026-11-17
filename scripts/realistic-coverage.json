@@ -12,7 +12,8 @@
       "upstash",
       "upstash-ephemeral",
       "vercel",
-      "modal"
+      "modal",
+      "baseten"
     ],
     "profiles": [
       "fix-and-test",
@@ -50,6 +51,11 @@
       },
       {
         "provider": "tenki",
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
+      },
+      {
+        "provider": "baseten",
         "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
         "short": "no billing data we can read"
       }

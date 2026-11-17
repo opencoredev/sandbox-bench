@@ -711,7 +711,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle and Luxor \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\) and Superserve \(account totals only\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });

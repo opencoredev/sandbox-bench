@@ -441,7 +441,7 @@ export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09).";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates.";
 
 /** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
 export const vercelTransferLine =
