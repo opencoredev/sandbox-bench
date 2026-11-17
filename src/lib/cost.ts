@@ -199,9 +199,9 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   tenki: { kind: "unconfirmed", evidence: "Per-second pricing and no billing API; our data doesn't say whether it applies to the allocation or to use." },
   vercel: {
     kind: "usage",
-    label: "bills active CPU time and the memory it allocates",
+    label: "bills active CPU time, the memory it allocates and data transfer",
     evidence:
-      "vercel.com/docs/sandbox/pricing (checked Nov 9, 2026): active CPU at $0.128 per vCPU-hour and provisioned memory at $0.0212 per GB-hour on Pro in iad1, memory in one-minute minimum increments; its per-sandbox usage records report both.",
+      "vercel.com/docs/sandbox/pricing (checked Nov 9, 2026): active CPU at $0.128 per vCPU-hour and provisioned memory at $0.0212 per GB-hour on Pro in iad1, memory in one-minute minimum increments; its per-sandbox usage records report both. The team's settled charges also bill Sandbox Data Transfer at $0.15 per GB in iad1, though the pricing page lists data transfer as included on Pro; the realistic costs count each sandbox's ingress plus egress bytes at that rate.",
   },
   modal: {
     kind: "request",

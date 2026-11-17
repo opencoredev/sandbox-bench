@@ -441,7 +441,14 @@ export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Vercel and Modal on 2026-11-09. boxd's and E2B's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC) with nothing else on either account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC.";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09).";
+
+/** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
+export const vercelTransferLine =
+  "Vercel bills sandbox data transfer, which its published Nov 9 costs left out; the headline costs now come from the 2026-11-16 rerun and count ingress plus egress at $0.15 per GB. That day's settled Sandbox charges were $1.47 against our meter's $1.70 (15.7% apart): CPU matched, memory was 2.4% higher on the bill, and the bill counted 7.16 GB of data transfer against our 8.71 GB. That is outside the 10% limit, so Vercel stays unverified.";
+
+export const vercelHeldOpenLine =
+  "Vercel's held-open costs are from 2026-11-09 and leave out data transfer, which Vercel bills, so they are understated.";
 
 export const profileInfo = {
   "fix-and-test": { label: "Fix and test", task: "fix-and-test run" },
@@ -765,13 +772,18 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
   const estimates = has((r) => r.cost?.kind === "estimate");
+  // Vercel bills sandbox data transfer, and its headline runs (2026-11-16) metered it; its
+  // held-open runs (2026-11-09) kept no byte counters.
+  const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "disk estimated"; only the billed part counts as verified.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
-    "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
+    transfer.length
+      ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
+      : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
   ]
     .filter(Boolean)
     .join(" ");

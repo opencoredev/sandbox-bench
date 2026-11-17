@@ -474,7 +474,8 @@ describe("statuses and billing", () => {
     assert.match(line, /Upstash Box and Upstash Ephemeral Box's billing leaves disk out, so disk is added at list price/);
     assert.doesNotMatch(line, /isn't known whether the billing source includes disk/);
     assert.doesNotMatch(line, /Daytona/);
-    assert.match(line, /snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them/);
+    assert.match(line, /Data transfer is counted only in Vercel Sandbox's headline costs, because it bills it; its held-open costs leave it out and are understated/);
+    assert.match(line, /Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them/);
   });
 });
 

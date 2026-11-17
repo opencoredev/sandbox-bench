@@ -1,8 +1,8 @@
 {
   "schema": "realistic-estimated-parts/2",
-  "summarySha256": "dac58cab69d1687b430a913dbcfd985a2b8de323cfc0729192cc730f98b548d2",
+  "summarySha256": "1d8051cb208d2bbe7bf8e3c52821bdeff6ff483c2cea58a3c9343beb4df02100",
   "harness": {
-    "commit": "0f42bd9"
+    "commit": "a850558"
   },
   "rows": [
     {
@@ -448,69 +448,6 @@
       "estimatedLabels": []
     },
     {
-      "provider": "vercel",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.014090676444444445,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.03475454888888889,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.020931529777777774,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "totalPerCompletedUSD": 0.01445852711111111,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "zero-wait",
-      "totalPerCompletedUSD": 0.021239817777777777,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "held-60",
-      "totalPerCompletedUSD": 0.19205065037037036,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
-      "provider": "vercel",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "held-10",
-      "totalPerCompletedUSD": 0.051368848888888895,
-      "estimatedPerCompletedUSD": 0,
-      "estimatedLabels": []
-    },
-    {
       "provider": "boxd",
       "profile": "fix-and-test",
       "track": "default",
@@ -579,6 +516,69 @@
       "track": "same-machine",
       "variant": "headline",
       "totalPerCompletedUSD": 0.0100671184,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.040294071499999994,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.15665524339583334,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.13121851600888887,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.04313724175333333,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "totalPerCompletedUSD": 0.021239817777777777,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "totalPerCompletedUSD": 0.19205065037037036,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "vercel",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "totalPerCompletedUSD": 0.051368848888888895,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     }
