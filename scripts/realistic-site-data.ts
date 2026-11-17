@@ -33,6 +33,13 @@
  * e2b@rw-head1`; their held-open rows still come from sbx99-held-open2.
  * bench/scripts/boxd-settled.ts and e2b-settled.ts wrote each provider's
  * entries in the audit (sbx-verify3/README.md and finish.sh have the commands).
+ * Rebuilt on 2026-11-17 (harness a850558) with Vercel's headline attempts
+ * from a rerun of the same plan and seed on 2026-11-16 (sbx-verify-vercel/headline,
+ * rw-vercel-head2, 14:02 to 15:03 UTC) and its held-open runs recollected
+ * (sbx-verify-vercel/held-open) in place of sbx103-vercel/headline and
+ * held-open. The rerun's meter counts data transfer; bench/scripts/vercel-settled.ts
+ * checked it against the day's settled charges and wrote Vercel's audit entries
+ * (sbx-verify-vercel/README.md and finish.sh have the commands).
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

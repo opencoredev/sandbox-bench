@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-16T19:44:07.280Z",
+  "generatedAt": "2026-11-17T10:01:17.802Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -62,7 +62,7 @@
   "sources": [
     {
       "name": "sbx-verify/merged",
-      "generatedAt": "2026-11-16T19:44:07.126Z",
+      "generatedAt": "2026-11-17T10:01:17.725Z",
       "providers": [
         "boat",
         "boxd",
@@ -388,30 +388,29 @@
       "track": "default",
       "variant": "headline",
       "attempts": 5,
-      "completed": 2,
-      "incomplete": 3,
+      "completed": 4,
+      "incomplete": 1,
       "notRun": 0,
       "reasons": [
         {
           "reason": "check-failed",
-          "runs": 3
+          "runs": 1
         }
       ],
       "prepare": null,
-      "medianWallS": 217.434,
-      "medianCpuS": 281.401,
+      "medianWallS": 245.056,
+      "medianCpuS": 319.196,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0347545,
-        "wholeMachineUsdPerCompleted": 0.0401875,
+        "usdPerCompleted": 0.156655,
+        "wholeMachineUsdPerCompleted": 0.0281641,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "3 incomplete runs (at most 1)",
-        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
+        "provisional: meter settled charges differ by 15.7%"
       ]
     },
     {
@@ -700,19 +699,19 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 157.552,
-      "medianCpuS": 304.242,
+      "medianWallS": 162.766,
+      "medianCpuS": 315.94,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0209315,
-        "wholeMachineUsdPerCompleted": 0.0294609,
+        "usdPerCompleted": 0.131219,
+        "wholeMachineUsdPerCompleted": 0.0345729,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
+        "provisional: meter settled charges differ by 15.7%"
       ]
     },
     {
@@ -983,19 +982,19 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 147.75,
-      "medianCpuS": 241.794,
+      "medianWallS": 154.511,
+      "medianCpuS": 251.013,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0140907,
-        "wholeMachineUsdPerCompleted": 0.0150905,
+        "usdPerCompleted": 0.0402941,
+        "wholeMachineUsdPerCompleted": 0.0176843,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
+        "provisional: meter settled charges differ by 15.7%"
       ]
     },
     {
@@ -1282,19 +1281,19 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 95.023,
-      "medianCpuS": 231.053,
+      "medianWallS": 103.409,
+      "medianCpuS": 256.035,
       "cost": {
         "kind": "metered",
-        "usdPerCompleted": 0.0144585,
-        "wholeMachineUsdPerCompleted": 0.0182902,
+        "usdPerCompleted": 0.0431372,
+        "wholeMachineUsdPerCompleted": 0.0241217,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "provisional: meter not reconciled with settled charges: The bench's project OIDC token gets HTTP 403 (invalidToken) from Vercel's billing charges API, so the meter was not checked against charges"
+        "provisional: meter settled charges differ by 15.7%"
       ]
     },
     {
@@ -2271,8 +2270,9 @@
       "costKind": "metered",
       "medianCostUsd": 0.0212419,
       "changeVsZeroWait": null,
-      "status": "metered, unreconciled (provisional)",
+      "status": "unsettled; metered, unreconciled (provisional)",
       "statuses": [
+        "unsettled",
         "unreconciled"
       ],
       "estimatedPart": null,
@@ -2287,8 +2287,9 @@
       "costKind": "metered",
       "medianCostUsd": 0.0505672,
       "changeVsZeroWait": 1.38054,
-      "status": "metered, unreconciled (provisional)",
+      "status": "unsettled; metered, unreconciled (provisional)",
       "statuses": [
+        "unsettled",
         "unreconciled"
       ],
       "estimatedPart": null,
@@ -2303,8 +2304,9 @@
       "costKind": "metered",
       "medianCostUsd": 0.191921,
       "changeVsZeroWait": 8.03501,
-      "status": "metered, unreconciled (provisional)",
+      "status": "unsettled; metered, unreconciled (provisional)",
       "statuses": [
+        "unsettled",
         "unreconciled"
       ],
       "estimatedPart": null,

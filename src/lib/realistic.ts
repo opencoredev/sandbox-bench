@@ -441,7 +441,14 @@ export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Vercel and Modal on 2026-11-09. boxd's and E2B's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC) with nothing else on either account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC.";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09).";
+
+/** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
+export const vercelTransferLine =
+  "Vercel bills sandbox data transfer, which its published Nov 9 costs left out; the headline costs now come from the 2026-11-16 rerun and count ingress plus egress at $0.15 per GB. That day's settled Sandbox charges were $1.47 against our meter's $1.70 (15.7% apart): CPU matched, memory was 2.4% higher on the bill, and the bill counted 7.16 GB of data transfer against our 8.71 GB. That is outside the 10% limit, so Vercel stays unverified.";
+
+export const vercelHeldOpenLine =
+  "Vercel's held-open costs are from 2026-11-09 and leave out data transfer, which Vercel bills, so they are understated.";
 
 export const profileInfo = {
   "fix-and-test": { label: "Fix and test", task: "fix-and-test run" },
