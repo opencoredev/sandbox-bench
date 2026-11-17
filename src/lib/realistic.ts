@@ -772,13 +772,18 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
   const estimates = has((r) => r.cost?.kind === "estimate");
+  // Vercel bills sandbox data transfer, and its headline runs (2026-11-16) metered it; its
+  // held-open runs (2026-11-09) kept no byte counters.
+  const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price, an estimated part of ${plural(added, "its", "their")} cost, marked "disk estimated"; only the billed part counts as verified.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added and the cost is marked provisional.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is an estimate", "are estimates")}: the machine's list price, disk included, over the billed time.` : "",
-    "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
+    transfer.length
+      ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
+      : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
   ]
     .filter(Boolean)
     .join(" ");
