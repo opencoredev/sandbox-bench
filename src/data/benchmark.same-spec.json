@@ -2128,7 +2128,7 @@
     ]
    },
    "pricingSource": "https://www.baseten.co/pricing/",
-   "pricingNotes": "Published Sandboxes runtime rates ($0.0655/vCPU-hour, $0.0211/GB RAM-hour), priced on the allocation. Billing increment and minimum not stated; one-second estimate. Free promotional period excluded. Realistic runs mount an 8 GiB volume, priced at $0.16/GB-month for the sandbox's lifetime. Snapshots and stored images not used.",
+   "pricingNotes": "Published Sandboxes runtime rates ($0.0655/vCPU-hour, $0.0211/GB RAM-hour), priced on the allocation. Billing increment and minimum not stated; one-second estimate. Free promotional period excluded. Realistic build runs mount an 8 GiB volume (fix-and-test mounts none), priced at $0.16/GB-month for the sandbox's lifetime. Snapshots and stored images not used.",
    "reliability": {
     "successes": 2759,
     "failures": 0,
