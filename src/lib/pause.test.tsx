@@ -61,6 +61,9 @@ describe("standby pause", () => {
     const html = renderToStaticMarkup(<PausePart track={withStandby()} part="resume" />);
     assert.ok(bars(html).includes("Baseten"));
     assert.match(html, /first command after 30 s with no requests/);
+    // The count is successful runs, not attempts: a failed run is not among them.
+    assert.ok(html.includes("Successful runs"));
+    assert.ok(!html.includes(">Attempts<"));
   });
 
   test("a standby resume needs its note, and never comes with a pause split", () => {

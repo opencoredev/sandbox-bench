@@ -95,7 +95,7 @@ export function PauseChart({ track }: { track: Track }) {
         ]
       : [{ value: sum, color: providerColor(p.id), fill: "solid" }],
     detail: parts
-      ? [["Pause", formatValue(parts.pause, "s")], ["Resume", formatValue(parts.resume, "s")], ["Attempts", String(parts.n)]]
+      ? [["Pause", formatValue(parts.pause, "s")], ["Resume", formatValue(parts.resume, "s")], ["Successful runs", String(parts.n)]]
       : [["Median", formatValue(sum, "s")], "Pause and resume not recorded apart"],
   }));
 
@@ -151,8 +151,8 @@ export function PausePart({ track, part }: { track: Track; part: keyof typeof pa
     segments: [{ value, color: providerColor(p.id), fill: idleS === null ? "solid" : "striped" }],
     detail:
       idleS === null
-        ? [["Median", formatValue(value, "s")], ["Attempts", String(n)]]
-        : [["Median", formatValue(value, "s")], ["Idle first", formatValue(idleS, "s")], ["Attempts", String(n)], "No pause call: resumed from standby"],
+        ? [["Median", formatValue(value, "s")], ["Successful runs", String(n)]]
+        : [["Median", formatValue(value, "s")], ["Idle first", formatValue(idleS, "s")], ["Successful runs", String(n)], "No pause call: resumed from standby"],
   }));
   const standbyNotes = standby.map((s) =>
     part === "resume"
