@@ -101,6 +101,13 @@ function Row({ p, h, track }: { p: Provider; h: HardwareDetail; track: TrackId }
  * benchmark's fingerprints. Each row opens to show what the sandbox hides.
  * A grid on wide screens; stacked labelled cells on phones.
  */
+/** The fingerprint groups among the providers shown, so a provider with no data on the page isn't named. */
+const fingerprintGroups = (providers: readonly Provider[]) =>
+  fromFingerprints.flatMap((g) => {
+    const ids = g.providers.filter((id) => providers.some((p) => p.id === id));
+    return ids.length > 0 ? [{ ids, date: g.date }] : [];
+  });
+
 export function SpecSheet({ providers, track }: { providers: readonly Provider[]; track: TrackId }) {
   const rows = providers.flatMap((p) => {
     const h = hardware[p.id];
@@ -111,7 +118,7 @@ export function SpecSheet({ providers, track }: { providers: readonly Provider[]
     <>
       <p className="mb-m max-w-[80ch] text-xs text-neutral-7">
         Named means the CPU reports its own model. Inferred means we worked it out from what the sandbox shows, such as model number, cache and clock, or from the chip&apos;s published spec.
-        Measured memory was read inside the sandbox. From a hardware probe on {probeDate}, checked against the benchmark&apos;s fingerprints; {fromFingerprints.map((g) => `${g.providers.map(providerName).join(" and ")} from the fingerprints of ${g.providers.length > 1 ? "their" : "its"} ${g.date} runs`).join("; ")}. Open a row for what each sandbox hides.
+        Measured memory was read inside the sandbox. From a hardware probe on {probeDate}, checked against the benchmark&apos;s fingerprints; {fingerprintGroups(providers).map((g) => `${g.ids.map(providerName).join(" and ")} from the fingerprints of ${g.ids.length > 1 ? "their" : "its"} ${g.date} runs`).join("; ")}. Open a row for what each sandbox hides.
       </p>
       <div className={`${grid} hidden pb-xs text-xs text-neutral-7 sm:grid`} aria-hidden>
         <span>Provider</span>
