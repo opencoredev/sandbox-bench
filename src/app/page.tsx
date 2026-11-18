@@ -244,8 +244,7 @@ function partialBursts(track: Track, id: string): Notes {
   return Object.fromEntries(
     track.metric(id).values.flatMap((v) => {
       if (v.n === 0 || v.failures === 0) return [];
-      const limits =
-        v.limitFailures === v.failures ? "hit our plan's start limit" : v.limitFailures ? `failed, ${v.limitFailures} on our plan's start limit` : "failed";
+      const limits = v.limitFailures === v.failures ? "hit our plan's start limit" : `failed, ${v.limitFailures} on our plan's start limit`;
       const these = v.n === 1 ? "This is that one burst." : `These are those ${v.n}.`;
       return [[v.provider, `only ${v.n} of ${v.n + v.failures} bursts finished; the other ${v.failures} ${limits}. ${these}`]];
     }),
@@ -455,7 +454,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size shows the bursts that finished; when fewer than all three did, the chart says how many. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",

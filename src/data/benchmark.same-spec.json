@@ -5435,19 +5435,6 @@
      "limitFailures": 0
     },
     {
-     "provider": "boxd",
-     "n": 1,
-     "p50": 51.30838312100002,
-     "p95": 51.30838312100002,
-     "min": 51.30838312100002,
-     "ciLow": 51.30838312100002,
-     "ciHigh": 51.30838312100002,
-     "successes": 1,
-     "failures": 2,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
      "provider": "superserve",
      "n": 3,
      "p50": 0.8398369259999999,
@@ -8292,7 +8279,8 @@
  },
  "missing": {
   "burst-10": {
-   "e2b": "stopped-early: in one of its three bursts of 10, two creates failed on E2B's side (E2B reported a timeout), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
+   "e2b": "stopped-early: in one of its three bursts of 10, two creates failed on E2B's side (E2B reported a timeout), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
+   "boxd": "stopped-early: only 1 of 3 bursts of 10 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 7 and 0 of 10 machines were ready, the rest did not start within 90 s or entered a failed state"
   }
  },
  "sourceNotes": {

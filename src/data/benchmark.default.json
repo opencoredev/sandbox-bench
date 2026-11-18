@@ -6386,19 +6386,6 @@
      "limitFailures": 0
     },
     {
-     "provider": "boxd",
-     "n": 1,
-     "p50": 1.0015462909999997,
-     "p95": 1.0015462909999997,
-     "min": 1.0015462909999997,
-     "ciLow": 1.0015462909999997,
-     "ciHigh": 1.0015462909999997,
-     "successes": 1,
-     "failures": 2,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
      "provider": "superserve",
      "n": 3,
      "p50": 0.6471999260000012,
@@ -6550,19 +6537,6 @@
      "ciHigh": 1.8753338420000218,
      "successes": 3,
      "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "boxd",
-     "n": 1,
-     "p50": 44.54563447500001,
-     "p95": 44.54563447500001,
-     "min": 44.54563447500001,
-     "ciLow": 44.54563447500001,
-     "ciHigh": 44.54563447500001,
-     "successes": 1,
-     "failures": 2,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -9229,7 +9203,11 @@
  },
  "missing": {
   "burst-25": {
-   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
+   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
+   "boxd": "stopped-early: only 1 of 3 bursts of 25 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 3 and 0 of 25 machines were ready, the rest did not start within 90 s"
+  },
+  "burst-10": {
+   "boxd": "stopped-early: only 1 of 3 bursts of 10 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 4 and 1 of 10 machines were ready, the rest did not start within 90 s or entered a failed state"
   }
  },
  "sourceNotes": {
