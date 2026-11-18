@@ -71,7 +71,7 @@ import {
 } from "@/lib/realistic";
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
-import { minimumLong, planMinimum, regionFor } from "@/lib/plan-minimum";
+import { regionFor } from "@/lib/plan-minimum";
 import { advertised, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
@@ -366,7 +366,6 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
     ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, row.cost?.usdPerCompleted ?? null, "per1000CompletedUsd"),
-    ...minimumData(row.provider),
     ...regionData(row.provider, track),
   };
 }
@@ -381,12 +380,6 @@ function regionData(id: ProviderId, track: TrackId) {
 function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], total: number | null, key: "per1000CompletedUsd" | "medianPer1000Usd") {
   const note = kind ? estimatedPartText(kind, part, total, "per 1,000") : null;
   return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null, what: part.labels, note } } : {};
-}
-
-/** A plan minimum the usage-only cost leaves out, from the provider's pricing notes; nothing when it has none. */
-function minimumData(id: ProviderId) {
-  const m = planMinimum(id);
-  return m ? { planMinimum: { usdPerMonth: m.usdPerMonth, inCost: false, note: minimumLong(id, m) } } : {};
 }
 
 const pickRow = (r: Costed) => ({
@@ -446,7 +439,6 @@ export function realisticData() {
         name: providerName(g.provider),
         outcome: idleOutcome(g),
         ...regionData(g.provider, "same-spec"),
-        ...minimumData(g.provider),
         waits: g.points.map((p) => ({
           minutes: p.minutes,
           runs: p.runs,
@@ -498,7 +490,6 @@ function realisticMarkdown() {
         "",
         ...t.providers.flatMap((r) => [
           ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
-          ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : []),
           ...("regionNote" in r && r.regionNote ? [`${r.name} is ${r.regionNote}.`] : []),
           ...(r.wholeMachineBound === "lower" ? [`${r.name}'s whole machine at list price is a lower bound (≥): it prices only the resources requested, and ${r.name} also bills use above them.`] : []),
         ]),
@@ -514,7 +505,6 @@ function realisticMarkdown() {
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
     ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("estimatedPart" in w && w.estimatedPart ? [`${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`, ""] : []))),
-    ...d.idle.providers.flatMap((g) => ("planMinimum" in g && g.planMinimum ? [g.planMinimum.note, ""] : [])),
     ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
   );
   return lines;
@@ -534,7 +524,7 @@ ${picks.join("\n")}
 
 ${d.costScope}
 
-${[...new Set(d.tracks["same-spec"]?.workloads["fix-and-test"].providers.flatMap((p) => [...("estimatedPart" in p && p.estimatedPart ? [`${p.name}'s costs include an estimated part: ${p.estimatedPart.note}`] : []), ...("planMinimum" in p && p.planMinimum ? [p.planMinimum.note] : [])]) ?? [])].join(" ")}
+${[...new Set(d.tracks["same-spec"]?.workloads["fix-and-test"].providers.flatMap((p) => ("estimatedPart" in p && p.estimatedPart ? [`${p.name}'s costs include an estimated part: ${p.estimatedPart.note}`] : [])) ?? [])].join(" ")}
 
 Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.coverage.idle.attempts} runs per provider and wait): ${idle.length ? `${idle.join("; ")}.` : "no provider stopped the sandbox."} Not tested: ${d.idle.notTested.map((n) => `${n.name} (${n.reason})`).join("; ") || "none"}.
 
