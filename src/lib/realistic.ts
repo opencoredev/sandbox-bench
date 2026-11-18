@@ -1,5 +1,4 @@
 import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
-import { planMinimum } from "@/lib/plan-minimum";
 import type { CostStatusKind } from "@/lib/cost";
 import { isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -488,6 +487,10 @@ export function profileFootprint(profile: ProfileId, w: Workload | null): string
   return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine`;
 }
 
+/** "About 175–204 CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GB machine, not counting installation.", for the notes, or null without a footprint. */
+export const profileFootprintNote = (w: Workload | null) =>
+  w ? `About ${range(w.workCpuS)} CPU-seconds and ${range(w.memoryGiB, 1)} GiB of memory on a 4 vCPU, 8 GB machine, not counting installation.` : null;
+
 /** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
 export const costCovers = "Includes setup and failed attempts, through confirmed deletion.";
 
@@ -629,21 +632,12 @@ export const isCounterfactual = (id: ProviderId) => billingBases[id].kind === "u
 export type Costed = RealisticRow & { cost: NonNullable<RealisticRow["cost"]> };
 const isCosted = (r: RealisticRow): r is Costed => r.cost !== null;
 
-/** A provider billed by a monthly plan: a per-task cost can't show what it charges, so it is left out of the cost charts. */
-export const hasMonthlyPlan = (id: ProviderId) => planMinimum(id) !== null;
-
-/**
- * One profile's headline rows on one track: costed rows lowest first, then
- * rows with no cost, by name. Monthly-plan providers are kept apart in
- * `monthly`, outside the chart and the pick.
- */
+/** One profile's headline rows on one track: costed rows lowest first, then rows with no cost, by name. */
 export function headlineRows(data: Pick<RealisticData, "rows">, track: RunTrack, profile: ProfileId) {
-  const all = data.rows.filter((r) => r.variant === "headline" && r.track === track && r.profile === profile);
-  const monthly = all.filter((r) => hasMonthlyPlan(r.provider)).map((r) => r.provider);
-  const rows = all.filter((r) => !hasMonthlyPlan(r.provider));
+  const rows = data.rows.filter((r) => r.variant === "headline" && r.track === track && r.profile === profile);
   const costed = rows.filter(isCosted).sort((a, b) => a.cost.usdPerCompleted - b.cost.usdPerCompleted);
   const uncosted = rows.filter((r) => !isCosted(r)).sort((a, b) => providerName(a.provider).localeCompare(providerName(b.provider)));
-  return { costed, uncosted, monthly };
+  return { costed, uncosted };
 }
 
 export const pickLabels = {
@@ -724,7 +718,7 @@ const isStop = (t: string) => /->\s*(stopped|paused|terminated|deleted)$/.test(t
  * provisional here too, as on the cost charts.
  */
 export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): IdleGroup[] {
-  const ids = [...new Set(data.heldOpen.map((h) => h.provider))].filter((id) => !hasMonthlyPlan(id));
+  const ids = [...new Set(data.heldOpen.map((h) => h.provider))];
   const groups = ids.map((provider): IdleGroup => {
     const storageUnknown = data.rows.some((r) => r.provider === provider && r.flags.some((f) => f.includes("storage coverage")));
     const points = idleIds.flatMap((idle) => {
@@ -791,6 +785,41 @@ export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {
   const pct = Math.round(p.changeVsZeroWait * 100);
   return `${pct >= 0 ? "+" : ""}${pct}% vs no wait`;
 };
+
+/** A note under a chart: a short bold lead, then one or two plain sentences. */
+export type Note = { lead: string; text: string };
+
+/**
+ * The cost scope as short notes for the page, from the same data as
+ * `scopeLine`: what a cost includes, where disk is added or unknown, which
+ * costs are list-price estimates, and what isn't counted.
+ */
+export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
+  const costed = d.rows.filter((r) => r.cost !== null);
+  const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))];
+  const added = has((r) => r.estimatedPart !== null);
+  const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
+  const estimates = has((r) => r.cost?.kind === "estimate");
+  const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
+  return [
+    { lead: "What a cost includes", text: "Every charge from create to confirmed deletion: compute, memory, disk and standby storage, with setup and failed attempts." },
+    ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
+    ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
+    ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
+    {
+      lead: "Not counted",
+      text: transfer.length
+        ? `Data transfer and snapshots kept after deletion. ${providerList(transfer)} bills transfer, so its headline costs count it; its held-open costs leave it out and are understated.`
+        : "Data transfer and snapshots kept after deletion.",
+    },
+  ];
+}
+
+/** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
+export const runNotes: Note[] = [
+  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17." },
+  { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
+];
 
 /**
  * The cost scope, said once on the page and in every export, naming only what

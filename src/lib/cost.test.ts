@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { costPick, costStatus, costTag, isEligible, monthlyPlanWhy, pricedTasks, taskCostOf, unpricedTasks } from "@/lib/cost";
+import { costPick, costStatus, costTag, isEligible, pricedTasks, taskCostOf, unpricedTasks } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 import type { TaskCost, Track } from "@/lib/data";
@@ -59,10 +59,11 @@ describe("cost pick", () => {
     });
   }
 
-  test("a monthly-plan provider has no per-task cost: out of the chart and the pick, listed as unpriced", () => {
+  test("Boat's usage cost is in the chart like every other provider's, not listed as unpriced", () => {
     for (const id of trackIds) {
-      assert.ok(!pricedTasks(tracks[id]).some((t) => t.id === "boat"));
-      assert.ok(unpricedTasks(tracks[id]).some((t) => t.id === "boat" && t.why === monthlyPlanWhy));
+      if (!tracks[id].costs.boat) continue;
+      assert.ok(pricedTasks(tracks[id]).some((t) => t.id === "boat"));
+      assert.ok(!unpricedTasks(tracks[id]).some((t) => t.id === "boat"));
     }
   });
 
@@ -84,8 +85,12 @@ describe("cost pick", () => {
     assert.equal(c.pick.cost.kind, "estimate");
   });
 
-  test("a monthly-plan provider never gets a per-task cost, even with one in the data", () => {
-    assert.equal(taskCostOf(withCost("boat", { kind: "billed", settled: true, ...cheap }), "boat")?.kind, "none");
+  test("Boat's cost in the data is its per-task cost, and can be the cheapest", () => {
+    const t = withCost("boat", { kind: "billed", settled: true, ...cheap });
+    assert.equal(taskCostOf(t, "boat")?.kind, "billed");
+    const c = costPick(t);
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, "boat");
   });
 
   test("on Same machine, with only a wrong-size exact cost, there is no pick, and the reason is the machine", () => {

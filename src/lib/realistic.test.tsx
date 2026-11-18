@@ -10,8 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { buildRealistic, flagsOf as harnessFlags, prepareFailures, sourceName, workloadsFrom } from "../../scripts/realistic-site-data";
 import { Columns, axisMax, layout, type Column } from "@/components/columns";
-import { IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
-import { planMinimum } from "@/lib/plan-minimum";
+import { CheapestLine, IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
 import { providersOf } from "@/components/trace-waterfall";
 
 /** Text as React renders it in markup: apostrophes escaped. */
@@ -526,10 +525,10 @@ describe("pick", () => {
     assert.equal(taskPick([]).kind, "empty");
   });
 
-  test("every pick in the data is counted, every lower cost is cheaper and not counted, and Boat is never in the chart", () => {
+  test("every pick in the data is counted, every lower cost is cheaper and not counted, and Boat is in the chart", () => {
     for (const track of runTracks)
       for (const profile of profileIds) {
-        assert.ok(!headlineRows(realistic, track, profile).costed.some((r) => r.provider === "boat"));
+        assert.ok(headlineRows(realistic, track, profile).costed.some((r) => r.provider === "boat"));
         const p = pickFor(realistic, track, profile);
         if (p.kind !== "picked") continue;
         assert.ok(isCounted(p.pick));
@@ -552,9 +551,8 @@ describe("pick", () => {
     assert.deepEqual(notCountedWhy({ ...wrong, track: "default" }), [], "size only counts on Same machine");
   });
 
-  test("results.md names Boat as not priced under each workload", () => {
-    const md = agentMarkdown();
-    assert.equal(md.split("Not priced: Boat, because it bills a monthly plan, not per task.").length - 1, 4);
+  test("results.md lists no provider as not priced for a monthly plan", () => {
+    assert.doesNotMatch(agentMarkdown(), /Not priced: Boat|bills a monthly plan/);
   });
 
   test("the published picks, pinned: a change to the rule or the data must change these on purpose", () => {
@@ -563,10 +561,10 @@ describe("pick", () => {
       return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
     }));
     assert.deepEqual(picks.sort(), [
-      "default/build: upstash-ephemeral []",
-      "default/fix-and-test: boxd []",
-      "same-machine/build: daytona []",
-      "same-machine/fix-and-test: freestyle [boxd]",
+      "default/build: boat []",
+      "default/fix-and-test: boat []",
+      "same-machine/build: boat []",
+      "same-machine/fix-and-test: boat []",
     ]);
   });
 
@@ -609,9 +607,9 @@ describe("idle", () => {
     assert.deepEqual(groups.map((g) => g.provider), ["upstash", "e2b"]);
   });
 
-  test("a monthly-plan provider is left out of the idle chart", () => {
+  test("Boat is in the idle chart like every other provider", () => {
     const groups = idleGroups({ ...realistic, heldOpen: [held("boat", "zero-wait", 3, [], 0.001), held("upstash", "zero-wait", 3, [], 0.01)] });
-    assert.deepEqual(groups.map((g) => g.provider), ["upstash"]);
+    assert.deepEqual(groups.map((g) => g.provider).sort(), ["boat", "upstash"]);
   });
 
   test("a provider whose billing leaves disk out shows disk estimated in the idle test, as on the cost charts", () => {
@@ -657,9 +655,8 @@ describe("exports", () => {
 
   test("every export names the providers left out of the idle test, with why", () => {
     const d = agentData().whatATaskCosts;
-    // Boat ran the idle test but bills a monthly plan, so it is listed as left out, with that reason.
-    assert.deepEqual(d.idle.notTested.map((n) => n.provider), [...realistic.coverage.idle.notTested.map((n) => n.provider), "boat"]);
-    assert.ok(!d.idle.providers.some((g) => g.provider === "boat"));
+    assert.deepEqual(d.idle.notTested.map((n) => n.provider), realistic.coverage.idle.notTested.map((n) => n.provider));
+    assert.ok(d.idle.providers.some((g) => g.provider === "boat"));
     const md = agentMarkdown();
     const llms = llmsTxt();
     for (const n of d.idle.notTested) {
@@ -745,7 +742,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\), Superserve \(account totals only\) and Boat \(bills a monthly plan, not per task\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\) and Superserve \(account totals only\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -816,14 +813,14 @@ describe("page", () => {
     assert.ok(html.includes("Includes setup and failed attempts, through confirmed deletion."));
     assert.match(text, /Not in the chart:/);
     assert.match(text, /default machine is too small for this workload/);
-    assert.match(text, /Boat \(bills a monthly plan, not per task\)/);
+    assert.doesNotMatch(text, /monthly plan/);
     for (const gone of [/verified/i, /eligible/i, /never picked/, /monthly minimum/, /unreconciled/, /provisional/, /certified/i]) assert.doesNotMatch(text, gone);
     assert.doesNotMatch(html, /repeating-linear-gradient/, "every bar is solid");
   });
 
   test("the footprint is in the notes and the cost line is above the chart", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /<span class="max-w-\[90ch\]">Workload CPU and memory, excluding installation: about/);
+    assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GB machine, not counting installation\./);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
     assert.ok(html.includes(costCovers));
@@ -831,8 +828,14 @@ describe("page", () => {
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
     const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
-    assert.match(text, /Cheapest: Freestyle \$9\.58 per 1,000/);
-    assert.match(text, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
+    assert.match(text, /Cheapest: Boat \$0\.95 per 1,000/);
+    // In the published data boxd's $5.50 is on the wrong size but dearer than Boat, so it isn't named.
+    assert.doesNotMatch(text, /Not counted: boxd/);
+    // Without Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row.
+    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat") }, "same-machine", "fix-and-test");
+    const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
+    assert.match(line, /Cheapest: Freestyle \$9\.58 per 1,000/);
+    assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
   test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {
@@ -840,15 +843,10 @@ describe("page", () => {
     assert.deepEqual([...withPart].sort(), ["upstash", "upstash-ephemeral"]);
   });
 
-  test("Boat's monthly plan comes from the site's pricing notes and keeps it out of both charts", () => {
-    const m = planMinimum("boat");
-    assert.ok(m);
-    const boat = tracks["same-spec"].providers.find((p) => p.id === "boat");
-    assert.ok(boat?.pricingNotes?.includes(`$${m.usdPerMonth} monthly minimum`));
-    assert.equal(planMinimum("upstash"), null);
+  test("Boat is in both charts, with no monthly-plan wording", () => {
     for (const html of [renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), renderToStaticMarkup(<IdleChart />)]) {
-      assert.match(html, /bills a monthly plan, not per task/);
-      assert.doesNotMatch(html, /monthly minimum/);
+      assert.match(html, />Boat</);
+      assert.doesNotMatch(html, /monthly plan|monthly minimum/);
     }
   });
 

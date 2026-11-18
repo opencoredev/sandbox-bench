@@ -7,7 +7,6 @@ import { ChartHead, Footnotes, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { markFill } from "@/lib/marks";
-import { monthlyPlanWhy } from "@/lib/cost";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
@@ -19,25 +18,22 @@ import {
   idleGroups,
   idleLabel,
   idleOutcome,
-  hasMonthlyPlan,
   notCountedWhy,
   isCounterfactual,
   laterLine,
-  runsLine,
+  runNotes,
   vercelHeldOpenLine,
-  vercelTransferLine,
   multipleNote,
   multipleText,
   resumeFailed,
   noCostReason,
   perThousand,
-  pilotLine,
-  profileFootprint,
+  profileFootprintNote,
   profileIds,
   profileInfo,
   profileWhat,
   runTrackOf,
-  scopeLine,
+  scopeNotes,
   taskPick,
   wallText,
   wilsonText,
@@ -100,6 +96,8 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
 
 /** Why a cheaper bar isn't the pick: the wrong size, or too many failed runs. */
 const lowerWhy = (r: Costed) => notCountedWhy(r).join("; ");
+
+export { Pick as CheapestLine };
 
 /** A pinned region's price multiplier beside the figure ("us-east rate, 1.75× base price"), as the quick-task charts say it. */
 const priceNote = (id: ProviderId, track: TrackId | undefined) => (track ? regionFor(id, track)?.short : undefined);
@@ -265,12 +263,11 @@ export function ProviderRows({ costed, uncosted, track }: { costed: readonly Cos
   );
 }
 
-/** "Not in the chart: Daytona, E2B and Superserve (its default machine is too small …)", one group per reason, monthly plans last. */
-function NotInChart({ rows, monthly }: { rows: readonly RealisticRow[]; monthly: readonly ProviderId[] }) {
-  if (rows.length === 0 && monthly.length === 0) return null;
+/** "Not in the chart: Daytona, E2B and Superserve (its default machine is too small …)", one group per reason. */
+function NotInChart({ rows }: { rows: readonly RealisticRow[] }) {
+  if (rows.length === 0) return null;
   const groups = new Map<string, ProviderId[]>();
   for (const r of rows) groups.set(noCostReason(r), [...(groups.get(noCostReason(r)) ?? []), r.provider]);
-  if (monthly.length) groups.set(monthlyPlanWhy, [...monthly]);
   return (
     <p className="mt-s text-xs text-pretty text-neutral-8">
       Not in the chart:{" "}
@@ -285,29 +282,29 @@ function NotInChart({ rows, monthly }: { rows: readonly RealisticRow[]; monthly:
   );
 }
 
-/** The notes every workload chart carries. */
+/** The notes every workload chart carries, one short point each. */
 function profileNotes(data: RealisticData, track: RunTrack, rows: readonly RealisticRow[], footprint: string | null) {
   const has = (id: ProviderId) => rows.some((r) => r.provider === id && r.cost !== null);
   return [
-    { text: `Each provider ran ${data.coverage.headline.attempts} times per workload and machine, so completion counts and costs are descriptive, not ranked by a statistical test.` },
-    ...(footprint ? [{ text: `${footprint}.` }] : []),
-    { text: scopeLine(data) },
-    { text: "Cost per completed task: the cost of every attempt divided by the tasks that completed. Every task starts from the provider's base image and installs the pinned toolchain and dependencies itself." },
-    { text: "Cheapest: the lowest cost among providers with at most 1 incomplete run and, on Same machine, exactly 4 vCPU and 8 GB. Providers billed by a monthly plan aren't priced per task." },
-    { text: "Whole machine at list price: the published rate for the machine over each task's billed time. For a provider that bills usage, it is a counterfactual, not what it charges." },
-    ...(track === "default" ? [{ text: "Default machines: each provider's own default size, so sizes differ. Where the default is too small for the workload (checked locally before any paid run), the provider wasn't run, and that isn't counted as a failure." }] : []),
-    ...(has("boxd") && data.fx ? [{ text: <><Who id="boxd" /> bills in euros, converted at {data.fx.eurToUsd} dollars per euro, the rate frozen on {data.fx.date}.</> }] : []),
-    ...(has("vercel") ? [{ text: vercelTransferLine }] : []),
-    { text: runsLine },
-    { text: `${pilotLine(data)} ${laterLine}` },
+    { lead: "Runs", text: `${data.coverage.headline.attempts} per provider for each workload and machine. Too few for a statistical ranking, so read the costs as descriptive.` },
+    ...(footprint ? [{ lead: "Workload size", text: footprint }] : []),
+    { lead: "Cost per task", text: "The cost of every attempt divided by the tasks that completed. Each task starts from the provider's base image and installs its own toolchain." },
+    ...scopeNotes(data),
+    { lead: "Cheapest", text: "The lowest cost with at most 1 incomplete run. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
+    { lead: "Whole machine at list price", text: "The machine's published rate over each task's billed time. For providers that bill usage, this is a what-if, not their bill." },
+    ...(track === "default" ? [{ lead: "Default machines", text: "Each provider's own default size, so sizes differ. A default too small for the workload wasn't run, and that isn't counted as a failure." }] : []),
+    ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),
+    ...(has("vercel") ? [{ lead: "Vercel", text: "Costs include data transfer at $0.15 per GB. Its Nov 16 bill was $1.47 against our meter's $1.70." }] : []),
+    ...runNotes,
+    { lead: "Pilot", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
   ];
 }
 
 function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) {
   const run = runTrackOf[track.id];
-  const { costed, uncosted, monthly } = headlineRows(realistic, run, profile);
+  const { costed, uncosted } = headlineRows(realistic, run, profile);
   const w = realistic.workloads?.[profile] ?? null;
-  const footprint = profileFootprint(profile, w);
+  const footprint = profileFootprintNote(w);
   const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GB";
   const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GB";
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
@@ -331,12 +328,9 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
           <Columns columns={columnsOf(costed, track.id)} label={`${title} by provider`} />
         </div>
       ) : null}
+      {/* Phones list the uncosted providers as rows below. */}
       <div className="hidden sm:block">
-        <NotInChart rows={uncosted} monthly={monthly} />
-      </div>
-      {/* Phones list the uncosted providers as rows below, so only the monthly plans need saying here. */}
-      <div className="sm:hidden">
-        <NotInChart rows={[]} monthly={monthly} />
+        <NotInChart rows={uncosted} />
       </div>
       <ProviderRows costed={costed} uncosted={uncosted} track={track.id} />
       <Footnotes items={profileNotes(realistic, run, [...costed, ...uncosted], footprint)} />
@@ -466,8 +460,6 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
 function NotTested() {
   const groups = new Map<string, ProviderId[]>();
   for (const n of realistic.coverage.idle.notTested) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
-  const monthly = [...new Set(realistic.heldOpen.map((h) => h.provider))].filter(hasMonthlyPlan);
-  if (monthly.length) groups.set(monthlyPlanWhy, monthly);
   const parts = [...groups];
   if (parts.length === 0) return null;
   return (
@@ -519,12 +511,12 @@ export function IdleChart() {
       </Disclosure>
       <Footnotes
         items={[
-          { text: "Each run is paired with a no-wait run: fix and test, then the resume step straight away. The idle part alone isn't separable on most providers." },
-          { text: "Nothing runs in the sandbox while it waits: no command, open stream or keepalive from us. Each provider's default idle, standby and pause behaviour applies." },
-          ...(groups.some((g) => g.provider === "vercel") ? [{ text: vercelHeldOpenLine }] : []),
-          { text: scopeLine(realistic) },
-          { text: runsLine },
-          { text: `${pilotLine(realistic)} ${laterLine}` },
+          { lead: "Paired runs", text: "Each run is paired with a no-wait run (fix and test, then resume straight away). On most providers the idle part can't be measured alone." },
+          { lead: "While waiting", text: "Nothing runs in the sandbox: no command, open stream or keepalive from us. Each provider's default idle, standby and pause behaviour applies." },
+          ...(groups.some((g) => g.provider === "vercel") ? [{ lead: "Vercel", text: vercelHeldOpenLine.replace(/^Vercel's /, "Its ") }] : []),
+          ...scopeNotes(realistic),
+          ...runNotes,
+          { lead: "Pilot", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
         ]}
       />
     </>
