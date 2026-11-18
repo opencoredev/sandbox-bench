@@ -335,7 +335,7 @@ function Headlines({ track }: { track: Track }) {
         )}
       </Headline>
       <Headline marker="var(--color-4)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
-        <MetricChart track={track} metric={restore} what="" compact notes={blockedNotes(track, "create-from-snapshot")} />
+        <MetricChart track={track} metric={restore} what="" compact notes={mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot"))} />
       </Headline>
     </div>
   );

@@ -95,7 +95,7 @@ const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this rele
 const modalNoPause = "unsupported: Modal sandboxes can't stop and run again, so Modal has no pause and resume";
 const beamNoPause = "unsupported: Beam sandboxes have no pause and resume (Beam's persistent VMs do; they are a different product and weren't tested)";
 const beamNoSnapshotDelete = "not-run: Beam sandboxes take memory snapshots, but Beam has no way to delete one, and our runs delete everything they make";
-const beamBurstQuota = "not-run: our Beam account's quota is 30 vCPU, and 10 sandboxes at 4 vCPU need 40";
+const beamBurstQuota = (n: number) => `not-run: our Beam account's quota is 30 vCPU, and ${n} sandboxes at 4 vCPU need ${n * 4}`;
 const beamNoPage = "not-run: blocked on every run: on Beam's default 1 CPU and 128 MiB the dev server ran out of memory or its preview never answered, so there was no page to edit";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
@@ -111,11 +111,11 @@ const handNotRun: NotRun = {
     "create-from-snapshot": { superserve: superserveJoins, beam: beamNoSnapshotDelete },
     "burst-10": {
       superserve: superserveJoins,
-      beam: beamBurstQuota,
+      beam: beamBurstQuota(10),
     },
     "burst-25": {
       superserve: superserveJoins,
-      beam: beamBurstQuota,
+      beam: beamBurstQuota(25),
     },
   },
 };

@@ -162,8 +162,15 @@ export function MetricChart({
       {compact ? null : <ChartHead title={title} sub={metricSubtitle(metric, what)} />}
       <Columns columns={columns} label={title} compact={compact} />
       {compact ? (
-        <CompactNotes items={measured.flatMap((v) => { const note = notes[v.provider]; return note ? [{ mark: marks.get(v.provider), id: v.provider, note }] : []; })} />
+        <CompactNotes
+          items={[
+            ...measured.flatMap((v) => { const note = notes[v.provider]; return note ? [{ mark: marks.get(v.provider), id: v.provider, note }] : []; }),
+            ...missing.map(({ id, value }) => ({ mark: undefined, id, note: `no result (${noResultReason(value, notes[id])})` })),
+          ]}
+        />
       ) : (
+        <>
+        <NotOnChart ids={[...missing.map(({ id }) => id), ...track.absent]} />
         <Footnotes
           items={[
             ...measured.flatMap((v) => {
@@ -192,8 +199,31 @@ export function MetricChart({
             ...trackFootnotes(track, metric.id),
           ]}
         />
+        </>
       )}
     </>
+  );
+}
+
+/**
+ * The providers a chart has no column for, said under the chart rather than
+ * only inside its folded notes, so a missing provider never reads as an
+ * oversight. The reasons stay in the notes.
+ */
+export function NotOnChart({ ids }: { ids: readonly ProviderId[] }) {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return null;
+  return (
+    <p className="mt-s text-xs text-neutral-7">
+      No result for{" "}
+      {unique.map((id, i) => (
+        <span key={id}>
+          {i === 0 ? "" : i === unique.length - 1 ? " and " : ", "}
+          <Who id={id} />
+        </span>
+      ))}
+      . Notes says why.
+    </p>
   );
 }
 
