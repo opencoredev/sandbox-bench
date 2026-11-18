@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import type { CSSProperties } from "react";
 
 import { ChartPopup, ChartPopupDescription, ChartPopupTitle } from "@/components/chart-popup";
+import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -37,8 +38,12 @@ export function HoverCard({
   return (
     <ChartPopup role="presentation" style={style} className={`pointer-events-none absolute z-10 w-max max-w-[min(300px,100cqw)] min-w-[min(220px,100cqw)] bg-neutral-3 text-left ${className}`}>
       <ChartPopupTitle className="flex items-center gap-xs">
-        <span aria-hidden className="size-s shrink-0 rounded-xs" style={{ backgroundColor: providerColor(provider) }} />
-        <ProviderName id={provider} />
+        <span aria-hidden className="flex shrink-0">
+          <ProviderLogo id={provider} size={16} />
+        </span>
+        <span style={{ color: providerColor(provider) }}>
+          <ProviderName id={provider} />
+        </span>
       </ChartPopupTitle>
       {rows.length > 0 ? (
         <div className="grid grid-cols-[1fr_auto] gap-x-m">

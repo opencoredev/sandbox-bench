@@ -162,6 +162,25 @@
   }
 }
 
+/*
+ * Chart columns: the one under the pointer or keyboard gets a soft band and stays bright while
+ * the rest fade, so it is always clear which column the card describes. Instant, no transition.
+ */
+.chart-col:focus-visible {
+  background: color-mix(in oklch, var(--neutral-3) 55%, transparent);
+}
+.chart-cols:has(.chart-col:focus-visible) .chart-col:not(:focus-visible) .chart-fade {
+  opacity: 0.35;
+}
+@media (hover: hover) {
+  .chart-col:hover {
+    background: color-mix(in oklch, var(--neutral-3) 55%, transparent);
+  }
+  .chart-cols:has(.chart-col:hover) .chart-col:not(:hover) .chart-fade {
+    opacity: 0.35;
+  }
+}
+
 /* Focus ring for custom links and controls, the same outline the themed components use. */
 @utility focus-ring {
   outline: none;

@@ -144,7 +144,7 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
   return (
     <>
       {/* A compact chart's names run diagonally to the left of their columns, so it leaves room on the left. */}
-      <div className={`relative flex items-end border-b border-neutral-4 ${still ? "ml-8 h-[200px] pt-5" : "h-[260px] pt-l"}`}>
+      <div className={`chart-cols relative flex items-end border-b border-neutral-4 ${still ? "ml-8 h-[200px] pt-5" : "h-[260px] pt-l"}`}>
         {columns.map((column, index) => {
           const bar = layout(column, max);
           const color = providerColor(column.provider);
@@ -157,14 +157,14 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
               key={column.provider}
               aria-label={describe(column, bar, still)}
               {...target(column, still, linked)}
-              className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
+              className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
             >
-              <span className="mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
+              <span className="chart-fade mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
                 {column.label}
               </span>
               {/* Stacked parts sit 2px apart in the card colour; only the top one is rounded. */}
               <div
-                className="relative flex w-[min(36px,60%)] shrink-0 flex-col-reverse gap-[2px] transition-opacity duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:opacity-85 motion-reduce:transition-none"
+                className="chart-fade relative flex w-[min(36px,60%)] shrink-0 flex-col-reverse gap-[2px]"
                 style={{ height: `${bar.length * 100}%`, minHeight: 2 }}
               >
                 {column.segments.map((s, i) => (
@@ -227,7 +227,7 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
   // Values sit in one right-aligned column wide enough for the longest label.
   const valueWidth = `${Math.max(...columns.map((c) => c.label.length), 3) + 0.5}ch`;
   return (
-    <div className="flex flex-col gap-xxs">
+    <div className="chart-cols flex flex-col gap-xxs">
       {columns.map((column) => {
         const bar = layout(column, max);
         const Tag = still && pageOf(column, linked) ? "a" : "div";
@@ -236,13 +236,13 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
             key={column.provider}
             aria-label={describe(column, bar, still)}
             {...target(column, still, linked)}
-            className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-neutral-3 sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
+            className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
+            <span aria-hidden className="chart-fade line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
-            <div aria-hidden className="relative flex h-3.5 items-stretch border-l border-neutral-4 sm:h-3">
+            <div aria-hidden className="chart-fade relative flex h-3.5 items-stretch border-l border-neutral-4 sm:h-3">
               <div className="relative flex gap-[2px]" style={{ width: `${bar.length * 100}%`, minWidth: 2 }}>
                 {column.segments.map((s, i) => (
                   <div
@@ -257,7 +257,7 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
             </div>
             <span
               aria-hidden
-              className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
+              className="chart-fade text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
               style={{ width: valueWidth }}
             >
               {column.label}
