@@ -23,7 +23,8 @@ describe("real tasks", () => {
       });
 
   test("the section names who has no result under the chart", () => {
-    const text = renderToStaticMarkup(<RealTasks track={tracks["same-spec"]} />).replace(/<[^>]+>/g, " ");
+    // On default machines several are too small for the tasks; on the same machine everyone ran.
+    const text = renderToStaticMarkup(<RealTasks track={tracks.default} />).replace(/<[^>]+>/g, " ");
 
     assert.match(text, /time to finish/);
     assert.match(text, /No result for/);

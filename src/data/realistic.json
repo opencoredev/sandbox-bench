@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-18T19:46:37.739Z",
+  "generatedAt": "2026-11-18T22:45:24.819Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -116,6 +116,14 @@
       "generatedAt": "2026-11-18T17:25:22.585Z",
       "providers": [
         "beam"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-disk-rerun",
+      "generatedAt": "2026-11-18T22:44:28.970Z",
+      "providers": [
+        "superserve",
+        "tenki"
       ]
     }
   ],
@@ -759,30 +767,23 @@
       "track": "same-machine",
       "variant": "headline",
       "attempts": 5,
-      "completed": 0,
-      "incomplete": 5,
+      "completed": 5,
+      "incomplete": 0,
       "notRun": 0,
-      "reasons": [
-        {
-          "reason": "prepare-failed",
-          "runs": 5
-        }
-      ],
-      "prepare": {
-        "kind": "insufficient-disk",
-        "freeGiB": 1.45618,
-        "requiredGiB": 4,
-        "runs": 5
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 143.471,
+      "medianCpuS": 295.36,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.013089,
+        "wholeMachineUsdPerCompleted": 0.0131928,
+        "wholeMachineBound": "exact"
       },
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "did not complete",
-        "5 incomplete runs (at most 1)",
         "not attributable to our sandbox IDs (5 attempts)"
       ]
     },
@@ -792,30 +793,23 @@
       "track": "same-machine",
       "variant": "headline",
       "attempts": 5,
-      "completed": 0,
-      "incomplete": 5,
+      "completed": 5,
+      "incomplete": 0,
       "notRun": 0,
-      "reasons": [
-        {
-          "reason": "prepare-failed",
-          "runs": 5
-        }
-      ],
-      "prepare": {
-        "kind": "insufficient-disk",
-        "freeGiB": 2.06042,
-        "requiredGiB": 4,
-        "runs": 5
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 168.819,
+      "medianCpuS": 254.952,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0155316,
+        "wholeMachineUsdPerCompleted": 0.0155316,
+        "wholeMachineBound": "exact"
       },
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "did not complete",
-        "5 incomplete runs (at most 1)",
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
       ]
     },
@@ -1502,30 +1496,23 @@
       "track": "same-machine",
       "variant": "headline",
       "attempts": 5,
-      "completed": 0,
-      "incomplete": 5,
+      "completed": 5,
+      "incomplete": 0,
       "notRun": 0,
-      "reasons": [
-        {
-          "reason": "prepare-failed",
-          "runs": 5
-        }
-      ],
-      "prepare": {
-        "kind": "insufficient-disk",
-        "freeGiB": 1.45618,
-        "requiredGiB": 1.5,
-        "runs": 5
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 81.668,
+      "medianCpuS": 213.57,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0074944,
+        "wholeMachineUsdPerCompleted": 0.0075808,
+        "wholeMachineBound": "exact"
       },
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
       "costNote": null,
       "estimatedPart": null,
       "eligible": false,
       "flags": [
-        "did not complete",
-        "5 incomplete runs (at most 1)",
         "not attributable to our sandbox IDs (5 attempts)"
       ]
     },
@@ -1535,17 +1522,22 @@
       "track": "same-machine",
       "variant": "headline",
       "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
+      "completed": 4,
+      "incomplete": 1,
       "notRun": 0,
-      "reasons": [],
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
       "prepare": null,
-      "medianWallS": 95.76,
-      "medianCpuS": 176.76,
+      "medianWallS": 81.832,
+      "medianCpuS": 166.086,
       "cost": {
         "kind": "estimate",
-        "usdPerCompleted": 0.0097888,
-        "wholeMachineUsdPerCompleted": 0.0097888,
+        "usdPerCompleted": 0.00963791,
+        "wholeMachineUsdPerCompleted": 0.00963791,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

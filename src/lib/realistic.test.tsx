@@ -852,10 +852,11 @@ describe("page", () => {
     assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row.
+    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
+    // Superserve since its Nov 18 rerun with a 20 GB disk.
     const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
-    assert.match(line, /Cheapest: Freestyle \$9\.58 per 1,000/);
+    assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
