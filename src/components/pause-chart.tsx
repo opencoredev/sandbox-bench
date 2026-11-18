@@ -49,10 +49,15 @@ const standbyLine = (s: { p: Provider; standby: { note: string; resume: number }
   ),
 });
 
-/** Providers with no pause column: no pause at all, or a restart we don't time as one. */
-const noPause = (track: Track) => {
-  const { restart, missing } = classify(track);
-  return [...restart.map((r) => r.p.id), ...missing.map((p) => p.id), ...track.absent];
+/**
+ * Providers with no column on a pause chart: no pause at all, a restart we
+ * don't time as one, or no pause call because the sandbox goes on standby by
+ * itself. `drawsStandby` is true on the Resume chart, which draws standby
+ * resumes; one with no standby resume in this track has no column anywhere.
+ */
+const noPause = (track: Track, drawsStandby = false) => {
+  const { restart, missing, standby, standbyMissing } = classify(track);
+  return [...restart.map((r) => r.p.id), ...missing.map((p) => p.id), ...(drawsStandby ? [] : standby.map((s) => s.p.id)), ...standbyMissing.map((p) => p.id), ...track.absent];
 };
 
 /** Footnotes shared by the pause charts: what is not a pause, what has no pause, and machine exceptions. */
@@ -177,7 +182,7 @@ export function PausePart({ track, part }: { track: Track; part: keyof typeof pa
     <>
       <ChartHead title={partText[part].title} sub={`${partText[part].what} · Median seconds · Lower is better`} />
       <Columns columns={columns} label={`${partText[part].title} by provider`} />
-      <NotOnChart ids={[...noPause(track), ...whole.map((w) => w.p.id)]} />
+      <NotOnChart ids={[...noPause(track, part === "resume"), ...whole.map((w) => w.p.id)]} />
       <Footnotes
         items={pauseNotes(track, marks, [
           ...standbyNotes,
