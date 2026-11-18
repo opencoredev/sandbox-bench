@@ -65,7 +65,7 @@ const sections = [
   ["startup", "Start-up", "cold"],
   ["real-tasks", "Real tasks", "fix-and-test"],
   ["agent", "Tool calls", "tool-replay"],
-  ["everyday", "Everyday"],
+  // Everyday calls has no item of its own: it follows Tool calls, which stays lit through both, so the bar fits beside the switch.
   ["state", "Snapshots", "create-from-snapshot"],
   ["scale", "Bursts", "burst-10"],
   // "Cost" opens What a task costs; the quick task and prices section follows it, so the item stays lit through both.
@@ -296,14 +296,14 @@ function Headline({
     <JumpLink
       section={section}
       tab={tab}
-      className="surface group focus-ring flex min-w-0 flex-col p-m transition-colors duration-[var(--motion-duration)] ease-[var(--motion-easing)] hover:bg-neutral-3 motion-reduce:transition-none sm:p-l"
+      className="surface surface-link group focus-ring flex min-w-0 flex-col p-m sm:p-l"
     >
       <h2 className="flex items-center gap-xs font-brand text-l font-medium">
         <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
         <span className="min-w-0 truncate">{title}</span>
         <ArrowUpRight
           aria-hidden
-          className="ml-auto size-5 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent motion-reduce:transition-none"
+          className="ml-auto size-5 shrink-0 text-neutral-7 group-hover:text-neutral-10"
         />
       </h2>
       <p className="mt-xxs mb-m truncate text-s text-neutral-7">{sub}</p>
@@ -355,46 +355,17 @@ function Facts({ track }: { track: Track }) {
   // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
   const configs = track.providers.length;
   const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
+  const count = configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`;
   const facts = hasResults(track)
-    ? [
-        dayRange(track.window),
-        configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`,
-        "2 caller locations: Florida, US & Frankfurt, DE",
-        "100 runs per main test, 20 per location test",
-      ]
-    : ["Coming in the next update", "2 caller locations: Florida, US & Frankfurt, DE"];
+    ? [dayRange(track.window), count, "100 runs per main test, 20 per location test", "called from Florida, US and Frankfurt, DE"]
+    : ["Coming in the next update", "called from Florida, US and Frankfurt, DE"];
   return (
-    <div className="flex flex-col gap-s">
-      <p className="text-m text-neutral-7">{facts.join(" · ")}</p>
-      <div className="flex flex-wrap items-center gap-xs text-xs">
-        <span className="mr-xxs text-neutral-7">Caller locations:</span>
-        <JumpLink
-          section="locations"
-          tab="combined"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-10 transition-colors hover:bg-neutral-3"
-        >
-          <span aria-hidden className="size-1.5 rounded-full bg-accent" />
-          All locations (EU-Central vs US-East)
-        </JumpLink>
-        <JumpLink
-          section="locations"
-          tab="eu"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
-        >
-          EU-Central · Frankfurt, DE
-        </JumpLink>
-        <JumpLink
-          section="locations"
-          tab="us-east"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
-        >
-          US-East · Florida, US
-        </JumpLink>
-        <span className="inline-flex items-center rounded-s bg-neutral-2 px-s py-xxs font-mono text-xs text-neutral-7">
-          US-West · soon
-        </span>
-      </div>
-    </div>
+    <>
+      <p className="max-w-[64ch] text-m text-pretty text-neutral-8">
+        Cloud sandboxes for AI agents, timed and priced on the same tests: start-up, real coding tasks, tool calls and what each task costs.
+      </p>
+      <p className="text-s text-neutral-7">{facts.join(" · ")}</p>
+    </>
   );
 }
 
@@ -509,22 +480,24 @@ export default function Page() {
       {/* As on Artificial Analysis: no bar behind the header, just the logo and one bar of section links floating over the page.
           A fade from the page colour keeps them readable over the cards scrolling underneath. */}
       <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
-        {/* Wide screens: logo, then the section bar centred on the page between two equal columns. */}
-        <div className="mx-auto flex max-w-[1440px] items-center gap-s xl:grid xl:grid-cols-[1fr_minmax(0,auto)_1fr]">
+        {/* Wide screens: logo, the section bar centred between two equal columns, and the machine switch on the right,
+            where Artificial Analysis keeps its controls. Narrower: logo, then the switch and the sections menu on the right. */}
+        <div className="mx-auto flex max-w-[1440px] items-center gap-s min-[1440px]:grid min-[1440px]:grid-cols-[1fr_minmax(0,auto)_1fr]">
           <a href="#top" className="surface focus-ring flex h-12 shrink-0 items-center justify-self-start px-m" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <div className="hidden min-w-0 xl:block">
+          <div className="hidden min-w-0 min-[1440px]:block">
             <SectionLinks sections={sections} />
           </div>
-          {/* The machine switch on the right, where Artificial Analysis keeps its buttons, once there is room for it. */}
-          {showSwitch ? (
-            <div className="hidden justify-self-end min-[1536px]:block">
-              <TrackSwitch size="small" />
+          <div className="ml-auto flex min-w-0 items-center gap-s justify-self-end">
+            {showSwitch ? (
+              <div className="hidden md:block">
+                <TrackSwitch size="small" />
+              </div>
+            ) : null}
+            <div className="min-[1440px]:hidden">
+              <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
             </div>
-          ) : null}
-          <div className="ml-auto min-w-0 xl:hidden">
-            <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
           </div>
         </div>
       </header>
@@ -536,12 +509,12 @@ export default function Page() {
       ) : null}
 
       <main id="top" className="mx-auto max-w-[1440px] px-m sm:px-l">
-        <div className="flex flex-col gap-s pt-l pb-xl lg:pt-xxl">
+        <div className="flex flex-col gap-xs pt-l pb-xl lg:pt-xxl">
           <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
           {showSwitch ? (
-            // Wide screens carry the switch in the header.
-            <div className="mt-m min-[1536px]:hidden">
+            // From tablet width up the switch sits in the header.
+            <div className="mt-s md:hidden">
               <TrackSwitch />
             </div>
           ) : null}

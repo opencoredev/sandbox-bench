@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 
 import { HoverCard, detailText } from "@/components/hover-card";
 import type { DetailLine } from "@/components/hover-card";
+import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import { markFill } from "@/lib/marks";
 import type { MarkFill } from "@/lib/marks";
@@ -171,8 +172,18 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             key={column.provider}
             className={`block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
           >
-            <ProviderName id={column.provider} layout="centered" />
-            <Mark column={column} />
+            {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
+                no room for 14 names side by side, so it shows the marks alone; the name is in the column's label. */}
+            <span className="mb-1 flex items-center justify-center" title={still ? providerName(column.provider) : undefined}>
+              <ProviderLogo id={column.provider} size={still ? 16 : 14} />
+              {still ? <Mark column={column} /> : null}
+            </span>
+            {still ? null : (
+              <>
+                <ProviderName id={column.provider} layout="centered" />
+                <Mark column={column} />
+              </>
+            )}
             {column.tag ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
             {column.note ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-8">{column.note}</span> : null}
           </span>

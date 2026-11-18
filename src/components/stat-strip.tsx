@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
+import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
@@ -86,20 +87,25 @@ export function StatStrip({ track }: { track: Track }) {
           <JumpLink
             section={s.section}
             tab={s.tab}
-            className="surface group focus-ring flex h-full flex-col gap-xs px-m py-s transition-colors duration-[var(--motion-duration)] ease-[var(--motion-easing)] hover:bg-neutral-3 motion-reduce:transition-none"
+            className="surface surface-link group focus-ring flex h-full flex-col gap-xs px-m py-s"
           >
             <span className="text-s text-neutral-7">{s.label}</span>
             <span className="font-mono text-l tabular-nums sm:text-xl">{s.value}</span>
             <span className="flex items-center justify-between gap-xs text-s">
-              <span className="min-w-0 line-clamp-2">
+              <span className="flex min-w-0 items-start gap-xs">
+                <span className="flex h-[1.4em] shrink-0 items-center">
+                  <ProviderLogo id={s.provider} size={16} />
+                </span>
+                <span className="min-w-0 line-clamp-2">
                 <span className="font-medium" style={{ color: providerColor(s.provider) }}>
                   <ProviderName id={s.provider} />
                 </span>
                 {s.note && !s.badge ? <span className="text-neutral-7"> · {s.note}</span> : null}
+                </span>
               </span>
               <ArrowRight
                 aria-hidden
-                className="size-4 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:text-accent motion-reduce:transition-none"
+                className="size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10"
               />
             </span>
             {/* A tile with a badge carries a status that must never be cut, so both sit outside the clamped line. */}

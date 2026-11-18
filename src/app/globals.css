@@ -152,6 +152,16 @@
   box-shadow: inset 0 0 0 var(--border-s) var(--neutral-4-transparent), var(--shadow-s);
 }
 
+/*
+ * A surface that opens something: on hover its edge brightens at once. No fading fill and no
+ * moving parts, so pointing across a row of cards doesn't make them flicker.
+ */
+@utility surface-link {
+  &:hover {
+    box-shadow: inset 0 0 0 var(--border-s) var(--neutral-6), var(--shadow-s);
+  }
+}
+
 /* Focus ring for custom links and controls, the same outline the themed components use. */
 @utility focus-ring {
   outline: none;
