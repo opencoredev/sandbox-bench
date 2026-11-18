@@ -1,4 +1,5 @@
-import { HoverCard, detailText } from "@/components/hover-card";
+import { detailText } from "@/components/hover-card";
+import { HoverCardOnDemand } from "@/components/hover-card-on-demand";
 import type { DetailLine } from "@/components/hover-card";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
@@ -169,7 +170,7 @@ export function Scatter({
                 >
                   <ProviderName id={p.provider} layout="stacked" />
                 </span>
-                <HoverCard
+                <HoverCardOnDemand
                   provider={p.provider}
                   detail={lines}
                   className={`left-0 opacity-0 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none ${py > 0.5 ? "top-3" : "bottom-3"}`}

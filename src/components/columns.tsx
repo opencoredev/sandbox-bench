@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
-import { HoverCard, detailText } from "@/components/hover-card";
+import { detailText } from "@/components/hover-card";
+import { HoverCardOnDemand } from "@/components/hover-card-on-demand";
 import type { DetailLine } from "@/components/hover-card";
 import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
@@ -106,7 +107,7 @@ const Mark = ({ column }: { column: Column }) =>
   column.mark === undefined ? null : <sup className="ml-px text-xxs leading-none text-neutral-7">{column.mark}</sup>;
 
 const Card = ({ column, className, style }: { column: Column; className: string; style?: CSSProperties }) => (
-  <HoverCard
+  <HoverCardOnDemand
     provider={column.provider}
     detail={column.detail}
     hint={column.trace ? "Click for where the time goes" : undefined}
