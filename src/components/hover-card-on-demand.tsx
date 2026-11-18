@@ -31,6 +31,9 @@ export function HoverCardOnDemand(props: ComponentProps<typeof HoverCard>) {
     host.addEventListener("pointerleave", leave);
     host.addEventListener("focusin", focusIn);
     host.addEventListener("focusout", focusOut);
+    // A column hovered or focused before the page hydrated fired its event before these listeners existed.
+    if (host.contains(document.activeElement)) setFocused(true);
+    if (host.matches(":hover")) setHovered(true);
     return () => {
       host.removeEventListener("pointerenter", enter);
       host.removeEventListener("pointerleave", leave);
