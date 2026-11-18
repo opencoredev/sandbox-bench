@@ -72,7 +72,7 @@ import {
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
-import { advertised, sizeOf } from "@/lib/sizes";
+import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
 /** The metrics agents get, in page order, grouped as on the page. */
@@ -548,7 +548,9 @@ Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.c
 
 const allocationOf = (p: Track["providers"][number]) => ({
   requested: { ...p.requestedAllocation, text: requestedText(p) },
-  measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: round(a.diskGiB) })),
+  // A shared file system reports the host's disk, not the sandbox's: no size, and why.
+  measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB) })),
+  ...(sharedDisk[p.id] ? { diskNote: sharedDisk[p.id] } : {}),
   measuredText: measuredText(p),
   equalSpec: p.equalSpec,
   verified: p.allocationVerification.verified,

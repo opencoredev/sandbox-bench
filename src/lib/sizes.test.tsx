@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { MachineSizes } from "@/components/machine-sizes";
+import { agentData } from "@/lib/agent-data";
 import { tracks } from "@/lib/data";
 import { sharedDisk, sizeOf } from "@/lib/sizes";
 
@@ -22,5 +23,12 @@ describe("shared disks", () => {
     assert.ok(beam, "Beam has default-track data");
     assert.match(text, /Not in the chart: Beam \(no disk of its own/);
     assert.doesNotMatch(text, /21,4\d\d/);
+  });
+
+  test("the agent export publishes no disk size for it, on either track, and says why", () => {
+    const text = JSON.stringify(agentData());
+
+    assert.doesNotMatch(text, /21438/);
+    assert.match(text, /"diskNote":"no disk of its own/);
   });
 });
