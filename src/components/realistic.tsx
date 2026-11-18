@@ -97,6 +97,8 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
 /** Why a cheaper bar isn't the pick: the wrong size, or too many failed runs. */
 const lowerWhy = (r: Costed) => notCountedWhy(r).join("; ");
 
+export { Pick as CheapestLine };
+
 /** A pinned region's price multiplier beside the figure ("us-east rate, 1.75× base price"), as the quick-task charts say it. */
 const priceNote = (id: ProviderId, track: TrackId | undefined) => (track ? regionFor(id, track)?.short : undefined);
 

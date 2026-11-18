@@ -803,7 +803,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
   const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
   return [
     { lead: "What a cost includes", text: "Every charge from create to confirmed deletion: compute, memory, disk and standby storage, with setup and failed attempts." },
-    ...(added.length ? [{ lead: "Disk", text: `${providerList(added)} ${added.length === 1 ? "doesn't" : "don't"} bill disk, so it is added at list price.` }] : []),
+    ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
     {
