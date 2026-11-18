@@ -333,7 +333,7 @@ function Headlines({ track }: { track: Track }) {
       <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
           <>
-            <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
+            <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked />
             <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
           </>
         ) : (

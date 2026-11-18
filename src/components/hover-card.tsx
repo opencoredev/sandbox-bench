@@ -35,7 +35,7 @@ export function HoverCard({
   const rows = detail.filter((line) => typeof line !== "string");
   const notes = detail.filter((line) => typeof line === "string");
   return (
-    <ChartPopup role="presentation" style={style} className={`pointer-events-none absolute z-10 w-max max-w-[300px] min-w-[220px] bg-neutral-3 text-left ${className}`}>
+    <ChartPopup role="presentation" style={style} className={`pointer-events-none absolute z-10 w-max max-w-[min(300px,100cqw)] min-w-[min(220px,100cqw)] bg-neutral-3 text-left ${className}`}>
       <ChartPopupTitle className="flex items-center gap-xs">
         <span aria-hidden className="size-s shrink-0 rounded-xs" style={{ backgroundColor: providerColor(provider) }} />
         <ProviderName id={provider} />

@@ -160,7 +160,7 @@ export function MetricChart({
   return (
     <>
       {compact ? null : <ChartHead title={title} sub={metricSubtitle(metric, what)} />}
-      <Columns columns={columns} label={title} compact={compact} />
+      <Columns columns={columns} label={title} compact={compact} linked={compact} />
       {compact ? (
         <CompactNotes
           items={[

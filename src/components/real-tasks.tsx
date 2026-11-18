@@ -102,7 +102,7 @@ export function RealTaskHeadline({ track, profile }: { track: Track; profile: Pr
   const marks = marksFor(track, timed);
   return (
     <>
-      <Columns columns={columnsOf(timed, marks)} label={`${profileInfo[profile].label}: time to finish by provider`} compact />
+      <Columns columns={columnsOf(timed, marks)} label={`${profileInfo[profile].label}: time to finish by provider`} compact linked />
       <CompactNotes
         items={[
           ...[...marks].map(([id, m]) => ({ mark: m.mark, id, note: m.note })),
