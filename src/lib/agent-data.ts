@@ -78,7 +78,7 @@ import { successRate } from "@/lib/status";
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
   { title: "Start-up", ids: ["cold"] },
-  { title: "Agent work", ids: ["tool-replay", "npm-install", "pip-install", "git-clone", "dev-server", "preview-first-byte", "edit-loop"] },
+  { title: "Tool calls and agent steps", ids: ["tool-replay", "npm-install", "pip-install", "git-clone", "dev-server", "preview-first-byte", "edit-loop"] },
   { title: "Everyday calls", ids: ["command", "files-1kb", "files-10mb", "reconnect", "destroy"] },
   { title: "Pause and snapshots", ids: ["pause-resume", "snapshot", "create-from-snapshot"] },
   { title: "Bursts", ids: ["burst-10", "burst-25"] },

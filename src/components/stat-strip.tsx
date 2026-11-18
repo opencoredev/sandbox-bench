@@ -65,7 +65,7 @@ function stats(track: Track): Stat[] {
     .sort((a, b) => a.resume - b.resume)[0];
   return [
     ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
-    ...(replay ? [{ label: "Fastest agent work", ...replay, section: "agent", tab: "tool-replay" }] : []),
+    ...(replay ? [{ label: "Fastest 100 tool calls", ...replay, section: "agent", tab: "tool-replay" }] : []),
     ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
     ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { note: "from standby, no pause call" } : {}), section: "state", tab: "resume" }] : []),

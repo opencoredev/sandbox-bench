@@ -11,6 +11,7 @@ import { CostPerTaskChart, NoCostResults, costColumns } from "@/components/cost"
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
+import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -59,17 +60,19 @@ import { advertised } from "@/lib/sizes";
 // Avoiding: poster-sized hero, intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
+// Speed first, in the order an agent meets it, then cost, then what explains the numbers.
 const sections = [
-  ["locations", "Locations", "combined"],
   ["startup", "Start-up", "cold"],
-  ["agent", "Agents", "tool-replay"],
+  ["real-tasks", "Real tasks", "fix-and-test"],
+  ["agent", "Tool calls", "tool-replay"],
   ["everyday", "Everyday"],
   ["state", "Snapshots", "create-from-snapshot"],
   ["scale", "Bursts", "burst-10"],
-  ["machines", "Machines"],
-  ["reliability", "Reliability"],
   // "Cost" opens What a task costs; the quick task and prices section follows it, so the item stays lit through both.
   ["task-cost", "Cost", "fix-and-test"],
+  ["reliability", "Reliability"],
+  ["machines", "Machines"],
+  ["locations", "Locations", "combined"],
   ["method", "Method"],
 ] as const;
 
@@ -321,8 +324,14 @@ function Headlines({ track }: { track: Track }) {
       <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
         <MetricChart track={track} metric={cold} what="" compact />
       </Headline>
-      <Headline marker="var(--color-3)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
+      <Headline marker="var(--color-3)" title="100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
+      </Headline>
+      <Headline marker="var(--color-3)" title="Real task: fix and test" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="fix-and-test">
+        <RealTaskHeadline track={track} profile="fix-and-test" />
+      </Headline>
+      <Headline marker="var(--color-3)" title="Real task: build" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="build">
+        <RealTaskHeadline track={track} profile="build" />
       </Headline>
       <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
         {hasTaskCosts(track) ? (
@@ -510,7 +519,7 @@ export default function Page() {
           </div>
           {/* The machine switch on the right, where Artificial Analysis keeps its buttons, once there is room for it. */}
           {showSwitch ? (
-            <div className="hidden justify-self-end min-[1440px]:block">
+            <div className="hidden justify-self-end min-[1536px]:block">
               <TrackSwitch size="small" />
             </div>
           ) : null}
@@ -532,7 +541,7 @@ export default function Page() {
           <Tracked>{(track) => <Facts track={track} />}</Tracked>
           {showSwitch ? (
             // Wide screens carry the switch in the header.
-            <div className="mt-m min-[1440px]:hidden">
+            <div className="mt-m min-[1536px]:hidden">
               <TrackSwitch />
             </div>
           ) : null}
@@ -543,19 +552,9 @@ export default function Page() {
           <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
         </div>
 
-        <Section
-          id="locations"
-          title="By location"
-          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
-        >
-          <ByLocation />
-        </Section>
-
         <div className="pt-xxl">
           <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
         </div>
-
-        <TraceWaterfall />
 
         <Section
           id="startup"
@@ -584,11 +583,25 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="agent" title="Agent work" lede="Real coding-agent tasks, so CPU, disk and network count as much as the API.">
+        <TraceWaterfall />
+
+        <Section
+          id={realTasksSection}
+          title="Real tasks"
+          lede="Two real coding jobs, each in a fresh sandbox from create to confirmed delete: a Vue bug fixed and its tests run, and a Jitsi Meet production build. Time to finish, so CPU, disk and network all count."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider. What each task costs is under Cost.</span>
+          </p>
+          <PerTrack>{(track) => <RealTasks track={track} />}</PerTrack>
+        </Section>
+
+        <Section id="agent" title="Tool calls and agent steps" lede="The single steps a coding agent repeats: 100 tool calls in a row, package installs, a clone, a dev server and its preview.">
           <PerTrack>
             {(track) => (
               <TabCard
-                label="Agent work" section="agent"
+                label="Tool calls and agent steps" section="agent"
                 tabs={metricTabs(track, [
                   { id: "tool-replay", tab: "Tool replay", what: "100 tool calls in a row: write, read, edit, list, grep, run a test", notes: mergeNotes(farNotes, execNotes) },
                   { id: "npm-install", what: "npm ci for a small Vite and React app", notes: mergeNotes(farNotes, machineNotes(track), blockedNotes(track, "npm-install")) },
@@ -678,6 +691,64 @@ export default function Page() {
           </PerTrack>
         </Section>
 
+        <Section
+          id={taskCostSection}
+          title="What a task costs"
+          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
+          </p>
+          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
+          <Card className="mt-m">
+            <IdleChart />
+          </Card>
+        </Section>
+
+        <Section
+          id="cost"
+          title="Quick task and prices"
+          lede={
+            <>
+              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
+              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+                What a task costs
+              </JumpLink>
+              .
+            </>
+          }
+        >
+          <PerTrack>
+            {(track) => (
+              <>
+                <TabCard
+                  label="Cost" section="cost"
+                  tabs={[
+                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
+                    { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
+                    { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
+                  ]}
+                />
+                <Card className="mt-m">
+                  <CostQuadrant track={track} />
+                </Card>
+              </>
+            )}
+          </PerTrack>
+        </Section>
+
+        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
+          <PerTrack>
+            {(track) => (
+              <Card>
+                <Reliability track={track} />
+                <SetAsideNotes />
+              </Card>
+            )}
+          </PerTrack>
+        </Section>
+
         <Section id="machines" title="Machines" lede="What each provider ran: what we asked for, what we measured inside, and the hardware underneath.">
           <PerTrack>
             {(track) => (
@@ -737,62 +808,12 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
-          <PerTrack>
-            {(track) => (
-              <Card>
-                <Reliability track={track} />
-                <SetAsideNotes />
-              </Card>
-            )}
-          </PerTrack>
-        </Section>
-
         <Section
-          id={taskCostSection}
-          title="What a task costs"
-          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+          id="locations"
+          title="By location"
+          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
         >
-          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
-            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
-          </p>
-          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
-          <Card className="mt-m">
-            <IdleChart />
-          </Card>
-        </Section>
-
-        <Section
-          id="cost"
-          title="Quick task and prices"
-          lede={
-            <>
-              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
-              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
-                What a task costs
-              </JumpLink>
-              .
-            </>
-          }
-        >
-          <PerTrack>
-            {(track) => (
-              <>
-                <TabCard
-                  label="Cost" section="cost"
-                  tabs={[
-                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
-                    { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
-                    { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
-                  ]}
-                />
-                <Card className="mt-m">
-                  <CostQuadrant track={track} />
-                </Card>
-              </>
-            )}
-          </PerTrack>
+          <ByLocation />
         </Section>
 
         <Section id="method" title="Method" lede="How the numbers were made, and what could bias them.">
