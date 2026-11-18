@@ -382,6 +382,12 @@ function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedP
   return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null, what: part.labels, note } } : {};
 }
 
+/** A provider's pricing note without its monthly-minimum clause ("$20 monthly minimum/packs excluded; "): per-task costs are usage, and the site says nothing about plans. */
+const withoutPlanMinimum = (note: string | null) => note
+    ?.replace(/\s*\$\d+(?:\.\d+)? monthly minimum[^;.]*[;.]/g, "")
+    .replace(/\.\s+([a-z])/g, (_, c: string) => `. ${c.toUpperCase()}`)
+    .trim() ?? null;
+
 const pickRow = (r: Costed) => ({
   provider: r.provider,
   per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE),
@@ -647,7 +653,7 @@ function trackData(track: Track) {
           ...lowerBoundField(p.hourly !== null && p.pricingBound === "lower"),
           commonSizeUsd: round(commonPrice(p)?.usd ?? null),
           ...regionOf(p),
-          note: p.pricingNotes,
+          note: withoutPlanMinimum(p.pricingNotes),
           usdNote: p.currency === "EUR" ? `Converted at the ECB rate of ${eurUsd.rate} USD per EUR on ${eurUsd.date}.` : null,
           source: p.pricingSource,
         },

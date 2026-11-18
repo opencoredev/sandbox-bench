@@ -808,7 +808,9 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
     {
       lead: "Not counted",
-      text: transfer.length ? `Data transfer (except ${providerList(transfer)}, which bills it) and snapshots kept after deletion.` : "Data transfer and snapshots kept after deletion.",
+      text: transfer.length
+        ? `Data transfer and snapshots kept after deletion. ${providerList(transfer)} bills transfer, so its headline costs count it; its held-open costs leave it out and are understated.`
+        : "Data transfer and snapshots kept after deletion.",
     },
   ];
 }
@@ -816,7 +818,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
 /** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
 export const runNotes: Note[] = [
   { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17." },
-  { lead: "Reruns", text: "boxd, E2B and Vercel reran on Nov 16 with nothing else on their accounts, to check their meters against their bills." },
+  { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
 ];
 
 /**

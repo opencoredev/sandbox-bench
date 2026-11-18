@@ -111,7 +111,7 @@ const provisionalCosts: Partial<Record<ProviderId, { kind: PricedKind; why: stri
 const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>> = {
   boat: {
     tag: "estimate from docs",
-    why: "Boat's documented price on our measured sandbox lifetime; Boat can't be a pick yet because no settled-charge source for Boat is available",
+    why: "Boat's documented price on our measured sandbox lifetime; no settled-charge source for Boat is available",
   },
 };
 
