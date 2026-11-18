@@ -822,9 +822,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-17T04:45:49.065Z"
+  "end": "2026-11-18T15:42:45.295Z"
  },
- "observations": 37177,
+ "observations": 37022,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -987,19 +987,19 @@
    "samples": 101
   },
   {
-   "id": "sbx93-default-main",
+   "id": "b1118-default-main",
    "suite": "main",
-   "samples": 2181
+   "samples": 2158
   },
   {
-   "id": "sbx93-default-snapshot",
+   "id": "b1118-default-snapshot",
    "suite": "snapshot",
-   "samples": 328
+   "samples": 321
   },
   {
-   "id": "sbx93-default-burst",
+   "id": "b1118-default-burst",
    "suite": "burst",
-   "samples": 426
+   "samples": 302
   },
   {
    "id": "sbx93-default-cost",
@@ -1490,7 +1490,8 @@
     "source": "boxd orgs.usage / orgs.billingActivityPage",
     "confidence": "medium",
     "n": 10,
-    "settled": true
+    "settled": true,
+    "bound": null
    },
    "track": "default",
    "requestedAllocation": {
@@ -1516,6 +1517,9 @@
    "equalSpec": false,
    "currency": "EUR",
    "hourly": 0.174,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
    "commonHourly": null,
    "perVcpuHour": 0.087,
    "pricingAllocation": {
@@ -1554,16 +1558,16 @@
    "pricingSource": "https://boxd.sh/pricing",
    "pricingNotes": "EUR; RAM in use and written disk billed, so allocated resources are an upper bound. Metered per second, settled every 15 minutes (not a rounding increment). FX budget uses conservative 2 USD/EUR, not a market quote.",
    "reliability": {
-    "successes": 2967,
-    "failures": 4,
-    "raw": 0.998653651969034,
-    "adjusted": 0.998653651969034,
+    "successes": 2681,
+    "failures": 84,
+    "raw": 0.9696202531645569,
+    "adjusted": 0.9696202531645569,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 4
+    "provider": 84
    },
    "hardware": {
-    "fingerprints": 130,
+    "fingerprints": 128,
     "vcpu": 2,
     "visibleCpus": [
      2
@@ -1574,7 +1578,7 @@
     "cpuModels": [
      {
       "value": "AMD EPYC",
-      "count": 130
+      "count": 128
      }
     ],
     "vendor": "AMD",
@@ -1586,51 +1590,664 @@
     "location": [
      {
       "value": "New York City, US",
-      "count": 130
+      "count": 109
      }
     ],
     "network": [
      {
       "value": "AS396356 Latitude.sh",
-      "count": 130
+      "count": 109
      }
     ]
    },
    "failureReasons": [
     {
      "kind": "provider-operation",
-     "reason": "boxd request failed: the provider rejected the request as invalid. (invalid_argument)",
-     "count": 2,
-     "runs": 2,
+     "reason": "Guest exit 128: Cloning into '/workspace/bench-clone'...",
+     "count": 12,
+     "runs": 12,
      "tests": [
-      "Pause + resume"
+      "git clone"
      ]
     },
     {
      "kind": "provider-operation",
-     "reason": "Scenario timed out after 29999.99901ms",
-     "count": 1,
+     "reason": "getaddrinfo ENOTFOUND sbxsdk-23869154-c08e-4296-85d0-ab29fce0e2b0.nyc.boxd.sh (ENOTFOUND)",
+     "count": 3,
      "runs": 1,
      "tests": [
-      "snapshot-cleanup"
+      "Preview URL first byte"
      ]
     },
     {
      "kind": "provider-operation",
-     "reason": "Scenario timed out after 29999.99788000001ms",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-6669f111-f6b0-44c9-8b78-f85b741e1b2b did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
      "count": 1,
      "runs": 1,
      "tests": [
-      "snapshot-cleanup"
+      "cold"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-451db7e7-d8fb-48db-8f59-d662c43a1c23 entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Cold start"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "pip install"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "4/10 ready; 10 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-5345e4c3-4119-456b-a55b-689c3d585b49 entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-9d19b07f-a71a-4e29-ac30-ea8b73dd72b0 entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-b28eb38e-ae4a-4720-be1e-5089c192858a entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-89de4c4c-3a8c-41d0-ae95-2f4205c4631c entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-acb0dc89-8c77-4613-a5f4-2766f06d39fc entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-3b399efe-052b-4206-9cb3-141481478eb5 entered terminal state 'failed' while waiting. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "3/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-cfa24ac4-fec6-41ff-b0e1-27e4f36fb158 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-8a873be9-49af-449b-ab29-babc3a8ba596 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-9d9effa3-8610-4f56-aa51-3a659b0cd877 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-b55178a1-5fec-4d72-b57d-2af2145ce02e did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-20774114-c29b-4362-82da-50152502c901 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-e8d78c79-c285-4798-8829-376920bf7307 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-cdf96e15-cea4-4bbe-8ef0-80cfbcf07026 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-8d2827ac-d57b-48f2-9a35-a9232bc4c56f did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-c7a2d840-3baf-4f33-89d5-afcbc3129a44 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-cfcc11cc-b46e-4e6f-8fa7-ab754431b32d did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-7b90d1cc-b23f-4f4d-b228-429a557c0b28 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-b9d5da36-142c-4b21-9daa-3163b009b5bc did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-3e6a9efb-cea5-4a46-9098-2dae84517500 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-095f0cf9-7545-4b89-8478-772d369a94cb did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-36a261c4-396f-4ffc-8c73-dc26121a414c did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-8654692b-00a2-42e8-97d0-a1aad5771758 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-03f5a346-0fd2-4661-a305-74f3004e1738 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-1a40767c-8377-49b9-84da-902eebf82446 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-b3732e68-316f-457a-b48a-c7f6d298338e did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-b8210627-99b8-4fba-ab3b-c3b0f74afc94 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-fec7c912-daed-4d79-81e5-fefe03e03ee7 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-ec8b3d38-cae1-401e-aad0-9c2d098cef89 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "1/10 ready; 10 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-2c38433d-e374-4f21-9e4a-542369558874 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-bd39030d-ee68-4de7-870e-32b0bd2d8ec5 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-4b3ce762-4db8-4ca2-95ec-becdc6510002 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-66a181d6-5eb6-4abd-bb6c-9a5d8cb75192 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-1a97b827-0338-4d45-8690-7af3967f6a49 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-75881e55-31cb-43cd-a2d8-efc9e436b02a did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-4881404b-b700-4a8a-943c-0fa38dbbb83e did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-3b7e6b2a-4334-4f67-b266-235515a2000d did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-048a20f1-1e6a-4392-9df2-793681d3b3e7 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "0/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-36dfb903-30a2-4043-ad39-734b1885a0bb did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-79251d2b-048d-44b5-b776-6a165d094ca6 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-7f756674-1870-45c6-9c32-eaec924fd39d did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-16474cad-4a07-4c19-b75c-98cfd79e0ece did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-c67ea85d-3ff6-451d-9a5d-a2765b30b784 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-f253331b-201f-43c6-bc7a-542c81498c7e did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-20d81cc7-58eb-451a-8e66-79065450b5b8 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-62f518ac-b407-47d4-9267-4bc0c2650864 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-614835f8-e60d-4a8f-b4d8-9fe914d5a179 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-c3ea0f21-61a9-47db-a9d2-9442ea9e2c77 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-fbc29e3c-6459-473d-b75c-d9a4cbf65232 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-f5f160b1-5722-40f5-b6fb-2ce562f00d93 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-2b81c0ba-20c9-4238-bfbf-58c2bf8d0f0b did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-637b9497-1e0b-4f86-98a4-2cbb4a5b6323 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-d64c9d3d-3804-4203-9ba0-e73dfdae65c1 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-e270a57c-00ee-4d9b-af16-2218529358e0 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-50a52b50-9981-4d41-aaed-988911c6d0e0 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-ae36bc75-692e-4ab2-b439-dd426e044b3d did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-9d246c6e-9fda-4e0d-bad7-1123b3bb5ddc did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-06ed9f2c-8af7-42a5-b4d7-5f892680d1b5 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-7b4ce150-afd8-460f-91a0-9d98ce7bca46 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-4116fcb1-1dde-405e-967a-bb53c45808f4 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-3b4834c7-7f3b-4242-9398-615564922d61 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-2322585e-e189-4959-8463-925f62fad7a6 did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "boxd request failed: BoxdError: machine sbxsdk-978fc4e7-62b7-48b4-9ae6-db2635622a6d did not reach 'running' within 90000ms. (provider, operation=machines.waitUntilReady)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once"
      ]
     }
    ],
    "ourFailures": [],
    "pauseSplit": {
-    "pause": 0.03944147800002247,
-    "resume": 0.13009130700002425,
-    "n": 98
-   }
+    "pause": 0.03891350100003183,
+    "resume": 0.3718131249998696,
+    "n": 99
+   },
+   "standbyResume": null
   },
   {
    "id": "superserve",
@@ -3164,14 +3781,14 @@
     },
     {
      "provider": "boxd",
-     "n": 100,
-     "p50": 0.2830567089996766,
-     "p95": 0.32979448399995454,
-     "min": 0.2644733399999095,
-     "ciLow": 0.2814834259999916,
-     "ciHigh": 0.2871893109999946,
-     "successes": 100,
-     "failures": 0,
+     "n": 99,
+     "p50": 8.379105037999805,
+     "p95": 40.01726059200056,
+     "min": 0.4667287460002117,
+     "ciLow": 5.127846390999854,
+     "ciHigh": 13.762843098999001,
+     "successes": 99,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -3333,11 +3950,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 0.09036158100003376,
-     "p95": 0.09378352700000687,
-     "min": 0.08459470900008455,
-     "ciLow": 0.08964719599997625,
-     "ciHigh": 0.09091603999992368,
+     "p50": 0.06097555200010538,
+     "p95": 0.08834306400036439,
+     "min": 0.05103115299995989,
+     "ciLow": 0.05893326100008563,
+     "ciHigh": 0.08457133299997077,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -3501,11 +4118,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 0.16939895900012925,
-     "p95": 0.17607892900006847,
-     "min": 0.16305853800000114,
-     "ciLow": 0.1686534769999562,
-     "ciHigh": 0.17051146900001915,
+     "p50": 0.16443485100008548,
+     "p95": 0.17298890500003472,
+     "min": 0.13342840699991212,
+     "ciLow": 0.16399895699974149,
+     "ciHigh": 0.16521119299996645,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -3669,11 +4286,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 1.2002641329998152,
-     "p95": 1.9655635169999441,
-     "min": 0.9638537709999364,
-     "ciLow": 1.160394962000195,
-     "ciHigh": 1.2457026649999898,
+     "p50": 1.2132551279999315,
+     "p95": 3.1672623340000863,
+     "min": 0.9745842610001564,
+     "ciLow": 1.1724703959999607,
+     "ciHigh": 1.2476199779999442,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -3836,13 +4453,13 @@
     },
     {
      "provider": "boxd",
-     "n": 98,
-     "p50": 0.2969572179999668,
-     "p95": 0.30628742100001544,
-     "min": 0.2812707139999839,
-     "ciLow": 0.29591642600001067,
-     "ciHigh": 0.29777949800016357,
-     "successes": 98,
+     "n": 99,
+     "p50": 0.25559973100014033,
+     "p95": 0.28912630200013517,
+     "min": 0.21990651100035757,
+     "ciLow": 0.253428530999925,
+     "ciHigh": 0.25874709900000015,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4004,14 +4621,14 @@
     },
     {
      "provider": "boxd",
-     "n": 98,
-     "p50": 0.17026541800005363,
-     "p95": 0.17885729800001718,
-     "min": 0.16169110699999145,
-     "ciLow": 0.16967604900011793,
-     "ciHigh": 0.17091942399996332,
-     "successes": 98,
-     "failures": 2,
+     "n": 99,
+     "p50": 0.41489134200010447,
+     "p95": 14.203040845000185,
+     "min": 0.1311831499999389,
+     "ciLow": 0.3288133839997463,
+     "ciHigh": 0.7218086639998946,
+     "successes": 99,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -4133,13 +4750,13 @@
     },
     {
      "provider": "boxd",
-     "n": 100,
-     "p50": 0.04238198100007139,
-     "p95": 0.04593732200004161,
-     "min": 0.038892856999998913,
-     "ciLow": 0.04149278400000185,
-     "ciHigh": 0.042721029000123964,
-     "successes": 100,
+     "n": 99,
+     "p50": 0.04452301100001205,
+     "p95": 0.047193924999795855,
+     "min": 0.04111361999996006,
+     "ciLow": 0.04387640700023621,
+     "ciHigh": 0.04476800199993886,
+     "successes": 99,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4310,13 +4927,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.36427421999996296,
-     "p95": 0.6545224699999963,
-     "min": 0.3579722469999979,
-     "ciLow": 0.363010946000024,
-     "ciHigh": 0.36547839600000226,
-     "successes": 30,
+     "n": 29,
+     "p50": 6.954360351999989,
+     "p95": 19.268987445999986,
+     "min": 0.6477852650000132,
+     "ciLow": 2.0760935009999666,
+     "ciHigh": 10.150073291999986,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4452,13 +5069,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.38233040799999435,
-     "p95": 0.41145324699999763,
-     "min": 0.3442796320000052,
-     "ciLow": 0.37546384600002786,
-     "ciHigh": 0.387738272000046,
-     "successes": 30,
+     "n": 29,
+     "p50": 4.625139889000042,
+     "p95": 40.00745424699993,
+     "min": 0.5135257950000005,
+     "ciLow": 3.0273842960000037,
+     "ciHigh": 16.389878413000027,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4594,14 +5211,14 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.5892332649999881,
-     "p95": 0.6514846499999986,
-     "min": 0.5042749689999618,
-     "ciLow": 0.5489201190000167,
-     "ciHigh": 0.6098251230000024,
-     "successes": 30,
-     "failures": 0,
+     "n": 17,
+     "p50": 2.6931771339999977,
+     "p95": 16.881100753999984,
+     "min": 0.47738016199972483,
+     "ciLow": 0.5668121960000135,
+     "ciHigh": 8.380393950999999,
+     "successes": 17,
+     "failures": 12,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -4762,13 +5379,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 1.1022783980000004,
-     "p95": 1.3091740439999848,
-     "min": 0.9307217560000136,
-     "ciLow": 1.0582749259999837,
-     "ciHigh": 1.1850078229999637,
-     "successes": 30,
+     "n": 29,
+     "p50": 5.90795273699984,
+     "p95": 39.807400161,
+     "min": 0.9706939739999362,
+     "ciLow": 2.4417248279999475,
+     "ciHigh": 20.929056336000098,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4930,14 +5547,14 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 3.724463059000089,
-     "p95": 8.796237247000004,
-     "min": 3.595697742999997,
-     "ciLow": 3.716204306999978,
-     "ciHigh": 3.75279651700001,
-     "successes": 30,
-     "failures": 0,
+     "n": 28,
+     "p50": 12.03518758899998,
+     "p95": 24.361119985,
+     "min": 3.975803818000015,
+     "ciLow": 4.708923284000001,
+     "ciHigh": 13.93023058199999,
+     "successes": 28,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -5098,13 +5715,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.9294289330000757,
-     "p95": 0.9552471819999628,
-     "min": 0.6875678779999871,
-     "ciLow": 0.7150636859999504,
-     "ciHigh": 0.9450866180000594,
-     "successes": 30,
+     "n": 29,
+     "p50": 0.8034726559999399,
+     "p95": 0.9237574299999979,
+     "min": 0.6383641089999583,
+     "ciLow": 0.6965498539999826,
+     "ciHigh": 0.8617730420000153,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -5266,14 +5883,14 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.2804312640000135,
-     "p95": 0.40844478599999273,
-     "min": 0.22397759100000258,
-     "ciLow": 0.2524976610000003,
-     "ciHigh": 0.3080260690000141,
-     "successes": 30,
-     "failures": 0,
+     "n": 27,
+     "p50": 0.2927048159998376,
+     "p95": 0.3930723219999927,
+     "min": 0.22735644499999944,
+     "ciLow": 0.24919332000007854,
+     "ciHigh": 0.3084681169999531,
+     "successes": 27,
+     "failures": 3,
      "ourFailures": 0,
      "limitFailures": 0
     },
@@ -5434,13 +6051,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 0.3213687369999243,
-     "p95": 0.32758435400004965,
-     "min": 0.30900593400001525,
-     "ciLow": 0.3181883020000532,
-     "ciHigh": 0.32277915700001175,
-     "successes": 30,
+     "n": 28,
+     "p50": 0.31230625600006895,
+     "p95": 0.3217861540000886,
+     "min": 0.3063110960000195,
+     "ciLow": 0.3105365989999846,
+     "ciHigh": 0.3162256579999812,
+     "successes": 28,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -5602,13 +6219,13 @@
     },
     {
      "provider": "boxd",
-     "n": 30,
-     "p50": 12.770259774000007,
-     "p95": 13.087917665999965,
-     "min": 12.39304249100003,
-     "ciLow": 12.661199517999998,
-     "ciHigh": 12.817349274999986,
-     "successes": 30,
+     "n": 29,
+     "p50": 11.691230062999995,
+     "p95": 11.98033448099997,
+     "min": 11.238402304999996,
+     "ciLow": 11.54399410900008,
+     "ciHigh": 11.760399182999995,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -5763,19 +6380,6 @@
      "min": 1.0340485099999932,
      "ciLow": 1.0340485099999932,
      "ciHigh": 1.5352994480000015,
-     "successes": 3,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
-     "provider": "boxd",
-     "n": 3,
-     "p50": 0.5680989709999994,
-     "p95": 0.5898853720000043,
-     "min": 0.5114463720000001,
-     "ciLow": 0.5114463720000001,
-     "ciHigh": 0.5898853720000043,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -5937,19 +6541,6 @@
      "limitFailures": 0
     },
     {
-     "provider": "boxd",
-     "n": 3,
-     "p50": 0.8811101340000023,
-     "p95": 0.9649217350000109,
-     "min": 0.8317874699999811,
-     "ciLow": 0.8317874699999811,
-     "ciHigh": 0.9649217350000109,
-     "successes": 3,
-     "failures": 0,
-     "ourFailures": 0,
-     "limitFailures": 0
-    },
-    {
      "provider": "superserve",
      "n": 3,
      "p50": 0.7525919690000156,
@@ -6094,11 +6685,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 12912018.474513626,
-     "p95": 13202803.551971583,
-     "min": 8987781.892449742,
-     "ciLow": 12812466.427351175,
-     "ciHigh": 12981763.80243312,
+     "p50": 11477502.316433812,
+     "p95": 12635616.015076831,
+     "min": 7499367.820523165,
+     "ciLow": 11191037.123661332,
+     "ciHigh": 11832236.214049863,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -6262,11 +6853,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 16368907.107083408,
-     "p95": 22830259.509038147,
-     "min": 13564451.603691196,
-     "ciLow": 16291650.388275988,
-     "ciHigh": 16422086.780490125,
+     "p50": 18448128.65243883,
+     "p95": 21477032.19780989,
+     "min": 12514278.24753573,
+     "ciLow": 17860752.810774077,
+     "ciHigh": 19102919.825192787,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -6430,11 +7021,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 31050.220104669257,
-     "p95": 32094.63654258417,
-     "min": 27712.653917377647,
-     "ciLow": 30958.81406969836,
-     "ciHigh": 31206.745602356183,
+     "p50": 26115.028992911248,
+     "p95": 28131.838947612316,
+     "min": 13325.187844673423,
+     "ciLow": 25931.271151945166,
+     "ciHigh": 26344.768640214676,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -6598,11 +7189,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 712.8006203340766,
-     "p95": 794.1460023403074,
-     "min": 695.0431708255056,
-     "ciLow": 710.894713165179,
-     "ciHigh": 714.4737966850009,
+     "p50": 644.8468179641192,
+     "p95": 790.584303141295,
+     "min": 214.49102498848305,
+     "ciLow": 636.641001359363,
+     "ciHigh": 653.3537129610589,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -6766,11 +7357,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 12932.849028593859,
-     "p95": 17467.560179289812,
-     "min": 8119.035716867191,
-     "ciLow": 12734.16361954648,
-     "ciHigh": 13124.310307122347,
+     "p50": 12569.523898416057,
+     "p95": 16445.252162203604,
+     "min": 4923.299400766114,
+     "ciLow": 12142.411821440039,
+     "ciHigh": 12843.546108198469,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -6934,11 +7525,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 10100.611161938723,
-     "p95": 13900.56847358188,
-     "min": 5540.267279370917,
-     "ciLow": 9494.287165026559,
-     "ciHigh": 12397.071017653496,
+     "p50": 11249.603313341984,
+     "p95": 13835.798384097137,
+     "min": 5036.874745386269,
+     "ciLow": 10980.333153276582,
+     "ciHigh": 11570.820209921767,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -7102,11 +7693,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 478655.8743870839,
-     "p95": 508178.49779680476,
-     "min": 199418.72563579935,
-     "ciLow": 453112.58252697386,
-     "ciHigh": 485693.84952736023,
+     "p50": 440793.35059578635,
+     "p95": 479859.0629235001,
+     "min": 292919.2619754125,
+     "ciLow": 429732.0750567303,
+     "ciHigh": 451268.31024932564,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -7281,11 +7872,11 @@
     {
      "provider": "boxd",
      "n": 99,
-     "p50": 1.8121899999641755,
-     "p95": 2.3197261999939656,
-     "min": 1.3693295999473776,
-     "ciLow": 1.7561159998876974,
-     "ciHigh": 1.8653096001798986,
+     "p50": 1.781858003232628,
+     "p95": 2.2928901948034763,
+     "min": 1.5409118146635592,
+     "ciLow": 1.7622378072701395,
+     "ciHigh": 1.811604225076735,
      "successes": 99,
      "failures": 0,
      "ourFailures": 0,
@@ -7693,106 +8284,105 @@
    6.075
   ],
   "boxd": [
-   0.264,
-   0.266,
-   0.269,
-   0.27,
-   0.27,
-   0.273,
-   0.273,
-   0.273,
-   0.274,
-   0.274,
-   0.274,
-   0.275,
-   0.275,
-   0.276,
-   0.276,
-   0.276,
-   0.277,
-   0.277,
-   0.277,
-   0.278,
-   0.278,
-   0.278,
-   0.278,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.279,
-   0.28,
-   0.28,
-   0.28,
-   0.281,
-   0.281,
-   0.281,
-   0.281,
-   0.281,
-   0.282,
-   0.282,
-   0.282,
-   0.282,
-   0.282,
-   0.282,
-   0.282,
-   0.283,
-   0.283,
-   0.283,
-   0.283,
-   0.284,
-   0.284,
-   0.285,
-   0.285,
-   0.285,
-   0.285,
-   0.286,
-   0.287,
-   0.287,
-   0.287,
-   0.287,
-   0.287,
-   0.288,
-   0.288,
-   0.288,
-   0.288,
-   0.289,
-   0.29,
-   0.29,
-   0.291,
-   0.292,
-   0.292,
-   0.305,
-   0.317,
-   0.318,
-   0.318,
-   0.319,
-   0.319,
-   0.32,
-   0.322,
-   0.323,
-   0.324,
-   0.325,
-   0.325,
-   0.326,
-   0.326,
-   0.326,
-   0.327,
-   0.327,
-   0.328,
-   0.329,
-   0.329,
-   0.33,
-   0.33,
-   0.332,
-   0.332,
-   0.339,
-   0.352,
-   0.776
+   0.467,
+   0.478,
+   0.485,
+   0.51,
+   0.524,
+   0.545,
+   0.548,
+   0.549,
+   0.554,
+   0.578,
+   0.579,
+   0.584,
+   0.609,
+   0.613,
+   0.615,
+   0.649,
+   0.652,
+   0.667,
+   0.677,
+   0.748,
+   0.769,
+   0.779,
+   0.79,
+   0.802,
+   0.811,
+   0.894,
+   0.908,
+   0.952,
+   0.98,
+   1.026,
+   1.05,
+   1.16,
+   1.452,
+   1.474,
+   1.693,
+   2.418,
+   2.456,
+   2.953,
+   3.565,
+   5.128,
+   5.144,
+   5.665,
+   5.676,
+   7.297,
+   7.814,
+   7.817,
+   8.301,
+   8.338,
+   8.348,
+   8.379,
+   8.909,
+   10.014,
+   11.072,
+   12.108,
+   12.432,
+   12.714,
+   13.123,
+   13.719,
+   13.732,
+   13.763,
+   13.783,
+   14.8,
+   14.809,
+   15.856,
+   15.867,
+   16.402,
+   16.938,
+   16.948,
+   17.456,
+   18.036,
+   18.046,
+   18.065,
+   18.549,
+   18.562,
+   18.596,
+   19.07,
+   19.678,
+   19.685,
+   20.204,
+   20.713,
+   20.735,
+   21.273,
+   21.753,
+   21.832,
+   21.833,
+   22.267,
+   22.832,
+   23.985,
+   27.226,
+   28.792,
+   30.38,
+   33.556,
+   34.22,
+   36.759,
+   40.017,
+   51.275,
+   51.419,
+   70.245,
+   72.264
   ],
   "superserve": [
    0.48,
@@ -8613,10 +9203,14 @@
  },
  "missing": {
   "burst-25": {
-   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
+   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
+   "boxd": "stopped-early: only 1 of 3 bursts of 25 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 3 and 0 of 25 machines were ready, the rest did not start within 90 s"
+  },
+  "burst-10": {
+   "boxd": "stopped-early: only 1 of 3 bursts of 10 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 4 and 1 of 10 machines were ready, the rest did not start within 90 s or entered a failed state"
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 4 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 18 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby."
  }
 }
