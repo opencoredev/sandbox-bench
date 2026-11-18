@@ -15,7 +15,7 @@ export const updates: readonly Update[] = [
   {
     date: "Nov 18",
     title: "Every provider on real tasks",
-    text: "Luxor and Superserve reran on 4 vCPU and 8 GB with 20 GB disks, so every provider now has both real tasks on that machine.",
+    text: "Luxor and Superserve reran with 20 GB disks, so every provider now has results for both real tasks on the Same machine track (boxd's nearest size has 16 GB).",
     href: "#real-tasks/build",
   },
   {
