@@ -407,9 +407,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-11-18T16:39:16.948Z"
+  "end": "2026-11-18T22:07:14.105Z"
  },
- "observations": 42246,
+ "observations": 42369,
  "runs": [
   {
    "id": "sbx53-same-spec-burst-r8b2",
@@ -725,6 +725,11 @@
    "id": "sbxbm-same-spec-cost",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "rb1118-e2b-same-spec-burst",
+   "suite": "burst",
+   "samples": 123
   }
  ],
  "excluded": [
@@ -6326,6 +6331,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "e2b",
+     "n": 3,
+     "p50": 1.1590572060000004,
+     "p95": 1.207664224,
+     "min": 0.8597397259999998,
+     "ciLow": 0.8597397259999998,
+     "ciHigh": 1.207664224,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -9480,11 +9498,11 @@
  },
  "missing": {
   "burst-10": {
-   "e2b": "stopped-early: in one of its three bursts of 10, two creates failed on E2B's side (E2B reported a timeout), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
    "boxd": "stopped-early: only 1 of 3 bursts of 10 finished in boxd's Nov 18 rerun, so the size is not published; in the other two, 7 and 0 of 10 machines were ready, the rest did not start within 90 s or entered a failed state"
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 18 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18)."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 18 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18).",
+  "burst-10": "E2B's bursts of 10 are from a rerun on Nov 18 on the same SDK commit (1185278), after one of its first three bursts had two creates time out on E2B's side."
  }
 }
