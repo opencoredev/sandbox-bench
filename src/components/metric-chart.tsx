@@ -31,16 +31,23 @@ export function ChartHead({ title, sub, meta }: { title: string; sub: ReactNode;
   );
 }
 
-/** A chart's notes, folded into one "Notes (n)" disclosure so the chart stays the first thing read. Marks keep their numbers. */
-export function Footnotes({ items }: { items: readonly { mark?: number; text: ReactNode }[] }) {
+/**
+ * A chart's notes, folded into one "Notes (n)" disclosure so the chart stays
+ * the first thing read: one bullet each, an optional bold lead, marks keeping
+ * their numbers.
+ */
+export function Footnotes({ items }: { items: readonly { mark?: number; lead?: string; text: ReactNode }[] }) {
   if (items.length === 0) return null;
   return (
     <Disclosure className="mt-m gap-xs" triggerClassName="w-fit justify-start text-s text-neutral-7 hover:text-neutral-10" summary={`Notes (${items.length})`}>
-      <ul className="flex flex-col gap-xs text-xs text-neutral-7">
+      <ul className="flex flex-col gap-xs text-xs leading-relaxed text-pretty text-neutral-8">
         {items.map((item, i) => (
           <li key={i} className="flex gap-xs">
-            {item.mark === undefined ? null : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
-            <span className="max-w-[90ch]">{item.text}</span>
+            {item.mark === undefined ? <span aria-hidden className="mt-[0.6em] size-1 shrink-0 rounded-full bg-neutral-6" /> : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
+            <span className="max-w-[80ch]">
+              {item.lead ? <span className="font-medium text-neutral-10">{item.lead}: </span> : null}
+              {item.text}
+            </span>
           </li>
         ))}
       </ul>

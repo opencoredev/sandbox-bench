@@ -10,7 +10,6 @@ import {
   isEligible,
   isLowerBound,
   isPriced,
-  monthlyPlanWhy,
   noPickLabel,
   noPickWhy,
   perTaskLifetimeNote,
@@ -63,7 +62,6 @@ import {
   profileWhat,
   runTrackOf,
   scopeLine,
-  hasMonthlyPlan,
   isCounted,
   notCountedWhy,
   taskPick,
@@ -335,7 +333,7 @@ const realisticAbout =
   "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; how the cost was priced doesn't affect it. Boat bills a monthly plan, so it has no per-task cost and isn't in these workloads. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; how the cost was priced doesn't affect it. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
@@ -416,11 +414,10 @@ function realisticPickData(costed: readonly Costed[]) {
 }
 
 function realisticProfile(id: TrackId, profile: ProfileId) {
-  const { costed, uncosted, monthly } = headlineRows(realistic, runTrackOf[id], profile);
+  const { costed, uncosted } = headlineRows(realistic, runTrackOf[id], profile);
   return {
     pick: realisticPickData(costed),
     providers: [...costed, ...uncosted].map((row) => realisticRowData(row, id)),
-    notPriced: monthly.map((provider) => ({ provider, name: providerName(provider), reason: monthlyPlanWhy })),
   };
 }
 
@@ -443,10 +440,7 @@ export function realisticData() {
     tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
     idle: {
       what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included. vsNoWait: ${multipleNote} Providers are listed with those whose sandbox stopped or couldn't resume last.`,
-      notTested: [
-        ...realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
-        ...[...new Set(realistic.heldOpen.map((h) => h.provider))].filter(hasMonthlyPlan).map((provider) => ({ provider, name: providerName(provider), reason: monthlyPlanWhy, short: monthlyPlanWhy })),
-      ],
+      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
       providers: idleGroups(realistic).map((g) => ({
         provider: g.provider,
         name: providerName(g.provider),
@@ -502,8 +496,6 @@ function realisticMarkdown() {
             `| ${r.name} | ${r.per1000CompletedUsd === null ? "n/a" : perThousand(r.per1000CompletedUsd / TASKS_PER_PRICE)} | ${r.billingStatus ?? `n/a: ${r.noCost ?? ""}`}${r.whyNotCounted.length ? ` (not counted: ${r.whyNotCounted.join("; ")})` : ""} | ${r.notRun === r.attempts ? "not run" : r.completedText} | ${r.medianWallS === null ? "n/a" : wallText(r.medianWallS)} | ${r.billing} | ${r.wholeMachinePer1000Usd === null ? "n/a" : `${qualify({ amount: perThousand(r.wholeMachinePer1000Usd / TASKS_PER_PRICE), bound: r.wholeMachineBound, style: "tight" })}${r.wholeMachineCounterfactual ? " (counterfactual)" : ""}`} |`,
         ),
         "",
-        ...t.notPriced.map((n) => `Not priced: ${n.name}, because it ${n.reason}.`),
-        ...(t.notPriced.length ? [""] : []),
         ...t.providers.flatMap((r) => [
           ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
           ...("planMinimum" in r && r.planMinimum ? [r.planMinimum.note] : []),
@@ -690,7 +682,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. Boat bills a monthly plan, so it has no per-task cost. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
@@ -882,7 +874,7 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor and Baseten costs use their list prices on our measured sandbox lifetime. Boat bills a monthly plan, so it has no per-task cost.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 4 (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor and Baseten costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 

@@ -152,13 +152,9 @@ export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKi
 export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
   s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : s.kind === "lowerBound" ? kindStatusText(c.kind, [s.kind]) : costKinds[c.kind].label.toLowerCase();
 
-/**
- * A provider's cost per task on a track, as every chart, page and export reads
- * it: a provider billed by a monthly plan has none, with that reason.
- */
-export function taskCostOf(track: Pick<Track, "costs" | "providers">, id: ProviderId): TaskCost | undefined {
-  const p = track.providers.find((x) => x.id === id);
-  return p && hasMonthlyPlan(p) ? { kind: "none", why: monthlyPlanWhy } : track.costs[id];
+/** A provider's cost per task on a track, as every chart, page and export reads it. */
+export function taskCostOf(track: Pick<Track, "costs">, id: ProviderId): TaskCost | undefined {
+  return track.costs[id];
 }
 
 /** Whether any track has a lower-bound cost or hourly price, so notes about lower bounds appear only once one does. */
@@ -312,16 +308,6 @@ export const pickLabel = "Cheapest";
 export const noPickLabel = "No cheapest";
 
 /**
- * Whether a provider bills a monthly plan ("$20 monthly minimum" in its
- * pricing notes). A per-task cost can't show what it charges, so it is left
- * out of every cost chart and the pick, and named once as not priced.
- */
-export const hasMonthlyPlan = (p: Pick<Provider, "pricingNotes">) => /\$\d+(?:\.\d+)? monthly minimum/.test(p.pricingNotes ?? "");
-
-/** Why a monthly-plan provider has no per-task cost. */
-export const monthlyPlanWhy = "bills a monthly plan, not per task";
-
-/**
  * The cost pick: the cheapest exact cost. Lower bounds are never picked: their
  * charge is unknown above the bound, so they are not compared with exact costs
  * at all. On the same-machine track only a provider that measured 4 vCPU and
@@ -347,7 +333,7 @@ export function costPick(track: Track): CostPick {
   return exact.length ? { kind: "none", why: "machine", lower: exact } : { kind: "none", why: "lower-bounds", lower: [] };
 }
 
-/** Providers with no cost at all, and why: no data, a failed run, or a monthly plan. */
+/** Providers with no cost at all, and why: no data or a failed run. */
 export const unpricedTasks = (track: Track) =>
   track.providers.flatMap((p): { id: ProviderId; why: string }[] => {
     const c = taskCostOf(track, p.id);

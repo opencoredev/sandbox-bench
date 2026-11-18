@@ -60,11 +60,11 @@ import { advertised } from "@/lib/sizes";
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 const sections = [
-  ["locations", "By location", "combined"],
+  ["locations", "Locations", "combined"],
   ["startup", "Start-up", "cold"],
-  ["agent", "Agent work", "tool-replay"],
+  ["agent", "Agents", "tool-replay"],
   ["everyday", "Everyday"],
-  ["state", "Pause & snapshots", "create-from-snapshot"],
+  ["state", "Snapshots", "create-from-snapshot"],
   ["scale", "Bursts", "burst-10"],
   ["machines", "Machines"],
   ["reliability", "Reliability"],
@@ -459,7 +459,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B and boxd give a usage record, priced at their published rates. Freestyle, Luxor and Baseten use our measured time at their list prices. Boat bills a monthly plan, so it has no per-task cost. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B and boxd give a usage record, priced at their published rates. Freestyle, Luxor and Baseten use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
