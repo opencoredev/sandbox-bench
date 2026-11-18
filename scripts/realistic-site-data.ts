@@ -306,16 +306,21 @@ export function workloadsFrom(manifest: unknown): Record<ProfileId, Workload> {
 }
 
 /**
- * The summary's picks: every
- * workload and track in the coverage needs one, with a supported verdict. Throws on the first gap.
+ * The summary's picks: every workload and track in the coverage that this summary ran needs one, with
+ * a supported verdict. The harness writes no pick where nothing ran, such as a summary whose only
+ * provider's default machine is too small for both workloads (Beam), so a workload and track whose
+ * rows are all not run needs none. Throws on the first gap.
  */
 export function checkPicks(name: string, picks: readonly unknown[], data: Pick<RealisticData, "rows">, coverage: Coverage) {
   for (const profile of coverage.headline.profiles)
-    for (const track of coverage.headline.tracks)
+    for (const track of coverage.headline.tracks) {
+      // Picks rank the headline runs; held-open variants don't need one.
+      const ran = data.rows.some((r) => r.variant === "headline" && r.profile === profile && r.track === track && r.notRun < r.attempts);
       need(
-        picks.some((p) => isObj(p) && p.profile === profile && p.track === track),
+        !ran || picks.some((p) => isObj(p) && p.profile === profile && p.track === track),
         `${name} has no pick for ${profile} / ${track}; a summary must carry every workload and track's pick`,
       );
+    }
   for (const raw of picks) {
     const p = record(raw, `${name} pick`);
     const where = `${name} pick ${String(p.profile)} / ${String(p.track)}`;

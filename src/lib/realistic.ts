@@ -441,7 +441,7 @@ export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b).";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b). Beam ran on 2026-11-18 (16:58 to 17:25 UTC), on the same machine only: its default sandbox, 1 CPU and 128 MiB, is too small for either task, and like Baseten it has no held-open run.";
 
 /** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
 export const vercelTransferLine =
@@ -818,7 +818,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
 
 /** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
 export const runNotes: Note[] = [
-  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18." },
+  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox and Beam Nov 18." },
   { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
 ];
 

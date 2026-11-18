@@ -194,6 +194,13 @@ describe("data script", () => {
     assert.throws(() => build([{ name: "x", raw: noPicks }]), /has no pick/);
   });
 
+  test("needs no pick for a workload and track this summary ran nothing on", () => {
+    // Beam's summary: its default machine is too small for both workloads, so the harness writes no pick there.
+    const tooSmall = { completed: 0, notRun: 5, reasons: { "default-size-too-small": 5 }, medianWallS: null, medianCpuS: null, costKind: null, costPerCompletedUSD: null, wholeMachinePerCompletedUSD: null, eligibility: "" };
+    const raw = summary({ rows: [summaryRow(tooSmall), summaryRow({ ...tooSmall, provider: "boat" }), ...idleRows("upstash")], picks: [] });
+    assert.doesNotThrow(() => build([{ name: "x", raw }]));
+  });
+
   test("refuses empty rows, empty held-open entries or empty picks", () => {
     assert.throws(() => build([{ name: "x", raw: summary({ rows: [] }) }]), /has no rows/);
     assert.throws(() => build([{ name: "x", raw: summary({ heldOpen: [] }) }]), /upstash has no zero-wait held-open entry/);
@@ -756,7 +763,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\) and Superserve \(account totals only\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });

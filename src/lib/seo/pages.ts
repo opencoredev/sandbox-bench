@@ -8,7 +8,7 @@ export const site = "https://aisandboxbench.com";
  * roll out a few at a time, and only for providers with published results on
  * the live site.
  */
-export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten", "instabox"] as const satisfies readonly ProviderId[];
+export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten", "instabox", "beam"] as const satisfies readonly ProviderId[];
 export type ProviderPageId = (typeof providerPages)[number];
 export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
 
@@ -69,6 +69,7 @@ const contentDates = {
   "/providers/tenki/": "2026-11-18",
   "/providers/baseten/": "2026-11-18",
   "/providers/instabox/": "2026-11-18",
+  "/providers/beam/": "2026-11-18",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
