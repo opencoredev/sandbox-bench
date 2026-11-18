@@ -67,7 +67,7 @@ function stats(track: Track): Stat[] {
     ...(replay ? [{ label: "Fastest 100 tool calls", ...replay, section: "agent", tab: "tool-replay" }] : []),
     ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
-    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { caption: "Woken from standby; it has no pause call" } : {}), section: "state", tab: "resume" }] : []),
+    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { caption: "No pause button: it sleeps when idle, and this is the time to wake it" } : {}), section: "state", tab: "resume" }] : []),
   ];
 }
 
