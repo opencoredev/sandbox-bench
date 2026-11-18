@@ -42,6 +42,19 @@ export function providerFormerName(id: ProviderId): string | undefined {
 }
 
 /** The company behind a row: a second product shows its provider's own logo, in that provider's colour. */
+/**
+ * The word that tells a provider apart from another product of the same brand,
+ * where a chart shows them by logo alone: "Box" for Upstash Box, "Ephemeral"
+ * for Upstash Ephemeral Box. Null for a brand with one product.
+ */
+export function productWord(id: ProviderId): string | null {
+  const brand = providerBrand(id);
+  const siblings = (Object.keys(providerInfo) as ProviderId[]).filter((other) => providerBrand(other) === brand);
+  if (siblings.length < 2) return null;
+  const label = providerLabel(id);
+  return label.kind === "tagged" ? label.tag : (label.name.split(" ").at(-1) ?? null);
+}
+
 export function providerBrand(id: ProviderId): ProviderId {
   const info = providerInfo[id];
   return "brand" in info ? info.brand : id;

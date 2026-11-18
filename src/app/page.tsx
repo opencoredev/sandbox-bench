@@ -357,7 +357,7 @@ function Facts({ track }: { track: Track }) {
   const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
   const count = configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`;
   const facts = hasResults(track)
-    ? [dayRange(track.window), count, "100 runs per main test, 20 per location test", "called from Florida, US and Frankfurt, DE"]
+    ? [dayRange(track.window), count, "up to 100 runs per test", "called from Florida, US and Frankfurt, DE"]
     : ["Coming in the next update", "called from Florida, US and Frankfurt, DE"];
   return (
     <>
@@ -495,7 +495,7 @@ export default function Page() {
                 <TrackSwitch size="small" />
               </div>
             ) : null}
-            <div className="min-[1440px]:hidden">
+            <div className="min-w-0 min-[1440px]:hidden">
               <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
             </div>
           </div>
@@ -508,7 +508,8 @@ export default function Page() {
         </p>
       ) : null}
 
-      <main id="top" className="mx-auto max-w-[1440px] px-m sm:px-l">
+      {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
+      <main id="top" className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
         <div className="flex flex-col gap-xs pt-l pb-xl lg:pt-xxl">
           <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
           <Tracked>{(track) => <Facts track={track} />}</Tracked>

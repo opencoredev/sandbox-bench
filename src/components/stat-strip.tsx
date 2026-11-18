@@ -93,7 +93,8 @@ export function StatStrip({ track }: { track: Track }) {
             <span className="font-mono text-l tabular-nums sm:text-xl">{s.value}</span>
             <span className="flex items-center justify-between gap-xs text-s">
               <span className="flex min-w-0 items-start gap-xs">
-                <span className="flex h-[1.4em] shrink-0 items-center">
+                {/* Below 360 px a tile is too narrow for the logo and a long name such as Superserve. */}
+                <span className="hidden h-[1.4em] shrink-0 items-center min-[360px]:flex">
                   <ProviderLogo id={s.provider} size={16} />
                 </span>
                 <span className="min-w-0 line-clamp-2">

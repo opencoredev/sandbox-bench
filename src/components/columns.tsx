@@ -6,7 +6,7 @@ import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import { markFill } from "@/lib/marks";
 import type { MarkFill } from "@/lib/marks";
-import { providerColor, providerName } from "@/lib/providers";
+import { productWord, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TraceKind } from "@/lib/traces";
 
@@ -173,11 +173,15 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
             className={`block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
           >
             {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
-                no room for 14 names side by side, so it shows the marks alone; the name is in the column's label. */}
+                no room for 14 names side by side, so it shows the marks alone, plus the product word where two
+                products share a mark (Upstash Box and Ephemeral); the full name is in the column's label. */}
             <span className="mb-1 flex items-center justify-center" title={still ? providerName(column.provider) : undefined}>
               <ProviderLogo id={column.provider} size={still ? 16 : 14} />
               {still ? <Mark column={column} /> : null}
             </span>
+            {still && productWord(column.provider) ? (
+              <span className="-mx-2 block text-xxs leading-tight whitespace-nowrap text-neutral-7">{productWord(column.provider)}</span>
+            ) : null}
             {still ? null : (
               <>
                 <ProviderName id={column.provider} layout="centered" />
