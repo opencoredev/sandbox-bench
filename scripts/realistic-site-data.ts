@@ -14,6 +14,8 @@
  *     --parts scripts/realistic-parts/sbx-baseten.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-instabox/summary.json \
  *     --parts scripts/realistic-parts/sbx-instabox.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-beam/summary.json \
+ *     --parts scripts/realistic-parts/sbx-beam.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *

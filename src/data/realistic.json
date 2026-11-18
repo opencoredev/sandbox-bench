@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-18T18:27:41.644Z",
+  "generatedAt": "2026-11-18T19:46:37.739Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -17,7 +17,8 @@
         "vercel",
         "modal",
         "baseten",
-        "instabox"
+        "instabox",
+        "beam"
       ],
       "profiles": [
         "fix-and-test",
@@ -63,6 +64,11 @@
           "provider": "baseten",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
+        },
+        {
+          "provider": "beam",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         }
       ]
     }
@@ -103,6 +109,13 @@
       "generatedAt": "2026-11-18T18:27:41.555Z",
       "providers": [
         "instabox"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-beam",
+      "generatedAt": "2026-11-18T17:25:22.585Z",
+      "providers": [
+        "beam"
       ]
     }
   ],
@@ -164,6 +177,30 @@
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
       ]
+    },
+    {
+      "provider": "beam",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
     },
     {
       "provider": "boat",
@@ -504,6 +541,32 @@
         "kind": "estimate",
         "usdPerCompleted": 0.0277811,
         "wholeMachineUsdPerCompleted": 0.0277811,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 185.743,
+      "medianCpuS": 581.24,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0139674,
+        "wholeMachineUsdPerCompleted": 0.0139674,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -867,6 +930,30 @@
       ]
     },
     {
+      "provider": "beam",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "boat",
       "profile": "fix-and-test",
       "track": "default",
@@ -1192,6 +1279,32 @@
         "kind": "estimate",
         "usdPerCompleted": 0.0120624,
         "wholeMachineUsdPerCompleted": 0.0120624,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 137.935,
+      "medianCpuS": 534.72,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.0104663,
+        "wholeMachineUsdPerCompleted": 0.0104663,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

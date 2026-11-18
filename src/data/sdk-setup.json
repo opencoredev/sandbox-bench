@@ -15,7 +15,8 @@
     "vercel": 0.2,
     "modal": 0.2,
     "baseten": 0.2,
-    "instabox": 0.3
+    "instabox": 0.3,
+    "beam": 0.2
   },
   "runs": {
     "baseten": {
@@ -24,6 +25,10 @@
     },
     "instabox": {
       "sdkCommit": "6074f7b",
+      "date": "Nov 18, 2026"
+    },
+    "beam": {
+      "sdkCommit": "69d48ed",
       "date": "Nov 18, 2026"
     }
   }

@@ -846,14 +846,43 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "beam",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 0.125
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 0.125,
+     "diskGiB": 0
+    }
+   },
+   "measured": [
+    {
+     "cpu": 1,
+     "memoryGiB": 0.125,
+     "diskGiB": 21438.35792541504
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-18T15:49:05.560Z"
+  "end": "2026-11-18T17:38:39.856Z"
  },
- "observations": 39911,
+ "observations": 42460,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1149,6 +1178,26 @@
    "id": "sbxib-default-burst25-c3",
    "suite": "burst",
    "samples": 101
+  },
+  {
+   "id": "sbxbm-default-main",
+   "suite": "main",
+   "samples": 2203
+  },
+  {
+   "id": "sbxbm-default-burst",
+   "suite": "burst",
+   "samples": 123
+  },
+  {
+   "id": "sbxbm-default-burst25",
+   "suite": "burst",
+   "samples": 303
+  },
+  {
+   "id": "sbxbm-default-cost",
+   "suite": "cost",
+   "samples": 50
   }
  ],
  "excluded": [
@@ -1248,6 +1297,39 @@
      "suite": "main",
      "scenario": "tcp-ms",
      "reason": "Not available yet: Instabox blocks outbound HTTPS to public DNS resolvers (1.1.1.1, 8.8.8.8 and others on port 443), and this probe connects to 1.1.1.1:443, so every attempt timed out. Other port 443 traffic, such as GitHub and npm, works. Set aside, not counted as failures."
+    }
+   ],
+   "replacements": []
+  },
+  "beam": {
+   "removed": {
+    "documented-not-run": 130
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "beam",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "reason": "Not available: Beam sandboxes have no pause call (Beam's persistent VMs pause and resume, but they are a different product, not benchmarked here)"
+    },
+    {
+     "provider": "beam",
+     "suite": "snapshot",
+     "scenario": "snapshot",
+     "reason": "Not run: Beam sandboxes have memory snapshots, but Beam has no API to delete one, and the bench deletes everything it makes"
+    },
+    {
+     "provider": "beam",
+     "suite": "snapshot",
+     "scenario": "create-from-snapshot",
+     "reason": "Not run: Beam sandboxes have memory snapshots, but Beam has no API to delete one, and the bench deletes everything it makes"
+    },
+    {
+     "provider": "beam",
+     "suite": "main",
+     "scenario": "edit-loop",
+     "reason": "Not run: blocked on all 30 runs. On Beam's default 1 CPU / 128 MiB the dev server was killed for memory or its preview never answered, so there was no page to edit; those failures are counted"
     }
    ],
    "replacements": []
@@ -3951,6 +4033,162 @@
     "n": 100
    },
    "standbyResume": null
+  },
+  {
+   "id": "beam",
+   "costPerTask": {
+    "usd": 0.00018164565972222225,
+    "kind": "estimate",
+    "source": "https://www.beam.cloud/pricing",
+    "confidence": "low",
+    "n": 10,
+    "settled": true,
+    "bound": "exact"
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 0.125
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 0.125,
+     "diskGiB": 0
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 1,
+     "memoryGiB": 0.125,
+     "diskGiB": 21438.35792541504
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.051250000000000004,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.28,
+   "perVcpuHour": 0.051250000000000004,
+   "pricingAllocation": {
+    "cpu": 1,
+    "memoryGiB": 0.125
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.05,
+    "memoryGiBHour": 0.01,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://www.beam.cloud/pricing",
+   "pricingNotes": "Published Sandboxes rates on the Performance tier, the default ($0.05/vCPU-hour, $0.01/GiB RAM-hour), priced on the allocation and billed per millisecond while running (2026-11-18). Shared ($0.011, $0.0055) and Spot ($0.0063, $0.00135) tiers are cheaper and not used. Disk not billed. Memory snapshots are used by the snapshot scenarios; their storage is not priced. Credits excluded.",
+   "reliability": {
+    "successes": 2456,
+    "failures": 73,
+    "raw": 0.9711348359035191,
+    "adjusted": 0.9711348359035191,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 73
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 1,
+    "visibleCpus": [
+     1
+    ],
+    "cpuQuota": 1,
+    "memoryGiB": 0.125,
+    "diskGiB": 21438.35792541504,
+    "cpuModels": [],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": "SR220-2",
+    "kernel": "4.19.0-gvisor",
+    "location": [
+     {
+      "value": "Warrenton, US",
+      "count": 100
+     }
+    ],
+    "network": [
+     {
+      "value": "AS16276 OVH SAS",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Process exited before readiness. (process_exited)",
+     "count": 19,
+     "runs": 19,
+     "tests": [
+      "Dev server ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "subprocess.CalledProcessError: Command '['/usr/bin/python3', '-m', 'pip', 'install', '--disable-pip-version-check', '--no-cache-dir', '--...",
+     "count": 16,
+     "runs": 16,
+     "tests": [
+      "pip install"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Scenario timed out after 180000ms",
+     "count": 21,
+     "runs": 7,
+     "tests": [
+      "Preview URL first byte"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "tcp-ms: timed out",
+     "count": 7,
+     "runs": 7,
+     "tests": [
+      "TCP connect"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Preview HTTP 502, no first byte",
+     "count": 9,
+     "runs": 3,
+     "tests": [
+      "Preview URL first byte"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "File does not exist (file_not_found)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Dev server ready"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": null,
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -4128,6 +4366,19 @@
      "min": 1.3376054800003767,
      "ciLow": 1.758829340999946,
      "ciHigh": 1.9483367409999484,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 0.4069358209995553,
+     "p95": 0.5094471249999478,
+     "min": 0.3267091260002926,
+     "ciLow": 0.40009096700046215,
+     "ciHigh": 0.4151492409997154,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4313,6 +4564,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 0.06821819399949164,
+     "p95": 0.08984278000006453,
+     "min": 0.06138134900014847,
+     "ciLow": 0.06624042800068855,
+     "ciHigh": 0.08407088000001386,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4490,6 +4754,19 @@
      "min": 0.36840420999983325,
      "ciLow": 0.41203246599994603,
      "ciHigh": 0.42846071000001396,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 0.10909011799935252,
+     "p95": 0.12245772900000157,
+     "min": 0.10046212999988348,
+     "ciLow": 0.1078740739999339,
+     "ciHigh": 0.10986053000018,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4675,6 +4952,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 2.1226227219998837,
+     "p95": 2.234184736999683,
+     "min": 1.9247418969999999,
+     "ciLow": 2.099610709999688,
+     "ciHigh": 2.148714916999452,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4852,6 +5142,19 @@
      "min": 0.42728159400000004,
      "ciLow": 0.47753367700008675,
      "ciHigh": 0.48924112399993464,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 0.21539018099941315,
+     "p95": 0.2587747910004109,
+     "min": 0.2006277909995988,
+     "ciLow": 0.21198476800043137,
+     "ciHigh": 0.22176198299974204,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5184,6 +5487,19 @@
      "min": 1.342413353000302,
      "ciLow": 2.1971175790000705,
      "ciHigh": 2.2028283550003542,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 0.035985406999476256,
+     "p95": 0.04533300399989821,
+     "min": 0.033098244999535384,
+     "ciLow": 0.035488764999434354,
+     "ciHigh": 0.03678882699925452,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5679,6 +5995,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 30,
+     "p50": 0.6962510819993913,
+     "p95": 1.261757064999998,
+     "min": 0.5516581689999439,
+     "ciLow": 0.6132842200000305,
+     "ciHigh": 0.8487179680000991,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5856,6 +6185,19 @@
      "min": 1.3444579119998963,
      "ciLow": 1.640109095000007,
      "ciHigh": 2.040684288999997,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 30,
+     "p50": 1.299914084999822,
+     "p95": 1.9212289810003713,
+     "min": 1.1248303260002286,
+     "ciLow": 1.2236658290000633,
+     "ciHigh": 1.649991043000482,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6041,6 +6383,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 14,
+     "p50": 5.097829518999904,
+     "p95": 5.985585994000081,
+     "min": 4.457127791000064,
+     "ciLow": 4.883892260999884,
+     "ciHigh": 5.225807892000303,
+     "successes": 14,
+     "failures": 16,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6222,6 +6577,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 10,
+     "p50": 1.4753884759999347,
+     "p95": 1.7871006789999082,
+     "min": 1.0649194299997762,
+     "ciLow": 1.1031774219998625,
+     "ciHigh": 1.6736387320002541,
+     "successes": 10,
+     "failures": 20,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6401,6 +6769,19 @@
      "ciHigh": 0.5039291270000394,
      "successes": 30,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 0,
+     "p50": null,
+     "p95": null,
+     "min": null,
+     "ciLow": null,
+     "ciHigh": null,
+     "successes": 0,
+     "failures": 30,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -6765,6 +7146,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 30,
+     "p50": 12.511022026999854,
+     "p95": 13.396261012000032,
+     "min": 11.663722590999678,
+     "ciLow": 12.404415875000064,
+     "ciHigh": 12.582602823999999,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6933,6 +7327,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 3,
+     "p50": 0.5525506239999995,
+     "p95": 0.6903181350000005,
+     "min": 0.5359417859999999,
+     "ciLow": 0.5359417859999999,
+     "ciHigh": 0.6903181350000005,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7084,6 +7491,19 @@
      "min": 4.3436885720000005,
      "ciLow": 4.3436885720000005,
      "ciHigh": 5.4466870499999995,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 3,
+     "p50": 0.6868559470000002,
+     "p95": 1.0202410569999993,
+     "min": 0.6180834729999997,
+     "ciLow": 0.6180834729999997,
+     "ciHigh": 1.0202410569999993,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -7269,6 +7689,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 18741927.500414472,
+     "p95": 19324281.65944409,
+     "min": 10867837.585601095,
+     "ciLow": 18623931.349507257,
+     "ciHigh": 18877250.602448672,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7446,6 +7879,19 @@
      "min": 20582377.44355865,
      "ciLow": 51189441.05161469,
      "ciHigh": 54912794.43262159,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 13515271.777316058,
+     "p95": 14608896.89417494,
+     "min": 8065473.5137472,
+     "ciLow": 13289606.452624897,
+     "ciHigh": 13680530.981901754,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7631,6 +8077,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 18710.088272385627,
+     "p95": 20078.233133445436,
+     "min": 14780.422898270992,
+     "ciLow": 18418.62011021561,
+     "ciHigh": 19063.942788596636,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7808,6 +8267,19 @@
      "min": 96.68268931917291,
      "ciLow": 825.1171536190573,
      "ciHigh": 1082.1467975765527,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 2026.3492057548603,
+     "p95": 2334.88714451495,
+     "min": 1566.6405571050327,
+     "ciLow": 2000.105684619502,
+     "ciHigh": 2049.194195933954,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7993,6 +8465,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 3873.2885110869393,
+     "p95": 5307.911452951983,
+     "min": 2991.99148335782,
+     "ciLow": 3690.258509431448,
+     "ciHigh": 3976.564949378935,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8170,6 +8655,19 @@
      "min": 270.5251994291954,
      "ciLow": 13993.419703709149,
      "ciHigh": 15861.352939949185,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 93815.7466066011,
+     "p95": 140429.56086141418,
+     "min": 41176.32393541082,
+     "ciLow": 86117.63534428242,
+     "ciHigh": 105234.68568125756,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8355,6 +8853,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 100,
+     "p50": 116757.16106789724,
+     "p95": 153813.3391013381,
+     "min": 21007.558618063453,
+     "ciLow": 113472.15942835587,
+     "ciHigh": 127678.12345078333,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8519,6 +9030,19 @@
      "ciHigh": 2.7486634000002397,
      "successes": 100,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam",
+     "n": 93,
+     "p50": 3.482630199999903,
+     "p95": 415.96119500000003,
+     "min": 2.579407600000394,
+     "ciLow": 3.3901195999998635,
+     "ciHigh": 3.6142464000000096,
+     "successes": 93,
+     "failures": 7,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -9850,6 +10374,108 @@
    4.115,
    4.555,
    7.528
+  ],
+  "beam": [
+   0.327,
+   0.33,
+   0.335,
+   0.336,
+   0.339,
+   0.342,
+   0.344,
+   0.345,
+   0.345,
+   0.345,
+   0.348,
+   0.35,
+   0.351,
+   0.352,
+   0.353,
+   0.354,
+   0.355,
+   0.362,
+   0.363,
+   0.373,
+   0.374,
+   0.39,
+   0.39,
+   0.39,
+   0.391,
+   0.391,
+   0.392,
+   0.392,
+   0.393,
+   0.395,
+   0.396,
+   0.397,
+   0.397,
+   0.397,
+   0.398,
+   0.398,
+   0.399,
+   0.399,
+   0.4,
+   0.4,
+   0.4,
+   0.401,
+   0.401,
+   0.401,
+   0.401,
+   0.403,
+   0.404,
+   0.405,
+   0.405,
+   0.407,
+   0.408,
+   0.408,
+   0.409,
+   0.409,
+   0.409,
+   0.41,
+   0.412,
+   0.413,
+   0.414,
+   0.415,
+   0.416,
+   0.417,
+   0.417,
+   0.418,
+   0.419,
+   0.421,
+   0.421,
+   0.422,
+   0.422,
+   0.423,
+   0.423,
+   0.426,
+   0.427,
+   0.428,
+   0.43,
+   0.432,
+   0.432,
+   0.434,
+   0.435,
+   0.436,
+   0.437,
+   0.439,
+   0.44,
+   0.441,
+   0.442,
+   0.446,
+   0.45,
+   0.452,
+   0.459,
+   0.464,
+   0.47,
+   0.482,
+   0.493,
+   0.5,
+   0.509,
+   0.523,
+   0.527,
+   0.53,
+   0.584,
+   0.745
   ]
  },
  "missing": {

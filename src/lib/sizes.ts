@@ -62,6 +62,7 @@ export const advertised = {
     diskGiB: 20,
     source: "https://instabox.sh/docs/account/limits.md",
     note: "Instabox's default agent-browser template: 4 vCPU, 8 GiB and a 20 GiB /data disk, where /workspace lives, plus a 16 GiB system disk. The same machine is its default and its 4 vCPU, 8 GB size.",
+  },
   beam: {
     vcpu: 1,
     memoryGiB: 0.125,
