@@ -159,7 +159,7 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
               {...target(column, still, linked)}
               className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
             >
-              <span className="chart-fade mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
+              <span className="mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
                 {column.label}
               </span>
               {/* Stacked parts sit 2px apart in the card colour; only the top one is rounded. */}
@@ -238,7 +238,7 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
             {...target(column, still, linked)}
             className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="chart-fade line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
+            <span aria-hidden className="line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
@@ -257,7 +257,7 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
             </div>
             <span
               aria-hidden
-              className="chart-fade text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
+              className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
               style={{ width: valueWidth }}
             >
               {column.label}
