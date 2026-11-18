@@ -7,7 +7,8 @@ import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
 import { markFill } from "@/lib/marks";
 import type { MarkFill } from "@/lib/marks";
-import { productWord, providerColor, providerName } from "@/lib/providers";
+import { providerColor, providerName } from "@/lib/providers";
+import { isProviderPage, providerPath } from "@/lib/seo/pages";
 import type { ProviderId } from "@/lib/providers";
 import type { TraceKind } from "@/lib/traces";
 
@@ -76,6 +77,24 @@ export function layout(column: Pick<Column, "segments">, max: number): Bar {
 const describe = (column: Column, bar: Bar, still = false) =>
   `${providerName(column.provider)}: ${column.detail.map(detailText).join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace && !still ? ". Press Enter for the time breakdown" : ""}`;
 
+/** Where a compact column leads: the provider's own page, when it has one. */
+const pageOf = (column: Column) => (isProviderPage(column.provider) ? providerPath(column.provider) : undefined);
+
+/**
+ * How a column takes part in the page. A full chart's column is a focus stop
+ * that may open a time breakdown; a compact one links to the provider's page,
+ * or is a focus stop for its card when there is no page.
+ */
+function target(column: Column, still: boolean) {
+  if (!still) return { tabIndex: 0, ...opener(column) };
+  const href = pageOf(column);
+  return href ? { href } : { tabIndex: 0 };
+}
+
+/** What the card's last line offers: the breakdown on a full chart, the provider's page on a compact one. */
+const hintOf = (column: Column, still: boolean) =>
+  still ? (pageOf(column) ? `Open ${providerName(column.provider)}'s page` : undefined) : column.trace ? "Click for where the time goes" : undefined;
+
 /**
  * What makes a column a button that opens its breakdown. The panel listens on
  * the document for these attributes, so the charts stay server components.
@@ -106,11 +125,11 @@ export function Break({ color, along }: { color: string; along: "x" | "y" }) {
 const Mark = ({ column }: { column: Column }) =>
   column.mark === undefined ? null : <sup className="ml-px text-xxs leading-none text-neutral-7">{column.mark}</sup>;
 
-const Card = ({ column, className, style }: { column: Column; className: string; style?: CSSProperties }) => (
+const Card = ({ column, still, className, style }: { column: Column; still: boolean; className: string; style?: CSSProperties }) => (
   <HoverCardOnDemand
     provider={column.provider}
     detail={column.detail}
-    hint={column.trace ? "Click for where the time goes" : undefined}
+    hint={hintOf(column, still)}
     style={style}
     className={`opacity-0 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
   />
@@ -124,19 +143,21 @@ const Card = ({ column, className, style }: { column: Column; className: string;
 function Vertical({ columns, max, still = false }: { columns: readonly Column[]; max: number; still?: boolean }) {
   return (
     <>
-      <div role={still ? "list" : undefined} className={`relative flex items-end border-b border-neutral-4 ${still ? "h-[200px] pt-5" : "h-[260px] pt-l"}`}>
+      {/* A compact chart's names run diagonally to the left of their columns, so it leaves room on the left. */}
+      <div className={`relative flex items-end border-b border-neutral-4 ${still ? "ml-8 h-[200px] pt-5" : "h-[260px] pt-l"}`}>
         {columns.map((column, index) => {
           const bar = layout(column, max);
           const color = providerColor(column.provider);
           // Keep the hover card inside the chart: edge columns anchor it inward.
           const anchor =
             index < 2 ? "left-0" : index >= columns.length - 2 ? "right-0" : "left-1/2 -translate-x-1/2";
+          const Tag = still && pageOf(column) ? "a" : "div";
           return (
-            <div
+            <Tag
               key={column.provider}
               aria-label={describe(column, bar, still)}
-              {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
-              className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace ? "cursor-pointer" : ""}`}
+              {...target(column, still)}
+              className={`group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
             >
               <span className="mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
                 {column.label}
@@ -157,33 +178,33 @@ function Vertical({ columns, max, still = false }: { columns: readonly Column[];
                   </div>
                 ))}
               </div>
-              {still ? null : <Card column={column} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />}
+              <Card column={column} still={still} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-1 -bottom-px h-px opacity-0 group-focus-visible:opacity-100"
                 style={{ backgroundColor: color }}
               />
-            </div>
+            </Tag>
           );
         })}
       </div>
-      <div aria-hidden className="flex pt-2.5">
+      <div aria-hidden className={`flex pt-2.5 ${still ? "ml-8 h-[104px]" : ""}`}>
         {columns.map((column) => (
           <span
             key={column.provider}
-            className={`block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
+            className={`relative block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
           >
             {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
-                no room for 14 names side by side, so it shows the marks alone, plus the product word where two
-                products share a mark (Upstash Box and Ephemeral); the full name is in the column's label. */}
-            <span className="mb-1 flex items-center justify-center" title={still ? providerName(column.provider) : undefined}>
+                no room for 14 names side by side, so its names run diagonally down to the left from under the mark. */}
+            <span className="mb-1 flex items-center justify-center">
               <ProviderLogo id={column.provider} size={still ? 16 : 14} />
               {still ? <Mark column={column} /> : null}
             </span>
-            {still && productWord(column.provider) ? (
-              <span className="-mx-2 block text-xxs leading-tight whitespace-nowrap text-neutral-7">{productWord(column.provider)}</span>
-            ) : null}
-            {still ? null : (
+            {still ? (
+              <span className="absolute top-6 right-1/2 origin-top-right -rotate-45 whitespace-nowrap">
+                <ProviderName id={column.provider} />
+              </span>
+            ) : (
               <>
                 <ProviderName id={column.provider} layout="centered" />
                 <Mark column={column} />
@@ -206,14 +227,15 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
   // Values sit in one right-aligned column wide enough for the longest label.
   const valueWidth = `${Math.max(...columns.map((c) => c.label.length), 3) + 0.5}ch`;
   return (
-    <div className="flex flex-col gap-xxs" role={still ? "list" : undefined}>
+    <div className="flex flex-col gap-xxs">
       {columns.map((column) => {
         const bar = layout(column, max);
+        const Tag = still && pageOf(column) ? "a" : "div";
         return (
-          <div
+          <Tag
             key={column.provider}
             aria-label={describe(column, bar, still)}
-            {...(still ? { role: "listitem" } : { tabIndex: 0, ...opener(column) })}
+            {...target(column, still)}
             className={`group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none focus:bg-neutral-3 sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
             <span aria-hidden className="line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
@@ -246,8 +268,8 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
                 {column.note ? <span className="text-neutral-8"> · {column.note}</span> : null}
               </span>
             ) : null}
-            {still ? null : <Card column={column} className="top-full right-0 mt-xxs" />}
-          </div>
+            <Card column={column} still={still} className="top-full right-0 mt-xxs" />
+          </Tag>
         );
       })}
     </div>
@@ -256,8 +278,9 @@ function Horizontal({ columns, max, still = false }: { columns: readonly Column[
 
 /**
  * One value per provider in the order given. Wide charts get columns;
- * charts too narrow for every name (phones, small cards) get horizontal bars, so names never
- * rotate. Compact charts are short read-only columns: no focus stops, hover cards or breakdowns.
+ * charts too narrow for every name (phones, small cards) get horizontal bars. Full charts keep
+ * their names level; compact ones (headline cards) set them diagonally under each logo, as
+ * Artificial Analysis does, and link each column to its provider's page, with no breakdown.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
 /** A segment's share of its bar, in percent. A zero-length bar (no failures, say) has nothing to share out, so 0, never NaN. */
@@ -280,7 +303,7 @@ export function Columns({
     <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative @container">
       {/* Nine names need about 63px a column (Superserve is 59px), so a chart narrower than
           566px gets bars: phones, the headline cards below 1280px, the Machines size charts.
-          Compact charts sit inside a headline card that is itself a link, so their columns are not controls. */}
+          A compact chart's columns link to each provider's page and show their card on hover or focus. */}
       <div className="@min-[566px]:hidden">
         <Horizontal columns={columns} max={max} still={compact} />
       </div>

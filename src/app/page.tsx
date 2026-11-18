@@ -12,6 +12,7 @@ import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
+import { updates } from "@/lib/updates";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -292,23 +293,19 @@ function Headline({
   tab: string;
   children: ReactNode;
 }) {
+  // The title opens the full chart; each column inside opens its provider's page, so the card itself isn't a link.
   return (
-    <JumpLink
-      section={section}
-      tab={tab}
-      className="surface surface-link group focus-ring flex min-w-0 flex-col p-m sm:p-l"
-    >
-      <h2 className="flex items-center gap-xs font-brand text-l font-medium">
-        <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
-        <span className="min-w-0 truncate">{title}</span>
-        <ArrowUpRight
-          aria-hidden
-          className="ml-auto size-5 shrink-0 text-neutral-7 group-hover:text-neutral-10"
-        />
+    <div className="surface flex min-w-0 flex-col p-m sm:p-l">
+      <h2 className="font-brand text-l font-medium">
+        <JumpLink section={section} tab={tab} className="group focus-ring flex items-center gap-xs rounded-xs">
+          <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
+          <span className="min-w-0 truncate group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{title}</span>
+          <ArrowUpRight aria-hidden className="ml-auto size-5 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+        </JumpLink>
       </h2>
       <p className="mt-xxs mb-m truncate text-s text-neutral-7">{sub}</p>
       {children}
-    </JumpLink>
+    </div>
   );
 }
 
@@ -355,17 +352,41 @@ function Facts({ track }: { track: Track }) {
   // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
   const configs = track.providers.length;
   const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
-  const count = configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`;
-  const facts = hasResults(track)
-    ? [dayRange(track.window), count, "up to 100 runs per test", "called from Florida, US and Frankfurt, DE"]
-    : ["Coming in the next update", "called from Florida, US and Frankfurt, DE"];
+  const count = configs === providers ? `${providers} providers` : `${providers} providers, ${configs} products`;
+  const facts = hasResults(track) ? [count, dayRange(track.window), "From Florida and Frankfurt"] : ["Coming in the next update"];
   return (
     <>
-      <p className="max-w-[64ch] text-m text-pretty text-neutral-8">
-        Cloud sandboxes for AI agents, timed and priced on the same tests: start-up, real coding tasks, tool calls and what each task costs.
+      <p className="mt-m max-w-[40ch] text-l text-pretty text-neutral-10">
+        Independent benchmarks of cloud sandboxes for AI agents: start-up, real coding tasks, tool calls and cost.
       </p>
-      <p className="text-s text-neutral-7">{facts.join(" · ")}</p>
+      <p className="mt-m flex flex-wrap gap-x-m gap-y-xxs text-s text-neutral-7">
+        {facts.map((f) => (
+          <span key={f}>{f}</span>
+        ))}
+      </p>
     </>
+  );
+}
+
+/** The latest changes, beside the title. */
+function Updates() {
+  return (
+    <section aria-labelledby="updates-title" className="flex flex-col gap-m lg:pt-xs">
+      <h2 id="updates-title" className="sr-only">
+        Latest updates
+      </h2>
+      {/* Phones show the latest one, so the results stay near the top. */}
+      {updates.map((u, i) => (
+        <a key={u.title} href={u.href} className={`group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`}>
+          <span className="text-xs font-medium text-accent">Update · {u.date}</span>
+          <span className="flex items-start justify-between gap-s text-m font-medium">
+            <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+            <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+          </span>
+          <span className="text-s text-pretty text-neutral-7">{u.text}</span>
+        </a>
+      ))}
+    </section>
   );
 }
 
@@ -510,15 +531,19 @@ export default function Page() {
 
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
       <main id="top" className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
-        <div className="flex flex-col gap-xs pt-l pb-xl lg:pt-xxl">
-          <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
-          <Tracked>{(track) => <Facts track={track} />}</Tracked>
-          {showSwitch ? (
-            // From tablet width up the switch sits in the header.
-            <div className="mt-s md:hidden">
-              <TrackSwitch />
-            </div>
-          ) : null}
+        {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
+        <div className="grid gap-xl pt-l pb-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:pt-xxl">
+          <div className="flex flex-col">
+            <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
+            <Tracked>{(track) => <Facts track={track} />}</Tracked>
+            {showSwitch ? (
+              // From tablet width up the switch sits in the header.
+              <div className="mt-l md:hidden">
+                <TrackSwitch />
+              </div>
+            ) : null}
+          </div>
+          <Updates />
         </div>
 
         <div className="pb-m">

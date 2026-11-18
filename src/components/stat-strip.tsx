@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { JumpLink } from "@/components/jump";
 import { ProviderLogo } from "@/components/provider-logo";
@@ -8,17 +8,15 @@ import { formatShort } from "@/lib/format";
 import { pauses, resumeOf } from "@/lib/pause";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { perThousand, pickFor, pilotShort, runTrackOf } from "@/lib/realistic";
+import { perThousand, pickFor, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
   label: string;
   value: string;
   provider: ProviderId;
-  /** A qualifier under the provider, such as how a cost was priced. */
-  note?: string;
-  /** A line that must always show in full, under the clamped provider line, such as the pilot label. */
-  badge?: string;
+  /** One quiet line at the foot of the tile, such as how the result was measured. */
+  caption?: string;
   section: string;
   tab: string;
 }
@@ -41,7 +39,7 @@ function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
   const p = pickFor(realistic, runTrackOf[track.id], "fix-and-test");
   switch (p.kind) {
     case "picked":
-      return { label: "Cheapest fix and test, per 1,000", provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), badge: pilotShort(realistic) };
+      return { label: "Cheapest fix and test, per 1,000", provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), caption: `Pilot, ${realistic.coverage.headline.attempts} runs per provider` };
     case "none":
     case "empty":
       return null;
@@ -69,7 +67,7 @@ function stats(track: Track): Stat[] {
     ...(replay ? [{ label: "Fastest 100 tool calls", ...replay, section: "agent", tab: "tool-replay" }] : []),
     ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
     ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
-    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { note: "from standby, no pause call" } : {}), section: "state", tab: "resume" }] : []),
+    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { caption: "Woken from standby; it has no pause call" } : {}), section: "state", tab: "resume" }] : []),
   ];
 }
 
@@ -84,34 +82,23 @@ export function StatStrip({ track }: { track: Track }) {
     <ul className="grid grid-cols-2 gap-s lg:grid-cols-5">
       {cells.map((s) => (
         <li key={s.label} className="last:odd:col-span-2 lg:last:odd:col-span-1">
-          <JumpLink
-            section={s.section}
-            tab={s.tab}
-            className="surface surface-link group focus-ring flex h-full flex-col gap-xs px-m py-s"
-          >
-            <span className="text-s text-neutral-7">{s.label}</span>
-            <span className="font-mono text-l tabular-nums sm:text-xl">{s.value}</span>
-            <span className="flex items-center justify-between gap-xs text-s">
-              <span className="flex min-w-0 items-start gap-xs">
-                {/* Below 360 px a tile is too narrow for the logo and a long name such as Superserve. */}
-                <span className="hidden h-[1.4em] shrink-0 items-center min-[360px]:flex">
-                  <ProviderLogo id={s.provider} size={16} />
-                </span>
-                <span className="min-w-0 line-clamp-2">
-                <span className="font-medium" style={{ color: providerColor(s.provider) }}>
-                  <ProviderName id={s.provider} />
-                </span>
-                {s.note && !s.badge ? <span className="text-neutral-7"> · {s.note}</span> : null}
-                </span>
-              </span>
-              <ArrowRight
-                aria-hidden
-                className="size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10"
-              />
+          <JumpLink section={s.section} tab={s.tab} className="surface surface-link group focus-ring flex h-full flex-col px-m py-s">
+            <span className="flex items-start justify-between gap-xs text-s text-neutral-7">
+              {s.label}
+              <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 group-hover:text-neutral-10" />
             </span>
-            {/* A tile with a badge carries a status that must never be cut, so both sit outside the clamped line. */}
-            {s.badge && s.note ? <span className="text-xs text-pretty text-neutral-8">{s.note}</span> : null}
-            {s.badge ? <span className="text-xs text-pretty text-neutral-7">{s.badge}</span> : null}
+            <span className="mt-xs font-mono text-l tabular-nums sm:text-xl">{s.value}</span>
+            <span className="mt-xs flex min-w-0 items-center gap-xs text-s font-medium" style={{ color: providerColor(s.provider) }}>
+              {/* Below 360 px a tile is too narrow for the logo and a long name such as Superserve. */}
+              <span className="hidden shrink-0 min-[360px]:flex">
+                <ProviderLogo id={s.provider} size={16} />
+              </span>
+              <span className="min-w-0 truncate">
+                <ProviderName id={s.provider} />
+              </span>
+            </span>
+            {/* The qualifier sits on the tile's last line, so captions line up across the row. */}
+            {s.caption ? <span className="mt-auto pt-xs text-xs text-pretty text-neutral-7">{s.caption}</span> : null}
           </JumpLink>
         </li>
       ))}

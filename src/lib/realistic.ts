@@ -436,8 +436,6 @@ export const pilotLine = (d: Pick<RealisticData, "coverage">) => `Pilot: ${pilot
 /** "Pilot · 5 runs per provider · most prices not checked against settled bills": the short line above each chart; the full reason is in its notes. */
 export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs per provider · most prices not checked against settled bills`;
 
-/** "Pilot · 5 runs", for places with room for a word or two. */
-export const pilotShort = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.coverage.headline.attempts} runs`;
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =

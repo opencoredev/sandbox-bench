@@ -928,7 +928,8 @@ describe("page", () => {
   test("the stat card shows the cheapest fix and test and the pilot label", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Cheapest fix and test, per 1,000/);
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs<\/span>/);
+    // The pilot caption is its own line at the foot of the tile, never cut by the provider's name.
+    assert.match(html, />Pilot, 5 runs per provider<\/span>/);
     assert.doesNotMatch(html, /verified/i);
   });
 });
