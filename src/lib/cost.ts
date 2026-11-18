@@ -177,7 +177,7 @@ export const statusNote = (s: CostStatus) => (s.kind === "verified" ? null : `${
  */
 export type BillingBasis =
   | { kind: "usage"; label: string; evidence: string }
-  | { kind: "machine"; evidence: string }
+  | { kind: "machine"; label: string; evidence: string }
   /** Bills the larger of what was requested and what was used (Modal): the request's list price is the least it charges. */
   | { kind: "request"; label: string; evidence: string }
   | { kind: "unconfirmed"; evidence: string };
@@ -188,6 +188,8 @@ const upstashBasis: BillingBasis = {
   evidence: "Pricing notes: pay-as-you-go active CPU billing per active box-hour, no RAM fee listed; its API reports CPU time per box.",
 };
 
+const existsLabel = "bills the whole machine while it exists";
+
 export const billingBases: Record<ProviderId, BillingBasis> = {
   boxd: {
     kind: "usage",
@@ -196,8 +198,8 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   },
   upstash: upstashBasis,
   "upstash-ephemeral": upstashBasis,
-  e2b: { kind: "machine", evidence: "Its usage events price the sandbox's vCPU count and memory over its running time." },
-  boat: { kind: "machine", evidence: "A flat rate per machine size, billed per second." },
+  e2b: { kind: "machine", label: existsLabel, evidence: "Its usage events price the sandbox's vCPU count and memory over its running time." },
+  boat: { kind: "machine", label: existsLabel, evidence: "A flat rate per machine size, billed per second." },
   daytona: { kind: "unconfirmed", evidence: "Published hourly rates; our data doesn't say whether they apply to the allocation or to use." },
   superserve: { kind: "unconfirmed", evidence: "Published vCPU and GiB-hour rates; our data doesn't say whether they apply to the allocation or to use." },
   freestyle: { kind: "unconfirmed", evidence: "Published overage rates and no billing API; our data doesn't say whether they apply to the allocation or to use." },
@@ -206,6 +208,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     kind: "unconfirmed",
     evidence:
       "baseten.co/pricing (checked Nov 16, 2026): usage-based, $0.0655 per vCPU-hour and $0.0211 per GB of RAM per hour, with no billing data we can read; our data doesn't say whether the rates apply to the allocation or to use. Its docs say a sandbox on standby is billed for storage only.",
+  },
+  instabox: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, not while it starts or is paused",
+    evidence:
+      "instabox.sh/docs/account/billing.md (checked Nov 18, 2026): a machine's vCPUs and memory times the seconds it is running, not while starting, paused or stopped, at $0.004 per vCPU-hour and $0.00225 per GiB-hour; its per-machine usage API reports those seconds. Paid plans include disk.",
   },
   vercel: {
     kind: "usage",
@@ -225,9 +233,8 @@ export function billingLabel(b: BillingBasis) {
   switch (b.kind) {
     case "usage":
     case "request":
-      return b.label;
     case "machine":
-      return "bills the whole machine while it exists";
+      return b.label;
     case "unconfirmed":
       return "billing basis not confirmed";
     default: {

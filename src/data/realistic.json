@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-17T11:31:49.826Z",
+  "generatedAt": "2026-11-18T18:27:41.644Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -16,7 +16,8 @@
         "upstash-ephemeral",
         "vercel",
         "modal",
-        "baseten"
+        "baseten",
+        "instabox"
       ],
       "profiles": [
         "fix-and-test",
@@ -39,7 +40,8 @@
         "upstash",
         "upstash-ephemeral",
         "vercel",
-        "modal"
+        "modal",
+        "instabox"
       ],
       "notTested": [
         {
@@ -94,6 +96,13 @@
       "generatedAt": "2026-11-17T11:31:49.756Z",
       "providers": [
         "baseten"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-instabox",
+      "generatedAt": "2026-11-18T18:27:41.555Z",
+      "providers": [
+        "instabox"
       ]
     }
   ],
@@ -279,6 +288,32 @@
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "instabox",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 143.347,
+      "medianCpuS": 264.451,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0012895,
+        "wholeMachineUsdPerCompleted": 0.00133167,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
     },
     {
@@ -603,6 +638,32 @@
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "instabox",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 140.142,
+      "medianCpuS": 260.063,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00125559,
+        "wholeMachineUsdPerCompleted": 0.00129767,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
     },
     {
@@ -931,6 +992,32 @@
       ]
     },
     {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 94.71,
+      "medianCpuS": 192.88,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00080922,
+        "wholeMachineUsdPerCompleted": 0.000842444,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "default",
@@ -1247,6 +1334,32 @@
       ]
     },
     {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 82.095,
+      "medianCpuS": 196.515,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.000758366,
+        "wholeMachineUsdPerCompleted": 0.000793333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -1515,6 +1628,30 @@
       "flags": []
     },
     {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 713.275,
+      "medianCpuS": 279.958,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00670065,
+        "wholeMachineUsdPerCompleted": 0.00673389,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -1722,6 +1859,30 @@
       "flags": []
     },
     {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 3714.32,
+      "medianCpuS": 230.556,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0193583,
+        "wholeMachineUsdPerCompleted": 0.035105,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -1916,6 +2077,30 @@
         "kind": "metered",
         "usdPerCompleted": 0.0125333,
         "wholeMachineUsdPerCompleted": 0.0126347,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 107.916,
+      "medianCpuS": 266.619,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.000947197,
+        "wholeMachineUsdPerCompleted": 0.000982222,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -2222,6 +2407,56 @@
       "estimatedPart": null,
       "medianWakeMs": 258,
       "transitions": []
+    },
+    {
+      "provider": "instabox",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.000991309,
+      "changeVsZeroWait": null,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 217,
+      "transitions": []
+    },
+    {
+      "provider": "instabox",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0067058,
+      "changeVsZeroWait": 5.76459,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 756,
+      "transitions": []
+    },
+    {
+      "provider": "instabox",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "metered",
+      "medianCostUsd": 0.0192954,
+      "changeVsZeroWait": 18.4646,
+      "status": "metered, unreconciled (provisional)",
+      "statuses": [
+        "unreconciled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 2824,
+      "transitions": [
+        "running -> paused"
+      ]
     },
     {
       "provider": "modal",

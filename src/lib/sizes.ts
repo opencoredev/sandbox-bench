@@ -56,6 +56,13 @@ export const advertised = {
     source: "https://docs.baseten.co/reference/management-api/sandboxes/create-a-sandbox",
     note: "Baseten's default is 4096 MB of memory, which sets 2 vCPU (2048 MB per vCPU). It has no disk: files live in the sandbox's memory and count against it.",
   },
+  instabox: {
+    vcpu: 4,
+    memoryGiB: 8,
+    diskGiB: 20,
+    source: "https://instabox.sh/docs/account/limits.md",
+    note: "Instabox's default agent-browser template: 4 vCPU, 8 GiB and a 20 GiB /data disk, where /workspace lives, plus a 16 GiB system disk. The same machine is its default and its 4 vCPU, 8 GB size.",
+  },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }

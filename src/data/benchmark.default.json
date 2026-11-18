@@ -817,14 +817,43 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "instabox",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 20
+    }
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.777736663818359,
+     "diskGiB": 19.518142700195312
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-18T15:42:45.295Z"
+  "end": "2026-11-18T15:49:05.560Z"
  },
- "observations": 37022,
+ "observations": 39911,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1075,6 +1104,51 @@
    "id": "sbxbt-default-pause",
    "suite": "main",
    "samples": 500
+  },
+  {
+   "id": "sbxib-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxib-default-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbxib-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxib-default-burst10-c1",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxib-default-burst10-c2",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxib-default-burst10-c3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxib-default-burst25-c1",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxib-default-burst25-c2",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxib-default-burst25-c3",
+   "suite": "burst",
+   "samples": 101
   }
  ],
  "excluded": [
@@ -1162,6 +1236,21 @@
      ]
     }
    ]
+  },
+  "instabox": {
+   "removed": {
+    "documented-not-run": 100
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "instabox",
+     "suite": "main",
+     "scenario": "tcp-ms",
+     "reason": "Not available yet: Instabox blocks outbound HTTPS to public DNS resolvers (1.1.1.1, 8.8.8.8 and others on port 443), and this probe connects to 1.1.1.1:443, so every attempt timed out. Other port 443 traffic, such as GitHub and npm, works. Set aside, not counted as failures."
+    }
+   ],
+   "replacements": []
   }
  },
  "providers": [
@@ -3727,6 +3816,141 @@
     "medianGapS": 15,
     "n": 99
    }
+  },
+  {
+   "id": "instabox",
+   "costPerTask": {
+    "usd": 0.0002627054513888889,
+    "kind": "metered",
+    "source": "https://api.instabox.sh/v1/machines/{id}/usage",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true,
+    "bound": null
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 20
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.777736663818359,
+     "diskGiB": 19.518142700195312
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.033999999999999996,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.033999999999999996,
+   "perVcpuHour": 0.008499999999999999,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.004,
+    "memoryGiBHour": 0.00225,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16
+     },
+     {
+      "cpu": 16,
+      "memoryGiB": 32
+     }
+    ]
+   },
+   "pricingSource": "https://instabox.sh/docs/account/pricing.md",
+   "pricingNotes": "Published usage rates: $0.004/vCPU-hour and $0.00225/GiB-hour of memory, per second while running (not while starting, paused or stopped). Paid plans include disk (Builder 1 TiB across machines), beyond that $0.08/GiB-month; each machine's 20 GiB /data is counted as included. Plan fee and monthly credits ($20 Pro, $100 Builder) and egress ($0.02/GiB beyond the plan's) excluded. Default agent-browser template is 4 vCPU / 8 GiB.",
+   "reliability": {
+    "successes": 2889,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.777736663818359,
+    "diskGiB": 19.518142700195312,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC",
+      "count": 130
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "kvm",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.60-instabox",
+    "location": [
+     {
+      "value": "Boardman, US",
+      "count": 86
+     },
+     {
+      "value": "St. Louis, US",
+      "count": 38
+     }
+    ],
+    "network": [
+     {
+      "value": "AS16509 Amazon.com, Inc.",
+      "count": 86
+     },
+     {
+      "value": "AS30083 velia.net",
+      "count": 38
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 1.204376716000028,
+    "resume": 1.5094611879996955,
+    "n": 100
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -3891,6 +4115,19 @@
      "min": 0.6093215360001195,
      "ciLow": 0.7033351430000039,
      "ciHigh": 0.7316852220001165,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 1.807801059000194,
+     "p95": 3.869404121000087,
+     "min": 1.3376054800003767,
+     "ciLow": 1.758829340999946,
+     "ciHigh": 1.9483367409999484,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4063,6 +4300,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 0.19686318200035022,
+     "p95": 0.7258531649999787,
+     "min": 0.1667296160000842,
+     "ciLow": 0.19337280100025236,
+     "ciHigh": 0.20034964199992827,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4227,6 +4477,19 @@
      "min": 0.15266898999991826,
      "ciLow": 0.16149006500001997,
      "ciHigh": 0.1923079030001536,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 0.4170873309997842,
+     "p95": 1.7576388990000122,
+     "min": 0.36840420999983325,
+     "ciLow": 0.41203246599994603,
+     "ciHigh": 0.42846071000001396,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4399,6 +4662,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 1.7931962979999372,
+     "p95": 3.4764520509997383,
+     "min": 1.5832143109999597,
+     "ciLow": 1.776384390000254,
+     "ciHigh": 1.8319360160003417,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4567,6 +4843,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 0.48224996200017634,
+     "p95": 1.543700461999979,
+     "min": 0.42728159400000004,
+     "ciLow": 0.47753367700008675,
+     "ciHigh": 0.48924112399993464,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4694,6 +4983,19 @@
      "ciHigh": 0.2822699910001829,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 2.8232822970000564,
+     "p95": 4.8077331349998715,
+     "min": 1.0045809019999579,
+     "ciLow": 2.6993820679998026,
+     "ciHigh": 2.9397039530002513,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -4873,6 +5175,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 2.199583328000037,
+     "p95": 2.4663033539997414,
+     "min": 1.342413353000302,
+     "ciLow": 2.1971175790000705,
+     "ciHigh": 2.2028283550003542,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5015,6 +5330,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 61.33332827899978,
+     "p95": 245.50077607400019,
+     "min": 34.224627155999656,
+     "ciLow": 40.78547628099984,
+     "ciHigh": 145.77795682299976,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5153,6 +5481,19 @@
      "min": 0.8215989800000097,
      "ciLow": 0.9431011819999985,
      "ciHigh": 1.0073380560000078,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 5.6784809460001995,
+     "p95": 25.878842877000107,
+     "min": 2.9510533529999665,
+     "ciLow": 5.324103526000399,
+     "ciHigh": 6.455512623000017,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5325,6 +5666,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 1.3571315040000482,
+     "p95": 2.1208024969999677,
+     "min": 1.105712814999977,
+     "ciLow": 1.286060026000021,
+     "ciHigh": 1.4038795399999944,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5489,6 +5843,19 @@
      "min": 1.08602795899997,
      "ciLow": 1.1644377899999963,
      "ciHigh": 1.2646038189999527,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 1.6997505689999088,
+     "p95": 2.957034665000014,
+     "min": 1.3444579119998963,
+     "ciLow": 1.640109095000007,
+     "ciHigh": 2.040684288999997,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5661,6 +6028,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 3.844697043999913,
+     "p95": 4.475779360000044,
+     "min": 3.068565803000005,
+     "ciLow": 3.633910290000029,
+     "ciHigh": 3.994261167000048,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5825,6 +6205,19 @@
      "min": 1.1236430640000035,
      "ciLow": 1.2041908079999848,
      "ciHigh": 1.2739385080000503,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 1.397111120000016,
+     "p95": 3.9780055360000115,
+     "min": 1.3031023779999815,
+     "ciLow": 1.37053387999977,
+     "ciHigh": 1.4399672300000674,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5997,6 +6390,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 0.488216447000159,
+     "p95": 1.0369433650000137,
+     "min": 0.45282509399997073,
+     "ciLow": 0.4773209280001465,
+     "ciHigh": 0.5039291270000394,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6161,6 +6567,19 @@
      "min": 0.4585281309999991,
      "ciLow": 0.47141284599993377,
      "ciHigh": 0.4988820769999875,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 0.5661010350000579,
+     "p95": 2.471732581999968,
+     "min": 0.4894567559999414,
+     "ciLow": 0.538008048000047,
+     "ciHigh": 0.5907337379999809,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6333,6 +6752,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 30,
+     "p50": 25.052777591999998,
+     "p95": 97.236086304,
+     "min": 23.071771351000063,
+     "ciLow": 24.54426147599984,
+     "ciHigh": 25.860877149000064,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6488,6 +6920,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 3,
+     "p50": 3.655902704999999,
+     "p95": 4.069092176000001,
+     "min": 3.269936969,
+     "ciLow": 3.269936969,
+     "ciHigh": 4.069092176000001,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6626,6 +7071,19 @@
      "min": 0.8001249699999989,
      "ciLow": 0.8001249699999989,
      "ciHigh": 1.0832534449999993,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 3,
+     "p50": 4.5987563819999995,
+     "p95": 5.4466870499999995,
+     "min": 4.3436885720000005,
+     "ciLow": 4.3436885720000005,
+     "ciHigh": 5.4466870499999995,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -6798,6 +7256,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 20034423.14584861,
+     "p95": 22008830.955385897,
+     "min": 16661706.199035956,
+     "ciLow": 19742909.413055524,
+     "ciHigh": 20550475.729127906,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6962,6 +7433,19 @@
      "min": 12938586.880922418,
      "ciLow": 17590741.598663993,
      "ciHigh": 17775160.010212865,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 54014344.02218756,
+     "p95": 69536127.10369599,
+     "min": 20582377.44355865,
+     "ciLow": 51189441.05161469,
+     "ciHigh": 54912794.43262159,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7134,6 +7618,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 22556.58677201156,
+     "p95": 46969.81367616684,
+     "min": 14979.860482759796,
+     "ciLow": 22016.17232678804,
+     "ciHigh": 23163.718482621956,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7298,6 +7795,19 @@
      "min": 953.5120278179613,
      "ciLow": 1114.3951368972287,
      "ciHigh": 1131.0725623056512,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 989.6995617389993,
+     "p95": 1506.3420520537693,
+     "min": 96.68268931917291,
+     "ciLow": 825.1171536190573,
+     "ciHigh": 1082.1467975765527,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7470,6 +7980,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 19683.90359739642,
+     "p95": 26942.510830783867,
+     "min": 8121.178603726352,
+     "ciLow": 18622.149605738236,
+     "ciHigh": 20875.284936409196,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7638,6 +8161,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 14937.938699835082,
+     "p95": 21584.472265555607,
+     "min": 270.5251994291954,
+     "ciLow": 13993.419703709149,
+     "ciHigh": 15861.352939949185,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7802,6 +8338,19 @@
      "min": 133295.913282716,
      "ciLow": 273819.9270315834,
      "ciHigh": 277639.1991845177,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "instabox",
+     "n": 100,
+     "p50": 778659.8533943157,
+     "p95": 1009583.1525319313,
+     "min": 479895.0229630857,
+     "ciLow": 745312.6819655453,
+     "ciHigh": 801229.3863382839,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -9199,6 +9748,108 @@
    0.941,
    1.109,
    8.676
+  ],
+  "instabox": [
+   1.338,
+   1.34,
+   1.349,
+   1.363,
+   1.417,
+   1.424,
+   1.432,
+   1.433,
+   1.433,
+   1.464,
+   1.466,
+   1.49,
+   1.497,
+   1.502,
+   1.521,
+   1.663,
+   1.669,
+   1.674,
+   1.677,
+   1.679,
+   1.684,
+   1.688,
+   1.69,
+   1.694,
+   1.694,
+   1.695,
+   1.698,
+   1.703,
+   1.703,
+   1.708,
+   1.71,
+   1.711,
+   1.715,
+   1.715,
+   1.719,
+   1.722,
+   1.722,
+   1.733,
+   1.736,
+   1.74,
+   1.759,
+   1.776,
+   1.791,
+   1.791,
+   1.795,
+   1.8,
+   1.803,
+   1.803,
+   1.807,
+   1.808,
+   1.811,
+   1.813,
+   1.815,
+   1.818,
+   1.835,
+   1.851,
+   1.889,
+   1.898,
+   1.942,
+   1.948,
+   1.958,
+   1.967,
+   2.018,
+   2.052,
+   2.069,
+   2.082,
+   2.142,
+   2.215,
+   2.304,
+   2.492,
+   2.797,
+   2.806,
+   2.827,
+   2.835,
+   2.861,
+   3.044,
+   3.059,
+   3.189,
+   3.202,
+   3.224,
+   3.292,
+   3.295,
+   3.339,
+   3.388,
+   3.464,
+   3.516,
+   3.746,
+   3.765,
+   3.772,
+   3.814,
+   3.84,
+   3.85,
+   3.853,
+   3.858,
+   3.869,
+   3.874,
+   3.913,
+   4.115,
+   4.555,
+   7.528
   ]
  },
  "missing": {
@@ -9211,6 +9862,6 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 18 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 18 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18)."
  }
 }
