@@ -40,6 +40,7 @@ export const probeDate = "Oct 22, 2026";
 export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
+  { providers: ["instabox"], date: "Nov 18, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -54,7 +55,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal and Baseten
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten and Instabox
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -291,6 +292,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "No DMI, so the memory type is inferred from the chips. It runs as root.",
     ],
     sameSpec: "The 4 vCPU, 8 GB size ran on the same CPU type in the same region, with about 6 GiB of in-memory file space.",
+  },
+  instabox: {
+    chip: "AMD EPYC, 5th Gen (Turin)",
+    family: "Zen 5 (CPU family 26, model 2), 2.6 GHz, 1 MB L2 per core, 32 MB L3 shown",
+    chipBasis: "inferred",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
+    cloud: "Not disclosed; outbound IPs are Amazon's and velia.net's",
+    region: "Outbound IPs are Amazon's in Boardman, Oregon (us-west-2) for 423 of 550 sandboxes and velia.net's in St. Louis, Missouri for 112; that is where traffic leaves, not proof of where the sandbox runs. The API is in Oregon",
+    regionShort: "Oregon",
+    runsAs: "Firecracker microVM",
+    runsAsDetail: "KVM under Firecracker, with Linux 6.18 inside",
+    storage: "20 GB /data disk (ext4), where /workspace lives, plus a 16 GB system disk",
+    kernel: "Linux 6.18, Debian 13",
+    hidden: [
+      "The CPU names itself only as \"AMD EPYC\", with no model number. Its family and model IDs (26, model 2), 1 MB of L2 per core and Zen 5-only instructions such as AVX-512 VP2INTERSECT place it in 5th Gen EPYC. Every sandbox showed the same feature set.",
+      "Outbound HTTPS to public DNS resolvers is blocked: 1.1.1.1, 1.0.0.1, 8.8.8.8 and 9.9.9.9 on port 443 time out, so the TCP connect probe, which dials 1.1.1.1:443, can't run. Other port 443 traffic, such as GitHub and npm, works.",
+      "No DMI, so the memory type is inferred from the chip. It runs as an ordinary user with passwordless sudo.",
+    ],
+    sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
   },
 };
 
