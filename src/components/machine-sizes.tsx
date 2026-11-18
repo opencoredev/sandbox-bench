@@ -3,7 +3,8 @@ import type { Column } from "@/components/columns";
 import type { Provider } from "@/lib/data";
 import { formatGiB } from "@/lib/format";
 import { providerColor } from "@/lib/providers";
-import { advertised } from "@/lib/sizes";
+import { providerName } from "@/lib/providers";
+import { advertised, sharedDisk } from "@/lib/sizes";
 
 type Part = "vcpu" | "memoryGiB" | "diskGiB";
 
@@ -24,7 +25,10 @@ export function MachineSizes({ providers }: { providers: readonly Provider[] }) 
   return (
     <div className="grid gap-x-l gap-y-xl md:grid-cols-3">
       {parts.map((part) => {
+        // A shared file system's size is the host's, not the sandbox's, so it isn't ranked.
+        const shared = part.key === "diskGiB" ? providers.filter((p) => sharedDisk[p.id]) : [];
         const columns: Column[] = providers
+          .filter((p) => !shared.includes(p))
           .flatMap((p) => {
             const inside = measured(p, part.key);
             // Disk is the one size a provider may not advertise; fall back to what we measured.
@@ -46,6 +50,11 @@ export function MachineSizes({ providers }: { providers: readonly Provider[] }) 
             <h4 className="text-s font-medium">{part.title}</h4>
             <p className="mt-0.5 mb-xs text-xs text-neutral-7">Default sandbox · Higher is better</p>
             <Columns columns={columns} label={`${part.title} by provider`} compact />
+            {shared.length > 0 && (
+              <p className="mt-xs text-xs text-neutral-7">
+                Not in the chart: {shared.map((p) => `${providerName(p.id)} (${sharedDisk[p.id]})`).join("; ")}.
+              </p>
+            )}
           </div>
         );
       })}
