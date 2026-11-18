@@ -561,10 +561,10 @@ describe("pick", () => {
       return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
     }));
     assert.deepEqual(picks.sort(), [
-      "default/build: boat []",
-      "default/fix-and-test: boat []",
-      "same-machine/build: boat []",
-      "same-machine/fix-and-test: boat []",
+      "default/build: instabox []",
+      "default/fix-and-test: instabox []",
+      "same-machine/build: instabox []",
+      "same-machine/fix-and-test: instabox []",
     ]);
   });
 
@@ -828,11 +828,11 @@ describe("page", () => {
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
     const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
-    assert.match(text, /Cheapest: Boat \$0\.95 per 1,000/);
-    // In the published data boxd's $5.50 is on the wrong size but dearer than Boat, so it isn't named.
+    assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
+    // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row.
-    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat") }, "same-machine", "fix-and-test");
+    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row.
+    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
     assert.match(line, /Cheapest: Freestyle \$9\.58 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);

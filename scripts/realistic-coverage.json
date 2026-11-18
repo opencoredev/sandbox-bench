@@ -13,7 +13,8 @@
       "upstash-ephemeral",
       "vercel",
       "modal",
-      "baseten"
+      "baseten",
+      "instabox"
     ],
     "profiles": [
       "fix-and-test",
@@ -36,7 +37,8 @@
       "upstash",
       "upstash-ephemeral",
       "vercel",
-      "modal"
+      "modal",
+      "instabox"
     ],
     "notTested": [
       {

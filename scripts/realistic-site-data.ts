@@ -10,6 +10,10 @@
  *     --parts scripts/realistic-parts/sbx-verify.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx103-modal-r2/summary.json \
  *     --parts scripts/realistic-parts/sbx103-modal.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-baseten-finish/summary.json \
+ *     --parts scripts/realistic-parts/sbx-baseten.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-instabox/summary.json \
+ *     --parts scripts/realistic-parts/sbx-instabox.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -40,6 +44,11 @@
  * held-open. The rerun's meter counts data transfer; bench/scripts/vercel-settled.ts
  * checked it against the day's settled charges and wrote Vercel's audit entries
  * (sbx-verify-vercel/README.md and finish.sh have the commands).
+ *
+ * Rebuilt on 2026-11-18 with Instabox added (sbx-instabox: headline and held-open
+ * runs on 2026-11-18, harness 6074f7b, billed from Instabox's per-machine usage
+ * API); the Baseten pair, missing from the command above until now, is the one
+ * its own rebuild used, and every other provider's rows came out unchanged.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

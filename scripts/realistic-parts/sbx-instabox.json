@@ -1,0 +1,95 @@
+{
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "3eebd5f9399ceb45d24ce4acc0650fa275db43ac20802132ba156091fe2ca2bd",
+  "harness": {
+    "commit": "6074f7b"
+  },
+  "rows": [
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0008092201388888888,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0012895033888888885,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0012555948888888888,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0007583655416666666,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "totalPerCompletedUSD": 0.0009471967592592593,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "totalPerCompletedUSD": 0.01935826337962963,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "totalPerCompletedUSD": 0.006700646874999998,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    }
+  ],
+  "heldOpen": [
+    {
+      "provider": "instabox",
+      "idle": "zero-wait",
+      "medianTotalUSD": 0.0009913085416666666,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "idle": "held-60",
+      "medianTotalUSD": 0.019295400625,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "instabox",
+      "idle": "held-10",
+      "medianTotalUSD": 0.006705799930555555,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    }
+  ]
+}
