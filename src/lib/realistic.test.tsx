@@ -607,6 +607,20 @@ describe("idle", () => {
     assert.deepEqual(groups.map((g) => g.provider), ["upstash", "e2b"]);
   });
 
+  test("a pause the work resumed from is not a stop: every run completed", () => {
+    const groups = idleGroups({
+      ...realistic,
+      // As Instabox does: the machine pauses while idle and every run resumes from it.
+      heldOpen: [held("e2b", "zero-wait", 3, [], 0.001), held("e2b", "held-60", 3, ["running -> paused"], 0.02)],
+    });
+    const [g] = groups;
+    assert.ok(g);
+    assert.equal(g.stoppedAt, null);
+    assert.equal(g.resumeFailedAt, null);
+    assert.equal(idleOutcome(g), null);
+    assert.equal(g.points.find((p) => p.idle === "held-60")?.stopped, false);
+  });
+
   test("Boat is in the idle chart like every other provider", () => {
     const groups = idleGroups({ ...realistic, heldOpen: [held("boat", "zero-wait", 3, [], 0.001), held("upstash", "zero-wait", 3, [], 0.01)] });
     assert.deepEqual(groups.map((g) => g.provider).sort(), ["boat", "upstash"]);

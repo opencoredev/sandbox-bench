@@ -725,7 +725,8 @@ export function idleGroups(data: Pick<RealisticData, "heldOpen" | "rows">): Idle
       const h = data.heldOpen.find((x) => x.provider === provider && x.idle === idle);
       if (!h) return [];
       const statuses: readonly CostStatusKind[] = storageUnknown && !h.statuses.includes("provisional") ? [...h.statuses, "provisional"] : h.statuses;
-      return [{ ...h, statuses, minutes: idleMinutes[idle], stopped: h.transitions.some(isStop) }];
+      // A stop or pause counts only when the work didn't resume from it: Instabox pauses an idle machine and wakes it on the next command.
+      return [{ ...h, statuses, minutes: idleMinutes[idle], stopped: h.transitions.some(isStop) && h.completed < h.runs }];
     });
     const stoppedAt = points.filter((p) => p.stopped).at(-1) ?? null;
     const resumeFailedAt = points.filter((p) => !p.stopped && p.runs > 0 && p.completed === 0 && p.idle !== "zero-wait").at(-1) ?? null;

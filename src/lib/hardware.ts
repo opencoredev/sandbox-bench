@@ -24,6 +24,8 @@ export interface HardwareDetail {
   region: string;
   /** The region in a word or two, for a badge: "Virginia". Null where the sandbox does not show it. */
   regionShort: string | null;
+  /** Where the provider's API is, for a badge when the sandbox's own location isn't shown: "Oregon". */
+  apiRegionShort?: string;
   runsAs: string;
   runsAsDetail: string;
   storage: string;
@@ -33,6 +35,10 @@ export interface HardwareDetail {
   /** How the 4 vCPU, 8 GB sandbox differed, when it did. */
   sameSpec: string | null;
 }
+
+/** "Sandbox in Virginia"; "API in Oregon" where only the API's region is known; else "Location not shown". */
+export const locationLabel = (h: Pick<HardwareDetail, "regionShort" | "apiRegionShort">, lead: "Sandbox in" | "Runs in") =>
+  h.regionShort ? `${lead} ${h.regionShort}` : h.apiRegionShort ? `API in ${h.apiRegionShort}` : "Location not shown";
 
 export const probeDate = "Oct 22, 2026";
 
@@ -89,6 +95,7 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     cloud: "Bare-metal servers",
     region: "Location not visible; control plane on AWS us-east-1",
     regionShort: null,
+    apiRegionShort: "Virginia",
     runsAs: "Docker container",
     runsAsDetail: "shares the host's kernel; cgroups set its CPU and RAM",
     storage: "3 GB container disk (10 GB at 4 vCPU) on the host's NVMe RAID",
@@ -300,7 +307,8 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
     cloud: "Not disclosed; outbound IPs are Amazon's and velia.net's",
     region: "Outbound IPs are Amazon's in Boardman, Oregon (us-west-2) for 423 of 550 sandboxes and velia.net's in St. Louis, Missouri for 112; that is where traffic leaves, not proof of where the sandbox runs. The API is in Oregon",
-    regionShort: "Oregon",
+    regionShort: null,
+    apiRegionShort: "Oregon",
     runsAs: "Firecracker microVM",
     runsAsDetail: "KVM under Firecracker, with Linux 6.18 inside",
     storage: "20 GB /data disk (ext4), where /workspace lives, plus a 16 GB system disk",
