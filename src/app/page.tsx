@@ -12,7 +12,7 @@ import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
-import { updates } from "@/lib/updates";
+import { latestUpdates, updateDay } from "@/lib/updates";
 import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
@@ -24,6 +24,7 @@ import { JumpLink } from "@/components/jump";
 import { HomeJsonLd } from "@/components/seo/home-json-ld";
 import { HomeLinks } from "@/components/seo/home-links";
 import { homeMetadata } from "@/lib/seo/home";
+import { updatePath, updatesPath } from "@/lib/seo/pages";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
@@ -368,7 +369,7 @@ function Facts({ track }: { track: Track }) {
   );
 }
 
-/** The latest changes, beside the title. */
+/** The newest three updates, beside the title. Each opens its own page. */
 function Updates() {
   return (
     <section aria-labelledby="updates-title" className="flex flex-col gap-m lg:pt-xs">
@@ -376,29 +377,19 @@ function Updates() {
         Latest updates
       </h2>
       {/* Phones show the latest one, so the results stay near the top. */}
-      {updates.map((u, i) => {
-        const className = `group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`;
-        const body = (
-          <>
-            <span className="text-xs font-medium text-accent">Update · {u.date}</span>
-            <span className="flex items-start justify-between gap-s text-m font-medium">
-              <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
-              <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
-            </span>
-            <span className="text-s text-pretty text-neutral-7">{u.text}</span>
-          </>
-        );
-        // A tab on this page goes through JumpLink, so a second click on the same update still scrolls there.
-        return "href" in u ? (
-          <a key={u.title} href={u.href} className={className}>
-            {body}
-          </a>
-        ) : (
-          <JumpLink key={u.title} section={u.section} tab={u.tab} className={className}>
-            {body}
-          </JumpLink>
-        );
-      })}
+      {latestUpdates.map((u, i) => (
+        <a key={u.slug} href={updatePath(u.slug)} className={`group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`}>
+          <span className="text-xs font-medium text-accent">Update · {updateDay(u)}</span>
+          <span className="flex items-start justify-between gap-s text-m font-medium">
+            <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+            <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+          </span>
+          <span className="text-s text-pretty text-neutral-7">{u.text}</span>
+        </a>
+      ))}
+      <a href={updatesPath} className="focus-ring -my-xs self-start rounded-xs py-xs text-s text-neutral-7 underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+        All updates
+      </a>
     </section>
   );
 }
