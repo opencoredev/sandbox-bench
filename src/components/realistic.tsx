@@ -372,13 +372,14 @@ function CheapestShort({ costed }: { costed: readonly Costed[] }) {
 
 /**
  * The headline card's chart: both workloads' cost per 1,000 on one track, each
- * a compact chart, with a cheaper bar that can't count and the providers with
+ * a compact chart across the card, with a cheaper bar that can't count and the providers with
  * no cost in one small block under it.
  */
 export function TaskCostHeadline({ track }: { track: Track }) {
   const run = runTrackOf[track.id];
+  // One above the other: side by side, fourteen price labels per half collide.
   return (
-    <div className="grid gap-l md:grid-cols-2">
+    <div className="flex flex-col gap-xl">
       {profileIds.map((profile) => {
         const { costed, uncosted } = headlineRows(realistic, run, profile);
         const p = taskPick(costed);
@@ -388,9 +389,14 @@ export function TaskCostHeadline({ track }: { track: Track }) {
             <p className="mb-s text-s text-pretty text-neutral-7">
               <span className="font-medium text-neutral-10">{profileInfo[profile].label}</span> · <CheapestShort costed={costed} />
             </p>
-            {costed.length > 0 ? <Columns columns={columnsOf(costed, track.id)} label={`${profileInfo[profile].label}: cost per 1,000 completed tasks by provider`} compact linked /> : null}
+            {/* No track, so no region note under a column, where a compact chart's slanted names would cross it; it goes in the notes. */}
+            {costed.length > 0 ? <Columns columns={columnsOf(costed)} label={`${profileInfo[profile].label}: cost per 1,000 completed tasks by provider`} compact linked /> : null}
             <CompactNotes
               items={[
+                ...costed.flatMap((r) => {
+                  const note = priceNote(r.provider, track.id);
+                  return note ? [{ mark: undefined, id: r.provider, note: `priced at its ${note}` }] : [];
+                }),
                 ...lower.map((r) => ({ mark: undefined, id: r.provider, note: `not counted as cheapest: ${lowerWhy(r)}` })),
                 ...uncosted.map((r) => ({ mark: undefined, id: r.provider, note: `no cost (${noCostReason(r)})` })),
               ]}

@@ -325,7 +325,7 @@ function Headlines({ track }: { track: Track }) {
       <Headline marker="var(--color-3)" title="Real task: build" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="build">
         <RealTaskHeadline track={track} profile="build" />
       </Headline>
-      <Headline marker="var(--color-1)" title="Real task cost, per 1,000" sub="Fix and test and Build · Create to delete · USD · lower is better" section={taskCostSection} tab="fix-and-test" wide>
+      <Headline marker="var(--color-1)" title="Real task cost, per 1,000" sub="Create to delete · USD · lower is better" section={taskCostSection} tab="fix-and-test" wide>
         <TaskCostHeadline track={track} />
       </Headline>
       <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
