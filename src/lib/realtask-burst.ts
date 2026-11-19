@@ -23,14 +23,19 @@ export type BurstProvider =
       completed: number;
       attempts: number;
       roundAllDoneS: number[];
+      /** The same day's control: the same task alone, in rounds between the bursts. */
+      solo: { tasks: BurstTask[]; completed: number; attempts: number } | null;
       soloMedianWallS: number | null;
       slowdown: number | null;
+      /** Uploading the toolchain from our machine, part of every task's time. */
+      medianUploadS: number | null;
+      soloMedianUploadS: number | null;
     }
   | { provider: ProviderId; status: "not-run"; reason: string };
 
 export interface RealtaskBurst {
   generatedAt: string;
-  run: { id: string; sdkCommit: string; startedAt: string; endedAt: string; location: string };
+  run: { id: string; sdkCommit: string; startedAt: string; endedAt: string; location: string; mode: string | null };
   size: number;
   rounds: number;
   providers: BurstProvider[];
@@ -59,6 +64,16 @@ function parseTask(v: unknown, path: string): BurstTask {
   };
 }
 
+function parseSolo(v: unknown, path: string) {
+  if (v === undefined || v === null) return null;
+  const o = obj(v, path);
+  const tasks = arr(o.tasks, `${path}.tasks`).map((t, i) => parseTask(t, `${path}.tasks[${i}]`));
+  const completed = count(o.completed, `${path}.completed`);
+  const attempts = count(o.attempts, `${path}.attempts`);
+  if (attempts !== tasks.length || completed !== tasks.filter((t) => t.completed).length) fail(path, "counts do not match its tasks");
+  return { tasks, completed, attempts };
+}
+
 function parseProvider(v: unknown, path: string): BurstProvider {
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
@@ -78,8 +93,11 @@ function parseProvider(v: unknown, path: string): BurstProvider {
     completed,
     attempts,
     roundAllDoneS: arr(o.roundAllDoneS ?? [], `${path}.roundAllDoneS`).map((x, i) => num(x, `${path}.roundAllDoneS[${i}]`)),
+    solo: parseSolo(o.solo, `${path}.solo`),
     soloMedianWallS: orNull(num)(o.soloMedianWallS, `${path}.soloMedianWallS`),
     slowdown: orNull(num)(o.slowdown, `${path}.slowdown`),
+    medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
+    soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
   };
 }
 
@@ -97,7 +115,7 @@ export function parseRealtaskBurst(raw: unknown): RealtaskBurst {
   }
   return {
     generatedAt: str(o.generatedAt, "generatedAt"),
-    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: str(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location") },
+    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: str(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
     size: count(o.size, "size"),
     rounds: count(o.rounds, "rounds"),
     providers,

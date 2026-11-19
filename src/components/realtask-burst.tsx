@@ -37,9 +37,10 @@ function columnsOf(timed: readonly BurstRan[], marks: ReturnType<typeof marksFor
     segments: [{ value: p.medianWallS, color: providerColor(p.provider), fill: "solid" }],
     detail: [
       ["Median time, 5 at once", wallText(p.medianWallS)],
-      ...(p.soloMedianWallS === null ? [] : [["One at a time", wallText(p.soloMedianWallS)] as const]),
+      ...(p.soloMedianWallS === null ? [] : [[p.solo ? "One at a time, same day" : "One at a time", wallText(p.soloMedianWallS)] as const]),
       ...(p.slowdown === null ? [] : [["Change", slowdownText(p.slowdown)] as const]),
       ["Completed", `${p.completed} of ${p.attempts}`],
+      ...(p.medianUploadS === null ? [] : [["Toolchain upload", p.soloMedianUploadS === null ? wallText(p.medianUploadS) : `${wallText(p.medianUploadS)} (alone ${wallText(p.soloMedianUploadS)})`] as const]),
       ...(p.roundAllDoneS.length === 0 ? [] : [["All 5 done", p.roundAllDoneS.map((s) => wallText(s)).join(", ")] as const]),
     ],
   }));
