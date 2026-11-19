@@ -754,7 +754,7 @@
           "completed": false,
           "failure": {
             "stage": "workload",
-            "reason": "the test run failed (test-b, Vue's timing-sensitive Suspense test)"
+            "reason": "a test step failed (test-b)"
           }
         },
         {
@@ -776,7 +776,7 @@
           "completed": false,
           "failure": {
             "stage": "workload",
-            "reason": "the test run failed (test-b, Vue's timing-sensitive Suspense test)"
+            "reason": "a test step failed (test-b)"
           }
         },
         {

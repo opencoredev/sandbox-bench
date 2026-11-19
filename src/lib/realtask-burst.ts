@@ -52,6 +52,20 @@ const obj = (v: unknown, path: string): Json => (typeof v === "object" && v !== 
 const arr = (v: unknown, path: string): readonly unknown[] => (Array.isArray(v) ? v : fail(path, "must be an array"));
 const str = (v: unknown, path: string): string => (typeof v === "string" ? v : fail(path, "must be a string"));
 const num = (v: unknown, path: string): number => (typeof v === "number" && Number.isFinite(v) ? v : fail(path, "must be a finite number"));
+const positive = (v: unknown, path: string): number => {
+  const n = num(v, path);
+  return n > 0 ? n : fail(path, "must be above 0");
+};
+const median = (xs: readonly number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const mid = s.length >> 1;
+  return s.length % 2 ? s[mid]! : (s[mid - 1]! + s[mid]!) / 2;
+};
+/** A stored figure must match the one its tasks give, to within rounding. */
+const agrees = (stored: number | null, derived: number | null, path: string) => {
+  if (stored === null || derived === null) return;
+  if (Math.abs(stored - derived) > Math.max(0.01, Math.abs(derived) * 0.005)) fail(path, `is ${stored} but its tasks give ${derived}`);
+};
 const count = (v: unknown, path: string): number => (Number.isInteger(v) && (v as number) >= 0 ? (v as number) : fail(path, "must be a whole number"));
 const orNull = <T>(read: (v: unknown, path: string) => T) => (v: unknown, path: string): T | null => (v === null || v === undefined ? null : read(v, path));
 
@@ -88,18 +102,31 @@ function parseProvider(v: unknown, path: string): BurstProvider {
   const attempts = count(o.attempts, `${path}.attempts`);
   if (attempts !== tasks.length) fail(`${path}.attempts`, `is ${attempts} but there are ${tasks.length} tasks`);
   if (completed !== tasks.filter((t) => t.completed).length) fail(`${path}.completed`, "does not match the completed tasks");
+  const solo = parseSolo(o.solo, `${path}.solo`);
+  const medianWallS = orNull(positive)(o.medianWallS, `${path}.medianWallS`);
+  const soloMedianWallS = orNull(positive)(o.soloMedianWallS, `${path}.soloMedianWallS`);
+  const slowdown = orNull(positive)(o.slowdown, `${path}.slowdown`);
+  const doneTimes = (ts: readonly BurstTask[]) => ts.flatMap((t) => (t.completed && t.wallS !== null ? [t.wallS] : []));
+  const burstDone = doneTimes(tasks);
+  agrees(medianWallS, burstDone.length ? median(burstDone) : null, `${path}.medianWallS`);
+  if (solo) {
+    const soloDone = doneTimes(solo.tasks);
+    agrees(soloMedianWallS, soloDone.length ? median(soloDone) : null, `${path}.soloMedianWallS`);
+  }
+  if (slowdown !== null && (medianWallS === null || soloMedianWallS === null)) fail(`${path}.slowdown`, "needs both medians");
+  agrees(slowdown, medianWallS !== null && soloMedianWallS !== null ? medianWallS / soloMedianWallS : null, `${path}.slowdown`);
   return {
     provider,
     status: "ran",
     tasks,
-    medianWallS: orNull(num)(o.medianWallS, `${path}.medianWallS`),
+    medianWallS,
     completed,
     attempts,
     roundAllDoneS: arr(o.roundAllDoneS ?? [], `${path}.roundAllDoneS`).map((x, i) => num(x, `${path}.roundAllDoneS[${i}]`)),
-    solo: parseSolo(o.solo, `${path}.solo`),
-    soloMedianWallS: orNull(num)(o.soloMedianWallS, `${path}.soloMedianWallS`),
-    slowdown: orNull(num)(o.slowdown, `${path}.slowdown`),
-    slowdownWithoutUpload: orNull(num)(o.slowdownWithoutUpload, `${path}.slowdownWithoutUpload`),
+    solo,
+    soloMedianWallS,
+    slowdown,
+    slowdownWithoutUpload: orNull(positive)(o.slowdownWithoutUpload, `${path}.slowdownWithoutUpload`),
     changeNote: orNull(str)(o.changeNote, `${path}.changeNote`),
     medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
     soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
@@ -136,10 +163,4 @@ export function burstTimes(data: RealtaskBurst) {
     p.status === "not-run" ? [{ id: p.provider, why: `not run: ${p.reason}` }] : p.medianWallS === null ? [{ id: p.provider, why: `no task completed (0 of ${p.attempts})` }] : [],
   );
   return { timed, missing };
-}
-
-/** "1.3× slower", "about the same" or "1.2× faster" than the provider's one-at-a-time median. */
-export function slowdownText(slowdown: number): string {
-  if (Math.abs(slowdown - 1) < 0.05) return "about the same as one at a time";
-  return slowdown > 1 ? `${slowdown.toFixed(1)}× slower than one at a time` : `${(1 / slowdown).toFixed(1)}× faster than one at a time`;
 }

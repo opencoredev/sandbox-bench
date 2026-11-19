@@ -4,7 +4,7 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { RealtaskBurstChart } from "@/components/realtask-burst";
-import { burstTimes, parseRealtaskBurst, slowdownText } from "@/lib/realtask-burst";
+import { burstTimes, parseRealtaskBurst } from "@/lib/realtask-burst";
 
 const task = (round: number, wallS: number | null, completed = true) => ({ round, wallS, completed, ...(completed ? {} : { failure: { stage: "work", reason: "tests timed out" } }) });
 
@@ -41,10 +41,13 @@ describe("real tasks at once", () => {
     assert.throws(() => parseRealtaskBurst(bad), /completed/);
   });
 
-  test("slowdown reads as plain words", () => {
-    assert.equal(slowdownText(1.02), "about the same as one at a time");
-    assert.equal(slowdownText(1.5), "1.5× slower than one at a time");
-    assert.equal(slowdownText(0.8), "1.3× faster than one at a time");
+  test("rejects a ratio its medians don't give, and ratios at or below 0", () => {
+    const off = structuredClone(fixture);
+    off.providers[0] = { ...off.providers[0], soloMedianWallS: 1 } as (typeof off.providers)[number];
+    assert.throws(() => parseRealtaskBurst(off), /slowdown/);
+    const zero: { providers: Record<string, unknown>[] } = structuredClone(fixture);
+    zero.providers[0] = { ...zero.providers[0], slowdownWithoutUpload: 0 };
+    assert.throws(() => parseRealtaskBurst(zero), /above 0/);
   });
 
   test("the chart names failures and providers with no result", () => {

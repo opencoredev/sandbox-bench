@@ -2,11 +2,13 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, Footnotes, NotOnChart, Who, sentence } from "@/components/metric-chart";
 import { Card } from "@/components/tabs";
+import { tracks } from "@/lib/data";
 import { formatShort } from "@/lib/format";
+import { allocationNotes } from "@/lib/notes";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { wallText } from "@/lib/realistic";
-import { burstTimes, slowdownText } from "@/lib/realtask-burst";
+import { burstTimes } from "@/lib/realtask-burst";
 import type { BurstRan, RealtaskBurst } from "@/lib/realtask-burst";
 
 /** The section id, shared with the nav and the update that links here. */
@@ -23,31 +25,45 @@ const failures = (p: BurstRan) => {
   return failed.length === 0 ? undefined : `${failed.length} of ${p.attempts} tasks failed (${reasons.join("; ")}); the time is the median of the rest`;
 };
 
+/** Each round in a few words: how many of its tasks finished, and when the last one ended. */
+function roundsText(p: BurstRan, size: number) {
+  return p.roundAllDoneS
+    .map((ended, i) => `Round ${i + 1}: ${p.tasks.filter((t) => t.round === i + 1 && t.completed).length} of ${size} finished; the last ended at ${wallText(ended)}.`)
+    .join(" ");
+}
+
+/** "0.92×": the time at once over the time alone, as measured. Within about 10% it is noise, so it isn't called faster or slower. */
+const ratio = (r: number) => `${r.toFixed(2)}×`;
+
 function marksFor(timed: readonly BurstRan[]) {
+  // The same machine notes the other same-machine charts carry, such as a provider with no exact 4 vCPU, 8 GB size.
+  const machine = allocationNotes(tracks["same-spec"]);
   let next = 0;
   const marks = new Map<ProviderId, { mark: number; note: string }>();
   for (const p of timed) {
-    const note = [failures(p), p.changeNote ?? undefined].filter((x) => x !== undefined).map(sentence).join(" ");
+    const note = [machine[p.provider], failures(p), p.changeNote ?? undefined].filter((x) => x !== undefined).map(sentence).join(" ");
     if (note) marks.set(p.provider, { mark: ++next, note });
   }
   return marks;
 }
 
-function columnsOf(timed: readonly BurstRan[], marks: ReturnType<typeof marksFor>): Column[] {
+function columnsOf(timed: readonly BurstRan[], marks: ReturnType<typeof marksFor>, size: number): Column[] {
   return timed.map((p) => ({
     provider: p.provider,
     label: formatShort(p.medianWallS, "s"),
     mark: marks.get(p.provider)?.mark,
     tag: p.slowdown === null ? undefined : `${p.slowdown.toFixed(2)}×`,
     segments: [{ value: p.medianWallS, color: providerColor(p.provider), fill: "solid" }],
+    // Values stay short: the card's value column takes its widest value, and a long one squeezes the labels.
     detail: [
-      ["Median time, 5 at once", wallText(p.medianWallS)],
-      ...(p.soloMedianWallS === null ? [] : [[p.solo ? "One at a time, same day" : "One at a time", wallText(p.soloMedianWallS)] as const]),
-      ...(p.slowdown === null ? [] : [["Change", slowdownText(p.slowdown)] as const]),
-      ...(p.slowdownWithoutUpload === null ? [] : [["Without the upload", slowdownText(p.slowdownWithoutUpload)] as const]),
-      ["Completed", `${p.completed} of ${p.attempts}`],
-      ...(p.medianUploadS === null ? [] : [["Toolchain upload", p.soloMedianUploadS === null ? wallText(p.medianUploadS) : `${wallText(p.medianUploadS)} (alone ${wallText(p.soloMedianUploadS)})`] as const]),
-      ...(p.roundAllDoneS.length === 0 ? [] : [["All 5 done", p.roundAllDoneS.map((s) => wallText(s)).join(", ")] as const]),
+      [`Median, ${size} at once`, wallText(p.medianWallS)],
+      ...(p.soloMedianWallS === null ? [] : [[p.solo ? "Median alone, same day" : "Median alone", wallText(p.soloMedianWallS)] as const]),
+      ...(p.slowdown === null ? [] : [["At once ÷ alone", ratio(p.slowdown)] as const]),
+      ...(p.slowdownWithoutUpload === null ? [] : [["Without the upload", ratio(p.slowdownWithoutUpload)] as const]),
+      ["Finished", `${p.completed} of ${p.attempts}`],
+      ...(p.medianUploadS === null ? [] : [[`Upload, ${size} at once`, wallText(p.medianUploadS)] as const]),
+      ...(p.soloMedianUploadS === null ? [] : [["Upload, alone", wallText(p.soloMedianUploadS)] as const]),
+      ...(p.roundAllDoneS.length === 0 ? [] : [roundsText(p, size)]),
     ],
   }));
 }
@@ -62,7 +78,7 @@ export function RealtaskBurstChart({ data }: { data: RealtaskBurst }) {
   return (
     <Card>
       <ChartHead title={title} sub={`${data.size} Fix and test tasks started together, ${data.rounds} rounds · 4 vCPU, 8 GB · Median seconds per task · Tag: time at 5 at once ÷ time alone · Lower is better`} />
-      <Columns columns={columnsOf(timed, marks)} label={`${title}: time to finish by provider`} />
+      <Columns columns={columnsOf(timed, marks, data.size)} label={`${title}: time to finish by provider`} />
       <NotOnChart ids={missing.map((m) => m.id)} />
       <Footnotes
         items={[

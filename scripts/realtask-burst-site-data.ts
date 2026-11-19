@@ -56,7 +56,7 @@ export function plainReason(stage: string, reason: string): string {
     return typeof d.detail === "string" ? `${step}: ${firstSentence(d.detail)}` : step;
   }
   const check = /^check-failed: (test-[a-z]+)/.exec(reason);
-  if (check) return `the test run failed (${check[1]}, Vue's timing-sensitive Suspense test)`;
+  if (check) return `a test step failed (${check[1]})`;
   return `${stage}: ${firstSentence(reason)}`;
 }
 
