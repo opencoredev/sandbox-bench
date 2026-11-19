@@ -270,11 +270,15 @@ function ByTrack({ id, r, children }: { id: ProviderPageId; r: ReturnType<typeof
   );
 }
 
-/** One term and its value, label left and value right, so a long value wraps under itself. */
+/**
+ * One term and its value, label left and value right, so a long value wraps under itself.
+ * On the narrowest phones the value goes under its label, and an unbroken string such as an
+ * error class name may break anywhere rather than run past the column.
+ */
 const Row = ({ term, children }: { term: string; children: ReactNode }) => (
-  <div className="grid grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)] gap-x-m sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
+  <div className="grid gap-x-m gap-y-xxs min-[420px]:grid-cols-[minmax(0,8.5rem)_minmax(0,1fr)] sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
     <dt className="text-s text-neutral-7">{term}</dt>
-    <dd className="text-s text-pretty text-neutral-10">{children}</dd>
+    <dd className="text-s text-pretty [overflow-wrap:anywhere] text-neutral-10">{children}</dd>
   </div>
 );
 
