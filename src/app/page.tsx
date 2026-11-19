@@ -12,6 +12,8 @@ import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/components/realistic";
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
+import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { latestUpdates, updateDay } from "@/lib/updates";
 import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
@@ -588,6 +590,17 @@ export default function Page() {
             <span>Early results from {realistic.coverage.headline.attempts} runs per provider. What each task costs is under Cost.</span>
           </p>
           <PerTrack>{(track) => <RealTasks track={track} />}</PerTrack>
+          <div id={realtaskBurstSection} className="mt-l scroll-mt-24">
+            <PerTrack>
+              {(track) =>
+                track.id === "same-spec" ? (
+                  <RealtaskBurstChart data={realtaskBurst} />
+                ) : (
+                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                )
+              }
+            </PerTrack>
+          </div>
         </Section>
 
         <Section id="agent" title="Tool calls and agent steps" lede="The single steps a coding agent repeats: 100 tool calls in a row, package installs, a clone, a dev server and its preview.">

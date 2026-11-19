@@ -27,6 +27,9 @@ export type BurstProvider =
       solo: { tasks: BurstTask[]; completed: number; attempts: number } | null;
       soloMedianWallS: number | null;
       slowdown: number | null;
+      slowdownWithoutUpload: number | null;
+      /** Why no change from alone is shown, when the data holds one back. */
+      changeNote: string | null;
       /** Uploading the toolchain from our machine, part of every task's time. */
       medianUploadS: number | null;
       soloMedianUploadS: number | null;
@@ -96,6 +99,8 @@ function parseProvider(v: unknown, path: string): BurstProvider {
     solo: parseSolo(o.solo, `${path}.solo`),
     soloMedianWallS: orNull(num)(o.soloMedianWallS, `${path}.soloMedianWallS`),
     slowdown: orNull(num)(o.slowdown, `${path}.slowdown`),
+    slowdownWithoutUpload: orNull(num)(o.slowdownWithoutUpload, `${path}.slowdownWithoutUpload`),
+    changeNote: orNull(str)(o.changeNote, `${path}.changeNote`),
     medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
     soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
   };

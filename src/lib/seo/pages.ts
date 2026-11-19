@@ -88,6 +88,7 @@ const contentDates = {
   "/updates/beam-added/": "2026-11-19",
   "/updates/real-tasks-timed/": "2026-11-19",
   "/updates/instabox-added/": "2026-11-19",
+  "/updates/real-tasks-at-once/": "2026-11-19",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */

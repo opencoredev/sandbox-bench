@@ -51,7 +51,7 @@ describe("real tasks at once", () => {
     const text = renderToStaticMarkup(<RealtaskBurstChart data={parseRealtaskBurst(fixture)} />).replace(/<[^>]+>/g, " ");
     assert.match(text, /Fix and test, 2 at once/);
     assert.match(text, /No result for/);
-    assert.match(text, /1 of 2 tasks failed \(work: tests timed out\)/);
+    assert.match(text, /1 of 2 tasks failed \(tests timed out\)/);
     assert.match(text, /not run: the account allows 10 vCPU/);
   });
 });

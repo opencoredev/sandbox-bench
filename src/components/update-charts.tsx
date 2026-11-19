@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { MetricChart } from "@/components/metric-chart";
 import { RealTaskHeadline, taskTimes } from "@/components/real-tasks";
+import { RealtaskBurstChart } from "@/components/realtask-burst";
 import { ordinal, SectionTitle } from "@/components/seo/page-parts";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
@@ -11,6 +12,7 @@ import type { ProviderId } from "@/lib/providers";
 import { profileIds, profileInfo } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { providerTrack } from "@/lib/seo/provider";
 import type { UpdateCharts as Charts } from "@/lib/updates";
 
@@ -129,6 +131,12 @@ export function UpdateCharts({ charts }: { charts: Charts }) {
       return trackIds
         .filter((track) => tracks[track].providers.some((p) => p.id === charts.provider))
         .map((track) => <ProviderTrack key={track} id={charts.provider} track={track} />);
+    case "realtask-burst":
+      return (
+        <section className="pt-xxl">
+          <RealtaskBurstChart data={realtaskBurst} />
+        </section>
+      );
     default: {
       const _exhaustive: never = charts;
       return _exhaustive;

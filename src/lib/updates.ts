@@ -12,7 +12,9 @@ export type UpdateCharts =
   /** The real-task time charts, Fix and test and Build, on these tracks. */
   | { kind: "real-tasks"; tracks: readonly [TrackId, ...TrackId[]] }
   /** A provider's standing on the headline metrics, on both tracks. */
-  | { kind: "provider"; provider: ProviderPageId };
+  | { kind: "provider"; provider: ProviderPageId }
+  /** Fix and test, several at once on each provider, on the same machine. */
+  | { kind: "realtask-burst" };
 
 export interface Update {
   /** The page's address under /updates/. */
@@ -30,6 +32,19 @@ export interface Update {
 }
 
 export const updates = [
+  {
+    slug: "real-tasks-at-once",
+    date: "2026-11-19",
+    title: "Real tasks, 5 at once",
+    text: "Fix and test started 5 at a time on each provider. Most stay within 10% of one task alone; Luxor finished only 2 of 10.",
+    body: [
+      "A fleet of agents runs real work in parallel, so we started the Fix and test task 5 at a time on each provider, on 4 vCPU and 8 GB, in two rounds, and compared it with the same task run alone in the same hour.",
+      "Most providers took within about 10% of their time alone, which two runs alone can't tell apart from no change. Superserve and Vercel slowed the most, about 1.1 times. Luxor finished only 2 of 10: the other 8 failed while uploading the toolchain, which works when one task runs alone. Upstash Ephemeral failed Vue's timing-sensitive Suspense test twice.",
+      "Daytona didn't run: our account allows 10 vCPU, and 5 tasks at 4 vCPU need 20. These runs measure time only and add nothing to the cost charts.",
+    ],
+    charts: { kind: "realtask-burst" },
+    home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
+  },
   {
     slug: "every-provider-on-real-tasks",
     date: "2026-11-18",
