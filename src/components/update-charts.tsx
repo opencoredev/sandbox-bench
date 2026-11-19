@@ -106,14 +106,14 @@ function ProviderTrack({ id, track }: { id: ProviderId; track: TrackId }) {
       <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">{trackInfo[track].description}</p>
       <div className="grid gap-m md:grid-cols-2">
         <ChartCard marker="var(--color-2)" title="Cold start" sub={short} standing={<MetricStanding id={id} track={track} metric="cold" />}>
-          <MetricChart track={t} metric={t.metric("cold")} what="" compact />
+          <MetricChart track={t} metric={t.metric("cold")} what="" compact highlight={id} />
         </ChartCard>
         <ChartCard marker="var(--color-3)" title="100 tool calls" sub={short} standing={<MetricStanding id={id} track={track} metric="tool-replay" />}>
-          <MetricChart track={t} metric={t.metric("tool-replay")} what="" compact />
+          <MetricChart track={t} metric={t.metric("tool-replay")} what="" compact highlight={id} />
         </ChartCard>
         {profileIds.map((profile) => (
           <ChartCard key={profile} marker="var(--color-3)" title={`Real task: ${profileInfo[profile].label.toLowerCase()}`} sub={realTaskSub} standing={<TaskStanding id={id} track={track} profile={profile} />}>
-            <RealTaskHeadline track={t} profile={profile} />
+            <RealTaskHeadline track={t} profile={profile} highlight={id} />
           </ChartCard>
         ))}
       </div>
