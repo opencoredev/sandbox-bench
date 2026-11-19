@@ -6,6 +6,9 @@ import { formatValue } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
+import type { ProfileId } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 
 /**
  * One provider's results as a page reads them. Everything comes from
@@ -134,6 +137,40 @@ export function headline(t: ProviderTrack, metricId: string) {
   const row = t.groups.flatMap((g) => g.rows).find((r) => r.id === metricId);
   if (!row || row.standing.kind !== "ranked") return null;
   return { label: row.label, median: row.standing.median, rank: row.standing.rank, of: row.standing.of, tied: row.standing.tiedWith.length > 0 };
+}
+
+/** One provider's place on a real-task chart: its value and rank, or why it has none. */
+export type Placing = { kind: "ranked"; value: string; rank: number; of: number } | { kind: "blank"; why: string };
+
+const notInPilot = "not in the realistic pilot";
+
+/**
+ * A provider's median time on a real-task workload, ranked fastest first among
+ * the providers with a completed run, the order the home page's chart draws.
+ */
+export function realTaskTime(trackId: TrackId, id: ProviderId, profile: ProfileId): Placing {
+  const { costed, uncosted } = headlineRows(realistic, runTrackOf[trackId], profile);
+  const rows = [...costed, ...uncosted];
+  const mine = rows.find((r) => r.provider === id);
+  if (!mine) return { kind: "blank", why: notInPilot };
+  if (mine.medianWallS === null) return { kind: "blank", why: mine.completed === 0 ? noCostReason(mine) : "no completed run" };
+  const own = mine.medianWallS;
+  const timed = rows.flatMap((r) => (r.medianWallS === null ? [] : [r.medianWallS]));
+  return { kind: "ranked", value: formatValue(own, "s"), rank: timed.filter((v) => v < own).length + 1, of: timed.length };
+}
+
+/**
+ * A provider's cost per 1,000 completed tasks on a real-task workload, ranked
+ * cheapest first among the costed providers, with why it can't be the pick
+ * (too many failed runs, or the wrong machine size), if it can't.
+ */
+export function realTaskCost(trackId: TrackId, id: ProviderId, profile: ProfileId): Placing & { notCounted: string[] } {
+  const { costed, uncosted } = headlineRows(realistic, runTrackOf[trackId], profile);
+  const index = costed.findIndex((r) => r.provider === id);
+  const mine = costed[index];
+  if (mine) return { kind: "ranked", value: perThousand(mine.cost.usdPerCompleted), rank: index + 1, of: costed.length, notCounted: notCountedWhy(mine) };
+  const row = uncosted.find((r) => r.provider === id);
+  return { kind: "blank", why: row ? noCostReason(row) : notInPilot, notCounted: [] };
 }
 
 /** A track's pause and resume result in a few words: the measured split, the site's note, or whether it is supported. */

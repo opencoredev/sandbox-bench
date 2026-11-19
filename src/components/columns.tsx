@@ -81,6 +81,17 @@ const describe = (column: Column, bar: Bar, still = false) =>
 const pageOf = (column: Column, linked: boolean) => (linked && isProviderPage(column.provider) ? providerPath(column.provider) : undefined);
 
 /**
+ * How a column stands against the chart's highlighted provider, if any: the
+ * provider itself is marked, the rest dimmed (globals.css, `.chart-col[data-dim]`).
+ * With no highlight, neither attribute is set, so the chart draws as before.
+ */
+function emphasis(column: Column, highlight: ProviderId | undefined) {
+  if (highlight === undefined) return { own: false, attrs: {} };
+  const own = column.provider === highlight;
+  return { own, attrs: own ? { "data-highlight": "" } : { "data-dim": "" } };
+}
+
+/**
  * How a column takes part in the page. A full chart's column is a focus stop
  * that may open a time breakdown; a compact one is a focus stop for its card,
  * or, in a headline chart (`linked`), a link to the provider's page.
@@ -140,7 +151,7 @@ const Card = ({ column, still, linked, className, style }: { column: Column; sti
  * Analysis draws them: value on top, name underneath. Flat marks in the
  * provider's colour, rounded at the data end and square on the baseline.
  */
-function Vertical({ columns, max, still = false, linked = false }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean }) {
+function Vertical({ columns, max, still = false, linked = false, highlight }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean; highlight?: ProviderId }) {
   return (
     <>
       {/* A compact chart's names run diagonally to the left of their columns, so it leaves room on the left. */}
@@ -152,14 +163,16 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
           const anchor =
             index < 2 ? "left-0" : index >= columns.length - 2 ? "right-0" : "left-1/2 -translate-x-1/2";
           const Tag = still && pageOf(column, linked) ? "a" : "div";
+          const { own, attrs } = emphasis(column, highlight);
           return (
             <Tag
               key={column.provider}
               aria-label={describe(column, bar, still)}
               {...target(column, still, linked)}
+              {...attrs}
               className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
             >
-              <span className="mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums">
+              <span className={`mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums ${own ? "font-bold" : ""}`}>
                 {column.label}
               </span>
               {/* Stacked parts sit 2px apart in the card colour; only the top one is rounded. */}
@@ -192,7 +205,7 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
         {columns.map((column) => (
           <span
             key={column.provider}
-            className={`relative block min-w-0 flex-1 px-0.5 text-center text-neutral-8 ${still ? "text-xxs" : "text-xs"}`}
+            className={`relative block min-w-0 flex-1 px-0.5 text-center ${emphasis(column, highlight).own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}
           >
             {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
                 no room for 14 names side by side, so its names run diagonally down to the left from under the mark. */}
@@ -223,7 +236,7 @@ function Vertical({ columns, max, still = false, linked = false }: { columns: re
  * The same data as horizontal bars, one row per provider, so every name
  * reads level however narrow the card. Used for compact charts and phones.
  */
-function Horizontal({ columns, max, still = false, linked = false }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean }) {
+function Horizontal({ columns, max, still = false, linked = false, highlight }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean; highlight?: ProviderId }) {
   // Values sit in one right-aligned column wide enough for the longest label.
   const valueWidth = `${Math.max(...columns.map((c) => c.label.length), 3) + 0.5}ch`;
   return (
@@ -231,14 +244,16 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
       {columns.map((column) => {
         const bar = layout(column, max);
         const Tag = still && pageOf(column, linked) ? "a" : "div";
+        const { own, attrs } = emphasis(column, highlight);
         return (
           <Tag
             key={column.provider}
             aria-label={describe(column, bar, still)}
             {...target(column, still, linked)}
+            {...attrs}
             className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className="line-clamp-2 text-s leading-[1.1] text-neutral-8 sm:text-xs">
+            <span aria-hidden className={`line-clamp-2 text-s leading-[1.1] sm:text-xs ${own ? "font-bold text-neutral-10" : "text-neutral-8"}`}>
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
@@ -257,7 +272,7 @@ function Horizontal({ columns, max, still = false, linked = false }: { columns: 
             </div>
             <span
               aria-hidden
-              className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs"
+              className={`text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs ${own ? "font-bold" : ""}`}
               style={{ width: valueWidth }}
             >
               {column.label}
@@ -293,12 +308,15 @@ export function Columns({
   label,
   compact = false,
   linked = false,
+  highlight,
 }: {
   columns: readonly Column[];
   label: string;
   compact?: boolean;
   /** A headline chart: each compact column links to its provider's page. */
   linked?: boolean;
+  /** A provider page's chart: this provider's column stays at full colour with its name in bold, and the others dim. */
+  highlight?: ProviderId;
 }) {
   const max = axisMax(columns);
   const cut = columns.some((c) => total(c) > max);
@@ -308,10 +326,10 @@ export function Columns({
           566px gets bars: phones, the headline cards below 1280px, the Machines size charts.
           A compact chart's columns link to each provider's page and show their card on hover or focus. */}
       <div className="@min-[566px]:hidden">
-        <Horizontal columns={columns} max={max} still={compact} linked={linked} />
+        <Horizontal columns={columns} max={max} still={compact} linked={linked} highlight={highlight} />
       </div>
       <div className="hidden @min-[566px]:block">
-        <Vertical columns={columns} max={max} still={compact} linked={linked} />
+        <Vertical columns={columns} max={max} still={compact} linked={linked} highlight={highlight} />
       </div>
     </figure>
   );

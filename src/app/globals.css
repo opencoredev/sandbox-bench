@@ -185,9 +185,29 @@
     opacity: 0;
   }
 }
+/*
+ * A provider page's charts (Columns `highlight`): every bar but that provider's rests faded, the
+ * same fade as above, and comes up to full colour while it is the one pointed at or focused.
+ */
+.chart-col[data-dim] .chart-fade {
+  opacity: 0.35;
+}
+.chart-col[data-dim]:focus-visible .chart-fade {
+  opacity: 1;
+}
+@media (hover: hover) {
+  .chart-col[data-dim]:hover .chart-fade {
+    opacity: 1;
+  }
+}
 @media (forced-colors: active) {
   .chart-cols .chart-col .chart-fade {
     opacity: 1;
+  }
+  /* With no fade to set it apart, the highlighted bar gets an outline in the system's text colour. */
+  .chart-col[data-highlight] .chart-fade {
+    outline: 2px solid CanvasText;
+    outline-offset: 1px;
   }
 }
 

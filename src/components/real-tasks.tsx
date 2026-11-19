@@ -97,12 +97,12 @@ export function RealTasks({ track }: { track: Track }) {
 }
 
 /** A headline card's chart: one workload's times, with its marks and missing providers in one small block. */
-export function RealTaskHeadline({ track, profile }: { track: Track; profile: ProfileId }) {
+export function RealTaskHeadline({ track, profile, highlight }: { track: Track; profile: ProfileId; /** A provider page's chart: this provider stays bright and the rest dim. */ highlight?: ProviderId }) {
   const { timed, missing } = taskTimes(track, profile);
   const marks = marksFor(track, timed);
   return (
     <>
-      <Columns columns={columnsOf(timed, marks)} label={`${profileInfo[profile].label}: time to finish by provider`} compact linked />
+      <Columns columns={columnsOf(timed, marks)} label={`${profileInfo[profile].label}: time to finish by provider`} compact linked highlight={highlight} />
       <CompactNotes
         items={[
           ...[...marks].map(([id, m]) => ({ mark: m.mark, id, note: m.note })),
