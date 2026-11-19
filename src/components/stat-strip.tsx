@@ -3,12 +3,14 @@ import { ArrowUpRight } from "lucide-react";
 import { JumpLink } from "@/components/jump";
 import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
+import { realTasksSection, taskTimes } from "@/components/real-tasks";
+import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { pauses, resumeOf } from "@/lib/pause";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { perThousand, pickFor, runTrackOf } from "@/lib/realistic";
+import { perThousand, pickFor, profileInfo, runTrackOf } from "@/lib/realistic";
+import type { ProfileId } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 
 interface Stat {
@@ -30,16 +32,24 @@ function fastest(track: Track, id: string) {
   return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
 }
 
+const pilot = `Pilot, ${realistic.coverage.headline.attempts} runs per provider`;
+
+/** The provider that finished a real task fastest, by median time from create to confirmed delete. */
+function fastestTask(track: Track, profile: ProfileId): Omit<Stat, "section" | "tab"> | null {
+  const [best] = taskTimes(track, profile).timed;
+  return best ? { label: `Fastest ${profileInfo[profile].label.toLowerCase()}`, provider: best.provider, value: `${formatShort(best.medianWallS, "s")}s`, caption: pilot } : null;
+}
+
 /**
- * The cost tile: fix and test, the realistic workload closest to everyday
- * agent work, rather than the quick synthetic task. It shows the cheapest
- * provider, or nothing when none finished enough runs.
+ * A real task's cheapest provider per 1,000, by the cost chart's own pick: on
+ * Same machine only a provider that measured 4 vCPU and 8 GB counts. Nothing
+ * when none finished enough runs.
  */
-function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
-  const p = pickFor(realistic, runTrackOf[track.id], "fix-and-test");
+function costTile(track: Track, profile: ProfileId): Omit<Stat, "section" | "tab"> | null {
+  const p = pickFor(realistic, runTrackOf[track.id], profile);
   switch (p.kind) {
     case "picked":
-      return { label: "Cheapest fix and test, per 1,000", provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), caption: `Pilot, ${realistic.coverage.headline.attempts} runs per provider` };
+      return { label: `Cheapest ${profileInfo[profile].label.toLowerCase()}, per 1,000`, provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), caption: pilot };
     case "none":
     case "empty":
       return null;
@@ -50,24 +60,16 @@ function costTile(track: Track): Omit<Stat, "section" | "tab"> | null {
   }
 }
 
+/** The real tasks lead, time then cost, then the wait before an agent can do anything. */
 function stats(track: Track): Stat[] {
+  const tile = (stat: Omit<Stat, "section" | "tab"> | null, section: string, tab: string): Stat[] => (stat ? [{ ...stat, section, tab }] : []);
   const cold = fastest(track, "cold");
-  const replay = fastest(track, "tool-replay");
-  const restore = fastest(track, "create-from-snapshot");
-  const cost = costTile(track);
-  // The Resume tab's ranking: a resume call's, or the first command after a sandbox went on standby by itself.
-  const resume = pauses(track)
-    .flatMap(({ p, r }) => {
-      const v = resumeOf(r);
-      return v === null ? [] : [{ provider: p.id, resume: v, standby: r.kind === "standby" }];
-    })
-    .sort((a, b) => a.resume - b.resume)[0];
   return [
-    ...(cold ? [{ label: "Fastest cold start", ...cold, section: "startup", tab: "cold" }] : []),
-    ...(replay ? [{ label: "Fastest 100 tool calls", ...replay, section: "agent", tab: "tool-replay" }] : []),
-    ...(cost ? [{ ...cost, section: "task-cost", tab: "fix-and-test" }] : []),
-    ...(restore ? [{ label: "Fastest snapshot start", ...restore, section: "state", tab: "create-from-snapshot" }] : []),
-    ...(resume ? [{ label: "Fastest resume", provider: resume.provider, value: `${formatShort(resume.resume, "s")}s`, ...(resume.standby ? { caption: "No pause button: it sleeps when idle, and this is the time to wake it" } : {}), section: "state", tab: "resume" }] : []),
+    ...tile(fastestTask(track, "fix-and-test"), realTasksSection, "fix-and-test"),
+    ...tile(fastestTask(track, "build"), realTasksSection, "build"),
+    ...tile(costTile(track, "fix-and-test"), taskCostSection, "fix-and-test"),
+    ...tile(costTile(track, "build"), taskCostSection, "build"),
+    ...tile(cold ? { label: "Fastest cold start", ...cold } : null, "startup", "cold"),
   ];
 }
 

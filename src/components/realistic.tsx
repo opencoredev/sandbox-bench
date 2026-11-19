@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Break, Columns, axisMax, layout } from "@/components/columns";
 import type { Bar, Column } from "@/components/columns";
 import { Disclosure } from "@/components/disclosure";
-import { ChartHead, Footnotes, Who, sentence } from "@/components/metric-chart";
+import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { markFill } from "@/lib/marks";
@@ -346,6 +346,59 @@ export function TaskCost({ track }: { track: Track }) {
       section={taskCostSection}
       tabs={profileIds.map((profile) => ({ id: profile, label: profileInfo[profile].label, content: <ProfileChart track={track} profile={profile} /> }))}
     />
+  );
+}
+
+/** The cheapest provider in a few words, for a headline chart's label. */
+function CheapestShort({ costed }: { costed: readonly Costed[] }) {
+  const p = taskPick(costed);
+  switch (p.kind) {
+    case "picked":
+      return (
+        <>
+          cheapest <Who id={p.pick.provider} /> <span className="font-mono tabular-nums">{perThousand(p.pick.cost.usdPerCompleted)}</span>
+        </>
+      );
+    case "none":
+      return <>{p.label.toLowerCase()}</>;
+    case "empty":
+      return <>no costs yet</>;
+    default: {
+      const _exhaustive: never = p;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * The headline card's chart: both workloads' cost per 1,000 on one track, each
+ * a compact chart, with a cheaper bar that can't count and the providers with
+ * no cost in one small block under it.
+ */
+export function TaskCostHeadline({ track }: { track: Track }) {
+  const run = runTrackOf[track.id];
+  return (
+    <div className="grid gap-l md:grid-cols-2">
+      {profileIds.map((profile) => {
+        const { costed, uncosted } = headlineRows(realistic, run, profile);
+        const p = taskPick(costed);
+        const lower = p.kind === "empty" ? [] : p.lower;
+        return (
+          <div key={profile} className="min-w-0">
+            <p className="mb-s text-s text-pretty text-neutral-7">
+              <span className="font-medium text-neutral-10">{profileInfo[profile].label}</span> · <CheapestShort costed={costed} />
+            </p>
+            {costed.length > 0 ? <Columns columns={columnsOf(costed, track.id)} label={`${profileInfo[profile].label}: cost per 1,000 completed tasks by provider`} compact linked /> : null}
+            <CompactNotes
+              items={[
+                ...lower.map((r) => ({ mark: undefined, id: r.provider, note: `not counted as cheapest: ${lowerWhy(r)}` })),
+                ...uncosted.map((r) => ({ mark: undefined, id: r.provider, note: `no cost (${noCostReason(r)})` })),
+              ]}
+            />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

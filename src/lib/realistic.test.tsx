@@ -42,12 +42,14 @@ import {
   parseCoverage,
   parseRealistic,
   pickFor,
+  perThousand,
   isCounted,
   notCountedWhy,
   pickLabels,
   pilotLine,
   profileIds,
   readFlag,
+  runTrackOf,
   runTracks,
   scopeLine,
   statusTag,
@@ -932,5 +934,19 @@ describe("page", () => {
     // The pilot caption is its own line at the foot of the tile, never cut by the provider's name.
     assert.match(html, />Pilot, 5 runs per provider<\/span>/);
     assert.doesNotMatch(html, /verified/i);
+  });
+
+  test("the stat tiles lead with the real tasks, then cold start, each from the data", () => {
+    for (const track of Object.values(tracks)) {
+      const html = renderToStaticMarkup(<StatStrip track={track} />);
+      const labels = [...html.matchAll(/text-neutral-7">([^<]+)<svg/g)].map((m) => m[1]);
+      assert.deepEqual(labels, ["Fastest fix and test", "Fastest build", "Cheapest fix and test, per 1,000", "Cheapest build, per 1,000", "Fastest cold start"], track.id);
+      for (const profile of profileIds) {
+        const pick = pickFor(realistic, runTrackOf[track.id], profile);
+        assert.equal(pick.kind, "picked");
+        if (pick.kind === "picked") assert.ok(html.includes(perThousand(pick.pick.cost.usdPerCompleted)), `${track.id} ${profile} cheapest`);
+      }
+      assert.doesNotMatch(html, /snapshot|resume|tool calls/i);
+    }
   });
 });

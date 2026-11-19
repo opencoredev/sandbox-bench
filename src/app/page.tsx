@@ -7,13 +7,13 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { ByLocation } from "@/components/by-location";
-import { CostPerTaskChart, NoCostResults, costColumns } from "@/components/cost";
+import { CostPerTaskChart, NoCostResults } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
-import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
+import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/components/realistic";
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
 import { latestUpdates, updateDay } from "@/lib/updates";
-import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
+import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
 import { Reliability } from "@/components/reliability";
@@ -278,13 +278,14 @@ function probeNotes(track: Track): Notes {
   return track.providers.some((p) => p.id === "superserve") && (!v || v.n === 0) ? { superserve: probeNote } : {};
 }
 
-/** A headline card. The whole card is a link that opens its section on the matching tab. */
+/** A headline card. Its title opens its section on the matching tab; a wide card spans the row. */
 function Headline({
   marker,
   title,
   sub,
   section,
   tab,
+  wide = false,
   children,
 }: {
   marker: string;
@@ -292,11 +293,12 @@ function Headline({
   sub: string;
   section: string;
   tab: string;
+  wide?: boolean;
   children: ReactNode;
 }) {
   // The title opens the full chart; each column inside opens its provider's page, so the card itself isn't a link.
   return (
-    <div className="surface flex min-w-0 flex-col p-m sm:p-l">
+    <div className={`surface flex min-w-0 flex-col p-m sm:p-l ${wide ? "md:col-span-2" : ""}`}>
       <h2 className="font-brand text-l font-medium">
         <JumpLink section={section} tab={tab} className="group focus-ring flex items-center gap-xs rounded-xs">
           <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
@@ -310,39 +312,27 @@ function Headline({
   );
 }
 
+/** The real tasks lead: their times, then what they cost across the row, then cold start and tool calls. */
 function Headlines({ track }: { track: Track }) {
   const cold = track.metric("cold");
   const replay = track.metric("tool-replay");
-  const restore = track.metric("create-from-snapshot");
-  const { columns, marks } = costColumns(track);
-  const machine = allocationNotes(track);
   const short = "Median s · lower is better";
   return (
     <div className="grid gap-m md:grid-cols-2">
-      <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
-        <MetricChart track={track} metric={cold} what="" compact />
-      </Headline>
-      <Headline marker="var(--color-3)" title="100 tool calls" sub={short} section="agent" tab="tool-replay">
-        <MetricChart track={track} metric={replay} what="" compact />
-      </Headline>
       <Headline marker="var(--color-3)" title="Real task: fix and test" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="fix-and-test">
         <RealTaskHeadline track={track} profile="fix-and-test" />
       </Headline>
       <Headline marker="var(--color-3)" title="Real task: build" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="build">
         <RealTaskHeadline track={track} profile="build" />
       </Headline>
-      <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
-        {hasTaskCosts(track) ? (
-          <>
-            <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked />
-            <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
-          </>
-        ) : (
-          <NoCostResults compact />
-        )}
+      <Headline marker="var(--color-1)" title="Real task cost, per 1,000" sub="Fix and test and Build · Create to delete · USD · lower is better" section={taskCostSection} tab="fix-and-test" wide>
+        <TaskCostHeadline track={track} />
       </Headline>
-      <Headline marker="var(--color-4)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
-        <MetricChart track={track} metric={restore} what="" compact notes={mergeNotes(blockedNotes(track, "create-from-snapshot"), notRunNotes(track, "create-from-snapshot"))} />
+      <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
+        <MetricChart track={track} metric={cold} what="" compact />
+      </Headline>
+      <Headline marker="var(--color-3)" title="100 tool calls" sub={short} section="agent" tab="tool-replay">
+        <MetricChart track={track} metric={replay} what="" compact />
       </Headline>
     </div>
   );
@@ -358,7 +348,7 @@ function Facts({ track }: { track: Track }) {
   return (
     <>
       <p className="mt-m max-w-[40ch] text-l text-pretty text-neutral-10">
-        Independent benchmarks of cloud sandboxes for AI agents: start-up, real coding tasks, tool calls and cost.
+        Independent benchmarks of cloud sandboxes for AI agents: real coding tasks, start-up, tool calls and cost.
       </p>
       <p className="mt-m flex flex-wrap gap-x-m gap-y-xxs text-s text-neutral-7">
         {facts.map((f) => (
