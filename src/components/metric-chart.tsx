@@ -98,6 +98,7 @@ export function MetricChart({
   only,
   compact = false,
   empty = "Not collected in this release.",
+  highlight,
 }: {
   track: Track;
   metric: Metric;
@@ -110,6 +111,8 @@ export function MetricChart({
   compact?: boolean;
   /** What a chart with no results says instead. */
   empty?: string;
+  /** A provider page's chart: this provider stays bright and the rest dim. */
+  highlight?: ProviderId;
 }) {
   if (metric.values.length === 0)
     return compact ? (
@@ -160,7 +163,7 @@ export function MetricChart({
   return (
     <>
       {compact ? null : <ChartHead title={title} sub={metricSubtitle(metric, what)} />}
-      <Columns columns={columns} label={title} compact={compact} linked={compact} />
+      <Columns columns={columns} label={title} compact={compact} linked={compact} highlight={highlight} />
       {compact ? (
         <CompactNotes
           items={[
