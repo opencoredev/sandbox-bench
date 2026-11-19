@@ -376,16 +376,29 @@ function Updates() {
         Latest updates
       </h2>
       {/* Phones show the latest one, so the results stay near the top. */}
-      {updates.map((u, i) => (
-        <a key={u.title} href={u.href} className={`group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`}>
-          <span className="text-xs font-medium text-accent">Update · {u.date}</span>
-          <span className="flex items-start justify-between gap-s text-m font-medium">
-            <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
-            <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
-          </span>
-          <span className="text-s text-pretty text-neutral-7">{u.text}</span>
-        </a>
-      ))}
+      {updates.map((u, i) => {
+        const className = `group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`;
+        const body = (
+          <>
+            <span className="text-xs font-medium text-accent">Update · {u.date}</span>
+            <span className="flex items-start justify-between gap-s text-m font-medium">
+              <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+              <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+            </span>
+            <span className="text-s text-pretty text-neutral-7">{u.text}</span>
+          </>
+        );
+        // A tab on this page goes through JumpLink, so a second click on the same update still scrolls there.
+        return "href" in u ? (
+          <a key={u.title} href={u.href} className={className}>
+            {body}
+          </a>
+        ) : (
+          <JumpLink key={u.title} section={u.section} tab={u.tab} className={className}>
+            {body}
+          </JumpLink>
+        );
+      })}
     </section>
   );
 }

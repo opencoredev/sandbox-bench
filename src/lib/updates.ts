@@ -4,19 +4,16 @@
  * changes, and drop the oldest. Every claim here must match the charts it
  * links to.
  */
-export interface Update {
-  date: string;
-  title: string;
-  text: string;
-  href: string;
-}
+/** A page by path, or a section and one of its tabs on the home page. */
+export type Update = { date: string; title: string; text: string } & ({ href: string } | { section: string; tab: string });
 
 export const updates: readonly Update[] = [
   {
     date: "Nov 18",
     title: "Every provider on real tasks",
     text: "Luxor and Superserve reran with 20 GB disks, so every provider now has results for both real tasks on the Same machine track (boxd's nearest size has 16 GB).",
-    href: "#real-tasks/build",
+    section: "real-tasks",
+    tab: "build",
   },
   {
     date: "Nov 18",
@@ -28,6 +25,7 @@ export const updates: readonly Update[] = [
     date: "Nov 18",
     title: "Real tasks, timed",
     text: "Fix and test and Build get their own time-to-finish charts, from create to confirmed delete, beside what each costs.",
-    href: "#real-tasks/fix-and-test",
+    section: "real-tasks",
+    tab: "fix-and-test",
   },
 ];
