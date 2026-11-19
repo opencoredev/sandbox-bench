@@ -7,11 +7,15 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
 import { ByLocation } from "@/components/by-location";
-import { CostPerTaskChart, NoCostResults, costColumns } from "@/components/cost";
+import { CostPerTaskChart, NoCostResults } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
-import { IdleChart, TaskCost, taskCostSection } from "@/components/realistic";
-import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
+import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/components/realistic";
+import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
+import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
+import { latestUpdates, updateDay } from "@/lib/updates";
+import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
 import { Reliability } from "@/components/reliability";
@@ -22,6 +26,7 @@ import { JumpLink } from "@/components/jump";
 import { HomeJsonLd } from "@/components/seo/home-json-ld";
 import { HomeLinks } from "@/components/seo/home-links";
 import { homeMetadata } from "@/lib/seo/home";
+import { updatePath, updatesPath } from "@/lib/seo/pages";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
@@ -59,17 +64,19 @@ import { advertised } from "@/lib/sizes";
 // Avoiding: poster-sized hero, intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
+// Speed first, in the order an agent meets it, then cost, then what explains the numbers.
 const sections = [
-  ["locations", "Locations", "combined"],
   ["startup", "Start-up", "cold"],
-  ["agent", "Agents", "tool-replay"],
-  ["everyday", "Everyday"],
+  ["real-tasks", "Real tasks", "fix-and-test"],
+  ["agent", "Tool calls", "tool-replay"],
+  // Everyday calls has no item of its own: it follows Tool calls, which stays lit through both, so the bar fits beside the switch.
   ["state", "Snapshots", "create-from-snapshot"],
   ["scale", "Bursts", "burst-10"],
-  ["machines", "Machines"],
-  ["reliability", "Reliability"],
   // "Cost" opens What a task costs; the quick task and prices section follows it, so the item stays lit through both.
   ["task-cost", "Cost", "fix-and-test"],
+  ["reliability", "Reliability"],
+  ["machines", "Machines"],
+  ["locations", "Locations", "combined"],
   ["method", "Method"],
 ] as const;
 
@@ -273,13 +280,14 @@ function probeNotes(track: Track): Notes {
   return track.providers.some((p) => p.id === "superserve") && (!v || v.n === 0) ? { superserve: probeNote } : {};
 }
 
-/** A headline card. The whole card is a link that opens its section on the matching tab. */
+/** A headline card. Its title opens its section on the matching tab; a wide card spans the row. */
 function Headline({
   marker,
   title,
   sub,
   section,
   tab,
+  wide = false,
   children,
 }: {
   marker: string;
@@ -287,55 +295,46 @@ function Headline({
   sub: string;
   section: string;
   tab: string;
+  wide?: boolean;
   children: ReactNode;
 }) {
+  // The title opens the full chart; each column inside opens its provider's page, so the card itself isn't a link.
   return (
-    <JumpLink
-      section={section}
-      tab={tab}
-      className="surface group focus-ring flex min-w-0 flex-col p-m transition-colors duration-[var(--motion-duration)] ease-[var(--motion-easing)] hover:bg-neutral-3 motion-reduce:transition-none sm:p-l"
-    >
-      <h2 className="flex items-center gap-xs font-brand text-l font-medium">
-        <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
-        <span className="min-w-0 truncate">{title}</span>
-        <ArrowUpRight
-          aria-hidden
-          className="ml-auto size-5 shrink-0 text-neutral-7 transition-[color,transform] duration-[var(--motion-duration)] ease-[var(--motion-easing)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent motion-reduce:transition-none"
-        />
+    <div className={`surface flex min-w-0 flex-col p-m sm:p-l ${wide ? "md:col-span-2" : ""}`}>
+      <h2 className="font-brand text-l font-medium">
+        <JumpLink section={section} tab={tab} className="group focus-ring flex items-center gap-xs rounded-xs">
+          <span aria-hidden className="size-s shrink-0" style={{ backgroundColor: marker }} />
+          <span className="min-w-0 truncate group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{title}</span>
+          <ArrowUpRight aria-hidden className="ml-auto size-5 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+        </JumpLink>
       </h2>
       <p className="mt-xxs mb-m truncate text-s text-neutral-7">{sub}</p>
       {children}
-    </JumpLink>
+    </div>
   );
 }
 
+/** The real tasks lead: their times, then what they cost across the row, then cold start and tool calls. */
 function Headlines({ track }: { track: Track }) {
   const cold = track.metric("cold");
   const replay = track.metric("tool-replay");
-  const restore = track.metric("create-from-snapshot");
-  const { columns, marks } = costColumns(track);
-  const machine = allocationNotes(track);
   const short = "Median s · lower is better";
   return (
     <div className="grid gap-m md:grid-cols-2">
+      <Headline marker="var(--color-3)" title="Real task: fix and test" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="fix-and-test">
+        <RealTaskHeadline track={track} profile="fix-and-test" />
+      </Headline>
+      <Headline marker="var(--color-3)" title="Real task: build" sub="Create to delete · Median s · lower is better" section={realTasksSection} tab="build">
+        <RealTaskHeadline track={track} profile="build" />
+      </Headline>
+      <Headline marker="var(--color-1)" title="Real task cost, per 1,000" sub="Create to delete · USD · lower is better" section={taskCostSection} tab="fix-and-test" wide>
+        <TaskCostHeadline track={track} />
+      </Headline>
       <Headline marker="var(--color-2)" title="Cold start" sub={short} section="startup" tab="cold">
         <MetricChart track={track} metric={cold} what="" compact />
       </Headline>
-      <Headline marker="var(--color-3)" title="Agent work, 100 tool calls" sub={short} section="agent" tab="tool-replay">
+      <Headline marker="var(--color-3)" title="100 tool calls" sub={short} section="agent" tab="tool-replay">
         <MetricChart track={track} metric={replay} what="" compact />
-      </Headline>
-      <Headline marker="var(--color-1)" title="Quick task cost, per 1,000" sub="Create, 100 tool calls, delete · USD · lower is better" section="cost" tab="task">
-        {hasTaskCosts(track) ? (
-          <>
-            <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact />
-            <CompactNotes items={[...marks].map(([id, mark]) => ({ mark, id, note: machine[id] ?? "" }))} />
-          </>
-        ) : (
-          <NoCostResults compact />
-        )}
-      </Headline>
-      <Headline marker="var(--color-4)" title="Start from snapshot" sub={short} section="state" tab="create-from-snapshot">
-        <MetricChart track={track} metric={restore} what="" compact notes={blockedNotes(track, "create-from-snapshot")} />
       </Headline>
     </div>
   );
@@ -346,46 +345,44 @@ function Facts({ track }: { track: Track }) {
   // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
   const configs = track.providers.length;
   const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
-  const facts = hasResults(track)
-    ? [
-        dayRange(track.window),
-        configs === providers ? `${providers} providers` : `${providers} providers (${configs} configs)`,
-        "2 caller locations: Florida, US & Frankfurt, DE",
-        "100 runs per main test, 20 per location test",
-      ]
-    : ["Coming in the next update", "2 caller locations: Florida, US & Frankfurt, DE"];
+  const count = configs === providers ? `${providers} providers` : `${providers} providers, ${configs} products`;
+  const facts = hasResults(track) ? [count, dayRange(track.window), "From Florida and Frankfurt"] : ["Coming in the next update"];
   return (
-    <div className="flex flex-col gap-s">
-      <p className="text-m text-neutral-7">{facts.join(" · ")}</p>
-      <div className="flex flex-wrap items-center gap-xs text-xs">
-        <span className="mr-xxs text-neutral-7">Caller locations:</span>
-        <JumpLink
-          section="locations"
-          tab="combined"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-10 transition-colors hover:bg-neutral-3"
-        >
-          <span aria-hidden className="size-1.5 rounded-full bg-accent" />
-          All locations (EU-Central vs US-East)
-        </JumpLink>
-        <JumpLink
-          section="locations"
-          tab="eu"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
-        >
-          EU-Central · Frankfurt, DE
-        </JumpLink>
-        <JumpLink
-          section="locations"
-          tab="us-east"
-          className="surface focus-ring inline-flex items-center gap-xxs px-s py-xxs font-mono text-xs text-neutral-8 transition-colors hover:bg-neutral-3 hover:text-neutral-10"
-        >
-          US-East · Florida, US
-        </JumpLink>
-        <span className="inline-flex items-center rounded-s bg-neutral-2 px-s py-xxs font-mono text-xs text-neutral-7">
-          US-West · soon
-        </span>
-      </div>
-    </div>
+    <>
+      <p className="mt-m max-w-[40ch] text-l text-pretty text-neutral-10">
+        Independent benchmarks of cloud sandboxes for AI agents: real coding tasks, start-up, tool calls and cost.
+      </p>
+      <p className="mt-m flex flex-wrap gap-x-m gap-y-xxs text-s text-neutral-7">
+        {facts.map((f) => (
+          <span key={f}>{f}</span>
+        ))}
+      </p>
+    </>
+  );
+}
+
+/** The newest three updates, beside the title. Each opens its own page. */
+function Updates() {
+  return (
+    <section aria-labelledby="updates-title" className="flex flex-col gap-m lg:pt-xs">
+      <h2 id="updates-title" className="sr-only">
+        Latest updates
+      </h2>
+      {/* Phones show the latest one, so the results stay near the top. */}
+      {latestUpdates.map((u, i) => (
+        <a key={u.slug} href={updatePath(u.slug)} className={`group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`}>
+          <span className="text-xs font-medium text-accent">Update · {updateDay(u)}</span>
+          <span className="flex items-start justify-between gap-s text-m font-medium">
+            <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+            <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+          </span>
+          <span className="text-s text-pretty text-neutral-7">{u.text}</span>
+        </a>
+      ))}
+      <a href={updatesPath} className="focus-ring -my-xs self-start rounded-xs py-xs text-s text-neutral-7 underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+        All updates
+      </a>
+    </section>
   );
 }
 
@@ -454,12 +451,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd and Instabox give a usage record, priced at their published rates. Freestyle, Luxor and Baseten use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd and Instabox give a usage record, priced at their published rates. Freestyle, Luxor, Baseten and Beam use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -474,7 +471,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads; our Beam account's 30 vCPU quota keeps its Same machine bursts from running. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Superserve",
@@ -500,22 +497,24 @@ export default function Page() {
       {/* As on Artificial Analysis: no bar behind the header, just the logo and one bar of section links floating over the page.
           A fade from the page colour keeps them readable over the cards scrolling underneath. */}
       <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
-        {/* Wide screens: logo, then the section bar centred on the page between two equal columns. */}
-        <div className="mx-auto flex max-w-[1440px] items-center gap-s xl:grid xl:grid-cols-[1fr_minmax(0,auto)_1fr]">
+        {/* Wide screens: logo, the section bar centred between two equal columns, and the machine switch on the right,
+            where Artificial Analysis keeps its controls. Narrower: logo, then the switch and the sections menu on the right. */}
+        <div className="mx-auto flex max-w-[1440px] items-center gap-s min-[1440px]:grid min-[1440px]:grid-cols-[1fr_minmax(0,auto)_1fr]">
           <a href="#top" className="surface focus-ring flex h-12 shrink-0 items-center justify-self-start px-m" aria-label="Sandbox bench, back to top">
             <Lockup />
           </a>
-          <div className="hidden min-w-0 xl:block">
+          <div className="hidden min-w-0 min-[1440px]:block">
             <SectionLinks sections={sections} />
           </div>
-          {/* The machine switch on the right, where Artificial Analysis keeps its buttons, once there is room for it. */}
-          {showSwitch ? (
-            <div className="hidden justify-self-end min-[1440px]:block">
-              <TrackSwitch size="small" />
+          <div className="ml-auto flex min-w-0 items-center gap-s justify-self-end">
+            {showSwitch ? (
+              <div className="hidden md:block">
+                <TrackSwitch size="small" />
+              </div>
+            ) : null}
+            <div className="min-w-0 min-[1440px]:hidden">
+              <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
             </div>
-          ) : null}
-          <div className="ml-auto min-w-0 xl:hidden">
-            <SectionMenu sections={sections} menuTop={showSwitch ? <TrackSwitch /> : undefined} />
           </div>
         </div>
       </header>
@@ -526,16 +525,21 @@ export default function Page() {
         </p>
       ) : null}
 
-      <main id="top" className="mx-auto max-w-[1440px] px-m sm:px-l">
-        <div className="flex flex-col gap-s pt-l pb-xl lg:pt-xxl">
-          <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
-          <Tracked>{(track) => <Facts track={track} />}</Tracked>
-          {showSwitch ? (
-            // Wide screens carry the switch in the header.
-            <div className="mt-m min-[1440px]:hidden">
-              <TrackSwitch />
-            </div>
-          ) : null}
+      {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
+      <main id="top" className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
+        {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
+        <div className="grid gap-xl pt-l pb-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:pt-xxl">
+          <div className="flex flex-col">
+            <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
+            <Tracked>{(track) => <Facts track={track} />}</Tracked>
+            {showSwitch ? (
+              // From tablet width up the switch sits in the header.
+              <div className="mt-l md:hidden">
+                <TrackSwitch />
+              </div>
+            ) : null}
+          </div>
+          <Updates />
         </div>
 
         <div className="pb-m">
@@ -543,19 +547,9 @@ export default function Page() {
           <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
         </div>
 
-        <Section
-          id="locations"
-          title="By location"
-          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
-        >
-          <ByLocation />
-        </Section>
-
         <div className="pt-xxl">
           <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
         </div>
-
-        <TraceWaterfall />
 
         <Section
           id="startup"
@@ -584,11 +578,36 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="agent" title="Agent work" lede="Real coding-agent tasks, so CPU, disk and network count as much as the API.">
+        <TraceWaterfall />
+
+        <Section
+          id={realTasksSection}
+          title="Real tasks"
+          lede="Two real coding jobs, each in a fresh sandbox from create to confirmed delete: a Vue bug fixed and its tests run, and a Jitsi Meet production build. Time to finish, so CPU, disk and network all count."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider. What each task costs is under Cost.</span>
+          </p>
+          <PerTrack>{(track) => <RealTasks track={track} />}</PerTrack>
+          <div id={realtaskBurstSection} className="mt-l scroll-mt-24">
+            <PerTrack>
+              {(track) =>
+                track.id === "same-spec" ? (
+                  <RealtaskBurstChart data={realtaskBurst} />
+                ) : (
+                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                )
+              }
+            </PerTrack>
+          </div>
+        </Section>
+
+        <Section id="agent" title="Tool calls and agent steps" lede="The single steps a coding agent repeats: 100 tool calls in a row, package installs, a clone, a dev server and its preview.">
           <PerTrack>
             {(track) => (
               <TabCard
-                label="Agent work" section="agent"
+                label="Tool calls and agent steps" section="agent"
                 tabs={metricTabs(track, [
                   { id: "tool-replay", tab: "Tool replay", what: "100 tool calls in a row: write, read, edit, list, grep, run a test", notes: mergeNotes(farNotes, execNotes) },
                   { id: "npm-install", what: "npm ci for a small Vite and React app", notes: mergeNotes(farNotes, machineNotes(track), blockedNotes(track, "npm-install")) },
@@ -678,6 +697,64 @@ export default function Page() {
           </PerTrack>
         </Section>
 
+        <Section
+          id={taskCostSection}
+          title="What a task costs"
+          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+        >
+          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
+            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
+            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
+          </p>
+          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
+          <Card className="mt-m">
+            <IdleChart />
+          </Card>
+        </Section>
+
+        <Section
+          id="cost"
+          title="Quick task and prices"
+          lede={
+            <>
+              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
+              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+                What a task costs
+              </JumpLink>
+              .
+            </>
+          }
+        >
+          <PerTrack>
+            {(track) => (
+              <>
+                <TabCard
+                  label="Cost" section="cost"
+                  tabs={[
+                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
+                    { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
+                    { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
+                  ]}
+                />
+                <Card className="mt-m">
+                  <CostQuadrant track={track} />
+                </Card>
+              </>
+            )}
+          </PerTrack>
+        </Section>
+
+        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
+          <PerTrack>
+            {(track) => (
+              <Card>
+                <Reliability track={track} />
+                <SetAsideNotes />
+              </Card>
+            )}
+          </PerTrack>
+        </Section>
+
         <Section id="machines" title="Machines" lede="What each provider ran: what we asked for, what we measured inside, and the hardware underneath.">
           <PerTrack>
             {(track) => (
@@ -737,62 +814,12 @@ export default function Page() {
           </PerTrack>
         </Section>
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
-          <PerTrack>
-            {(track) => (
-              <Card>
-                <Reliability track={track} />
-                <SetAsideNotes />
-              </Card>
-            )}
-          </PerTrack>
-        </Section>
-
         <Section
-          id={taskCostSection}
-          title="What a task costs"
-          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+          id="locations"
+          title="By location"
+          lede="How network distance changes latency: the same tests run from EU-Central (Frankfurt) and US-East (Florida)."
         >
-          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
-            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
-          </p>
-          <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
-          <Card className="mt-m">
-            <IdleChart />
-          </Card>
-        </Section>
-
-        <Section
-          id="cost"
-          title="Quick task and prices"
-          lede={
-            <>
-              What the small synthetic task cost on each provider, and what each charges per hour. For real work, see{" "}
-              <JumpLink section={taskCostSection} tab="fix-and-test" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
-                What a task costs
-              </JumpLink>
-              .
-            </>
-          }
-        >
-          <PerTrack>
-            {(track) => (
-              <>
-                <TabCard
-                  label="Cost" section="cost"
-                  tabs={[
-                    { id: "task", label: "Quick task", content: <CostPerTaskChart track={track} /> },
-                    { id: "common", label: `Hourly, ${commonSize.label}`, content: <CommonPriceChart track={track} /> },
-                    { id: "hour", label: track.id === "default" ? "Hourly, default sandbox" : "Hourly, machine it ran", content: <PriceChart track={track} /> },
-                  ]}
-                />
-                <Card className="mt-m">
-                  <CostQuadrant track={track} />
-                </Card>
-              </>
-            )}
-          </PerTrack>
+          <ByLocation />
         </Section>
 
         <Section id="method" title="Method" lede="How the numbers were made, and what could bias them.">

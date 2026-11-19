@@ -72,13 +72,13 @@ import {
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
-import { advertised, sizeOf } from "@/lib/sizes";
+import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
   { title: "Start-up", ids: ["cold"] },
-  { title: "Agent work", ids: ["tool-replay", "npm-install", "pip-install", "git-clone", "dev-server", "preview-first-byte", "edit-loop"] },
+  { title: "Tool calls and agent steps", ids: ["tool-replay", "npm-install", "pip-install", "git-clone", "dev-server", "preview-first-byte", "edit-loop"] },
   { title: "Everyday calls", ids: ["command", "files-1kb", "files-10mb", "reconnect", "destroy"] },
   { title: "Pause and snapshots", ids: ["pause-resume", "snapshot", "create-from-snapshot"] },
   { title: "Bursts", ids: ["burst-10", "burst-25"] },
@@ -93,20 +93,29 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // left out rather than shown partly, and none of their failures count against the provider.
 const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
 const modalNoPause = "unsupported: Modal sandboxes can't stop and run again, so Modal has no pause and resume";
+const beamNoPause = "unsupported: Beam sandboxes have no pause and resume (Beam's persistent VMs do; they are a different product and weren't tested)";
+const beamNoSnapshotDelete = "not-run: Beam sandboxes take memory snapshots, but Beam has no way to delete one, and our runs delete everything they make";
+const beamBurstQuota = (n: number) => `not-run: our Beam account's quota is 30 vCPU, and ${n} sandboxes at 4 vCPU need ${n * 4}`;
+const beamNoPage = "not-run: blocked on every run: on Beam's default 1 CPU and 128 MiB the dev server ran out of memory or its preview never answered, so there was no page to edit";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause },
+    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
+    snapshot: { beam: beamNoSnapshotDelete },
+    "create-from-snapshot": { beam: beamNoSnapshotDelete },
+    "edit-loop": { beam: beamNoPage },
   },
   "same-spec": {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause },
-    snapshot: { superserve: superserveJoins },
-    "create-from-snapshot": { superserve: superserveJoins },
+    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
+    snapshot: { superserve: superserveJoins, beam: beamNoSnapshotDelete },
+    "create-from-snapshot": { superserve: superserveJoins, beam: beamNoSnapshotDelete },
     "burst-10": {
       superserve: superserveJoins,
+      beam: beamBurstQuota(10),
     },
     "burst-25": {
       superserve: superserveJoins,
+      beam: beamBurstQuota(25),
     },
   },
 };
@@ -539,7 +548,9 @@ Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.c
 
 const allocationOf = (p: Track["providers"][number]) => ({
   requested: { ...p.requestedAllocation, text: requestedText(p) },
-  measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: round(a.diskGiB) })),
+  // A shared file system reports the host's disk, not the sandbox's: no size, and why.
+  measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB) })),
+  ...(sharedDisk[p.id] ? { diskNote: sharedDisk[p.id] } : {}),
   measuredText: measuredText(p),
   equalSpec: p.equalSpec,
   verified: p.allocationVerification.verified,
@@ -870,7 +881,7 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor and Baseten costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 18 (commit 19f4600, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). During the Nov 18 rerun most boxd creates came back still pending: 190 of 260 new machines took 2.4 to 72 s to start (median 21 s), against 0.3 s on Nov 4, and 3 more never started within the 90 s limit. DNS lookups inside boxd machines also failed in 19 of 59 git clones and 2 of 59 pip installs, and one more pip install found the network unreachable. Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten and Beam costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 

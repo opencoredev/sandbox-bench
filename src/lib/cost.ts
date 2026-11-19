@@ -215,6 +215,11 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "instabox.sh/docs/account/billing.md (checked Nov 18, 2026): a machine's vCPUs and memory times the seconds it is running, not while starting, paused or stopped, at $0.004 per vCPU-hour and $0.00225 per GiB-hour; its per-machine usage API reports those seconds. Paid plans include disk.",
   },
+  beam: {
+    kind: "unconfirmed",
+    evidence:
+      "beam.cloud/pricing (checked Nov 18, 2026): sandboxes billed per millisecond while running, $0.05 per vCPU-hour and $0.01 per GiB of RAM per hour on the Performance tier, the default for new accounts (Shared and Spot tiers are cheaper); disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",

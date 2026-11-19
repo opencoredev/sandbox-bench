@@ -14,7 +14,8 @@
       "vercel",
       "modal",
       "baseten",
-      "instabox"
+      "instabox",
+      "beam"
     ],
     "profiles": [
       "fix-and-test",
@@ -58,6 +59,11 @@
       },
       {
         "provider": "baseten",
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
+      },
+      {
+        "provider": "beam",
         "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
         "short": "no billing data we can read"
       }
