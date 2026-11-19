@@ -1,5 +1,7 @@
 import { trackIds, tracks } from "@/lib/data";
 import type { ProviderId } from "@/lib/providers";
+import { updates } from "@/lib/updates";
+import type { UpdateSlug } from "@/lib/updates";
 
 export const site = "https://aisandboxbench.com";
 
@@ -48,8 +50,15 @@ export const isAlternativesPage = (id: string): id is AlternativesPageId => (alt
 export type AlternativesPath = `/alternatives/${AlternativesPageId}/`;
 export const alternativesPath = (id: AlternativesPageId): AlternativesPath => `/alternatives/${id}/`;
 
-/** Every public page. Adding a provider, comparison or alternatives page without a content date below fails to compile. */
-export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath | AlternativesPath;
+/** The index of every update, newest first. */
+export const updatesPath = "/updates/";
+
+/** One page per update in src/lib/updates.ts. */
+export type UpdatePath = `/updates/${UpdateSlug}/`;
+export const updatePath = (slug: UpdateSlug): UpdatePath => `/updates/${slug}/`;
+
+/** Every public page. Adding a provider, comparison, alternatives or update page without a content date below fails to compile. */
+export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -57,7 +66,7 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath |
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-18",
+  "/": "2026-11-19",
   "/providers/e2b/": "2026-11-18",
   "/providers/": "2026-11-18",
   "/providers/daytona/": "2026-11-18",
@@ -74,6 +83,11 @@ const contentDates = {
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
   "/alternatives/e2b/": "2026-11-18",
+  "/updates/": "2026-11-19",
+  "/updates/every-provider-on-real-tasks/": "2026-11-19",
+  "/updates/beam-added/": "2026-11-19",
+  "/updates/real-tasks-timed/": "2026-11-19",
+  "/updates/instabox-added/": "2026-11-19",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */
@@ -95,4 +109,6 @@ export const sitePaths: readonly SitePath[] = [
   ...providerPages.map(providerPath),
   ...comparePages.map((p) => comparePath(p.slug)),
   ...alternativesPages.map(alternativesPath),
+  updatesPath,
+  ...updates.map((u) => updatePath(u.slug)),
 ];
