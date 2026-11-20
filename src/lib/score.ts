@@ -80,15 +80,27 @@ export function scoreReadings({ providers, readings, excluded = [], better }: { 
 }
 
 /**
- * Scored providers highest first (ties by the raw number, then the given
- * order), then the excluded and not measured, so a sort never ranks them.
+ * Anything a category ranks: a measured reading, scored or shown as its value,
+ * or no usable result.
  */
-export function rankScores<S extends Score>(scores: readonly S[], better: Better): S[] {
+export type Ranked =
+  | { kind: "scored" | "valued"; provider: ProviderId; value: number }
+  | { kind: "excluded" | "not-measured"; provider: ProviderId };
+
+/**
+ * Measured providers best first by the raw number (ties keep the given
+ * order), then the excluded and not measured, so a sort never ranks them. A
+ * score only falls as the number gets worse, so this is also highest score
+ * first.
+ */
+export function rankScores<S extends Ranked>(scores: readonly S[], better: Better): S[] {
   const order = new Map(scores.map((s, i) => [s.provider, i]));
-  const byOrder = (a: Score, b: Score) => (order.get(a.provider) ?? 0) - (order.get(b.provider) ?? 0);
+  const byOrder = (a: Ranked, b: Ranked) => (order.get(a.provider) ?? 0) - (order.get(b.provider) ?? 0);
+  const valueOf = (s: Ranked) => (s.kind === "scored" || s.kind === "valued" ? s.value : null);
   return [...scores].sort((a, b) => {
-    if (a.kind !== "scored" || b.kind !== "scored") return (a.kind === "scored" ? 0 : 1) - (b.kind === "scored" ? 0 : 1) || byOrder(a, b);
-    const byValue = better === "lower" ? a.value - b.value : b.value - a.value;
-    return b.score - a.score || byValue || byOrder(a, b);
+    const va = valueOf(a);
+    const vb = valueOf(b);
+    if (va === null || vb === null) return (va === null ? 1 : 0) - (vb === null ? 1 : 0) || byOrder(a, b);
+    return (better === "lower" ? va - vb : vb - va) || byOrder(a, b);
   });
 }

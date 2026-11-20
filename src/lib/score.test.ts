@@ -95,6 +95,18 @@ describe("scoreReadings", () => {
 });
 
 describe("rankScores", () => {
+  test("valued cells rank by the raw number too, cheapest first, then excluded and not measured in the given order", () => {
+    const cells = [
+      { kind: "not-measured", provider: "beam" },
+      { kind: "valued", provider: "vercel", value: 0.043 },
+      { kind: "excluded", provider: "boxd", why: "wrong size" },
+      { kind: "valued", provider: "instabox", value: 0.00076 },
+      { kind: "valued", provider: "e2b", value: 0.01 },
+    ] as const;
+    assert.deepEqual(rankScores(cells, "lower").map((s) => s.provider), ["instabox", "e2b", "vercel", "beam", "boxd"]);
+    assert.deepEqual(rankScores(cells, "higher").map((s) => s.provider), ["vercel", "e2b", "instabox", "beam", "boxd"]);
+  });
+
   test("highest score first, ties broken by the raw number, not measured last", () => {
     const scores: Score[] = [
       { kind: "not-measured", provider: "beam" },
@@ -107,17 +119,27 @@ describe("rankScores", () => {
 });
 
 describe("score categories on the committed data", () => {
+  test("four columns in order: Speed, Real tasks, Bursts, Cost, with no Reliability; Cost alone shows a value", () => {
+    assert.deepEqual(scoreCategories.map((c) => c.label), ["Speed", "Real tasks", "Bursts", "Cost"]);
+    assert.deepEqual(scoreCategories.map((c) => c.shows), ["score", "score", "score", "value"]);
+  });
+
   test("every category has a unique id and links to a section", () => {
     const ids = scoreCategories.map((c) => c.id);
     assert.equal(new Set(ids).size, ids.length);
     for (const c of scoreCategories) assert.ok(c.link.section.length > 0, c.id);
   });
 
-  test("every track scores every provider in every category, 0 to 100, with one 100 or more per measured category", () => {
+  test("every track scores every provider in every scored category, 0 to 100, with one 100 or more per measured category", () => {
     for (const id of trackIds) {
       const track = tracks[id];
       for (const { category, scores } of trackScores(track)) {
         assert.equal(scores.length, track.providers.length, `${id} ${category.id}`);
+        if (category.shows === "value") {
+          assert.ok(scores.every((s) => s.kind !== "scored"), `${id} ${category.id} shows values, not scores`);
+          continue;
+        }
+        assert.ok(scores.every((s) => s.kind !== "valued"), `${id} ${category.id} shows scores, not values`);
         const scored = scores.flatMap((s) => (s.kind === "scored" ? [s] : []));
         for (const s of scored) assert.ok(s.score >= 0 && s.score <= 100 && Number.isInteger(s.score), `${id} ${category.id} ${s.provider} ${s.score}`);
         if (scored.length > 0) assert.ok(scored.some((s) => s.score === 100 && s.best), `${id} ${category.id} has no best`);
@@ -141,6 +163,7 @@ describe("score categories on the committed data", () => {
       label: "CPU burst",
       measure: "Not exported yet",
       better: "higher",
+      shows: "score",
       link: { section: "machines", tab: null },
       read: metricReadings("cpu-burst-not-in-export"),
       format: String,
@@ -201,5 +224,34 @@ describe("review fixes", () => {
     const cost = trackScores(tracks["same-spec"]).find((c) => c.category.id === "cost");
     const boxd = cost?.scores.find((s) => s.provider === "boxd");
     assert.equal(boxd?.kind, "excluded");
+  });
+});
+
+describe("cost shows dollars, not a score", () => {
+  const costOn = (id: keyof typeof tracks) => {
+    const cost = trackScores(tracks[id]).find((c) => c.category.id === "cost");
+    assert.ok(cost);
+    return rankScores(cost.scores, cost.category.better);
+  };
+  const shown = (cells: ReturnType<typeof costOn>) => cells.map((s) => [s.provider, s.kind === "valued" ? s.display : s.kind]);
+
+  test("Same machine: cheapest first in dollars per 1,000 tasks, boxd not counted and last", () => {
+    const cells = costOn("same-spec");
+    assert.deepEqual(shown(cells).slice(0, 2), [["instabox", "$0.76"], ["boat", "$0.95"]]);
+    assert.deepEqual(shown(cells).find(([p]) => p === "e2b"), ["e2b", "$10.07"]);
+    assert.deepEqual(shown(cells).at(-2), ["vercel", "$43.14"]);
+    assert.deepEqual(shown(cells).at(-1), ["boxd", "excluded"]);
+    // Every counted provider is a dollar value, never a 0 to 100 score.
+    assert.ok(cells.slice(0, -1).every((s) => s.kind === "valued" && s.display.startsWith("$")));
+  });
+
+  test("Default machines: providers without a counted run are not measured and rank after the valued ones", () => {
+    const cells = costOn("default");
+    const kinds = cells.map((s) => s.kind);
+    const firstMissing = kinds.indexOf("not-measured");
+    assert.ok(firstMissing > 0);
+    assert.ok(kinds.slice(firstMissing).every((k) => k === "not-measured"));
+    assert.equal(cells.find((s) => s.provider === "e2b")?.kind, "not-measured");
+    assert.deepEqual(shown(cells)[0], ["instabox", "$0.81"]);
   });
 });

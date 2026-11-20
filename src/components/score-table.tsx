@@ -10,7 +10,7 @@ import { ProviderName } from "@/components/provider-name";
 import { providerName } from "@/lib/providers";
 import { rankScores } from "@/lib/score";
 
-/** Alphabetical by provider, or one category's scores best first with the not measured last. */
+/** Alphabetical by provider, or one category best first (highest score, or cheapest) with the not measured last. */
 type Sort = { kind: "name" } | { kind: "category"; index: number };
 
 function sortRows(rows: readonly ScoreRow[], columns: readonly ScoreColumn[], sort: Sort): ScoreRow[] {
@@ -26,6 +26,20 @@ function sortRows(rows: readonly ScoreRow[], columns: readonly ScoreColumn[], so
     }
     default: {
       const _exhaustive: never = sort;
+      return _exhaustive;
+    }
+  }
+}
+
+/** How a best-first column sorts, for `aria-sort`: scores fall, a lower-is-better value rises. */
+function bestFirst(column: ScoreColumn): "ascending" | "descending" {
+  switch (column.shows) {
+    case "score":
+      return "descending";
+    case "value":
+      return column.better === "lower" ? "ascending" : "descending";
+    default: {
+      const _exhaustive: never = column.shows;
       return _exhaustive;
     }
   }
@@ -56,7 +70,7 @@ export function ScoreTable({ columns, rows, label }: { columns: readonly ScoreCo
             </button>
           </th>
           {columns.map((c, i) => (
-            <th key={c.id} scope="col" aria-sort={isSorted(i) ? "descending" : "none"} className="px-s pb-s font-normal">
+            <th key={c.id} scope="col" aria-sort={isSorted(i) ? bestFirst(c) : "none"} className="px-s pb-s font-normal">
               <button type="button" className={sortClass} onClick={() => setSort({ kind: "category", index: i })}>
                 <span className={`flex items-center gap-xxs text-s font-medium ${isSorted(i) ? "text-neutral-10" : "text-neutral-8 group-hover:text-neutral-10"}`}>
                   {c.label}
@@ -85,7 +99,7 @@ export function ScoreTable({ columns, rows, label }: { columns: readonly ScoreCo
               return column ? (
                 <td key={column.id} className="py-0 last:rounded-r-s group-hover/row:bg-neutral-3/40">
                   <ScoreLink link={column.link} provider={r.provider} category={column.label} cell={cell} className="mx-xxs flex flex-col gap-xs rounded-s px-xs py-xs hover:bg-neutral-3">
-                    <ScoreMeter cell={cell} provider={r.provider} />
+                    <ScoreMeter cell={cell} provider={r.provider} under={column.shows === "score" ? "track" : "space"} />
                   </ScoreLink>
                 </td>
               ) : null;

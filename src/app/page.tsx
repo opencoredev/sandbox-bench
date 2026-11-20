@@ -553,7 +553,7 @@ export default function Page() {
         <Section
           id={scoresSection}
           title="Scores by category"
-          lede="Each category on its own, 0 to 100 against the best provider in it, from the charts below. There is no overall score."
+          lede="Speed, real tasks and bursts scored 0 to 100 against the best provider, plus real task cost in dollars. No overall score."
         >
           <PerTrack>{(track) => <Scores track={track} />}</PerTrack>
         </Section>
