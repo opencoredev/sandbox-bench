@@ -46,7 +46,7 @@ export const probeDate = "Oct 22, 2026";
 export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
-  { providers: ["instabox"], date: "Nov 18, 2026" },
+  { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -260,6 +260,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "It runs as a regular user, ubuntu, with sudo.",
     ],
     sameSpec: "The 4 vCPU, 8 GB size ran on the same CPUs in the same region, with an 8 GiB memory limit and no CPU quota.",
+  },
+  beam: {
+    chip: "Intel Xeon, Sapphire Rapids or later",
+    family: "From CPU features: AMX and AVX-512 FP16, first in Sapphire Rapids; gVisor hides the model and clock",
+    chipBasis: "inferred",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory those chips take" },
+    cloud: "OVHcloud, from its outbound IPs",
+    region: "Outbound IPs are OVH's in Warrenton, Virginia; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "Virginia",
+    runsAs: "gVisor sandbox",
+    runsAsDetail: "a user-space kernel between the workload and the host, in a container",
+    storage: "A shared 9p root file system that reports the host's whole disk (about 21 TB); Beam has no disk setting and doesn't bill disk",
+    kernel: "gVisor, reporting Linux 4.19; Debian 12 (node:22-bookworm, our image; Beam's own is Ubuntu 22.04 without Node)",
+    hidden: [
+      "gVisor hides the CPU name and block devices. The chip comes from CPU features: AMX and AVX-512 FP16, first shipped in Sapphire Rapids, on every sandbox.",
+      "The root file system is a 9p mount that reports the host's whole disk, not a per-sandbox size.",
+      "It runs as root, with no sudo.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB size ran with a 4-CPU quota and an 8 GiB memory limit on the same CPU type and network.",
   },
   modal: {
     chip: "Not named; AMD and Intel feature sets",

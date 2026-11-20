@@ -17,7 +17,7 @@ export const caveats = [
   "Every call starts from one server in Florida, US. Providers hosted farther away pay that round trip on every call; Boat (France) pays a transatlantic one.",
   `There are two tracks. ${trackInfo["same-spec"].label}: ${trackInfo["same-spec"].description} A provider marked “machine differs” measured something else inside. ${trackInfo.default.label}: ${trackInfo.default.description}`,
   `Cost per task comes from each provider's bill or usage records where it gives one, and otherwise from our measured time at list price. Cheapest is the lowest exact cost.${lowerBoundCaveat} Prices cover compute only at list rates: disk, transfer, subscriptions and credits are excluded.`,
-  "Pause and resume times come from the previous SDK run, because the newest runs skipped them; boxd's come from its Nov 19 re-run in New York, Baseten's resume from its own run on Nov 17 (Baseten has no pause call, so only its resume is timed), and Instabox's, like all its results, from its own runs on Nov 18. A burst size is published only when all three bursts finished.",
+  "Pause and resume times come from the previous SDK run, because the newest runs skipped them; boxd's come from its Nov 19 re-run in New York, Baseten's resume from its own run on Nov 17 (Baseten has no pause call, so only its resume is timed), and Instabox's, like all its results, from its own runs on Nov 18. Beam's results come from its own runs on Nov 18; Beam sandboxes have no pause call. A burst size is published only when all three bursts finished.",
   "Failures caused by our own code are set aside, not counted. Every provider-side failure is kept.",
   "Ranks compare medians. Medians inside each other's 95% intervals count as tied, so a close rank can be noise.",
 ] as const;

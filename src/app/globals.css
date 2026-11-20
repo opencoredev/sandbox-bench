@@ -152,6 +152,65 @@
   box-shadow: inset 0 0 0 var(--border-s) var(--neutral-4-transparent), var(--shadow-s);
 }
 
+/*
+ * A surface that opens something: on hover its edge brightens at once. No fading fill and no
+ * moving parts, so pointing across a row of cards doesn't make them flicker.
+ */
+@utility surface-link {
+  &:hover {
+    box-shadow: inset 0 0 0 var(--border-s) var(--neutral-6), var(--shadow-s);
+  }
+}
+
+/*
+ * Chart columns: the active one gets a soft band and its bar stays bright while the other bars
+ * fade, so it is always clear which column the card describes. Only bars fade: names and values
+ * stay readable. The pointer wins over keyboard focus, so one column is active at a time, and a
+ * focused column's card hides while another is hovered. Instant, no transition.
+ */
+.chart-cols:not(:has(.chart-col:hover)) .chart-col:focus-visible {
+  background: color-mix(in oklch, var(--neutral-3) 55%, transparent);
+}
+.chart-cols:not(:has(.chart-col:hover)):has(.chart-col:focus-visible) .chart-col:not(:focus-visible) .chart-fade {
+  opacity: 0.35;
+}
+@media (hover: hover) {
+  .chart-col:hover {
+    background: color-mix(in oklch, var(--neutral-3) 55%, transparent);
+  }
+  .chart-cols:has(.chart-col:hover) .chart-col:not(:hover) .chart-fade {
+    opacity: 0.35;
+  }
+  .chart-cols:has(.chart-col:hover) .chart-col:not(:hover) .ui-popover {
+    opacity: 0;
+  }
+}
+/*
+ * A provider page's charts (Columns `highlight`): every bar but that provider's rests faded, the
+ * same fade as above, and comes up to full colour while it is the one pointed at or focused.
+ */
+.chart-col[data-dim] .chart-fade {
+  opacity: 0.35;
+}
+.chart-col[data-dim]:focus-visible .chart-fade {
+  opacity: 1;
+}
+@media (hover: hover) {
+  .chart-col[data-dim]:hover .chart-fade {
+    opacity: 1;
+  }
+}
+@media (forced-colors: active) {
+  .chart-cols .chart-col .chart-fade {
+    opacity: 1;
+  }
+  /* With no fade to set it apart, the highlighted bar gets an outline in the system's text colour. */
+  .chart-col[data-highlight] .chart-fade {
+    outline: 2px solid CanvasText;
+    outline-offset: 1px;
+  }
+}
+
 /* Focus ring for custom links and controls, the same outline the themed components use. */
 @utility focus-ring {
   outline: none;

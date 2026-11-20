@@ -63,10 +63,26 @@ export const advertised = {
     source: "https://instabox.sh/docs/account/limits.md",
     note: "Instabox's default agent-browser template: 4 vCPU, 8 GiB and a 20 GiB /data disk, where /workspace lives, plus a 16 GiB system disk. The same machine is its default and its 4 vCPU, 8 GB size.",
   },
+  beam: {
+    vcpu: 1,
+    memoryGiB: 0.125,
+    diskGiB: null,
+    source: "https://docs.beam.cloud/v2/reference/ts-sdk.md",
+    note: "Beam's default sandbox is 1 CPU and 128 MiB, enforced as the sandbox's memory limit. That is too little memory for our dev server and Python install, which were killed for running out of it, and for both realistic workloads. Beam has no disk setting and doesn't bill disk.",
+  },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }
 >;
+
+/**
+ * Providers whose sandbox sees a shared file system instead of a disk of its own, so what we
+ * measure inside is the host's capacity, not an allocation. Their disk is left out of sizes and
+ * the disk chart, with this reason beside it.
+ */
+export const sharedDisk: Partial<Record<ProviderId, string>> = {
+  beam: "no disk of its own: the root file system is a shared mount reporting the host's whole disk, about 21 TB",
+};
 
 /** The size to show: advertised where the provider states it, otherwise what we measured inside. */
 export function sizeOf(p: Provider) {
@@ -75,6 +91,6 @@ export function sizeOf(p: Provider) {
   return {
     vcpu: a.vcpu ?? m?.cpu ?? p.hardware?.vcpu ?? null,
     memoryGiB: a.memoryGiB ?? m?.memoryGiB ?? p.hardware?.memoryGiB ?? null,
-    diskGiB: a.diskGiB ?? m?.diskGiB ?? p.hardware?.diskGiB ?? null,
+    diskGiB: sharedDisk[p.id] ? null : (a.diskGiB ?? m?.diskGiB ?? p.hardware?.diskGiB ?? null),
   };
 }

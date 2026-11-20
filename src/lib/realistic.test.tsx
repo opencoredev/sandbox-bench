@@ -42,12 +42,14 @@ import {
   parseCoverage,
   parseRealistic,
   pickFor,
+  perThousand,
   isCounted,
   notCountedWhy,
   pickLabels,
   pilotLine,
   profileIds,
   readFlag,
+  runTrackOf,
   runTracks,
   scopeLine,
   statusTag,
@@ -192,6 +194,13 @@ describe("data script", () => {
     assert.throws(() => build([{ name: "x", raw: summary({ picks: [] }) }]), /has no pick for fix-and-test \/ same-machine/);
     const { picks: _p, ...noPicks } = summary();
     assert.throws(() => build([{ name: "x", raw: noPicks }]), /has no pick/);
+  });
+
+  test("needs no pick for a workload and track this summary ran nothing on", () => {
+    // Beam's summary: its default machine is too small for both workloads, so the harness writes no pick there.
+    const tooSmall = { completed: 0, notRun: 5, reasons: { "default-size-too-small": 5 }, medianWallS: null, medianCpuS: null, costKind: null, costPerCompletedUSD: null, wholeMachinePerCompletedUSD: null, eligibility: "" };
+    const raw = summary({ rows: [summaryRow(tooSmall), summaryRow({ ...tooSmall, provider: "boat" }), ...idleRows("upstash")], picks: [] });
+    assert.doesNotThrow(() => build([{ name: "x", raw }]));
   });
 
   test("refuses empty rows, empty held-open entries or empty picks", () => {
@@ -756,7 +765,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor and Baseten \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\) and Superserve \(account totals only\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -845,10 +854,11 @@ describe("page", () => {
     assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row.
+    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
+    // Superserve since its Nov 18 rerun with a 20 GB disk.
     const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
-    assert.match(line, /Cheapest: Freestyle \$9\.58 per 1,000/);
+    assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
@@ -921,7 +931,22 @@ describe("page", () => {
   test("the stat card shows the cheapest fix and test and the pilot label", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Cheapest fix and test, per 1,000/);
-    assert.match(html, /<span class="text-xs text-pretty text-neutral-7">Pilot · 5 runs<\/span>/);
+    // The pilot caption is its own line at the foot of the tile, never cut by the provider's name.
+    assert.match(html, />Pilot, 5 runs per provider<\/span>/);
     assert.doesNotMatch(html, /verified/i);
+  });
+
+  test("the stat tiles lead with the real tasks, then cold start, each from the data", () => {
+    for (const track of Object.values(tracks)) {
+      const html = renderToStaticMarkup(<StatStrip track={track} />);
+      const labels = [...html.matchAll(/text-neutral-7">([^<]+)<svg/g)].map((m) => m[1]);
+      assert.deepEqual(labels, ["Fastest fix and test", "Fastest build", "Cheapest fix and test, per 1,000", "Cheapest build, per 1,000", "Fastest cold start"], track.id);
+      for (const profile of profileIds) {
+        const pick = pickFor(realistic, runTrackOf[track.id], profile);
+        assert.equal(pick.kind, "picked");
+        if (pick.kind === "picked") assert.ok(html.includes(perThousand(pick.pick.cost.usdPerCompleted)), `${track.id} ${profile} cheapest`);
+      }
+      assert.doesNotMatch(html, /snapshot|resume|tool calls/i);
+    }
   });
 });

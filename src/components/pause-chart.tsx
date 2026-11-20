@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
-import { ChartHead, Footnotes, Who, sentence, trackFootnotes } from "@/components/metric-chart";
+import { ChartHead, Footnotes, NotOnChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import { markFill } from "@/lib/marks";
 import type { Provider, Track } from "@/lib/data";
 import { formatShort, formatValue } from "@/lib/format";
@@ -48,6 +48,17 @@ const standbyLine = (s: { p: Provider; standby: { note: string; resume: number }
     </>
   ),
 });
+
+/**
+ * Providers with no column on a pause chart: no pause at all, a restart we
+ * don't time as one, or no pause call because the sandbox goes on standby by
+ * itself. `drawsStandby` is true on the Resume chart, which draws standby
+ * resumes; one with no standby resume in this track has no column anywhere.
+ */
+const noPause = (track: Track, drawsStandby = false) => {
+  const { restart, missing, standby, standbyMissing } = classify(track);
+  return [...restart.map((r) => r.p.id), ...missing.map((p) => p.id), ...(drawsStandby ? [] : standby.map((s) => s.p.id)), ...standbyMissing.map((p) => p.id), ...track.absent];
+};
 
 /** Footnotes shared by the pause charts: what is not a pause, what has no pause, and machine exceptions. */
 function pauseNotes(track: Track, marks: ReadonlyMap<ProviderId, number>, extra: readonly { mark?: number; text: ReactNode }[]) {
@@ -113,6 +124,7 @@ export function PauseChart({ track }: { track: Track }) {
         </span>
       </div>
       <Columns columns={columns} label="Pause and resume by provider" />
+      <NotOnChart ids={noPause(track)} />
       <Footnotes
         items={pauseNotes(track, marks, [
           ...(whole.length > 0 ? [{ text: <>{list(whole.map((w) => w.p))}: pause and resume were not recorded apart, so the column is the total.</> }] : []),
@@ -170,6 +182,7 @@ export function PausePart({ track, part }: { track: Track; part: keyof typeof pa
     <>
       <ChartHead title={partText[part].title} sub={`${partText[part].what} · Median seconds · Lower is better`} />
       <Columns columns={columns} label={`${partText[part].title} by provider`} />
+      <NotOnChart ids={[...noPause(track, part === "resume"), ...whole.map((w) => w.p.id)]} />
       <Footnotes
         items={pauseNotes(track, marks, [
           ...standbyNotes,

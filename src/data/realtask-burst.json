@@ -1,0 +1,1328 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-19T21:59:00.003Z",
+  "run": {
+    "id": "rtb1119-seq1",
+    "mode": "one-provider-at-a-time",
+    "sdkCommit": "c5919847d3ee6ab33ccee22247b829de412f7a04",
+    "startedAt": "2026-11-19T19:49:33.089Z",
+    "endedAt": "2026-11-19T21:58:05.982Z",
+    "location": "Florida, US"
+  },
+  "size": 5,
+  "rounds": 2,
+  "track": "same-machine",
+  "profile": "fix-and-test",
+  "providers": [
+    {
+      "provider": "boat",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 93.682,
+          "uploadS": 14.778,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 100.522,
+          "uploadS": 15.179,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 102.25,
+          "uploadS": 14.504,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 115.642,
+          "uploadS": 17.47,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 104.1,
+          "uploadS": 15.665,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 123.201,
+          "uploadS": 15.625,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 106.431,
+          "uploadS": 17.361,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 117.606,
+          "uploadS": 16.624,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 104.998,
+          "uploadS": 16.982,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 101.074,
+          "uploadS": 15.421,
+          "completed": true
+        }
+      ],
+      "medianWallS": 104.549,
+      "medianUploadS": 15.645,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        115.643,
+        123.201
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 202.978,
+            "uploadS": 27.117,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 167.665,
+            "uploadS": 20.445,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 185.322,
+      "soloMedianUploadS": 23.781,
+      "slowdown": null,
+      "slowdownWithoutUpload": null,
+      "status": "ran",
+      "changeNote": "Boat's two tasks alone took 168 and 203 s, about twice its usual time, and a repeat showed identical Boat machines varying up to 2x, so two tasks can't set its baseline"
+    },
+    {
+      "provider": "boxd",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 99.529,
+          "uploadS": 7.474,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 99.04,
+          "uploadS": 7.133,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 100.007,
+          "uploadS": 8.998,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 105.486,
+          "uploadS": 13.424,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 99.496,
+          "uploadS": 7.642,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 95.311,
+          "uploadS": 6.744,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 100.436,
+          "uploadS": 12.79,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 99.405,
+          "uploadS": 10.247,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 110.145,
+          "uploadS": 20.924,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 100.042,
+          "uploadS": 13.354,
+          "completed": true
+        }
+      ],
+      "medianWallS": 99.768,
+      "medianUploadS": 9.622,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        105.487,
+        110.146
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 105.774,
+            "uploadS": 5.92,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 89.901,
+            "uploadS": 5.659,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 97.838,
+      "soloMedianUploadS": 5.79,
+      "slowdown": 1.02,
+      "slowdownWithoutUpload": 0.979,
+      "status": "ran"
+    },
+    {
+      "provider": "e2b",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 133.039,
+          "uploadS": 7.132,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 109.069,
+          "uploadS": 5.944,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 115.154,
+          "uploadS": 5.636,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 133.96,
+          "uploadS": 7.758,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 116.168,
+          "uploadS": 7.033,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 121.073,
+          "uploadS": 6.512,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 130.018,
+          "uploadS": 7.949,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 119.204,
+          "uploadS": 8.424,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 117.896,
+          "uploadS": 6,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 126.663,
+          "uploadS": 6.59,
+          "completed": true
+        }
+      ],
+      "medianWallS": 120.139,
+      "medianUploadS": 6.812,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        133.961,
+        130.019
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 141.559,
+            "uploadS": 5.721,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 119.112,
+            "uploadS": 4.977,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 130.336,
+      "soloMedianUploadS": 5.349,
+      "slowdown": 0.922,
+      "slowdownWithoutUpload": 0.906,
+      "status": "ran"
+    },
+    {
+      "provider": "freestyle",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 130.314,
+          "uploadS": 6.803,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 145.329,
+          "uploadS": 12.939,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 128.199,
+          "uploadS": 7.22,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 130.417,
+          "uploadS": 6.965,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 130.088,
+          "uploadS": 5.208,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 126.187,
+          "uploadS": 6.45,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 133.771,
+          "uploadS": 10.609,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 128.111,
+          "uploadS": 5.865,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 128.382,
+          "uploadS": 7.365,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 134.537,
+          "uploadS": 8.507,
+          "completed": true
+        }
+      ],
+      "medianWallS": 130.201,
+      "medianUploadS": 7.092,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        145.33,
+        134.539
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 129.949,
+            "uploadS": 4.708,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 128.681,
+            "uploadS": 5.455,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 129.315,
+      "soloMedianUploadS": 5.082,
+      "slowdown": 1.007,
+      "slowdownWithoutUpload": 0.993,
+      "status": "ran"
+    },
+    {
+      "provider": "superserve",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 94.211,
+          "uploadS": 6.848,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 92.24,
+          "uploadS": 5.379,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 90.786,
+          "uploadS": 3.233,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 88.52,
+          "uploadS": 5.324,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 93.055,
+          "uploadS": 6.832,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 95.172,
+          "uploadS": 6.255,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 88.1,
+          "uploadS": 4.246,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 94.654,
+          "uploadS": 5.895,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 92.913,
+          "uploadS": 3.957,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 91.903,
+          "uploadS": 6.643,
+          "completed": true
+        }
+      ],
+      "medianWallS": 92.577,
+      "medianUploadS": 5.637,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        94.211,
+        95.172
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 85.88,
+            "uploadS": 3.531,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 82.741,
+            "uploadS": 2.026,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 84.31,
+      "soloMedianUploadS": 2.779,
+      "slowdown": 1.098,
+      "slowdownWithoutUpload": 1.068,
+      "status": "ran"
+    },
+    {
+      "provider": "tenki",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 4.259,
+          "uploadS": 3.023,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 1,
+          "wallS": 4.264,
+          "uploadS": 3.11,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 1,
+          "wallS": 11.944,
+          "uploadS": 10.892,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Process cancellation could not be confirmed"
+          }
+        },
+        {
+          "round": 1,
+          "wallS": 14.083,
+          "uploadS": 12.797,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Process cancellation could not be confirmed"
+          }
+        },
+        {
+          "round": 1,
+          "wallS": 12.93,
+          "uploadS": 11.434,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 4.713,
+          "uploadS": 3.563,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 99.533,
+          "uploadS": 29.503,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 4.206,
+          "uploadS": 3.025,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 4.206,
+          "uploadS": 3.021,
+          "completed": false,
+          "failure": {
+            "stage": "prepare",
+            "reason": "uploading the toolchain: Luxor request failed: the provider returned an unexpected error"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 95.833,
+          "uploadS": 28.485,
+          "completed": true
+        }
+      ],
+      "medianWallS": 97.683,
+      "medianUploadS": 28.994,
+      "completed": 2,
+      "attempts": 10,
+      "roundAllDoneS": [
+        14.084,
+        99.534
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 85.744,
+            "uploadS": 16.554,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 80.841,
+            "uploadS": 15.819,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 83.292,
+      "soloMedianUploadS": 16.186,
+      "slowdown": null,
+      "slowdownWithoutUpload": null,
+      "status": "ran",
+      "changeNote": "only 2 of 10 tasks finished, too few to compare with alone"
+    },
+    {
+      "provider": "upstash",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 92.675,
+          "uploadS": 6.714,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 107.837,
+          "uploadS": 6.697,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 102.927,
+          "uploadS": 7.679,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 92.688,
+          "uploadS": 6.852,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 107.823,
+          "uploadS": 7.416,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 93.752,
+          "uploadS": 7.807,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 94.756,
+          "uploadS": 9.161,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 93.822,
+          "uploadS": 7.557,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 95.142,
+          "uploadS": 7.718,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 88.939,
+          "uploadS": 7.027,
+          "completed": true
+        }
+      ],
+      "medianWallS": 94.289,
+      "medianUploadS": 7.487,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        107.838,
+        95.144
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 102.801,
+            "uploadS": 6.836,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 97.852,
+            "uploadS": 7.052,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 100.327,
+      "soloMedianUploadS": 6.944,
+      "slowdown": 0.94,
+      "slowdownWithoutUpload": 0.922,
+      "status": "ran"
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 92.647,
+          "uploadS": 9.974,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 93.912,
+          "uploadS": 10.523,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 89.148,
+          "uploadS": 9.826,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 91.365,
+          "uploadS": 8.998,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 91.714,
+          "uploadS": 9.25,
+          "completed": false,
+          "failure": {
+            "stage": "workload",
+            "reason": "a test step failed (test-b)"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 92.352,
+          "uploadS": 8.084,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 93.248,
+          "uploadS": 10.137,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 92.34,
+          "uploadS": 9.616,
+          "completed": false,
+          "failure": {
+            "stage": "workload",
+            "reason": "a test step failed (test-b)"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 91.895,
+          "uploadS": 9.54,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 91.894,
+          "uploadS": 10.261,
+          "completed": true
+        }
+      ],
+      "medianWallS": 92.124,
+      "medianUploadS": 9.9,
+      "completed": 8,
+      "attempts": 10,
+      "roundAllDoneS": [
+        93.913,
+        93.249
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 87.129,
+            "uploadS": 6.09,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 91.046,
+            "uploadS": 6.033,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 89.088,
+      "soloMedianUploadS": 6.062,
+      "slowdown": 1.034,
+      "slowdownWithoutUpload": 0.994,
+      "status": "ran"
+    },
+    {
+      "provider": "vercel",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 163.711,
+          "uploadS": 7.482,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 121.619,
+          "uploadS": 7.825,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 161.143,
+          "uploadS": 7.348,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 103.758,
+          "uploadS": 8.224,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 102.794,
+          "uploadS": 7.316,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 103.588,
+          "uploadS": 7.021,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 142.759,
+          "uploadS": 7.393,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 142.67,
+          "uploadS": 7.44,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 121.414,
+          "uploadS": 6.799,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 99.062,
+          "uploadS": 7.77,
+          "completed": true
+        }
+      ],
+      "medianWallS": 121.517,
+      "medianUploadS": 7.417,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        163.711,
+        142.76
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 109.568,
+            "uploadS": 4.753,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 111.23,
+            "uploadS": 4.688,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 110.399,
+      "soloMedianUploadS": 4.72,
+      "slowdown": 1.101,
+      "slowdownWithoutUpload": 1.081,
+      "status": "ran"
+    },
+    {
+      "provider": "modal",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 109.429,
+          "uploadS": 5,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 111.902,
+          "uploadS": 7.333,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 108.004,
+          "uploadS": 4.809,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 83.284,
+          "uploadS": 3.055,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 83.307,
+          "uploadS": 4.592,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 109.25,
+          "uploadS": 5.549,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 83.502,
+          "uploadS": 5.514,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 82.834,
+          "uploadS": 3.813,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 102.048,
+          "uploadS": 6.222,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 107.502,
+          "uploadS": 6.277,
+          "completed": true
+        }
+      ],
+      "medianWallS": 104.775,
+      "medianUploadS": 5.257,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        111.903,
+        109.251
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 105.032,
+            "uploadS": 3.308,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 114.291,
+            "uploadS": 8.342,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 109.661,
+      "soloMedianUploadS": 5.825,
+      "slowdown": 0.955,
+      "slowdownWithoutUpload": 0.949,
+      "status": "ran"
+    },
+    {
+      "provider": "baseten",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 101.986,
+          "uploadS": 6.746,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 97.163,
+          "uploadS": 6.123,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 96.715,
+          "uploadS": 7.762,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 96.115,
+          "uploadS": 7.093,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 98.623,
+          "uploadS": 6.927,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 97.148,
+          "uploadS": 6.957,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 100.358,
+          "uploadS": 8.127,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 96.574,
+          "uploadS": 6.244,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 98.697,
+          "uploadS": 7.405,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 98.638,
+          "uploadS": 7.144,
+          "completed": true
+        }
+      ],
+      "medianWallS": 97.893,
+      "medianUploadS": 7.025,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        101.987,
+        100.359
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 97.222,
+            "uploadS": 6.505,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 101.435,
+            "uploadS": 4.424,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 99.328,
+      "soloMedianUploadS": 5.465,
+      "slowdown": 0.986,
+      "slowdownWithoutUpload": 0.971,
+      "status": "ran"
+    },
+    {
+      "provider": "instabox",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 89.814,
+          "uploadS": 5.713,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 101.597,
+          "uploadS": 18.51,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 105.552,
+          "uploadS": 21.02,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 77.375,
+          "uploadS": 4.163,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 77.757,
+          "uploadS": 5.564,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 107.08,
+          "uploadS": 6.608,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 98.081,
+          "uploadS": 6.028,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 112.579,
+          "uploadS": 17.811,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 93.419,
+          "uploadS": 6.481,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 102.291,
+          "uploadS": 4.522,
+          "completed": true
+        }
+      ],
+      "medianWallS": 99.839,
+      "medianUploadS": 6.255,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        105.553,
+        112.579
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 100.189,
+            "uploadS": 10.307,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 93.055,
+            "uploadS": 11.073,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 96.622,
+      "soloMedianUploadS": 10.69,
+      "slowdown": 1.033,
+      "slowdownWithoutUpload": 0.998,
+      "status": "ran"
+    },
+    {
+      "provider": "beam",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 131.393,
+          "uploadS": 8.418,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 125.321,
+          "uploadS": 8.223,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 143.439,
+          "uploadS": 9.628,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 145.596,
+          "uploadS": 8.077,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 137.288,
+          "uploadS": 9.407,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 148.332,
+          "uploadS": 8.348,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 133.607,
+          "uploadS": 9.468,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 136.411,
+          "uploadS": 9.007,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 137.635,
+          "uploadS": 8.808,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 141.406,
+          "uploadS": 9.188,
+          "completed": true
+        }
+      ],
+      "medianWallS": 137.462,
+      "medianUploadS": 8.907,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        145.597,
+        148.332
+      ],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 138.248,
+            "uploadS": 4.537,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 135.443,
+            "uploadS": 3.71,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 136.846,
+      "soloMedianUploadS": 4.124,
+      "slowdown": 1.005,
+      "slowdownWithoutUpload": 0.967,
+      "status": "ran"
+    },
+    {
+      "provider": "daytona",
+      "tasks": [],
+      "medianWallS": null,
+      "medianUploadS": null,
+      "completed": 0,
+      "attempts": 0,
+      "roundAllDoneS": [],
+      "solo": {
+        "tasks": [],
+        "completed": 0,
+        "attempts": 0
+      },
+      "soloMedianWallS": null,
+      "soloMedianUploadS": null,
+      "slowdown": null,
+      "slowdownWithoutUpload": null,
+      "status": "not-run",
+      "reason": "Daytona's account allows 10 vCPU in total; 5 tasks x 4 vCPU = 20 vCPU does not fit"
+    }
+  ]
+}

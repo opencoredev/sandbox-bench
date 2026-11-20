@@ -60,7 +60,7 @@ export function SectionLinks({ sections }: { sections: Sections }) {
           const [id, label] = entry;
           return (
             <NavigationMenu.Item key={id}>
-              <NavigationMenu.Link href={hrefOf(entry)} active={id === current} onClick={() => rescroll(entry)} className="whitespace-nowrap">
+              <NavigationMenu.Link href={hrefOf(entry)} active={id === current} onClick={() => rescroll(entry)} className="whitespace-nowrap text-neutral-7 hover:text-neutral-10 data-[active]:text-neutral-10">
                 {label}
               </NavigationMenu.Link>
             </NavigationMenu.Item>
