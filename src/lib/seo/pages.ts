@@ -57,8 +57,11 @@ export const updatesPath = "/updates/";
 export type UpdatePath = `/updates/${UpdateSlug}/`;
 export const updatePath = (slug: UpdateSlug): UpdatePath => `/updates/${slug}/`;
 
+/** The page where sandbox providers read about private benchmarks and get in touch. Outside /providers/, where every page is one provider's results. */
+export const forProvidersPath = "/for-providers/";
+
 /** Every public page. Adding a provider, comparison, alternatives or update page without a content date below fails to compile. */
-export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
+export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -83,6 +86,7 @@ const contentDates = {
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
   "/alternatives/e2b/": "2026-11-18",
+  "/for-providers/": "2026-11-19",
   "/updates/": "2026-11-19",
   "/updates/every-provider-on-real-tasks/": "2026-11-19",
   "/updates/beam-added/": "2026-11-19",
@@ -112,4 +116,5 @@ export const sitePaths: readonly SitePath[] = [
   ...alternativesPages.map(alternativesPath),
   updatesPath,
   ...updates.map((u) => updatePath(u.slug)),
+  forProvidersPath,
 ];

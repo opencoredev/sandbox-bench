@@ -26,3 +26,6 @@ out/
 .next/
 # Fake layout fixture from scripts/preview-fixture.ts: never commit.
 src/data/preview/
+
+# agent-browser screenshots from local checks
+.screenshots/

@@ -1,6 +1,6 @@
 import { llmsTxt } from "@/lib/agent-data";
 import { providerName } from "@/lib/providers";
-import { alternativesPages, alternativesPath, comparePages, comparePath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
+import { alternativesPages, alternativesPath, comparePages, comparePath, forProvidersPath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
 
 export const dynamic = "force-static";
 
@@ -18,6 +18,10 @@ ${comparePages.map((p) => `- [${providerName(p.a)} vs ${providerName(p.b)}](${co
 ## Alternatives pages
 
 ${alternativesPages.map((id) => `- [${providerName(id)} alternatives](${alternativesPath(id)}): every other provider we tested, set against ${providerName(id)} on both tracks: tests ahead, behind and tied, cold start, tool replay, cost per task and pause support.`).join("\n")}
+
+## For sandbox providers
+
+- [Private benchmarks for sandbox providers](${forProvidersPath}): daily private runs of this benchmark in regions a provider chooses, with run logs, reruns, uptime checks, regression alerts, a shared Slack channel and cost checked against real bills, and a contact form. Paying never changes the public results, which run on our own accounts.
 `;
 
 export function GET() {

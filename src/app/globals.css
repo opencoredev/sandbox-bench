@@ -106,6 +106,7 @@
   --color-warning: var(--warning);
   --color-warning-transparent: var(--warning-transparent);
   --color-error: var(--error);
+  --color-error-transparent: var(--error-transparent);
 }
 
 @layer base {

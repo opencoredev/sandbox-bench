@@ -26,8 +26,10 @@ import { JumpLink } from "@/components/jump";
 import { HomeJsonLd } from "@/components/seo/home-json-ld";
 import { HomeLinks } from "@/components/seo/home-links";
 import { homeMetadata } from "@/lib/seo/home";
-import { updatePath, updatesPath } from "@/lib/seo/pages";
+import { forProvidersPath, updatePath, updatesPath } from "@/lib/seo/pages";
+import { independenceTitle, privateOffer, privateSummary, privateTitle } from "@/lib/private-benchmarks";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
+import { Scores, scoresSection } from "@/components/scores";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
 import { Card, TabCard } from "@/components/tabs";
@@ -61,10 +63,11 @@ import { advertised } from "@/lib/sizes";
 // Layout move: one global machine switch; every chart follows it, and a
 // machine that differs from the track's carries a mark. Each headline card
 // opens its section on the matching tab.
-// Avoiding: poster-sized hero, intro paragraphs, overall scores, winner badges, a heavy filled quadrant.
+// Avoiding: poster-sized hero, intro paragraphs, an overall score (scores are per category only), winner badges, a heavy filled quadrant.
 
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 // Speed first, in the order an agent meets it, then cost, then what explains the numbers.
+// Scores sit right under the title, so they have no item: one more would push the bar past 1440 px.
 const sections = [
   ["startup", "Start-up", "cold"],
   ["real-tasks", "Real tasks", "fix-and-test"],
@@ -547,6 +550,14 @@ export default function Page() {
           <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
         </div>
 
+        <Section
+          id={scoresSection}
+          title="Scores by category"
+          lede="Each category on its own, 0 to 100 against the best provider in it, from the charts below. There is no overall score."
+        >
+          <PerTrack>{(track) => <Scores track={track} />}</PerTrack>
+        </Section>
+
         <div className="pt-xxl">
           <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
         </div>
@@ -833,6 +844,26 @@ export default function Page() {
             </p>
           </Card>
         </Section>
+
+        <Section id="private-benchmarks" title={privateTitle} lede={privateSummary}>
+          <Card>
+            <ul className="grid gap-x-l gap-y-xs text-s text-neutral-8 sm:grid-cols-2 lg:grid-cols-4">
+              {privateOffer.map((item) => (
+                <li key={item.title} className="flex items-baseline gap-xs">
+                  <span aria-hidden className="size-1.5 shrink-0 translate-y-[-0.1em] rounded-full bg-neutral-6" />
+                  {item.title}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-m max-w-[72ch] text-s text-pretty text-neutral-7">
+              <span className="font-medium text-neutral-10">{independenceTitle}.</span> Every result on this page comes from runs on our own accounts.
+            </p>
+            <a href={forProvidersPath} className="group focus-ring mt-m inline-flex items-center gap-xxs rounded-xs text-s font-medium text-accent">
+              <span className="underline decoration-dotted underline-offset-4 group-hover:text-neutral-10">What&apos;s included, and get in touch</span>
+              <ArrowUpRight aria-hidden className="size-4 shrink-0 group-hover:text-neutral-10" />
+            </a>
+          </Card>
+        </Section>
       </main>
 
       <footer className="mx-auto mt-xxl max-w-[1440px] px-m sm:px-l">
@@ -854,6 +885,10 @@ export default function Page() {
           </span>
           <span aria-hidden className="hidden sm:inline">·</span>
           <HomeLinks />
+          <span aria-hidden className="hidden sm:inline">·</span>
+          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={forProvidersPath}>
+            For providers
+          </a>
           <span aria-hidden className="hidden sm:inline">·</span>
           <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
             Source on GitHub
