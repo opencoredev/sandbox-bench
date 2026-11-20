@@ -48,7 +48,7 @@ export function ScoreMeter({ cell, provider }: { cell: ScoreCell; provider: Prov
         <>
           <span className="flex items-baseline justify-between gap-xs">
             <span className="font-mono text-m leading-none font-medium tabular-nums text-neutral-10">{cell.score}</span>
-            <span className="truncate font-mono text-xxs leading-none tabular-nums text-neutral-7">{cell.display}</span>
+            <span className="truncate text-xs leading-none tabular-nums text-neutral-7">{cell.display}</span>
           </span>
           <span className="block h-1 w-full overflow-hidden rounded-full bg-neutral-4">
             <span className="block h-full rounded-full" style={{ width: `${cell.score}%`, backgroundColor: providerColor(provider) }} />

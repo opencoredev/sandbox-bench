@@ -65,7 +65,7 @@ const label = "Scores by category, 0 to 100";
 
 /**
  * Each provider's score per category, for one track: a sortable table on wide
- * screens, a tab per category on phones. The formula sits under it, in words.
+ * screens, a tab per category on phones. A one-line key sits under it.
  */
 export function Scores({ track }: { track: Track }) {
   const { columns, rows, notes } = scoreGrid(track);
@@ -77,18 +77,10 @@ export function Scores({ track }: { track: Track }) {
       <Card className="hidden md:block">
         <ScoreTable columns={columns} rows={rows} label={label} />
       </Card>
-      <div className="mt-m flex max-w-[80ch] flex-col gap-xs text-s text-pretty text-neutral-8">
-        <p>
-          <span className="font-medium text-neutral-10">How a score is made.</span> Each category is scored on its own against the best provider in it, from the
-          number in the linked chart. Where lower is better, the score is 100 × the best result ÷ this result. For success rate, where higher is better, it is
-          100 × this result ÷ the best. Scores are rounded down, so the best scores 100 and a provider twice as slow or twice as expensive scores 50.
-        </p>
-        <p>
-          Categories are never added up into one score. Not measured means the chart has no result for that provider; it is not a 0. Not counted means
-          the chart shows a result but leaves it out of the comparison, by the chart&apos;s own rule: for cost, more than one failed run or the wrong
-          machine size. Cost and real-task results come from pilot runs, and some costs are estimates; the linked charts say which.
-        </p>
-      </div>
+      <p className="mt-m max-w-[80ch] text-s text-pretty text-neutral-8">
+        Twice as slow or twice the price of the best scores 50. Not measured means no result yet, not a 0. Not counted means the chart leaves it out; open it
+        for why.
+      </p>
       <Footnotes items={notes} />
     </>
   );
