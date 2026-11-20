@@ -28,8 +28,9 @@ export function JumpLink({ section, tab, className, children }: TabRequest & { c
       href={href}
       className={className}
       onClick={() => {
-        // The same hash again fires no hashchange, so scroll here.
-        if (window.location.hash === href) document.getElementById(section)?.scrollIntoView();
+        // The same hash again fires no hashchange, so send one: the section's TabCard reopens the tab
+        // (it may have been switched since) and scrolls to it.
+        if (window.location.hash === href) window.dispatchEvent(new HashChangeEvent("hashchange"));
       }}
     >
       {children}

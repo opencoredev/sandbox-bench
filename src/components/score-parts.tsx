@@ -17,7 +17,7 @@ export interface ScoreRow {
 
 /** Opens the chart a score comes from: on its tab where the section has tabs, else at the section. */
 export function ScoreLink({ link, provider, category, cell, className, children }: { link: ScoreColumn["link"]; provider: ProviderId; category: string; cell: ScoreCell; className: string; children: ReactNode }) {
-  const said = cell.kind === "scored" ? `${cell.score} out of 100, from ${cell.display}` : "not measured";
+  const said = cell.kind === "scored" ? `${cell.score} out of 100, from ${cell.display}` : cell.kind === "excluded" ? `not counted: ${cell.why}` : "not measured";
   const content = (
     <>
       <span className="sr-only">
@@ -53,6 +53,15 @@ export function ScoreMeter({ cell, provider }: { cell: ScoreCell; provider: Prov
           <span className="block h-1 w-full overflow-hidden rounded-full bg-neutral-4">
             <span className="block h-full rounded-full" style={{ width: `${cell.score}%`, backgroundColor: providerColor(provider) }} />
           </span>
+        </>
+      );
+    case "excluded":
+      return (
+        <>
+          <span className="flex h-4 items-end text-xs leading-none text-neutral-7" title={cell.why}>
+            Not counted
+          </span>
+          <span className="block h-1 w-full rounded-full bg-neutral-3" />
         </>
       );
     case "not-measured":

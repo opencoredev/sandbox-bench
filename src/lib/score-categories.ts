@@ -3,10 +3,10 @@ import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import type { ProviderId } from "@/lib/providers";
-import { headlineRows, perThousand, runTrackOf } from "@/lib/realistic";
+import { headlineRows, isCounted, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { scoreReadings } from "@/lib/score";
-import type { Better, Reading, Score } from "@/lib/score";
+import type { Better, Excluded, Reading, Score } from "@/lib/score";
 import { successRate } from "@/lib/status";
 
 /**
@@ -27,6 +27,8 @@ export interface ScoreCategory {
   /** The section with the underlying numbers, and the tab to open there when it has tabs. */
   link: { section: string; tab: string | null };
   read: (track: Track) => readonly Reading[];
+  /** Readings the linked chart shows but doesn't count, by the chart's own rule. They score nothing and never set the best. */
+  exclude?: (track: Track) => readonly Excluded[];
   /** The reading as the linked chart prints it. */
   format: (value: number) => string;
 }
@@ -68,7 +70,9 @@ export const scoreCategories = [
     measure: "Fix and test, per 1,000",
     better: "lower",
     link: { section: taskCostSection, tab: "fix-and-test" },
-    read: (track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.map((r) => ({ provider: r.provider, value: r.cost.usdPerCompleted })),
+    // The cost chart's pick rule: rows with more than one failed run, or the wrong machine size, aren't counted.
+    read: (track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.flatMap((r) => (isCounted(r) ? [{ provider: r.provider, value: r.cost.usdPerCompleted }] : [])),
+    exclude: (track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.flatMap((r) => (isCounted(r) ? [] : [{ provider: r.provider, why: notCountedWhy(r).join("; ") }])),
     format: perThousand,
   },
   {
@@ -94,7 +98,7 @@ export const scoreCategories = [
 export type ScoreCategoryId = (typeof scoreCategories)[number]["id"];
 
 /** A score with its reading as the linked chart prints it. */
-export type ScoreCell = (Extract<Score, { kind: "scored" }> & { display: string }) | Extract<Score, { kind: "not-measured" }>;
+export type ScoreCell = (Extract<Score, { kind: "scored" }> & { display: string }) | Exclude<Score, { kind: "scored" }>;
 
 /** One category's scores on a track, one per provider in the track's order. */
 export type CategoryScores = { category: ScoreCategory; scores: ScoreCell[] };
@@ -103,7 +107,7 @@ export function trackScores(track: Track, categories: readonly ScoreCategory[] =
   const providers: ProviderId[] = track.providers.map((p) => p.id);
   return categories.map((category) => ({
     category,
-    scores: scoreReadings({ providers, readings: category.read(track), better: category.better }).map((s): ScoreCell =>
+    scores: scoreReadings({ providers, readings: category.read(track), excluded: category.exclude?.(track) ?? [], better: category.better }).map((s): ScoreCell =>
       s.kind === "scored" ? { ...s, display: category.format(s.value) } : s,
     ),
   }));

@@ -154,3 +154,52 @@ describe("score categories on the committed data", () => {
     assert.ok(cpu?.scores.some((s) => s.kind === "scored"));
   });
 });
+
+describe("review fixes", () => {
+  test("100 and best always agree: float noise is a tie, a real gap is at most 99", () => {
+    const scores = scoreReadings({
+      providers: ["e2b", "modal", "boat", "beam"],
+      readings: [
+        { provider: "e2b", value: 1 },
+        { provider: "modal", value: 1.000000000001 },
+        { provider: "boat", value: 1 },
+        { provider: "beam", value: 1.001 },
+      ],
+      better: "lower",
+    });
+    assert.deepEqual(scoreOf(scores, "modal"), { kind: "scored", provider: "modal", score: 100, value: 1.000000000001, best: true });
+    assert.deepEqual(scoreOf(scores, "beam"), { kind: "scored", provider: "beam", score: 99, value: 1.001, best: false });
+    for (const s of scores) if (s.kind === "scored") assert.equal(s.score === 100, s.best);
+    const boat = scoreOf(scores, "boat");
+    assert.ok(boat?.kind === "scored" && boat.score === 100 && boat.best);
+  });
+
+  test("float error doesn't cost a point: 100 × 0.29 stays 29", () => {
+    const scores = scoreReadings({ providers: ["e2b", "modal"], readings: [{ provider: "e2b", value: 29 }, { provider: "modal", value: 100 }], better: "lower" });
+    const modal = scoreOf(scores, "modal");
+    assert.ok(modal?.kind === "scored" && modal.score === 29);
+  });
+
+  test("an excluded reading never sets the best and ranks after scored ones", () => {
+    const scores = scoreReadings({
+      providers: ["e2b", "modal", "boat"],
+      readings: [
+        { provider: "e2b", value: 1 },
+        { provider: "modal", value: 4 },
+        { provider: "boat", value: 2 },
+      ],
+      excluded: [{ provider: "e2b", why: "wrong size" }],
+      better: "lower",
+    });
+    assert.deepEqual(scoreOf(scores, "e2b"), { kind: "excluded", provider: "e2b", why: "wrong size" });
+    const boat = scoreOf(scores, "boat");
+    assert.ok(boat?.kind === "scored" && boat.score === 100 && boat.best);
+    assert.deepEqual(rankScores(scores, "lower").map((s) => s.provider), ["boat", "modal", "e2b"]);
+  });
+
+  test("on Same machine, boxd's wrong-size cost is not counted", () => {
+    const cost = trackScores(tracks["same-spec"]).find((c) => c.category.id === "cost");
+    const boxd = cost?.scores.find((s) => s.provider === "boxd");
+    assert.equal(boxd?.kind, "excluded");
+  });
+});

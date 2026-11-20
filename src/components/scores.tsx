@@ -84,7 +84,9 @@ export function Scores({ track }: { track: Track }) {
           100 × this result ÷ the best. Scores are rounded down, so the best scores 100 and a provider twice as slow or twice as expensive scores 50.
         </p>
         <p>
-          Categories are never added up into one score. Not measured means the chart has no result for that provider; it is not a 0.
+          Categories are never added up into one score. Not measured means the chart has no result for that provider; it is not a 0. Not counted means
+          the chart shows a result but leaves it out of the comparison, by the chart&apos;s own rule: for cost, more than one failed run or the wrong
+          machine size. Cost and real-task results come from pilot runs, and some costs are estimates; the linked charts say which.
         </p>
       </div>
       <Footnotes items={notes} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Mail } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { Button, Field, Form } from "@graphical";
@@ -27,7 +27,8 @@ function Problem({ status }: { status: Exclude<Status, { kind: "editing" | "send
     case "rejected":
       return (
         <>
-          The form wasn&apos;t accepted{status.reason ? `: ${status.reason.replace(/\.$/, "")}` : ""}. Check the fields and send it again, or email <Email />.
+          {/* Fixed copy: the server's own wording can echo what the visitor typed, and session tools would record it. */}
+          The form wasn&apos;t accepted. Check the fields and send it again, or email <Email />.
         </>
       );
     case "failed":
@@ -89,7 +90,12 @@ function TextField({
       ) : (
         <Form.Control className={inputClass} type="text" value={value} inputMode={inputMode} autoComplete={autoComplete} maxLength={maxLengths[name] + 100} onChange={(e) => onChange(name, e.currentTarget.value)} />
       )}
-      {error ? <p className="text-xs text-error">{error}</p> : null}
+      {/* Field.Error ties the message to the input through aria-describedby. */}
+      {error ? (
+        <Field.Error match className="text-xs text-error">
+          {error}
+        </Field.Error>
+      ) : null}
     </Field.Root>
   );
 }
@@ -116,6 +122,11 @@ export function ContactForm({ url = endpoint }: { url?: string | null }) {
   const [errors, setErrors] = useState<ContactErrors>({});
   const [status, setStatus] = useState<Status>({ kind: "editing" });
   const statusRef = useRef<HTMLParagraphElement>(null);
+  // Set synchronously, so two submits in one tick can't both send before React re-renders.
+  const inFlight = useRef(false);
+  // Until React takes over, the fields are disabled: a native submit would put the details in the URL.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   if (url === null)
     return (
@@ -145,7 +156,7 @@ export function ContactForm({ url = endpoint }: { url?: string | null }) {
   };
 
   const submit = async () => {
-    if (status.kind === "sending") return;
+    if (inFlight.current) return;
     const checked = validateContact(values);
     if (checked.kind === "invalid") {
       setErrors(checked.errors);
@@ -155,10 +166,13 @@ export function ContactForm({ url = endpoint }: { url?: string | null }) {
       if (first) document.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
       return;
     }
+    inFlight.current = true;
     setErrors({});
     setStatus({ kind: "sending" });
-    const result = await sendContact({ url, payload: checked.payload });
-    captureEvent("private_benchmarks_contact_submitted", { outcome: result.kind, ...(result.kind === "failed" ? { status: result.status } : {}) });
+    const result = await sendContact({ url, payload: checked.payload }).finally(() => {
+      inFlight.current = false;
+    });
+    captureEvent("private_benchmarks_contact_submitted", { outcome: result.kind });
     setStatus(result.kind === "sent" ? { kind: "sent", email: checked.payload.email } : result);
     if (result.kind !== "sent") requestAnimationFrame(() => statusRef.current?.focus());
   };
@@ -170,54 +184,62 @@ export function ContactForm({ url = endpoint }: { url?: string | null }) {
   return (
     <form
       noValidate
+      method="post"
       aria-label="Private benchmarks contact form"
-      className="flex flex-col gap-l"
+      className="ph-no-capture"
       onSubmit={(e) => {
         e.preventDefault();
         void submit();
       }}
     >
-      <div className="grid gap-m sm:grid-cols-2">
-        <TextField name="company" label="Company" value={values.company} error={errors.company} onChange={change} autoComplete="organization" />
-        <TextField name="name" label="Name" value={values.name} error={errors.name} onChange={change} autoComplete="name" />
-        <TextField name="email" label="Work email" value={values.email} error={errors.email} onChange={change} autoComplete="email" inputMode="email" />
-        <TextField name="website" label="Website" hint="optional" value={values.website} error={errors.website} onChange={change} autoComplete="url" inputMode="url" />
-        <TextField
-          name="message"
-          label="Message"
-          hint="regions, tests, anything we should know"
-          value={values.message}
-          error={errors.message}
-          onChange={change}
-          autoComplete="off"
-          multiline
-        />
-      </div>
+      <noscript>
+        <p className="mb-m text-s text-neutral-8">
+          This form needs JavaScript. Email <Email /> instead.
+        </p>
+      </noscript>
+      <fieldset disabled={!hydrated} className="flex min-w-0 flex-col gap-l">
+        <div className="grid gap-m sm:grid-cols-2">
+          <TextField name="company" label="Company" value={values.company} error={errors.company} onChange={change} autoComplete="organization" />
+          <TextField name="name" label="Name" value={values.name} error={errors.name} onChange={change} autoComplete="name" />
+          <TextField name="email" label="Work email" value={values.email} error={errors.email} onChange={change} autoComplete="email" inputMode="email" />
+          <TextField name="website" label="Website" hint="optional" value={values.website} error={errors.website} onChange={change} autoComplete="url" inputMode="url" />
+          <TextField
+            name="message"
+            label="Message"
+            hint="regions, tests, anything we should know"
+            value={values.message}
+            error={errors.message}
+            onChange={change}
+            autoComplete="off"
+            multiline
+          />
+        </div>
 
-      {/* The honeypot: off screen and out of the tab order, so only a bot fills it. */}
-      <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
-        <label>
-          Leave this empty
-          <input type="text" name="hp" tabIndex={-1} autoComplete="off" value={values.hp} onChange={(e) => setValues((v) => ({ ...v, hp: e.currentTarget.value }))} />
-        </label>
-      </div>
+        {/* The honeypot: off screen and out of the tab order, so only a bot fills it. */}
+        <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+          <label>
+            Leave this empty
+            <input type="text" name="hp" tabIndex={-1} autoComplete="off" value={values.hp} onChange={(e) => setValues((v) => ({ ...v, hp: e.currentTarget.value }))} />
+          </label>
+        </div>
 
-      <div className="flex flex-col gap-s sm:flex-row sm:items-center">
-        <Button type="submit" variant="primary" disabled={sending} className="self-start">
-          {sending ? "Sending…" : "Send"}
-        </Button>
-        {count > 0 ? (
-          <p role="alert" className="text-s text-error">
-            {count === 1 ? "One field needs attention." : `${count} fields need attention.`}
+        <div className="flex flex-col gap-s sm:flex-row sm:items-center">
+          <Button type="submit" variant="primary" disabled={sending} className="self-start">
+            {sending ? "Sending…" : "Send"}
+          </Button>
+          {count > 0 ? (
+            <p role="alert" className="text-s text-error">
+              {count === 1 ? "One field needs attention." : `${count} fields need attention.`}
+            </p>
+          ) : null}
+        </div>
+
+        {status.kind === "rejected" || status.kind === "failed" || status.kind === "network" ? (
+          <p ref={statusRef} tabIndex={-1} role="alert" className="focus-ring max-w-[60ch] rounded-s bg-error-transparent px-m py-s text-s text-pretty text-neutral-10">
+            <Problem status={status} />
           </p>
         ) : null}
-      </div>
-
-      {status.kind === "rejected" || status.kind === "failed" || status.kind === "network" ? (
-        <p ref={statusRef} tabIndex={-1} role="alert" className="focus-ring max-w-[60ch] rounded-s bg-error-transparent px-m py-s text-s text-pretty text-neutral-10">
-          <Problem status={status} />
-        </p>
-      ) : null}
+      </fieldset>
     </form>
   );
 }
