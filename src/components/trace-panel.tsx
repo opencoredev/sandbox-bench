@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { ArrowUpRight, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -8,8 +8,9 @@ import { Button, Toggle, ToggleGroup } from "@graphical";
 
 import { ProviderName } from "@/components/provider-name";
 import { markFill } from "@/lib/marks";
+import { providerPageOf } from "@/lib/provider-pages";
 import type { ColdPhases, PausePhases } from "@/lib/inputs";
-import { isProviderId, providerColor, providerInfo } from "@/lib/providers";
+import { isProviderId, providerColor, providerInfo, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace, isTraceKind, providerTrace, replayOps, traces } from "@/lib/traces";
 import type { ReplayOp, ReplayTrace, TraceKind } from "@/lib/traces";
@@ -142,6 +143,7 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
   const color = providerColor(provider);
   const kinds = (["cold", "pause", "replay"] as const).filter((k) => hasTrace(track, k, provider));
   const others = Object.keys(providerInfo).filter(isProviderId).filter((p) => hasTrace(track, kind, p));
+  const page = providerPageOf(provider);
   const body = useRef<HTMLDivElement>(null);
   // A new provider or section starts at the top.
   // A block body: newer browsers return a promise from scrollTo, which React would call as a cleanup.
@@ -159,9 +161,21 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
               Where the time goes · {trackInfo[track].short}
             </p>
             <h2 id="trace-title" className="mt-0.5 text-l font-medium">
-              <span style={{ color }}><ProviderName id={provider} /></span>
+              {page ? (
+                <a href={page} className="focus-ring rounded-xs decoration-current/40 underline-offset-4 hover:underline" style={{ color }}>
+                  <ProviderName id={provider} />
+                </a>
+              ) : (
+                <span style={{ color }}><ProviderName id={provider} /></span>
+              )}
               <span className="text-neutral-7"> · {kindLabel[kind]}</span>
             </h2>
+            {page ? (
+              <a href={page} aria-label={`${providerName(provider)}'s page`} className="focus-ring mt-xxs inline-flex items-center gap-xxs rounded-xs text-xs text-neutral-8 underline-offset-4 hover:text-neutral-10 hover:underline">
+                Provider page
+                <ArrowUpRight aria-hidden className="size-3.5" />
+              </a>
+            ) : null}
           </div>
           <Button variant="ghost" autoFocus onClick={onClose} aria-label="Close" className="-mr-xs shrink-0 px-xs text-neutral-7">
             <X aria-hidden />

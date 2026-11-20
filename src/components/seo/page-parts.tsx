@@ -2,23 +2,11 @@ import type { ReactNode } from "react";
 
 import { Lockup } from "@/components/brand";
 
+export { ordinal } from "@/lib/format";
+
 /** The pieces every SEO page (provider, comparison) shares, so they read as one site. */
 
 export const link = "focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10";
-
-export function ordinal(n: number) {
-  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1:
-      return `${n}st`;
-    case 2:
-      return `${n}nd`;
-    case 3:
-      return `${n}rd`;
-    default:
-      return `${n}th`;
-  }
-}
 
 export const Fact = ({ term, children }: { term: string; children: ReactNode }) => (
   <div className="flex flex-col gap-xxs">

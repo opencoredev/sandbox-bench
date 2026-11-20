@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUpRight } from "lucide-react";
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -14,19 +15,20 @@ import { Card } from "@/components/tabs";
 import { TrackSwitch } from "@/components/track-switch";
 import { hasTaskCosts } from "@/lib/cost";
 import { allocationNotes } from "@/lib/notes";
-import { providerFormerName, providerName } from "@/lib/providers";
+import { privateTitle } from "@/lib/private-benchmarks";
+import { providerColor, providerFormerName, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { alternativesPath, comparePath, comparisonsWith, isAlternativesPage, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPath, comparePath, comparisonsWith, forProvidersPath, isAlternativesPage, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { fingerprintDate } from "@/lib/hardware";
-import { headline, providerNotes, providerResults, realTaskCost, realTaskTime, taskText } from "@/lib/seo/provider";
-import type { MetricRow, Placing, ProviderTrack } from "@/lib/seo/provider";
+import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, scorecard, taskText, verdict } from "@/lib/seo/provider";
+import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
 
 export const dynamicParams = false;
 
@@ -44,23 +46,8 @@ async function pageId(props: Props): Promise<ProviderPageId> {
 
 const titleOf = (id: ProviderPageId) => `${providerName(id)} sandbox benchmark: cold start, agent tasks and cost`;
 
-/** The machine a track ran on, in words, from the track's own definition. */
-const machineOf = (trackId: ProviderTrack["id"]) => (trackId === "same-spec" ? `the same ${trackInfo["same-spec"].short} machine` : "its default machine");
-
-/** One sentence of measured facts for the meta description, from the landing track, machine first. */
-function summary(id: ProviderPageId) {
-  const r = providerResults(id);
-  const t = r.tracks[0];
-  if (!t) return `${r.name} sandbox results from Sandbox bench.`;
-  const cold = headline(t, "cold");
-  const tool = headline(t, "tool-replay");
-  const parts = [
-    cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
-    tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
-    t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 tasks (${t.cost.tag})` : null,
-  ].filter((x) => x !== null);
-  return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
-}
+/** One sentence of measured facts for the meta description: cold start, tool calls, and the real task's time and cost. */
+const summary = (id: ProviderPageId) => providerSummary(id);
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const id = await pageId(props);
@@ -78,97 +65,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 const names = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
-/** A metric row as a placing: its median and rank, or why it has none. */
-function placingOf(row: MetricRow | undefined): Placing & { tied: boolean } {
-  if (!row) return { kind: "blank", why: "Not measured on this track", tied: false };
-  const s = row.standing;
-  switch (s.kind) {
-    case "blank":
-      return { kind: "blank", why: s.why, tied: false };
-    case "ranked":
-      return { kind: "ranked", value: s.median, rank: s.rank, of: s.of, tied: s.tiedWith.length > 0 };
-    default: {
-      const _exhaustive: never = s;
-      return _exhaustive;
-    }
-  }
-}
-
-const rowOf = (t: ProviderTrack, metricId: string) => t.groups.flatMap((g) => g.rows).find((r) => r.id === metricId);
-
-/** The best median in words, for a tile's foot: "Fastest: E2B 0.52 s", or nothing when this provider leads. */
-function leaderLine(row: MetricRow | undefined) {
-  if (!row || row.standing.kind !== "ranked" || !row.standing.leader) return undefined;
-  return `${row.better === "lower" ? "Lowest" : "Highest"}: ${providerName(row.standing.leader.id)} ${row.standing.leader.median}`;
-}
-
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
-
-interface Tile {
-  label: string;
-  /** The chart below the tiles this one opens. */
-  anchor: string;
-  placing: Placing & { tied?: boolean };
-  caption?: string;
-}
-
-/** The provider's headline results on one track, the home page's stat strip with this provider's value and rank in each. */
-function tilesOf(id: ProviderPageId, t: ProviderTrack): Tile[] {
-  const cold = rowOf(t, "cold");
-  const replay = rowOf(t, "tool-replay");
-  const cost = realTaskCost(t.id, id, "fix-and-test");
-  return [
-    { label: "Cold start", anchor: `${t.id}-cold`, placing: placingOf(cold), caption: leaderLine(cold) },
-    { label: "100 tool calls", anchor: `${t.id}-tool-replay`, placing: placingOf(replay), caption: leaderLine(replay) },
-    { label: "Real task: fix and test", anchor: `${t.id}-fix-and-test`, placing: realTaskTime(t.id, id, "fix-and-test"), caption: "Create to delete, median" },
-    { label: "Real task: build", anchor: `${t.id}-build`, placing: realTaskTime(t.id, id, "build"), caption: "Create to delete, median" },
-    // Only where the provider has a cost: a tile saying "no cost" would crowd out the results it does have.
-    ...(cost.kind === "ranked"
-      ? [{ label: "Fix and test cost", anchor: `${t.id}-fix-and-test-cost`, placing: cost, caption: cost.notCounted.length ? `Per 1,000 completed. Can't be the cheapest pick: ${cost.notCounted.join("; ")}` : "Per 1,000 completed tasks" }]
-      : []),
-  ];
-}
-
-/** One big number and where it ranks, linking to its chart below. */
-function StatTile({ tile }: { tile: Tile }) {
-  const p = tile.placing;
-  return (
-    <a href={`#${tile.anchor}`} className="surface surface-link group focus-ring flex h-full flex-col px-m py-s">
-      <span className="flex items-start justify-between gap-xs text-s text-neutral-7">
-        {tile.label}
-        <ArrowDown aria-hidden className="mt-0.5 size-4 shrink-0 group-hover:text-neutral-10" />
-      </span>
-      {p.kind === "ranked" ? (
-        <>
-          <span className="mt-xs font-mono text-l tabular-nums sm:text-xl">{p.value}</span>
-          <span className="mt-xs text-s font-medium text-neutral-10">
-            {ordinal(p.rank)} of {p.of}
-            {p.tied ? <span className="font-normal text-neutral-7">, tied</span> : null}
-          </span>
-        </>
-      ) : (
-        <>
-          <span className="mt-xs text-l text-neutral-8">No result</span>
-          <span className="mt-xs text-xs text-pretty text-neutral-7">{capital(p.why)}</span>
-        </>
-      )}
-      {tile.caption ? <span className="mt-auto pt-xs text-xs text-pretty text-neutral-7">{tile.caption}</span> : null}
-    </a>
-  );
-}
-
-function StatTiles({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
-  const tiles = tilesOf(id, t);
-  return (
-    <ul className="grid grid-cols-2 gap-s lg:grid-cols-5">
-      {tiles.map((tile) => (
-        <li key={tile.label} className="last:odd:col-span-2 lg:last:odd:col-span-1">
-          <StatTile tile={tile} />
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 /** Where a chart lives on the home page, on this track: `/#startup/cold`, `/?track=default#startup/cold`. */
 const fullChart = (trackId: TrackId, section: string, tab: string) => `/${trackId === "default" ? "?track=default" : ""}#${section}/${tab}`;
@@ -329,8 +226,8 @@ function PhoneRow({ row }: { row: MetricRow }) {
       </p>
       {s.kind === "ranked" ? (
         <>
-          <p className="mt-0.5 font-mono text-xs text-neutral-8 tabular-nums">
-            <span className="text-neutral-10">{s.median}</span> · p95 {s.p95} · 95%: {s.ci}
+          <p className="mt-0.5 text-xs text-neutral-8 tabular-nums">
+            <span className="font-medium text-neutral-10">{s.median}</span> · p95 {s.p95} · 95%: <span className="font-mono">{s.ci}</span>
           </p>
           <p className="mt-0.5 text-xs text-pretty text-neutral-7">
             {capital(row.better)} is better{context(row, s) ? ` · ${context(row, s)}` : ""}
@@ -372,8 +269,8 @@ function MetricTable({ title, rows }: { title: string; rows: readonly MetricRow[
               </th>
               {r.standing.kind === "ranked" ? (
                 <>
-                  <td className="py-xs pr-m font-mono whitespace-nowrap text-neutral-10 tabular-nums">{r.standing.median}</td>
-                  <td className="py-xs pr-m font-mono whitespace-nowrap text-neutral-8 tabular-nums">{r.standing.p95}</td>
+                  <td className="py-xs pr-m font-medium whitespace-nowrap text-neutral-10 tabular-nums">{r.standing.median}</td>
+                  <td className="py-xs pr-m whitespace-nowrap text-neutral-8 tabular-nums">{r.standing.p95}</td>
                   <td className="py-xs pr-m font-mono text-xs whitespace-nowrap text-neutral-8 tabular-nums">{r.standing.ci}</td>
                 </>
               ) : (
@@ -402,10 +299,119 @@ function pauseLine(t: ProviderTrack) {
   return t.pause.supported ? "supported." : "not supported.";
 }
 
-function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
+/** The provider's mark on a tile of its own, edged and faintly tinted in its colour. */
+function LogoBadge({ id }: { id: ProviderPageId }) {
+  const color = providerColor(id);
+  const style: CSSProperties = {
+    background: `color-mix(in oklch, ${color} 9%, var(--neutral-2))`,
+    boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${color} 38%, transparent)`,
+  };
+  return (
+    <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-m sm:size-14" style={style}>
+      <ProviderLogo id={id} size={28} />
+    </span>
+  );
+}
+
+/** What the provider runs on, in a few short facts under the verdict. */
+function MetaStrip({ r, t }: { r: ReturnType<typeof providerResults>; t: ProviderTrack }) {
+  const h = r.hardware;
+  const facts = [
+    { term: "Machine", value: t.machine.measured ?? t.machine.asked },
+    ...(h ? [{ term: "Runs as", value: h.runsAs.split(",")[0] ?? h.runsAs }] : []),
+    ...(h ? [{ term: "CPU", value: h.chip }] : []),
+    { term: "Region", value: t.ranIn ?? h?.region ?? "Not shown" },
+    { term: "Billing", value: capital(t.billing) },
+  ];
+  return (
+    <dl className="mt-l grid grid-cols-2 gap-x-l gap-y-s border-t border-neutral-3 pt-m sm:flex sm:flex-wrap sm:gap-x-xl">
+      {facts.map((f) => (
+        <div key={f.term} className="min-w-0">
+          <dt className="text-xs text-neutral-7">{f.term}</dt>
+          <dd className="mt-0.5 text-s text-pretty text-neutral-10">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** Where a scorecard tile leads: the chart on this page where there is one, else the home page's chart on this track. */
+function scoreHref(t: ProviderTrack, e: ScorecardEntry): { href: string; here: boolean } {
+  switch (e.category.id) {
+    case "speed":
+      return { href: `#${t.id}-cold`, here: true };
+    case "real-tasks":
+      return { href: `#${t.id}-fix-and-test`, here: true };
+    case "cost":
+      return { href: `#${t.id}-fix-and-test-cost`, here: true };
+    default:
+      return { href: fullChart(t.id, e.category.link.section, e.category.link.tab ?? ""), here: false };
+  }
+}
+
+/** One category's score, as the home page's Scores by category shows it, with the provider's rank. */
+function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: ScorecardEntry }) {
+  const { href, here } = scoreHref(t, e);
+  const Icon = here ? ArrowDown : ArrowUpRight;
+  const c = e.cell;
+  const rank = e.rank ? <span className="text-s font-medium whitespace-nowrap text-neutral-10">{rankText(e.rank)}</span> : null;
+  return (
+    <a href={href} className="surface surface-link group focus-ring flex h-full flex-col p-m">
+      <span className="flex items-start justify-between gap-xs">
+        <span className="min-w-0">
+          <span className="block text-s font-medium text-neutral-10">{e.category.label}</span>
+          <span className="block text-xs text-neutral-7">{e.category.measure}</span>
+        </span>
+        <Icon aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+      </span>
+      {c.kind === "scored" ? (
+        <>
+          <span className="mt-m flex items-baseline gap-xxs">
+            <span className="font-brand text-xxl leading-none font-medium tabular-nums text-neutral-10">{c.score}</span>
+            <span className="text-s text-neutral-7">/ 100</span>
+          </span>
+          <span className="mt-s block h-1.5 w-full overflow-hidden rounded-full bg-neutral-4">
+            <span className="block h-full rounded-full" style={{ width: `${c.score}%`, backgroundColor: providerColor(id) }} />
+          </span>
+          <span className="mt-auto flex items-baseline justify-between gap-s pt-s">
+            <span className="text-s tabular-nums text-neutral-8">{c.display} median</span>
+            {rank}
+          </span>
+        </>
+      ) : c.kind === "valued" ? (
+        <>
+          <span className="mt-m font-brand text-xxl leading-none font-medium tabular-nums text-neutral-10">{c.display}</span>
+          <span className="mt-s block text-xs text-neutral-7">Per 1,000 completed tasks</span>
+          <span className="mt-auto flex items-baseline justify-between gap-s pt-s">
+            <span className="text-s text-neutral-8">{e.category.better === "lower" ? "Cheapest first" : "Highest first"}</span>
+            {rank}
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="mt-m font-brand text-l leading-none font-medium text-neutral-8">{c.kind === "excluded" ? "Not counted" : "Not measured"}</span>
+          <span className="mt-auto pt-s text-xs text-pretty text-neutral-7">{c.kind === "excluded" ? capital(c.why) : "No result on this track yet, not a 0."}</span>
+        </>
+      )}
+    </a>
+  );
+}
+
+function Scorecard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
+  return (
+    <ul className="grid grid-cols-1 gap-s min-[480px]:grid-cols-2 lg:grid-cols-4">
+      {scorecard(t.id, id).map((e) => (
+        <li key={e.category.id}>
+          <ScoreTile id={id} t={t} e={e} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** The machine, where it ran, what it costs and how often it failed, with the longer notes folded. */
+function SpecCard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
   const name = providerName(id);
-  const heading = `${name} on ${machineOf(t.id)}`;
-  const href = t.id === "same-spec" ? "/" : "/?track=default";
   // The longer explanations sit in the folded notes, so the list reads at a glance.
   const notes = [
     ...(t.machine.note ? [{ lead: "Machine", text: t.machine.note }] : []),
@@ -415,9 +421,118 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
       : []),
   ];
   return (
-    // Not `track-${t.id}`: the machine switch reads `#track-default` as its own style element (lib/tracks.ts).
-    <section aria-labelledby={`machine-${t.id}`} className="pt-xxl">
-      <SectionTitle id={`machine-${t.id}`}>{heading}</SectionTitle>
+    <Card className="flex h-full flex-col">
+      <h3 className="mb-m text-m font-medium text-neutral-10">Machine, region and billing</h3>
+      <dl className="flex flex-col gap-s">
+        <Row term="Asked for">{t.machine.asked}</Row>
+        <Row term="Measured inside">
+          {t.machine.measured ?? "not measured"}
+          {t.id === "same-spec" && !t.machine.equalSpec ? <span className="text-neutral-7"> (machine differs)</span> : ""}
+        </Row>
+        {t.ranIn ? <Row term="Ran in">{t.ranIn}</Row> : null}
+        <Row term="Billing">{capital(t.billing)}</Row>
+        <Row term="Quick task cost">
+          {t.cost.kind === "priced" ? (
+            <>
+              <span className="tabular-nums">{t.cost.perThousand}</span> per 1,000 <span className="text-neutral-7">({t.cost.tag})</span>
+            </>
+          ) : (
+            <span className="text-neutral-7">{t.cost.note}</span>
+          )}
+        </Row>
+        {t.pricePerHour !== null ? (
+          <Row term="List price">
+            <span className="tabular-nums">{t.pricePerHour}</span> per hour for this machine, compute only
+          </Row>
+        ) : null}
+        <Row term="Pause and resume">{capital(pauseLine(t))}</Row>
+        <Row term="Success rate">
+          <span className="tabular-nums">{t.reliability.successRate === null ? "n/a" : `${(t.reliability.successRate * 100).toFixed(2)}%`}</span>{" "}
+          <span className="text-neutral-7">
+            ({t.reliability.succeeded.toLocaleString("en-US")} of {t.reliability.attempts.toLocaleString("en-US")})
+          </span>
+        </Row>
+        <Row term={`Failures counted against ${name}`}>
+          {t.failures.length === 0 ? "None." : t.failures.map((f) => `${f.reason} (${f.count} ${f.count === 1 ? "failure" : "failures"})`).join("; ")}
+        </Row>
+      </dl>
+      <Footnotes items={notes} />
+    </Card>
+  );
+}
+
+/** A ranked result in one line: the test on the left, its value and rank on the right. */
+function PlacedItem({ p }: { p: Placed }) {
+  return (
+    <li className="flex items-baseline justify-between gap-m border-t border-neutral-3 py-xs first:border-t-0">
+      <span className="min-w-0 text-s text-neutral-10">{p.label}</span>
+      <span className="shrink-0 text-right text-s whitespace-nowrap">
+        <span className="tabular-nums text-neutral-8">{p.value}</span>
+        <span className="text-neutral-6"> · </span>
+        <span className="font-medium text-neutral-10">{rankText(p.rank)}</span>
+        {p.tied ? <span className="text-neutral-7">, tied</span> : null}
+      </span>
+    </li>
+  );
+}
+
+/** The provider's three best and worst placings on this track, computed from its ranks, plus where to compare it next. */
+function StandsOut({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
+  const name = providerName(id);
+  const { leads, trails } = highlights(t, id);
+  const compares = comparisonsWith(id);
+  const block = (title: string, items: readonly Placed[], empty: string) => (
+    <div>
+      <h4 className="mb-xxs text-s font-medium text-neutral-8">{title}</h4>
+      {items.length ? (
+        <ul>
+          {items.map((p) => (
+            <PlacedItem key={p.id} p={p} />
+          ))}
+        </ul>
+      ) : (
+        <p className="py-xs text-s text-neutral-7">{empty}</p>
+      )}
+    </div>
+  );
+  return (
+    <Card className="flex h-full flex-col">
+      <h3 className="mb-xxs text-m font-medium text-neutral-10">Where {name} stands out and trails</h3>
+      <p className="mb-m text-xs text-pretty text-neutral-7">Its best and worst ranks on this machine, from the tests below. Top and bottom third of the field only.</p>
+      <div className="flex flex-col gap-m">
+        {block("Stands out", leads, `No result in the top third on ${machineOf(t.id)}.`)}
+        {block("Trails", trails, `No result in the bottom third on ${machineOf(t.id)}.`)}
+      </div>
+      <ul className="mt-auto flex flex-wrap gap-x-l gap-y-xxs border-t border-neutral-3 pt-s text-s">
+        {isAlternativesPage(id) ? (
+          <li>
+            <a className={link} href={alternativesPath(id)}>
+              {name} alternatives
+            </a>
+          </li>
+        ) : null}
+        {compares.map((c) => (
+          <li key={c.slug}>
+            <a className={link} href={comparePath(c.slug)}>
+              {providerName(c.a)} vs {providerName(c.b)}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a className={link} href={t.id === "same-spec" ? "/#scores" : "/?track=default#scores"}>
+            Every provider&apos;s scores
+          </a>
+        </li>
+      </ul>
+    </Card>
+  );
+}
+
+/** Every test on one track, grouped as the home page groups them. */
+function Results({ t }: { t: ProviderTrack }) {
+  const href = t.id === "same-spec" ? "/" : "/?track=default";
+  return (
+    <>
       <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
         {t.description} Runs from {t.run.start} to {t.run.end}, {t.providerCount} providers. See every provider side by side on the{" "}
         <a className={link} href={href}>
@@ -426,80 +541,26 @@ function TrackSection({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
         .
       </p>
       <Card>
-        <dl className="grid gap-x-xl gap-y-s md:grid-cols-2">
-          <Row term="Asked for">{t.machine.asked}</Row>
-          <Row term="Measured inside">
-            {t.machine.measured ?? "not measured"}
-            {t.id === "same-spec" && !t.machine.equalSpec ? <span className="text-neutral-7"> (machine differs)</span> : ""}
-          </Row>
-          {t.ranIn ? <Row term="Ran in">{t.ranIn}</Row> : null}
-          <Row term="Success rate">
-            <span className="font-mono tabular-nums">{t.reliability.successRate === null ? "n/a" : `${(t.reliability.successRate * 100).toFixed(2)}%`}</span>{" "}
-            <span className="text-neutral-7">
-              ({t.reliability.succeeded.toLocaleString("en-US")} of {t.reliability.attempts.toLocaleString("en-US")})
-            </span>
-          </Row>
-          <Row term="Cost per 1,000 tasks">
-            {t.cost.kind === "priced" ? (
-              <>
-                <span className="font-mono tabular-nums">{t.cost.perThousand}</span> <span className="text-neutral-7">({t.cost.tag})</span>
-              </>
-            ) : (
-              <span className="text-neutral-7">{t.cost.note}</span>
-            )}
-          </Row>
-          {t.cost.kind === "priced" ? (
-            <Row term="Cost per task">
-              <span className="font-mono tabular-nums">{t.cost.perTask}</span>
-            </Row>
-          ) : null}
-          <Row term="Billing">{capital(t.billing)}</Row>
-          {t.pricePerHour !== null ? (
-            <Row term="List price">
-              <span className="font-mono tabular-nums">{t.pricePerHour}</span> per hour for this machine, compute only
-            </Row>
-          ) : null}
-          <Row term="Pause and resume">{capital(pauseLine(t))}</Row>
-          <Row term={`Failures counted against ${name}`}>
-            {t.failures.length === 0 ? "None." : t.failures.map((f) => `${f.reason} (${f.count} ${f.count === 1 ? "test" : "tests"})`).join("; ")}
-          </Row>
-        </dl>
-        <Footnotes items={notes} />
-      </Card>
-      <Card className="mt-m">
         <div className="flex flex-col gap-xl">
           {t.groups.map((g) => (g.rows.length ? <MetricTable key={g.title} title={g.title} rows={g.rows} /> : null))}
         </div>
       </Card>
-      {t.picks.length ? (
-        <Card className="mt-m">
-          <h3 className="mb-xs text-m font-medium text-neutral-10">Quick picks on this track, all providers</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-s">
-              <thead className="text-xs text-neutral-7">
-                <tr>
-                  <th scope="col" className="py-xxs pr-m font-normal">Need</th>
-                  <th scope="col" className="py-xxs pr-m font-normal">Pick</th>
-                  <th scope="col" className="py-xxs font-normal">Runner-up</th>
-                </tr>
-              </thead>
-              <tbody>
-                {t.picks.map((q) => (
-                  <tr key={q.need} className="align-top">
-                    <th scope="row" className="py-xs pr-m font-normal text-neutral-7">{q.need}</th>
-                    <td className="py-xs pr-m text-neutral-10">
-                      {q.pick}
-                      {q.note ? <span className="mt-xxs block text-xs text-pretty text-neutral-7">{q.note}</span> : null}
-                    </td>
-                    <td className="py-xs text-neutral-8">{q.runnerUp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    </>
+  );
+}
+
+function FaqList({ faqs }: { faqs: readonly Faq[] }) {
+  return (
+    <Card className="mt-l">
+      <div className="flex flex-col">
+        {faqs.map((f) => (
+          <div key={f.question} className="border-t border-neutral-3 py-m first:border-t-0 first:pt-0 last:pb-0">
+            <h3 className="text-m font-medium text-pretty text-neutral-10">{f.question}</h3>
+            <p className="mt-xs max-w-[80ch] text-s text-pretty text-neutral-8">{f.answer}</p>
           </div>
-        </Card>
-      ) : null}
-    </section>
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -515,6 +576,7 @@ export default async function ProviderPage(props: Props) {
   const others = providerPages.filter((p) => p !== id);
   const h = r.hardware;
   const rivals = Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1);
+  const faqs = providerFaqs(id);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -539,6 +601,7 @@ export default async function ProviderPage(props: Props) {
           { "@type": "ListItem", position: 3, name: `${name} sandbox benchmark`, item: url },
         ],
       },
+      ...(faqs.length ? [{ "@id": `${url}#faq`, ...faqJsonLd(faqs) }] : []),
     ],
   };
 
@@ -550,41 +613,69 @@ export default async function ProviderPage(props: Props) {
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
       <main className="mx-auto max-w-[1100px] overflow-x-clip px-m sm:px-l">
         <Breadcrumb current={name} parent={{ name: "Providers", href: providersPath }} />
-        <h1 className="flex items-center gap-s pt-m font-brand text-xl font-medium text-balance sm:text-xxl">
-          <ProviderLogo id={id} size={40} />
-          {name} sandbox benchmark
-        </h1>
-        <div className="flex flex-col gap-l pt-s pb-l lg:flex-row lg:items-end lg:justify-between">
-          <p className="max-w-[60ch] text-m text-pretty text-neutral-10 sm:text-l">
-            Where {name} ranks against {rivals} other sandbox providers on cold start, real coding tasks, tool calls and cost.
-          </p>
-          {showSwitch ? <TrackSwitch /> : null}
-        </div>
 
-        <ByTrack id={id} r={r}>
-          {(t) => (
-            <>
-              <p className="mb-s text-s text-neutral-7">
-                {trackInfo[t.id].label} · {t.providerCount} providers · {t.run.start} to {t.run.end} · medians, rank among providers with a result
+        <header className="pt-l">
+          <div className="flex min-w-0 items-center gap-m">
+            <LogoBadge id={id} />
+            <div className="min-w-0">
+              <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">{name} sandbox benchmark</h1>
+              <p className="mt-xxs text-s text-neutral-7">
+                {formerly ? `Formerly ${formerly} · ` : ""}Ranked against {rivals} other sandbox providers
               </p>
-              <StatTiles id={id} t={t} />
-            </>
-          )}
-        </ByTrack>
+            </div>
+          </div>
+          {/* The switch sits beside the verdict it changes; on phones it comes first, full width. */}
+          <div className="mt-l flex flex-col gap-m lg:flex-row lg:items-start lg:justify-between lg:gap-xl">
+            {showSwitch ? <div className="shrink-0 lg:order-2"><TrackSwitch /></div> : null}
+            <div className="min-w-0 lg:order-1 lg:flex-1">
+              <ByTrack id={id} r={r}>
+                {(t) => <p className="max-w-[64ch] text-m text-pretty text-neutral-9 sm:text-l">{verdict(t, id)}</p>}
+              </ByTrack>
+            </div>
+          </div>
+          <ByTrack id={id} r={r}>
+            {(t) => <MetaStrip r={r} t={t} />}
+          </ByTrack>
+        </header>
+
+        <section aria-labelledby="scores" className="pt-xxl">
+          <SectionTitle id="scores">Scores by category</SectionTitle>
+          <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
+            The same scores as the home page: 100 is the best provider, twice as slow scores 50. Cost is in dollars, cheapest first.
+          </p>
+          <ByTrack id={id} r={r}>
+            {(t) => <Scorecard id={id} t={t} />}
+          </ByTrack>
+        </section>
+
+        <section aria-labelledby="profile" className="pt-xxl">
+          <SectionTitle id="profile">{name} at a glance</SectionTitle>
+          <ByTrack id={id} r={r}>
+            {(t) => (
+              <div className="mt-l grid gap-m lg:grid-cols-2">
+                <SpecCard id={id} t={t} />
+                <StandsOut id={id} t={t} />
+              </div>
+            )}
+          </ByTrack>
+        </section>
 
         <section aria-labelledby="compared" className="pt-xxl">
           <SectionTitle id="compared">How {name} compares</SectionTitle>
           <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
-            {name}&apos;s bar is bright and the rest are dimmed. Each title opens the full chart; each bar opens that provider&apos;s page.
+            {name}&apos;s bar is bright and the rest are dimmed. Each title opens the full chart; each bar or name opens that provider&apos;s page.
           </p>
           <ByTrack id={id} r={r}>
             {(t) => <Charts id={id} t={t} />}
           </ByTrack>
         </section>
 
-        {r.tracks.map((t) => (
-          <TrackSection key={t.id} id={id} t={t} />
-        ))}
+        <section aria-labelledby="results" className="pt-xxl">
+          <SectionTitle id="results">Every test</SectionTitle>
+          <ByTrack id={id} r={r}>
+            {(t) => <Results t={t} />}
+          </ByTrack>
+        </section>
 
         <section aria-labelledby="caveats" className="pt-xxl">
           <SectionTitle id="caveats">How to read these numbers</SectionTitle>
@@ -602,6 +693,13 @@ export default async function ProviderPage(props: Props) {
             </ul>
           </Card>
         </section>
+
+        {faqs.length ? (
+          <section aria-labelledby="faq" className="pt-xxl">
+            <SectionTitle id="faq">Frequently asked questions</SectionTitle>
+            <FaqList faqs={faqs} />
+          </section>
+        ) : null}
 
         <section aria-labelledby="more" className="pt-xxl">
           <SectionTitle id="more">More results</SectionTitle>
@@ -641,6 +739,11 @@ export default async function ProviderPage(props: Props) {
               <li>
                 <a className={link} href="/?track=default">
                   Every provider on its default machine
+                </a>
+              </li>
+              <li>
+                <a className={link} href={forProvidersPath}>
+                  {privateTitle}
                 </a>
               </li>
               <RawData />

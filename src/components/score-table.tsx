@@ -7,7 +7,9 @@ import { ScoreLink, ScoreMeter } from "@/components/score-parts";
 import type { ScoreColumn, ScoreRow } from "@/components/score-parts";
 import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
+import { providerPageOf } from "@/lib/provider-pages";
 import { providerName } from "@/lib/providers";
+import type { ProviderId } from "@/lib/providers";
 import { rankScores } from "@/lib/score";
 
 /** Alphabetical by provider, or one category best first (highest score, or cheapest) with the not measured last. */
@@ -45,11 +47,37 @@ function bestFirst(column: ScoreColumn): "ascending" | "descending" {
   }
 }
 
+/** A row's provider: its logo and name, a link to its page where it has one. */
+function RowProvider({ provider, mark }: { provider: ProviderId; mark: number | null }) {
+  const page = providerPageOf(provider);
+  const name = (
+    <>
+      <ProviderLogo id={provider} size={16} />
+      <span className="min-w-0 truncate">
+        <ProviderName id={provider} />
+      </span>
+    </>
+  );
+  return (
+    <span className="flex min-w-0 items-center gap-xs pl-xs text-s font-medium text-neutral-10">
+      {page ? (
+        <a href={page} className="focus-ring -mx-xxs flex min-w-0 items-center gap-xs rounded-xs px-xxs py-xxs underline-offset-4 decoration-neutral-6 hover:underline">
+          {name}
+        </a>
+      ) : (
+        name
+      )}
+      {mark === null ? null : <span className="font-mono text-xxs text-neutral-7">{mark}</span>}
+    </span>
+  );
+}
+
 const sortClass = "focus-ring group -mx-xs flex w-[calc(100%+var(--space-xs)*2)] cursor-pointer flex-col items-start gap-0.5 rounded-xs px-xs py-xxs text-left";
 
 /**
  * Every provider against every category, for wide screens. A column title
- * sorts by that category; each score opens the chart behind it.
+ * sorts by that category, a provider's name opens its page, and each score
+ * opens the chart behind it.
  */
 export function ScoreTable({ columns, rows, label }: { columns: readonly ScoreColumn[]; rows: readonly ScoreRow[]; label: string }) {
   const [sort, setSort] = useState<Sort>({ kind: "name" });
@@ -86,13 +114,7 @@ export function ScoreTable({ columns, rows, label }: { columns: readonly ScoreCo
         {sorted.map((r) => (
           <tr key={r.provider} className="group/row">
             <th scope="row" className="rounded-l-s py-0 pr-s font-normal group-hover/row:bg-neutral-3/40">
-              <span className="flex min-w-0 items-center gap-xs pl-xs text-s font-medium">
-                <ProviderLogo id={r.provider} size={16} />
-                <span className="min-w-0 truncate text-neutral-10">
-                  <ProviderName id={r.provider} />
-                </span>
-                {r.mark === null ? null : <span className="font-mono text-xxs text-neutral-7">{r.mark}</span>}
-              </span>
+              <RowProvider provider={r.provider} mark={r.mark} />
             </th>
             {r.cells.map((cell, i) => {
               const column = columns[i];

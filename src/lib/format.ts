@@ -65,3 +65,18 @@ export function dayRange(window: { start: string; end: string }) {
     return `${shortDate(start, { month: "short", day: "numeric" })}–${shortDate(end, { day: "numeric" })}, ${start.getUTCFullYear()}`;
   return `${shortDate(start, { month: "short", day: "numeric" })} – ${shortDate(end, { month: "short", day: "numeric", year: "numeric" })}`;
 }
+
+/** 1st, 2nd, 3rd, 4th, 11th, 21st: a rank in words. */
+export function ordinal(n: number) {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1:
+      return `${n}st`;
+    case 2:
+      return `${n}nd`;
+    case 3:
+      return `${n}rd`;
+    default:
+      return `${n}th`;
+  }
+}

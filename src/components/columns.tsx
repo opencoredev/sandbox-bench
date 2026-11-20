@@ -8,7 +8,8 @@ import { ProviderName } from "@/components/provider-name";
 import { markFill } from "@/lib/marks";
 import type { MarkFill } from "@/lib/marks";
 import { providerColor, providerName } from "@/lib/providers";
-import { isProviderPage, providerPath } from "@/lib/seo/pages";
+import { providerPageOf } from "@/lib/provider-pages";
+import type { ProviderPath } from "@/lib/provider-pages";
 import type { ProviderId } from "@/lib/providers";
 import type { TraceKind } from "@/lib/traces";
 
@@ -74,11 +75,8 @@ export function layout(column: Pick<Column, "segments">, max: number): Bar {
   };
 }
 
-const describe = (column: Column, bar: Bar, still = false) =>
-  `${providerName(column.provider)}: ${column.detail.map(detailText).join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${column.trace && !still ? ". Press Enter for the time breakdown" : ""}`;
-
-/** Where a linked column leads: the provider's own page, when it has one. */
-const pageOf = (column: Column, linked: boolean) => (linked && isProviderPage(column.provider) ? providerPath(column.provider) : undefined);
+const describe = (column: Column, bar: Bar, action: Action) =>
+  `${providerName(column.provider)}: ${column.detail.map(detailText).join(", ")}${bar.broken === null ? "" : ". Bar shortened, not to scale"}${action.kind === "trace" ? ". Press Enter for the time breakdown" : ""}`;
 
 /**
  * How a column stands against the chart's highlighted provider, if any: the
@@ -92,28 +90,54 @@ function emphasis(column: Column, highlight: ProviderId | undefined) {
 }
 
 /**
- * How a column takes part in the page. A full chart's column is a focus stop
- * that may open a time breakdown; a compact one is a focus stop for its card,
- * or, in a headline chart (`linked`), a link to the provider's page.
+ * What clicking a column does. A full chart's column with a trace opens its
+ * time breakdown; any other column opens its provider's page, where it has
+ * one, except in a compact chart that isn't a headline (`linked`), whose
+ * column is only a focus stop for its card.
  */
-function target(column: Column, still: boolean, linked: boolean) {
-  if (!still) return { tabIndex: 0, ...opener(column) };
-  const href = pageOf(column, linked);
-  return href ? { href } : { tabIndex: 0 };
+type Action = { kind: "trace"; trace: TraceKind } | { kind: "page"; href: ProviderPath } | { kind: "none" };
+
+function actionOf(column: Column, still: boolean, linked: boolean): Action {
+  if (!still && column.trace) return { kind: "trace", trace: column.trace };
+  const href = providerPageOf(column.provider);
+  return href && (linked || !still) ? { kind: "page", href } : { kind: "none" };
 }
 
-/** What the card's last line offers: the breakdown on a full chart, the provider's page on a compact one. */
-const hintOf = (column: Column, still: boolean, linked: boolean) =>
-  still ? (pageOf(column, linked) ? `Open ${providerName(column.provider)}'s page` : undefined) : column.trace ? "Click for where the time goes" : undefined;
-
 /**
- * What makes a column a button that opens its breakdown. The panel listens on
- * the document for these attributes, so the charts stay server components.
+ * How a column takes part in the page: a button that opens its breakdown (the
+ * panel listens on the document for these attributes, so the charts stay
+ * server components), a link to its provider's page, or a focus stop for its card.
  */
-const opener = (column: Column) =>
-  column.trace
-    ? ({ role: "button", "aria-haspopup": "dialog", "data-trace": `${column.trace}:${column.provider}` } as const)
-    : {};
+function target(column: Column, action: Action) {
+  switch (action.kind) {
+    case "trace":
+      return { tabIndex: 0, role: "button", "aria-haspopup": "dialog", "data-trace": `${action.trace}:${column.provider}` } as const;
+    case "page":
+      return { href: action.href };
+    case "none":
+      return { tabIndex: 0 };
+    default: {
+      const _exhaustive: never = action;
+      return _exhaustive;
+    }
+  }
+}
+
+/** What the card's last line offers: the breakdown, or the provider's page. */
+function hintOf(column: Column, action: Action) {
+  switch (action.kind) {
+    case "trace":
+      return "Click for where the time goes";
+    case "page":
+      return `Open ${providerName(column.provider)}'s page`;
+    case "none":
+      return undefined;
+    default: {
+      const _exhaustive: never = action;
+      return _exhaustive;
+    }
+  }
+}
 
 /**
  * The axis break: a slanted gap through the bar, edged in its colour, so a
@@ -136,15 +160,67 @@ export function Break({ color, along }: { color: string; along: "x" | "y" }) {
 const Mark = ({ column }: { column: Column }) =>
   column.mark === undefined ? null : <sup className="ml-px text-xxs leading-none text-neutral-7">{column.mark}</sup>;
 
-const Card = ({ column, still, linked, className, style }: { column: Column; still: boolean; linked: boolean; className: string; style?: CSSProperties }) => (
+const Card = ({ column, action, className, style }: { column: Column; action: Action; className: string; style?: CSSProperties }) => (
   <HoverCardOnDemand
     provider={column.provider}
     detail={column.detail}
-    hint={hintOf(column, still, linked)}
+    hint={hintOf(column, action)}
     style={style}
     className={`opacity-0 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
   />
 );
+
+/**
+ * A column's logo and name under the chart, a link to the provider's page
+ * wherever it has one. Where the bar above already leads there, the label is a
+ * second way in for the pointer only, so keyboards and screen readers meet the
+ * link once; under a bar that opens a breakdown, it is the page's own link.
+ */
+function ColumnLabel({ column, still, own, bar }: { column: Column; still: boolean; own: boolean; bar: Action }) {
+  const page = providerPageOf(column.provider);
+  const content = (
+    <>
+      {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
+          no room for 14 names side by side, so its names run diagonally down to the left from under the mark. */}
+      <span className="mb-1 flex items-center justify-center">
+        <ProviderLogo id={column.provider} size={still ? 16 : 14} />
+        {still ? <Mark column={column} /> : null}
+      </span>
+      {still ? (
+        <span className="absolute top-6 right-1/2 origin-top-right -rotate-45 whitespace-nowrap decoration-neutral-6 underline-offset-2 group-hover/label:underline">
+          <ProviderName id={column.provider} />
+        </span>
+      ) : (
+        <>
+          <span className="decoration-neutral-6 underline-offset-2 group-hover/label:underline">
+            <ProviderName id={column.provider} layout="centered" />
+          </span>
+          <Mark column={column} />
+        </>
+      )}
+    </>
+  );
+  const linkProps = bar.kind === "page" ? ({ "aria-hidden": true, tabIndex: -1 } as const) : { "aria-label": `Open ${providerName(column.provider)}'s page` };
+  return (
+    <span className={`relative block min-w-0 flex-1 px-0.5 text-center ${own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}>
+      {page ? (
+        <a
+          href={page}
+          {...linkProps}
+          className="group/label focus-ring block rounded-xs hover:text-neutral-10"
+        >
+          {content}
+        </a>
+      ) : (
+        <span aria-hidden className="block">
+          {content}
+        </span>
+      )}
+      {column.tag ? <span aria-hidden className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
+      {column.note ? <span aria-hidden className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-8">{column.note}</span> : null}
+    </span>
+  );
+}
 
 /**
  * Vertical columns in the order given, one per provider, as Artificial
@@ -162,15 +238,16 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
           // Keep the hover card inside the chart: edge columns anchor it inward.
           const anchor =
             index < 2 ? "left-0" : index >= columns.length - 2 ? "right-0" : "left-1/2 -translate-x-1/2";
-          const Tag = still && pageOf(column, linked) ? "a" : "div";
+          const action = actionOf(column, still, linked);
+          const Tag = action.kind === "page" ? "a" : "div";
           const { own, attrs } = emphasis(column, highlight);
           return (
             <Tag
               key={column.provider}
-              aria-label={describe(column, bar, still)}
-              {...target(column, still, linked)}
+              aria-label={describe(column, bar, action)}
+              {...target(column, action)}
               {...attrs}
-              className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${column.trace && !still ? "cursor-pointer" : ""}`}
+              className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${action.kind === "none" ? "" : "cursor-pointer"}`}
             >
               <span className={`mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums ${own ? "font-bold" : ""}`}>
                 {column.label}
@@ -191,7 +268,7 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
                   </div>
                 ))}
               </div>
-              <Card column={column} still={still} linked={linked} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />
+              <Card column={column} action={action} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-1 -bottom-px h-px opacity-0 group-focus-visible:opacity-100"
@@ -201,31 +278,9 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
           );
         })}
       </div>
-      <div aria-hidden className={`flex pt-2.5 ${still ? "ml-8 h-[104px]" : ""}`}>
+      <div className={`flex pt-2.5 ${still ? "ml-8 h-[104px]" : ""}`}>
         {columns.map((column) => (
-          <span
-            key={column.provider}
-            className={`relative block min-w-0 flex-1 px-0.5 text-center ${emphasis(column, highlight).own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}
-          >
-            {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
-                no room for 14 names side by side, so its names run diagonally down to the left from under the mark. */}
-            <span className="mb-1 flex items-center justify-center">
-              <ProviderLogo id={column.provider} size={still ? 16 : 14} />
-              {still ? <Mark column={column} /> : null}
-            </span>
-            {still ? (
-              <span className="absolute top-6 right-1/2 origin-top-right -rotate-45 whitespace-nowrap">
-                <ProviderName id={column.provider} />
-              </span>
-            ) : (
-              <>
-                <ProviderName id={column.provider} layout="centered" />
-                <Mark column={column} />
-              </>
-            )}
-            {column.tag ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
-            {column.note ? <span className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-8">{column.note}</span> : null}
-          </span>
+          <ColumnLabel key={column.provider} column={column} still={still} own={emphasis(column, highlight).own} bar={actionOf(column, still, linked)} />
         ))}
       </div>
     </>
@@ -235,6 +290,8 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
 /**
  * The same data as horizontal bars, one row per provider, so every name
  * reads level however narrow the card. Used for compact charts and phones.
+ * A row that opens a breakdown keeps its name inside the button; the panel
+ * links to the provider's page.
  */
 function Horizontal({ columns, max, still = false, linked = false, highlight }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean; highlight?: ProviderId }) {
   // Values sit in one right-aligned column wide enough for the longest label.
@@ -243,13 +300,14 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
     <div className="chart-cols flex flex-col gap-xxs">
       {columns.map((column) => {
         const bar = layout(column, max);
-        const Tag = still && pageOf(column, linked) ? "a" : "div";
+        const action = actionOf(column, still, linked);
+        const Tag = action.kind === "page" ? "a" : "div";
         const { own, attrs } = emphasis(column, highlight);
         return (
           <Tag
             key={column.provider}
-            aria-label={describe(column, bar, still)}
-            {...target(column, still, linked)}
+            aria-label={describe(column, bar, action)}
+            {...target(column, action)}
             {...attrs}
             className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
@@ -283,7 +341,7 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
                 {column.note ? <span className="text-neutral-8"> · {column.note}</span> : null}
               </span>
             ) : null}
-            <Card column={column} still={still} linked={linked} className="top-full right-0 mt-xxs" />
+            <Card column={column} action={action} className="top-full right-0 mt-xxs" />
           </Tag>
         );
       })}
@@ -296,6 +354,8 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
  * charts too narrow for every name (phones, small cards) get horizontal bars. Full charts keep
  * their names level; compact ones (headline cards) set them diagonally under each logo, as
  * Artificial Analysis does, and link each column to its provider's page, with no breakdown.
+ * Every name under a column links to its provider's page; a full chart's bar opens its
+ * breakdown where it has one and the provider's page otherwise.
  * A single outlier is cut short with a break mark instead of flattening the rest.
  */
 /** A segment's share of its bar, in percent. A zero-length bar (no failures, say) has nothing to share out, so 0, never NaN. */
