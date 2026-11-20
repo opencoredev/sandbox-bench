@@ -70,6 +70,8 @@ const label = "Scores by category: speed, real tasks and bursts 0 to 100, cost i
  */
 export function Scores({ track }: { track: Track }) {
   const { columns, rows, notes } = scoreGrid(track);
+  // The key explains "Not counted" only where a cell says it.
+  const anyExcluded = rows.some((r) => r.cells.some((c) => c.kind === "excluded"));
   return (
     <>
       <div className="md:hidden">
@@ -79,7 +81,7 @@ export function Scores({ track }: { track: Track }) {
         <ScoreTable columns={columns} rows={rows} label={label} />
       </Card>
       <p className="mt-m max-w-[80ch] text-s text-pretty text-neutral-8">
-        Twice as slow as the best scores 50. Not measured means no result yet, not a 0. Not counted means the chart leaves it out; open it for why.
+        Twice as slow as the best scores 50. Not measured means no result yet, not a 0.{anyExcluded ? " Not counted means the chart leaves it out; open it for why." : ""}
       </p>
       <Footnotes items={notes} />
     </>

@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
 import { tracks, trackIds } from "@/lib/data";
+import { headlineRows, runTrackOf } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 import type { Track } from "@/lib/data";
 import { metricReadings, scoreCategories, trackScores } from "@/lib/score-categories";
 import type { ScoreCategory } from "@/lib/score-categories";
 import { rankScores, scoreReadings } from "@/lib/score";
-import type { Score } from "@/lib/score";
+import type { Excluded, Reading, Score } from "@/lib/score";
 
 const scoreOf = (scores: readonly Score[], provider: string) => scores.find((s) => s.provider === provider);
 
@@ -220,10 +222,26 @@ describe("review fixes", () => {
     assert.deepEqual(rankScores(scores, "lower").map((s) => s.provider), ["boat", "modal", "e2b"]);
   });
 
-  test("on Same machine, boxd's wrong-size cost is not counted", () => {
+  test("on Same machine, boxd's cost shows in dollars like its other scores, its machine size carried by the row's footnote", () => {
     const cost = trackScores(tracks["same-spec"]).find((c) => c.category.id === "cost");
     const boxd = cost?.scores.find((s) => s.provider === "boxd");
-    assert.equal(boxd?.kind, "excluded");
+    assert.ok(boxd?.kind === "valued", `boxd is ${boxd?.kind ?? "missing"}`);
+    assert.equal(boxd.display, "$5.50");
+  });
+
+  test("the Cost column keeps every cost the chart draws except rows with more than one failed run", () => {
+    const cost: ScoreCategory | undefined = scoreCategories.find((c) => c.id === "cost");
+    assert.ok(cost);
+    for (const id of trackIds) {
+      const { costed } = headlineRows(realistic, runTrackOf[id], "fix-and-test");
+      const track: Track = tracks[id];
+      const read: readonly Reading[] = cost.read(track);
+      const excluded: readonly Excluded[] = cost.exclude?.(track) ?? [];
+      for (const r of costed) {
+        assert.equal(read.some((x) => x.provider === r.provider), r.incomplete <= 1, `${id} ${r.provider}`);
+        assert.equal(excluded.some((x) => x.provider === r.provider), r.incomplete > 1, `${id} ${r.provider}`);
+      }
+    }
   });
 });
 
@@ -235,14 +253,14 @@ describe("cost shows dollars, not a score", () => {
   };
   const shown = (cells: ReturnType<typeof costOn>) => cells.map((s) => [s.provider, s.kind === "valued" ? s.display : s.kind]);
 
-  test("Same machine: cheapest first in dollars per 1,000 tasks, boxd not counted and last", () => {
+  test("Same machine: cheapest first in dollars per 1,000 tasks, every provider priced, boxd at $5.50 in third", () => {
     const cells = costOn("same-spec");
-    assert.deepEqual(shown(cells).slice(0, 2), [["instabox", "$0.76"], ["boat", "$0.95"]]);
+    assert.deepEqual(shown(cells).slice(0, 3), [["instabox", "$0.76"], ["boat", "$0.95"], ["boxd", "$5.50"]]);
     assert.deepEqual(shown(cells).find(([p]) => p === "e2b"), ["e2b", "$10.07"]);
-    assert.deepEqual(shown(cells).at(-2), ["vercel", "$43.14"]);
-    assert.deepEqual(shown(cells).at(-1), ["boxd", "excluded"]);
-    // Every counted provider is a dollar value, never a 0 to 100 score.
-    assert.ok(cells.slice(0, -1).every((s) => s.kind === "valued" && s.display.startsWith("$")));
+    assert.deepEqual(shown(cells).at(-1), ["vercel", "$43.14"]);
+    assert.equal(cells.length, tracks["same-spec"].providers.length);
+    // Every provider is a dollar value, never a 0 to 100 score.
+    assert.ok(cells.every((s) => s.kind === "valued" && s.display.startsWith("$")));
   });
 
   test("Default machines: providers without a counted run are not measured and rank after the valued ones", () => {

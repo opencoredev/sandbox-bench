@@ -309,13 +309,13 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
             aria-label={describe(column, bar, action)}
             {...target(column, action)}
             {...attrs}
-            className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[5.25rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[4.75rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
+            className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[8.5rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[7.5rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
             <span aria-hidden className={`line-clamp-2 text-s leading-[1.1] sm:text-xs ${own ? "font-bold text-neutral-10" : "text-neutral-8"}`}>
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
-            <div aria-hidden className="chart-fade relative flex h-3.5 items-stretch border-l border-neutral-4 sm:h-3">
+            <div aria-hidden className="chart-fade relative flex h-3.5 items-stretch sm:h-3">
               <div className="relative flex gap-[2px]" style={{ width: `${bar.length * 100}%`, minWidth: 2 }}>
                 {column.segments.map((s, i) => (
                   <div

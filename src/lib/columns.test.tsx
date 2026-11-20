@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { Columns } from "@/components/columns";
+import { ProviderName } from "@/components/provider-name";
 import type { Column } from "@/components/columns";
 import type { ProviderId } from "@/lib/providers";
 
@@ -56,5 +57,14 @@ describe("compact chart", () => {
     const html = renderToStaticMarkup(<Columns columns={[column("e2b"), column("daytona")]} label="Machine sizes" compact />);
     assert.ok(bars(html).every((t) => t.startsWith("<div")));
     assert.ok(tags(html, "a").some((t) => t.includes('href="/providers/e2b/"') && t.includes("aria-label")));
+  });
+});
+
+describe("ProviderName", () => {
+  test("a tagged name's tag takes the surrounding weight and colour, so a bold highlight covers the whole name", () => {
+    const html = renderToStaticMarkup(<ProviderName id="upstash-ephemeral" />);
+    assert.ok(html.includes("Upstash") && html.includes("Ephemeral"), html);
+    assert.ok(!html.includes("font-normal") && !html.includes("text-neutral-7"), html);
+    assert.ok(html.includes('class="sr-only"> Box'), "screen readers still hear the full name");
   });
 });

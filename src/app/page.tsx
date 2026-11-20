@@ -6,6 +6,7 @@ import { Allocations } from "@/components/allocations";
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { Lockup } from "@/components/brand";
+import { HomeLogoLink } from "@/components/home-logo-link";
 import { ByLocation } from "@/components/by-location";
 import { CostPerTaskChart, NoCostResults } from "@/components/cost";
 import { MachineSizes } from "@/components/machine-sizes";
@@ -497,15 +498,17 @@ export default function Page() {
   return (
     <>
       <HomeJsonLd />
+      {/* The logo's target: above the sticky header, so jumping here without scripts lands at the very top. */}
+      <div id="top" />
       {/* As on Artificial Analysis: no bar behind the header, just the logo and one bar of section links floating over the page.
           A fade from the page colour keeps them readable over the cards scrolling underneath. */}
       <header className="sticky top-0 z-30 bg-linear-to-b from-neutral-1 from-40% to-transparent px-m pt-s pb-l sm:px-l">
         {/* Wide screens: logo, the section bar centred between two equal columns, and the machine switch on the right,
             where Artificial Analysis keeps its controls. Narrower: logo, then the switch and the sections menu on the right. */}
         <div className="mx-auto flex max-w-[1440px] items-center gap-s min-[1440px]:grid min-[1440px]:grid-cols-[1fr_minmax(0,auto)_1fr]">
-          <a href="#top" className="surface focus-ring flex h-12 shrink-0 items-center justify-self-start px-m" aria-label="Sandbox bench, back to top">
+          <HomeLogoLink className="surface focus-ring flex h-12 shrink-0 items-center justify-self-start px-m" label="Sandbox bench, back to top">
             <Lockup />
-          </a>
+          </HomeLogoLink>
           <div className="hidden min-w-0 min-[1440px]:block">
             <SectionLinks sections={sections} />
           </div>
@@ -529,7 +532,7 @@ export default function Page() {
       ) : null}
 
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
-      <main id="top" className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
+      <main className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
         {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
         <div className="grid gap-xl pt-l pb-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:pt-xxl">
           <div className="flex flex-col">

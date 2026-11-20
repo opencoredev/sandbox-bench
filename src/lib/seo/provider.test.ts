@@ -217,6 +217,28 @@ describe("FAQ", () => {
     assert.ok(reliability?.answer.includes(t.reliability.succeeded.toLocaleString("en-US")));
   });
 
+  test("boxd's cost on Same machine: ranked with all 14 like the home page's Cost column, with why it can't be the cheapest pick", () => {
+    const e = scorecard("same-spec", "boxd").find((x) => x.category.id === "cost");
+    assert.ok(e?.cell.kind === "valued" && e.rank, `boxd's cost is ${e?.cell.kind ?? "missing"}`);
+    assert.equal(e.cell.display, "$5.50");
+    assert.deepEqual(e.rank, { rank: 3, of: tracks["same-spec"].providers.length });
+    const cost = providerFaqs("boxd")[1];
+    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 3rd cheapest of 14, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
+    const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
+    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 3 && chart.of === 14);
+  });
+
+  test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {
+    for (const tid of trackIds) {
+      const { costed } = headlineRows(realistic, runTrackOf[tid], "fix-and-test");
+      const field = costed.filter((r) => r.incomplete <= 1).length;
+      for (const id of providerPages) {
+        const e = scorecard(tid, id).find((x) => x.category.id === "cost");
+        if (e?.rank) assert.equal(e.rank.of, field, `${tid} ${id}`);
+      }
+    }
+  });
+
   test("a provider with no pause says so in its own words, name capitalised", () => {
     const pause = providerFaqs("boat")[2];
     assert.ok(pause?.answer.includes("Boat has no pause"), pause?.answer);

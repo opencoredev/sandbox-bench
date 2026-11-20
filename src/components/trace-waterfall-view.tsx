@@ -141,8 +141,33 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
   );
 }
 
-/** One of a few options, on the theme's toggle group. Pressing the current option again keeps it. */
-function Segmented<T extends string>({ label, items, value, onChange }: { label: string; items: readonly { id: T; label: ReactNode; disabled?: boolean }[]; value: T; onChange: (id: T) => void }) {
+/**
+ * A provider's best or worst time, named in full: its logo and name in its own
+ * colour on a line of their own, so the name never truncates, then what the
+ * time measures.
+ */
+function ProviderStat({ label, value, provider }: { label: string; value: string; provider: ProviderId }) {
+  return (
+    <div className="min-w-0 px-m py-s sm:px-l">
+      <div className="text-s text-neutral-7">{label}</div>
+      <div className="mt-xxs font-mono text-l tabular-nums">{value}</div>
+      <div className="mt-0.5 flex min-w-0 items-center gap-xxs text-xs font-medium" style={{ color: providerColor(provider) }}>
+        <ProviderLogo id={provider} size={14} />
+        <span className="min-w-0 text-pretty">
+          <ProviderName id={provider} />
+        </span>
+      </div>
+      <div className="text-xs text-neutral-7">provider time</div>
+    </div>
+  );
+}
+
+/**
+ * One of a few options, on the theme's toggle group. Pressing the current
+ * option again keeps it. `className` sets how it sizes in a row: `shrink-0`
+ * for a short set that must never clip, `min-w-0` for a long one that scrolls.
+ */
+function Segmented<T extends string>({ label, items, value, onChange, className = "" }: { label: string; items: readonly { id: T; label: ReactNode; disabled?: boolean }[]; value: T; onChange: (id: T) => void; className?: string }) {
   const scroller = useScrollFade<HTMLDivElement>();
   return (
     <ToggleGroup
@@ -153,7 +178,7 @@ function Segmented<T extends string>({ label, items, value, onChange }: { label:
         const id = items.find((it) => next.includes(it.id))?.id;
         if (id !== undefined) onChange(id);
       }}
-      className="surface scroll-fade max-w-full overflow-x-auto p-xxs [scrollbar-width:none]"
+      className={`surface scroll-fade max-w-full overflow-x-auto p-xxs [scrollbar-width:none] ${className}`}
     >
       {items.map((it) => (
         <Toggle key={it.id} value={it.id} disabled={it.disabled} className={`shrink-0 whitespace-nowrap text-s ${it.id === value ? "" : "text-neutral-7"}`}>
@@ -195,6 +220,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
         items={traceKinds.map((k) => ({ id: k, label: kindLabel[k], disabled: provider ? !hasTrace(track, k, provider.id) : !usable.some((p) => hasTrace(track, k, p.id)) }))}
         value={activeKind}
         onChange={setKind}
+        className="shrink-0"
       />
       <Segmented<Pick>
         label="Provider"
@@ -212,6 +238,7 @@ export function TraceWaterfallView({ track, providers }: { track: TrackId; provi
         ]}
         value={pick}
         onChange={setPick}
+        className="min-w-0"
       />
     </div>
   );
@@ -333,8 +360,8 @@ function CompareCard({ kind, track, providers, onPick }: { kind: TraceKind; trac
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4">
-        <Stat label="Fastest" value={formatMs(first.providerMs)} sub={<><ProviderName id={first.provider} /> · provider time</>} />
-        <Stat label="Slowest" value={formatMs(last.providerMs)} sub={<><ProviderName id={last.provider} /> · provider time</>} />
+        <ProviderStat label="Fastest" value={formatMs(first.providerMs)} provider={first.provider} />
+        <ProviderStat label="Slowest" value={formatMs(last.providerMs)} provider={last.provider} />
         <Stat label="Spread" value={`${(last.providerMs / first.providerMs).toFixed(1)}×`} sub="slowest vs fastest" />
         <Stat label="Failures" value={failed.toLocaleString("en-US")} sub={`of ${attempts.toLocaleString("en-US")} attempts`} tone={failed > 0 ? "bad" : undefined} />
       </div>

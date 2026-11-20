@@ -10,7 +10,7 @@ import { themePart } from "@graphical/components/library/component-theme";
 import { useScrollFade } from "@/components/tabs";
 
 /** id, label, and optionally the tab a click opens (`#id/tab`). */
-type Sections = readonly (readonly [id: string, label: string, tab?: string])[];
+export type Sections = readonly (readonly [id: string, label: string, tab?: string])[];
 
 const hrefOf = ([id, , tab]: Sections[number]) => (tab ? `#${id}/${tab}` : `#${id}`);
 

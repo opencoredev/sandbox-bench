@@ -409,7 +409,11 @@ function taskCostText(t: ProviderTrack, id: ProviderId): string {
   const e = entryOf(scorecard(t.id, id), "cost");
   const row = realTaskCost(t.id, id, "fix-and-test");
   const what = "a fix and test task (an agent fixes a real Vue bug and runs its tests)";
-  if (e?.cell.kind === "valued" && e.rank) return `${what} costs ${e.cell.display} per 1,000 completed, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}`;
+  if (e?.cell.kind === "valued" && e.rank) {
+    // Ranked with everyone, but a row on the wrong machine size still can't be the chart's "Cheapest" pick.
+    const caveat = row.kind === "ranked" && row.notCounted.length > 0 ? `, though it can't be the cheapest pick (${row.notCounted.join("; ")})` : "";
+    return `${what} costs ${e.cell.display} per 1,000 completed, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
+  }
   if (row.kind === "ranked") return `${what} costs ${row.value} per 1,000 completed, not counted for the cheapest pick (${e?.cell.kind === "excluded" ? e.cell.why : row.notCounted.join("; ")})`;
   return `there is no fix and test cost (${row.why})`;
 }

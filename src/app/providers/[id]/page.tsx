@@ -10,6 +10,7 @@ import { ProviderLogo } from "@/components/provider-logo";
 import { RealTaskHeadline } from "@/components/real-tasks";
 import { columnsOf as taskCostColumns } from "@/components/realistic";
 import { JsonLd } from "@/components/seo/json-ld";
+import type { Sections } from "@/components/section-nav";
 import { Breadcrumb, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
 import { TrackSwitch } from "@/components/track-switch";
@@ -18,7 +19,7 @@ import { allocationNotes } from "@/lib/notes";
 import { privateTitle } from "@/lib/private-benchmarks";
 import { providerColor, providerFormerName, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { headlineRows, noCostReason, runTrackOf } from "@/lib/realistic";
+import { headlineRows, noCostReason, notCountedWhy, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
@@ -87,14 +88,26 @@ function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: str
   );
 }
 
-/** Fix and test's cost per 1,000 completed tasks, every costed provider, with why the others have none. */
+/**
+ * Fix and test's cost per 1,000 completed tasks, every costed provider, with
+ * the home page chart's notes: who can't be the cheapest pick and why (such as
+ * boxd's larger machine), and why the others have no cost.
+ */
 function TaskCostChart({ id, track }: { id: ProviderPageId; track: Track }) {
   const { costed, uncosted } = headlineRows(realistic, runTrackOf[track.id], "fix-and-test");
   if (costed.length === 0) return <ComingNext compact>No fix and test costs on this track yet.</ComingNext>;
   return (
     <>
       <Columns columns={taskCostColumns(costed, track.id)} label="Fix and test: cost per 1,000 completed tasks by provider" compact linked highlight={id} />
-      <CompactNotes items={uncosted.map((r) => ({ mark: undefined, id: r.provider, note: `no cost (${noCostReason(r)})` }))} />
+      <CompactNotes
+        items={[
+          ...costed.flatMap((r) => {
+            const why = notCountedWhy(r);
+            return why.length > 0 ? [{ mark: undefined, id: r.provider, note: `not counted as cheapest: ${why.join("; ")}` }] : [];
+          }),
+          ...uncosted.map((r) => ({ mark: undefined, id: r.provider, note: `no cost (${noCostReason(r)})` })),
+        ]}
+      />
     </>
   );
 }
@@ -567,6 +580,15 @@ function FaqList({ faqs }: { faqs: readonly Faq[] }) {
 // The switch appears only once both tracks have results, as on the home page.
 const showSwitch = trackIds.every((tid) => hasResults(tracks[tid]));
 
+/** The header's section links: id (the section title's), label. FAQ drops out where a provider has none. */
+const sections = [
+  ["scores", "Scores"],
+  ["profile", "At a glance"],
+  ["compared", "Compare"],
+  ["results", "Every test"],
+  ["faq", "FAQ"],
+] as const satisfies Sections;
+
 export default async function ProviderPage(props: Props) {
   const id = await pageId(props);
   const r = providerResults(id);
@@ -608,10 +630,11 @@ export default async function ProviderPage(props: Props) {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <SiteHeader />
+      <SiteHeader sections={faqs.length ? sections : sections.filter(([sid]) => sid !== "faq")} trackSwitch={showSwitch} />
 
-      {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
-      <main className="mx-auto max-w-[1100px] overflow-x-clip px-m sm:px-l">
+      {/* The home page's width, so the page lines up under the logo. Hidden hover cards near a chart's edge are wider than a
+          phone screen; clip them rather than let the page scroll sideways. */}
+      <main className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
         <Breadcrumb current={name} parent={{ name: "Providers", href: providersPath }} />
 
         <header className="pt-l">
@@ -624,14 +647,16 @@ export default async function ProviderPage(props: Props) {
               </p>
             </div>
           </div>
-          {/* The switch sits beside the verdict it changes; on phones it comes first, full width. */}
-          <div className="mt-l flex flex-col gap-m lg:flex-row lg:items-start lg:justify-between lg:gap-xl">
-            {showSwitch ? <div className="shrink-0 lg:order-2"><TrackSwitch /></div> : null}
-            <div className="min-w-0 lg:order-1 lg:flex-1">
-              <ByTrack id={id} r={r}>
-                {(t) => <p className="max-w-[64ch] text-m text-pretty text-neutral-9 sm:text-l">{verdict(t, id)}</p>}
-              </ByTrack>
+          {/* From tablet width up the switch sits in the header, as on the home page. */}
+          {showSwitch ? (
+            <div className="mt-l md:hidden">
+              <TrackSwitch />
             </div>
+          ) : null}
+          <div className="mt-l">
+            <ByTrack id={id} r={r}>
+              {(t) => <p className="max-w-[64ch] text-m text-pretty text-neutral-9 sm:text-l">{verdict(t, id)}</p>}
+            </ByTrack>
           </div>
           <ByTrack id={id} r={r}>
             {(t) => <MetaStrip r={r} t={t} />}
@@ -752,7 +777,7 @@ export default async function ProviderPage(props: Props) {
         </section>
       </main>
 
-      <SiteFooter label={name} updated={lastModified(providerPath(id))} />
+      <SiteFooter label={name} updated={lastModified(providerPath(id))} width="wide" />
     </>
   );
 }

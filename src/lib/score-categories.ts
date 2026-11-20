@@ -3,7 +3,8 @@ import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatValue } from "@/lib/format";
 import type { ProviderId } from "@/lib/providers";
-import { headlineRows, isCounted, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
+import { headlineRows, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
+import type { Costed } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { scoreReadings } from "@/lib/score";
 import type { Better, Excluded, Reading, Score } from "@/lib/score";
@@ -47,6 +48,12 @@ export const metricReadings =
   (track: Track): Reading[] =>
     (track.findMetric(id)?.values ?? []).flatMap((v) => (v.n > 0 && v.p50 !== null ? [{ provider: v.provider, value: v.p50 }] : []));
 
+/** The fix and test rows the cost chart draws for a track, cheapest first. */
+const costRows = (track: Track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed;
+
+/** More than one run didn't complete: the one reason the Cost column leaves a drawn cost out. */
+const hasFailedRuns = (r: Pick<Costed, "incomplete">) => r.incomplete > 1;
+
 /** Seconds, as the metric charts print them. */
 const seconds = (v: number) => formatValue(v, "s");
 
@@ -88,9 +95,11 @@ export const scoreCategories = [
     better: "lower",
     shows: "value",
     link: { section: taskCostSection, tab: "fix-and-test" },
-    // The cost chart's pick rule: rows with more than one failed run, or the wrong machine size, aren't counted.
-    read: (track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.flatMap((r) => (isCounted(r) ? [{ provider: r.provider, value: r.cost.usdPerCompleted }] : [])),
-    exclude: (track) => headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.flatMap((r) => (isCounted(r) ? [] : [{ provider: r.provider, why: notCountedWhy(r).join("; ") }])),
+    // Every cost the chart draws, except a row with more than one failed run, which the chart itself flags as not
+    // comparable. A row on the wrong machine size keeps its dollars here, marked by the row's machine footnote as
+    // in the other columns; it still can't be the chart's "Cheapest" pick (isCounted, taskPick).
+    read: (track) => costRows(track).flatMap((r) => (hasFailedRuns(r) ? [] : [{ provider: r.provider, value: r.cost.usdPerCompleted }])),
+    exclude: (track) => costRows(track).flatMap((r) => (hasFailedRuns(r) ? [{ provider: r.provider, why: notCountedWhy(r).join("; ") }] : [])),
     format: perThousand,
   },
 ] as const satisfies readonly ScoreCategory[];

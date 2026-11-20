@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 import { ScoreLink, ScoreMeter } from "@/components/score-parts";
@@ -13,7 +13,7 @@ import type { ProviderId } from "@/lib/providers";
 import { rankScores } from "@/lib/score";
 
 /** Alphabetical by provider, or one category best first (highest score, or cheapest) with the not measured last. */
-type Sort = { kind: "name" } | { kind: "category"; index: number };
+export type Sort = { kind: "name" } | { kind: "category"; index: number };
 
 function sortRows(rows: readonly ScoreRow[], columns: readonly ScoreColumn[], sort: Sort): ScoreRow[] {
   switch (sort.kind) {
@@ -72,37 +72,67 @@ function RowProvider({ provider, mark }: { provider: ProviderId; mark: number | 
   );
 }
 
-const sortClass = "focus-ring group -mx-xs flex w-[calc(100%+var(--space-xs)*2)] cursor-pointer flex-col items-start gap-0.5 rounded-xs px-xs py-xxs text-left";
+/** The default order. */
+const byName: Sort = { kind: "name" };
+
+/** A column title's click: sort by that category, or, when it already sorts by it, back to A to Z. */
+export function nextSort(current: Sort, index: number): Sort {
+  return current.kind === "category" && current.index === index ? byName : { kind: "category", index };
+}
+
+/** The arrow that matches `aria-sort`: up for ascending (A to Z, cheapest first), down for descending (score 100 to 0). */
+function SortArrow({ direction }: { direction: "ascending" | "descending" }) {
+  const Arrow = direction === "ascending" ? ArrowUp : ArrowDown;
+  return <Arrow aria-hidden className="size-3.5 text-neutral-7" />;
+}
+
+const sortBase = "focus-ring group -mx-xs flex cursor-pointer flex-col items-start gap-0.5 rounded-xs px-xs py-xxs text-left";
+/** A column title fills its cell, past the cell's padding on both sides. */
+const sortClass = `${sortBase} w-[calc(100%+var(--space-xs)*2)]`;
 
 /**
  * Every provider against every category, for wide screens. A column title
  * sorts by that category, a provider's name opens its page, and each score
  * opens the chart behind it.
  */
-export function ScoreTable({ columns, rows, label }: { columns: readonly ScoreColumn[]; rows: readonly ScoreRow[]; label: string }) {
-  const [sort, setSort] = useState<Sort>({ kind: "name" });
+export function ScoreTable({ columns, rows, label, initialSort = byName }: { columns: readonly ScoreColumn[]; rows: readonly ScoreRow[]; label: string; initialSort?: Sort }) {
+  const [sort, setSort] = useState<Sort>(initialSort);
   const sorted = sortRows(rows, columns, sort);
   const isSorted = (index: number) => sort.kind === "category" && sort.index === index;
   return (
     <table className="w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-0 text-left">
-      <caption className="sr-only">{label}. Select a column title to sort by it.</caption>
+      <caption className="sr-only">{label}. Select a column title to sort by it, and again to go back to A to Z.</caption>
       <thead>
         <tr className="align-bottom">
           <th scope="col" aria-sort={sort.kind === "name" ? "ascending" : "none"} className="w-[19%] pr-s pb-s font-normal">
-            <button type="button" className={sortClass} onClick={() => setSort({ kind: "name" })}>
-              <span className="flex items-center gap-xxs text-s font-medium text-neutral-10">
-                Provider
-                {sort.kind === "name" ? <ArrowUp aria-hidden className="size-3.5 text-neutral-7" /> : null}
-              </span>
-              <span className="text-xxs text-neutral-7">A to Z</span>
-            </button>
+            <span className="flex items-end justify-between gap-xs">
+              <button type="button" className={`${sortBase} min-w-0 flex-1`} onClick={() => setSort(byName)}>
+                <span className="flex items-center gap-xxs text-s font-medium text-neutral-10">
+                  Provider
+                  {sort.kind === "name" ? <SortArrow direction="ascending" /> : null}
+                </span>
+                <span className="text-xxs text-neutral-7">A to Z</span>
+              </button>
+              {/* Always visible while a category sorts, so there is an obvious way back to the default order. */}
+              {sort.kind === "category" ? (
+                <button
+                  type="button"
+                  className="focus-ring flex shrink-0 items-center gap-xxs rounded-xs px-xs py-xxs text-xs text-neutral-7 hover:bg-neutral-3 hover:text-neutral-10"
+                  onClick={() => setSort(byName)}
+                  aria-label="Reset sort to provider A to Z"
+                >
+                  <RotateCcw aria-hidden className="size-3" />
+                  Reset
+                </button>
+              ) : null}
+            </span>
           </th>
           {columns.map((c, i) => (
             <th key={c.id} scope="col" aria-sort={isSorted(i) ? bestFirst(c) : "none"} className="px-s pb-s font-normal">
-              <button type="button" className={sortClass} onClick={() => setSort({ kind: "category", index: i })}>
+              <button type="button" className={sortClass} onClick={() => setSort((current) => nextSort(current, i))}>
                 <span className={`flex items-center gap-xxs text-s font-medium ${isSorted(i) ? "text-neutral-10" : "text-neutral-8 group-hover:text-neutral-10"}`}>
                   {c.label}
-                  {isSorted(i) ? <ArrowDown aria-hidden className="size-3.5 text-neutral-7" /> : null}
+                  {isSorted(i) ? <SortArrow direction={bestFirst(c)} /> : null}
                 </span>
                 <span className="text-xxs text-neutral-7">{c.measure}</span>
               </button>
