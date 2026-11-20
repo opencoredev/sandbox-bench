@@ -161,13 +161,7 @@ function Panel({ open, onChange, onClose }: { open: Open; onChange: (next: Open)
               Where the time goes · {trackInfo[track].short}
             </p>
             <h2 id="trace-title" className="mt-0.5 text-l font-medium">
-              {page ? (
-                <a href={page} className="focus-ring rounded-xs decoration-current/40 underline-offset-4 hover:underline" style={{ color }}>
-                  <ProviderName id={provider} />
-                </a>
-              ) : (
-                <span style={{ color }}><ProviderName id={provider} /></span>
-              )}
+              <span style={{ color }}><ProviderName id={provider} /></span>
               <span className="text-neutral-7"> · {kindLabel[kind]}</span>
             </h2>
             {page ? (

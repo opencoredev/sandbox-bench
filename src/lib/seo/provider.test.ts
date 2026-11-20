@@ -222,6 +222,14 @@ describe("FAQ", () => {
     assert.ok(pause?.answer.includes("Boat has no pause"), pause?.answer);
   });
 
+  test("a 100% success rate distinguishes separate errors recorded outside counted attempts", () => {
+    const luxor = providerFaqs("tenki")[4];
+    assert.ok(luxor);
+    assert.ok(luxor.answer.includes("100.00%"), luxor.answer);
+    assert.ok(luxor.answer.includes("outside those attempts"), luxor.answer);
+    assert.ok(!luxor.answer.includes("failures counted against it"), luxor.answer);
+  });
+
   test("FAQPage JSON-LD mirrors the questions and serialises cleanly", () => {
     for (const id of providerPages) {
       const faqs = providerFaqs(id);

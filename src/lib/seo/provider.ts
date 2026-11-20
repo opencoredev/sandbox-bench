@@ -437,8 +437,16 @@ function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
   return perTrack(r, (t) => {
     const rel = t.reliability;
     if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
-    const failed = t.failures.length === 0 ? "with no failures counted against it" : `failures counted against it: ${t.failures.map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`).join("; ")}`;
-    return `${formatCount(rel.succeeded)} of ${formatCount(rel.attempts)} attempts succeeded (${formatPercent(rel.successRate, 2)}), ${failed}`;
+    const list = t.failures
+      .map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`)
+      .join("; ");
+    const detail =
+      t.failures.length === 0
+        ? "with no failures recorded"
+        : rel.succeeded === rel.attempts
+          ? `with separate errors recorded outside those attempts: ${list}`
+          : `with failures recorded: ${list}`;
+    return `${formatCount(rel.succeeded)} of ${formatCount(rel.attempts)} attempts succeeded (${formatPercent(rel.successRate, 2)}), ${detail}`;
   });
 }
 
