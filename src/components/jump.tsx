@@ -27,7 +27,9 @@ export function JumpLink({ section, tab, className, children }: TabRequest & { c
     <a
       href={href}
       className={className}
-      onClick={() => {
+      onClick={(e) => {
+        // A modified or middle click opens a new tab or window; leave this page where it is.
+        if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         // The same hash again fires no hashchange, so send one: the section's TabCard reopens the tab
         // (it may have been switched since) and scrolls to it.
         if (window.location.hash === href) window.dispatchEvent(new HashChangeEvent("hashchange"));
