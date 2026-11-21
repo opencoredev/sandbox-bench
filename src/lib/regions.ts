@@ -285,6 +285,9 @@ export function deltaOf(metric: RegionMetric, a: RegionCell, b: RegionCell): Del
     case "ops/s":
     case "MB/s":
     case "IOPS":
+    case "files/s":
+    case "queries/s":
+    case "spawns/s":
       return b.p50 === 0 ? { kind: "absolute", value: a.p50 - b.p50, unit: metric.unit } : { kind: "percent", value: a.p50 / b.p50 - 1 };
     default: {
       const _exhaustive: never = metric.unit;

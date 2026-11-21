@@ -9,6 +9,8 @@
  *   from the same merged report.
  * - traces.<track>.json: `bun run traces` in this app (scripts/site-traces.ts),
  *   from a run's samples.ndjson.
+ * - The `stress` block of benchmark.<track>.json: site-data's `--stress-report`
+ *   option (bench/src/stress-site.ts), from a separately merged stress report.
  *
  * JSON imports widen string literals to `string`, so enum-like fields are
  * typed as strings here and narrowed in data.ts.
@@ -169,6 +171,107 @@ export interface SiteExport {
   sourceNotes?: Readonly<Record<string, string>>;
   /** Why a provider has no result on a chart, worked out from the runs, keyed by metric id then provider. */
   missing?: Readonly<Record<string, Readonly<Record<string, string>>>>;
+  /** CPU sustained, CPU under burst and burst survival (bench/src/stress-site.ts); absent in exports made before it. */
+  stress?: StressExport;
+}
+
+/** The allocation a stress row was collected at, as the harness records it. */
+export interface StressAllocationExport {
+  requestedSize: SiteProviderExport["requestedAllocation"]["size"];
+  template: string | null;
+}
+
+/** Failures by the harness's taxonomy: only `provider` counts against the provider. */
+export interface StressFailuresExport {
+  accountLimit: number;
+  clientNetwork: number;
+  provider: number;
+}
+
+/** Per-run throughput, ops/s: median, p95 and the bootstrap 95% interval of the median. */
+export interface StressThroughputExport {
+  n: number;
+  p50: number | null;
+  p95: number | null;
+  min: number | null;
+  max: number | null;
+  ciLow: number | null;
+  ciHigh: number | null;
+}
+
+/** Median and minimum of a per-run ratio, null when no run recorded it. */
+export type StressRatioExport = { p50: number | null; min: number | null } | null;
+
+/** Per-sandbox throughput across cohorts, ops/s: the fastest over the slowest and the coefficient of variation. */
+export interface StressSpreadExport {
+  n: number;
+  p50: number | null;
+  p95: number | null;
+  min: number | null;
+  max: number | null;
+  mean: number | null;
+  maxOverMin: number | null;
+  cv: number | null;
+}
+
+export interface CpuSustainedExport extends StressAllocationExport {
+  provider: string;
+  single: StressThroughputExport;
+  all: StressThroughputExport;
+  singleSeconds: { p50: number | null; max: number | null } | null;
+  allSeconds: { p50: number | null; max: number | null } | null;
+  /** Slowest segment over the median segment, per run: 1 is perfectly even. */
+  consistency: { single: StressRatioExport; all: StressRatioExport };
+  /** Last quarter of segments over the first quarter, per run: below 1 the guest slowed. */
+  trend: { single: StressRatioExport; all: StressRatioExport };
+  guestVcpus: readonly { value: number; count: number }[];
+  workers: readonly { value: number; count: number }[];
+  attempts: { successes: number; failures: StressFailuresExport; blocked: number; skipped: number };
+}
+
+export interface CpuBurstExport extends StressAllocationExport {
+  provider: string;
+  work: { segments: number; steps: number } | null;
+  cohorts: number;
+  completeCohorts: number;
+  excluded: { lowOverlap: number; invalidEvidence: number };
+  incomplete: { cohorts: number; members: number };
+  members: { attempted: number; ready: number; completed: number };
+  failures: StressFailuresExport;
+  perSandbox: { cohorts: number; single: StressSpreadExport; all: StressSpreadExport };
+  withinCohortMaxOverMin: { p50: number | null; max: number | null } | null;
+  dispatchSkewMs: { p50: number | null; max: number | null } | null;
+  allCompleteS: { n: number; p50: number | null; max: number | null } | null;
+}
+
+export interface BurstSurvivalExport extends StressAllocationExport {
+  provider: string;
+  windowS: number | null;
+  heartbeatS: number | null;
+  cohorts: number;
+  incomplete: { cohorts: number; members: number };
+  attempted: number;
+  survived: number;
+  createFailed: StressFailuresExport & { total: number };
+  died: number;
+  unresponsive: number;
+  interrupted: number;
+  invalidEvidence: number;
+  invalidReasons: Readonly<Record<string, number>>;
+  windowFailures: StressFailuresExport;
+  /** Survived over members the provider had a fair chance with; null when there were none. */
+  survivalRate: number | null;
+}
+
+/** The harness's `StressData` (bench/src/stress-site.ts), one per track. */
+export interface StressExport {
+  observations: number;
+  runs: readonly { id: string; suite: string; samples: number }[];
+  /** Stress rows the attempt policy removed, by reason. */
+  selectionRemoved: Readonly<Record<string, number>>;
+  cpuSustained: readonly CpuSustainedExport[];
+  cpuBurst: readonly { k: number; providers: readonly CpuBurstExport[] }[];
+  burstSurvival: readonly { k: number; providers: readonly BurstSurvivalExport[] }[];
 }
 
 export interface ExtrasProviderExport {

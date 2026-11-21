@@ -369,6 +369,7 @@ export function Columns({
   compact = false,
   linked = false,
   highlight,
+  max: fixedMax,
 }: {
   columns: readonly Column[];
   label: string;
@@ -377,8 +378,10 @@ export function Columns({
   linked?: boolean;
   /** A provider page's chart: this provider's column stays at full colour with its name in bold, and the others dim. */
   highlight?: ProviderId;
+  /** A fixed end for the axis, such as 100 for a percentage, instead of one fitted to the values. */
+  max?: number;
 }) {
-  const max = axisMax(columns);
+  const max = fixedMax ?? axisMax(columns);
   const cut = columns.some((c) => total(c) > max);
   return (
     <figure aria-label={cut ? `${label}. One bar is shortened to fit and marked with a break.` : label} className="relative @container">

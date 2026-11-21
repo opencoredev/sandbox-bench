@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "scenarioCount": 0,
+  "categories": ["cpu", "agent-tasks", "agent-loops", "filesystem", "builds", "runtime"],
+  "metrics": []
+}

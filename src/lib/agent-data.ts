@@ -74,6 +74,11 @@ import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
 import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
+import { bestFirst, hasExpanded } from "@/lib/expanded";
+import type { Expanded } from "@/lib/expanded";
+import { expanded } from "@/lib/expanded-data";
+import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
+import type { StressData } from "@/lib/stress";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -629,6 +634,46 @@ function regionOf(p: Provider) {
   return note ? { region: p.pricingRegion, regionMultiplier: p.regionMultiplier, regionNote: note } : {};
 }
 
+const stressAbout =
+  "Stress suites, higher is better throughout. cpuSustained: CPU work held for a fixed time, single core (one worker) and all cores (several workers started together, rates added up); median operations per second per run, with consistency (slowest segment over median segment, 1 is even) and trend (last quarter over first, below 1 the sandbox slowed). cpuBurst: K sandboxes started at once running the same CPU work; perSandbox is per-sandbox throughput from cohorts whose sandboxes all finished and provably ran together, maxOverMin the fastest over the slowest sandbox. burstSurvival: K sandboxes started at once and held for windowS seconds with a heartbeat every heartbeatS seconds; survivalRate is survived over members the provider had a fair chance with (account-limit refusals, our network errors, interrupted windows and invalid evidence left out). Only failures the provider caused count against it. Providers are listed best first.";
+
+/** The stress suites of one track as plain data, best first. */
+function stressData(s: StressData) {
+  return {
+    about: stressAbout,
+    observations: s.observations,
+    runs: s.runs,
+    selectionRemoved: s.selectionRemoved,
+    cpuSustained: [...s.cpuSustained.rows]
+      .sort((a, b) => (b.single.p50 ?? -1) - (a.single.p50 ?? -1))
+      .map((r) => ({ name: providerName(r.provider), ...r })),
+    cpuBurst: s.cpuBurst.map((g) => ({ k: g.k, providers: [...g.rows].sort((a, b) => (burstValue(b) ?? -1) - (burstValue(a) ?? -1)).map((r) => ({ name: providerName(r.provider), ...r })) })),
+    burstSurvival: s.burstSurvival.map((g) => ({
+      k: g.k,
+      providers: [...survivalRanked(g.rows).map((x) => x.row), ...g.rows.filter((r) => r.survivalRate === null)].map((r) => ({ name: providerName(r.provider), ...r })),
+    })),
+  };
+}
+
+const expandedAbout =
+  "Expanded benchmarks: real work inside each sandbox from a fresh random seed per run, with the output checked against the seed before the result counts, so cached or hardcoded answers fail. median, min and max are over a provider's verified runs (n), in `unit`; `better` says which direction wins; values are sorted best first. Not split by track.";
+
+/** The expanded benchmarks as plain data, by category, best first. */
+function expandedData(e: Expanded) {
+  return {
+    about: expandedAbout,
+    scenarioCount: e.scenarioCount,
+    generatedAt: e.generatedAt,
+    runId: e.runId,
+    runsPerProvider: e.runs,
+    categories: e.groups.map((g) => ({
+      id: g.category,
+      label: g.label,
+      tests: g.metrics.map((m) => ({ ...m, values: bestFirst(m.values, m.better).map((v) => ({ name: providerName(v.provider), ...v })) })),
+    })),
+  };
+}
+
 /** One track as plain data. */
 function trackData(track: Track) {
   const notes = allocationNotes(track);
@@ -682,6 +727,8 @@ function trackData(track: Track) {
         return { id, group: g.title, label: m.label, unit: m.unit, better: m.better, results: results(track, m) };
       }),
     ),
+    // Only once the track's export has stress results, so older exports read exactly as before.
+    ...(track.stress ? { stress: stressData(track.stress) } : {}),
   };
 }
 
@@ -714,6 +761,7 @@ export function agentData() {
     commonSize: commonSize.label,
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
+    ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
   };
 }
 
@@ -784,6 +832,73 @@ function trackMarkdown(id: TrackId) {
   lines.push("");
   const rerun = d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`));
   if (rerun.length) lines.push("## Runs set aside and rerun", "", ...rerun, "");
+  if (track.stress) lines.push(...stressMarkdown(track.stress));
+  return lines;
+}
+
+const ops = (v: number | null) => (v === null ? "n/a" : formatValue(v, "ops/s"));
+const ratioCell = (r: { p50: number | null } | null) => (r === null || r.p50 === null ? "n/a" : r.p50.toFixed(2));
+
+/** A track's stress suites as Markdown tables, best first. */
+function stressMarkdown(s: StressData) {
+  const lines = ["## Stress", "", stressAbout, ""];
+  const sustained = [...highestFirst(s.cpuSustained.rows, sustainedValue("single")).map((x) => x.row), ...s.cpuSustained.rows.filter((r) => r.single.p50 === null)];
+  if (sustained.length)
+    lines.push(
+      "### Sustained CPU",
+      "",
+      "| Provider | Single core, median | All cores, median | Runs (single / all) | Min ÷ median segment (all) | Last ÷ first quarter (all) | vCPU | Failed attempts |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- |",
+      ...sustained.map((r) => `| ${providerName(r.provider)} | ${ops(r.single.p50)} | ${ops(r.all.p50)} | ${r.single.n} / ${r.all.n} | ${ratioCell(r.consistency.all)} | ${ratioCell(r.trend.all)} | ${r.guestVcpus.map((v) => v.value).join(", ") || "n/a"} | ${r.attempts.failures.provider} |`),
+      "",
+    );
+  for (const g of s.cpuBurst) {
+    const rows = [...highestFirst(g.rows, burstValue).map((x) => x.row), ...g.rows.filter((r) => burstValue(r) === null)];
+    if (!rows.length) continue;
+    lines.push(
+      `### CPU under burst, ${g.k} at once`,
+      "",
+      "| Provider | Median per sandbox (single core) | Fastest ÷ slowest | Counted cohorts | Complete cohorts | Excluded cohorts | Failed |",
+      "| --- | --- | --- | --- | --- | --- | --- |",
+      ...rows.map((r) => `| ${providerName(r.provider)} | ${ops(burstValue(r))} | ${r.perSandbox.single.maxOverMin === null ? "n/a" : `${r.perSandbox.single.maxOverMin.toFixed(2)}×`} | ${r.perSandbox.cohorts} | ${r.completeCohorts} of ${r.cohorts} | ${r.excluded.lowOverlap + r.excluded.invalidEvidence} | ${r.failures.provider} |`),
+      "",
+    );
+  }
+  for (const g of s.burstSurvival) {
+    const rows = [...survivalRanked(g.rows).map((x) => x.row), ...g.rows.filter((r) => r.survivalRate === null)];
+    if (!rows.length) continue;
+    lines.push(
+      `### Burst survival, ${g.k} at once`,
+      "",
+      "| Provider | Survival rate | Survived | Attempted | Window | Create failed | Died | Unresponsive | Interrupted | Invalid evidence |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+      ...rows.map((r) => `| ${providerName(r.provider)} | ${r.survivalRate === null ? "n/a" : formatPercent(r.survivalRate)} | ${r.survived} | ${r.attempted} | ${r.windowS === null ? "n/a" : `${r.windowS} s`} | ${r.createFailed.total} | ${r.died} | ${r.unresponsive} | ${r.interrupted} | ${r.invalidEvidence} |`),
+      "",
+    );
+  }
+  return lines;
+}
+
+/** The expanded benchmarks as Markdown, one table per test, best first. */
+function expandedMarkdown(e: Expanded) {
+  const lines = ["# Expanded benchmarks", "", expandedAbout, ""];
+  for (const g of e.groups) {
+    if (!g.metrics.some((m) => m.values.length > 0)) continue;
+    lines.push(`## ${g.label}`, "");
+    for (const m of g.metrics) {
+      lines.push(`### ${m.label}`, "", `${m.description} Median, ${m.better} is better.`, "");
+      if (m.values.length === 0) {
+        lines.push("No verified runs yet.", "");
+        continue;
+      }
+      lines.push(
+        "| Rank | Provider | Median | Min | Max | Verified runs |",
+        "| --- | --- | --- | --- | --- | --- |",
+        ...bestFirst(m.values, m.better).map((v, i) => `| ${i + 1} | ${providerName(v.provider)} | ${formatValue(v.median, m.unit)} | ${formatValue(v.min, m.unit)} | ${formatValue(v.max, m.unit)} | ${v.n} |`),
+        "",
+      );
+    }
+  }
   return lines;
 }
 
@@ -810,6 +925,7 @@ export function agentMarkdown() {
     "The quick task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
     ...trackIds.flatMap(trackMarkdown),
+    ...(hasExpanded(expanded) ? expandedMarkdown(expanded) : []),
   ];
   return `${lines.join("\n")}\n`;
 }

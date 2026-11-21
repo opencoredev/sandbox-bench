@@ -14,6 +14,11 @@ import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/components/realistic";
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
 import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
+import { ExpandedBenchmarks, expandedSection } from "@/components/expanded-benchmarks";
+import { StressSection, stressSection } from "@/components/stress";
+import { hasExpanded } from "@/lib/expanded";
+import { expanded } from "@/lib/expanded-data";
+import { hasStress } from "@/lib/stress";
 import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { latestUpdates, updateDay } from "@/lib/updates";
 import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
@@ -710,6 +715,37 @@ export default function Page() {
             )}
           </PerTrack>
         </Section>
+
+        {trackIds.some((id) => hasStress(tracks[id].stress)) ? (
+          <Section
+            id={stressSection}
+            title="Stress"
+            lede="CPU held busy for minutes, CPU shared by sandboxes started at once, and whether sandboxes started in a burst stay alive."
+          >
+            <PerTrack>
+              {(track) =>
+                hasStress(track.stress) ? (
+                  <StressSection stress={track.stress} />
+                ) : (
+                  <Card className="text-s text-neutral-7">
+                    <span className="font-medium text-neutral-10">{trackInfo[track.id].label}: no stress results yet.</span> Switch to{" "}
+                    {`${trackInfo[track.id === "default" ? "same-spec" : "default"].label.toLowerCase()} for them.`}
+                  </Card>
+                )
+              }
+            </PerTrack>
+          </Section>
+        ) : null}
+
+        {hasExpanded(expanded) ? (
+          <Section
+            id={expandedSection}
+            title="Expanded benchmarks"
+            lede={`${expanded.scenarioCount} more tests across CPU, agent tasks, agent loops, files, builds and runtimes. Every run is checked against a fresh seed, so only real work counts.`}
+          >
+            <ExpandedBenchmarks data={expanded} />
+          </Section>
+        ) : null}
 
         <Section
           id={taskCostSection}

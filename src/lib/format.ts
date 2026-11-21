@@ -1,4 +1,7 @@
-export type Unit = "s" | "ms" | "ops/s" | "MB/s" | "IOPS";
+export type Unit = "s" | "ms" | "ops/s" | "MB/s" | "IOPS" | "files/s" | "queries/s" | "spawns/s";
+
+/** The units the expanded benchmarks report in (the harness's bench/src/expanded/types.ts). */
+export type ExpandedUnit = Extract<Unit, "s" | "ops/s" | "MB/s" | "files/s" | "queries/s" | "spawns/s">;
 
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
@@ -14,6 +17,10 @@ export function formatValue(value: number, unit: Unit) {
       return value >= 1000 ? `${(value / 1000).toFixed(1)} GB/s` : `${value.toFixed(0)} MB/s`;
     case "IOPS":
       return `${compact.format(value)} IOPS`;
+    case "files/s":
+    case "queries/s":
+    case "spawns/s":
+      return `${compact.format(value)} ${unit}`;
   }
 }
 
@@ -26,6 +33,9 @@ export function formatShort(value: number, unit: Unit) {
     case "ops/s":
     case "MB/s":
     case "IOPS":
+    case "files/s":
+    case "queries/s":
+    case "spawns/s":
       return compact.format(value);
   }
 }
@@ -37,6 +47,9 @@ export const unitName = {
   "ops/s": "operations per second",
   "MB/s": "MB per second",
   IOPS: "operations per second",
+  "files/s": "files per second",
+  "queries/s": "queries per second",
+  "spawns/s": "process spawns per second",
 } as const satisfies Record<Unit, string>;
 
 export const formatPercent = (value: number, digits = 1) => `${(value * 100).toFixed(digits)}%`;

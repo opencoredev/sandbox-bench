@@ -6,6 +6,8 @@ import sameSpecExtras from "@/data/extras.same-spec.json";
 import type { Unit } from "@/lib/format";
 import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport, StandbyResumeExport } from "@/lib/inputs";
 import { isProviderId, providerInfo } from "@/lib/providers";
+import { parseStress } from "@/lib/stress";
+import type { StressData } from "@/lib/stress";
 import type { ProviderId } from "@/lib/providers";
 import { trackIds } from "@/lib/tracks";
 import type { TrackId } from "@/lib/tracks";
@@ -107,6 +109,8 @@ export interface Track {
   missing: Readonly<Record<string, Readonly<Record<string, string>>>>;
   /** Built from the local preview fixture: never real numbers. */
   preview: boolean;
+  /** The stress suites, or null when the export has none or nothing in them to chart. */
+  stress: StressData | null;
 }
 
 /**
@@ -222,6 +226,7 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
     preview: raw.generatedFrom.startsWith("preview-fixture"),
     sourceNotes: raw.sourceNotes ?? {},
     missing: raw.missing ?? {},
+    stress: parseStress(raw.stress, id),
   };
 }
 
