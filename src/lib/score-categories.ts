@@ -2,6 +2,7 @@ import { realTasksSection, taskTimes } from "@/components/real-tasks";
 import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatValue } from "@/lib/format";
+import { isExtraTier } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
 import type { Costed } from "@/lib/realistic";
@@ -134,9 +135,11 @@ function toCell(score: Score, category: ScoreCategory): ScoreCell {
 export type CategoryScores = { category: ScoreCategory; scores: ScoreCell[] };
 
 export function trackScores(track: Track, categories: readonly ScoreCategory[] = scoreCategories): CategoryScores[] {
-  const providers: ProviderId[] = track.providers.map((p) => p.id);
+  // A provider is scored on its first CPU tier, the one a new account gets; its other tiers are compared under CPU tiers (lib/providers.ts).
+  const providers: ProviderId[] = track.providers.flatMap((p) => (isExtraTier(p.id) ? [] : [p.id]));
+  const counted = <T extends { provider: ProviderId }>(rows: readonly T[]) => rows.filter((r) => !isExtraTier(r.provider));
   return categories.map((category) => ({
     category,
-    scores: scoreReadings({ providers, readings: category.read(track), excluded: category.exclude?.(track) ?? [], better: category.better }).map((s) => toCell(s, category)),
+    scores: scoreReadings({ providers, readings: counted(category.read(track)), excluded: counted(category.exclude?.(track) ?? []), better: category.better }).map((s) => toCell(s, category)),
   }));
 }

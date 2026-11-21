@@ -7,6 +7,7 @@ import { ScoreTable } from "@/components/score-table";
 import { Card, TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { allocationNotes } from "@/lib/notes";
+import { isExtraTier } from "@/lib/providers";
 import { rankScores } from "@/lib/score";
 import { trackScores } from "@/lib/score-categories";
 
@@ -18,8 +19,9 @@ function scoreGrid(track: Track) {
   const byCategory = trackScores(track);
   const columns: ScoreColumn[] = byCategory.map(({ category: { id, label, measure, better, shows, link } }) => ({ id, label, measure, better, shows, link }));
   const machine = allocationNotes(track);
-  const marked = track.providers.flatMap((p) => (machine[p.id] ? [p.id] : []));
-  const rows: ScoreRow[] = track.providers.map((p) => ({
+  const firsts = track.providers.filter((p) => !isExtraTier(p.id));
+  const marked = firsts.flatMap((p) => (machine[p.id] ? [p.id] : []));
+  const rows: ScoreRow[] = firsts.map((p) => ({
     provider: p.id,
     mark: marked.includes(p.id) ? marked.indexOf(p.id) + 1 : null,
     cells: byCategory.map(({ scores }) => scores.find((s) => s.provider === p.id) ?? { kind: "not-measured", provider: p.id }),
