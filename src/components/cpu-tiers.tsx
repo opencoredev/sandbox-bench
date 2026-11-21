@@ -115,7 +115,7 @@ export interface Comparison {
 export function relative(base: Reading | undefined, r: Reading, better: "lower" | "higher", cost: boolean): Comparison | null {
   if (!base || base.kind !== "value" || r.kind !== "value" || base.value <= 0 || r.value <= 0) return null;
   const factor = better === "lower" ? base.value / r.value : r.value / base.value;
-  if (Math.abs(1 / factor - 1) < 0.05) return { text: "same", tone: "same", factor: 1 };
+  if (Math.abs(r.value / base.value - 1) < 0.05) return { text: "same", tone: "same", factor: 1 };
   const tone: Tone = factor > 1 ? "better" : "worse";
   if (cost) return { text: r.value < base.value ? `${Math.round((1 - r.value / base.value) * 100)}% less` : `${(r.value / base.value).toFixed(1)}× more`, tone, factor };
   const times = (x: number) => (x >= 10 ? x.toFixed(0) : x.toFixed(1));
@@ -178,7 +178,7 @@ export function TierTable({ brand, track, realistic, burst }: { brand: TieredPro
       <div role="table" aria-label={`${providerName(brand)} CPU tiers`} className="text-s">
         <div role="row" className={`${gridClass} items-end gap-x-s pb-m sm:gap-x-l`} style={grid(tiers.length)}>
           <span role="columnheader" className="sr-only text-xs text-neutral-7 sm:not-sr-only sm:self-end">
-            {machine ? `${machine.cpu} vCPU, ${machine.memoryGiB} GB, per hour` : "Tier"}
+            {machine ? `${machine.cpu} vCPU, ${machine.memoryGiB} GB` : "Tier"}
           </span>
           {tiers.map((t, i) => {
             const price = hourly(t);
@@ -192,7 +192,10 @@ export function TierTable({ brand, track, realistic, burst }: { brand: TieredPro
                 </span>
                 {price === null ? null : (
                   <span className="flex flex-wrap items-baseline gap-x-xs">
-                    <span className="font-mono text-m text-neutral-10 tabular-nums">{formatMoney(price, "USD")}</span>
+                    <span className="font-mono text-m text-neutral-10 tabular-nums">
+                      {formatMoney(price, "USD")}
+                      <span className="text-xs text-neutral-7">/h</span>
+                    </span>
                     {saving !== null && saving > 0 ? <span className="text-xxs whitespace-nowrap text-success">{saving}% less</span> : null}
                   </span>
                 )}

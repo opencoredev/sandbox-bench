@@ -35,7 +35,7 @@ export function markFill(fill: MarkFill, color: string): CSSProperties {
 }
 
 /** The same hue, lighter and less saturated. */
-const lighter = (color: string) => `oklch(from ${color} calc(l + 0.1) calc(c * 0.55) h)`;
+const lighter = (color: string) => `color-mix(in oklch, ${color} 62%, white)`;
 
 const tierFills = { dedicated: "solid", shared: "light", spot: "hatched" } as const satisfies Record<CpuClass, MarkFill>;
 

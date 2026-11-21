@@ -71,6 +71,8 @@ describe("CPU tiers", () => {
     assert.equal(relative(value(10), value(5), "lower", false)?.tone, "better");
     assert.equal(relative(value(100), value(50), "higher", false)?.tone, "worse");
     assert.equal(relative(value(10), value(10.3), "lower", false)?.tone, "same");
+    assert.equal(relative(value(100), value(104.9), "higher", false)?.tone, "same");
+    assert.equal(relative(value(100), value(95.1), "higher", false)?.tone, "same", "5% either side of the first tier is the same");
   });
 });
 
