@@ -28,7 +28,7 @@ export const providerInfo = {
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
-  // its provider's colour and reads apart by its fill (tierFill) and the tag beside its name.
+  // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;

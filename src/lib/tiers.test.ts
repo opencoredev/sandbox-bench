@@ -10,6 +10,7 @@ import { providerTrack } from "@/lib/seo/provider";
 import { rowFill } from "@/lib/marks";
 import { cpuTiers, isExtraTier, isPreemptible, isProviderId, providerBrand, providerInfo, tierHourly, tierOf, tiersOf } from "@/lib/providers";
 import { notCountedWhy } from "@/lib/realistic";
+import { trackScores } from "@/lib/score-categories";
 
 const value = (v: number) => ({ kind: "value" as const, value: v, text: String(v) });
 
@@ -36,8 +37,8 @@ describe("CPU tiers", () => {
 
   test("tiers keep the provider's colour and read apart by fill", () => {
     assert.equal(rowFill("beam", "solid"), "solid");
-    assert.equal(rowFill("beam-shared", "solid"), "tint");
-    assert.equal(rowFill("beam-spot", "solid"), "hollow");
+    assert.equal(rowFill("beam-shared", "solid"), "light");
+    assert.equal(rowFill("beam-spot", "solid"), "hatched");
     assert.equal(rowFill("beam-shared", "striped"), "striped", "a striped part stays striped");
     assert.equal(rowFill("e2b", "solid"), "solid");
   });
@@ -60,13 +61,16 @@ describe("CPU tiers", () => {
   });
 
   test("relative wording against the first tier", () => {
-    assert.equal(relative(value(10), value(10.3), "lower", false), "same");
-    assert.equal(relative(value(10), value(24), "lower", false), "2.4× slower");
-    assert.equal(relative(value(100), value(50), "higher", false), "2.0× slower");
-    assert.equal(relative(value(10), value(5), "lower", false), "2.0× faster");
-    assert.equal(relative(value(0.28), value(0.088), "lower", true), "69% less");
-    assert.equal(relative(value(1), value(1.5), "lower", true), "1.5× more");
+    assert.equal(relative(value(10), value(10.3), "lower", false)?.text, "same");
+    assert.equal(relative(value(10), value(24), "lower", false)?.text, "2.4× slower");
+    assert.equal(relative(value(100), value(50), "higher", false)?.text, "2.0× slower");
+    assert.equal(relative(value(10), value(5), "lower", false)?.text, "2.0× faster");
+    assert.equal(relative(value(0.28), value(0.088), "lower", true)?.text, "69% less");
+    assert.equal(relative(value(1), value(1.5), "lower", true)?.text, "1.5× more");
     assert.equal(relative({ kind: "none", why: "Not run yet" }, value(1), "lower", false), null);
+    assert.equal(relative(value(10), value(5), "lower", false)?.tone, "better");
+    assert.equal(relative(value(100), value(50), "higher", false)?.tone, "worse");
+    assert.equal(relative(value(10), value(10.3), "lower", false)?.tone, "same");
   });
 });
 
@@ -83,6 +87,7 @@ describe("CPU tiers on the published data", () => {
       const firsts = t.providers.filter((p) => !isExtraTier(p.id)).length;
       if (beam) assert.equal(beam.providerCount, firsts);
       for (const a of alternativesTrack(tid, "e2b")?.alternatives ?? []) assert.ok(!isExtraTier(a.id), a.id);
+      for (const { scores } of trackScores(tracks[tid])) for (const s of scores) assert.ok(!isExtraTier(s.provider), `${tid} scores ${s.provider}`);
     }
   });
 });

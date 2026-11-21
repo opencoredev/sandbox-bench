@@ -785,7 +785,7 @@ export default function Page() {
           <Section
             id="tiers"
             title="CPU tiers"
-            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GB machine, so the table shows what changes when you pay less; a tier not yet measured says so."
+            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GB machine, so the table shows what changes when you pay less."
           >
             <div className="mb-m flex flex-wrap items-center gap-x-m gap-y-xs">
               <TierSwitch />
@@ -800,7 +800,7 @@ export default function Page() {
                   <div className="flex flex-col gap-m">
                     {brands.map((brand) => (
                       <Card key={brand}>
-                        <ChartHead title={`${providerName(brand)} on each CPU tier`} sub="Same sandbox, same tests · Median · Faster or slower than the tier a new account gets" />
+                        <ChartHead title={`${providerName(brand)} on each CPU tier`} sub="Same sandbox, same tests · Median · Green is better and red is worse than the tier a new account gets" />
                         <TierTable brand={brand} track={track} realistic={realistic} burst={realtaskBurst} />
                       </Card>
                     ))}
