@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Break, Columns, axisMax, layout } from "@/components/columns";
 import type { Bar, Column } from "@/components/columns";
+import type { TierView } from "@/lib/tiers";
 import { Disclosure } from "@/components/disclosure";
 import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
@@ -163,18 +164,40 @@ const rowGrid =
  * (an outlier more than 4x the runner-up is cut short) and its break mark.
  * The phone rows draw exactly these, so the two views can't disagree.
  */
-export function rowBars(costed: readonly Costed[]): Map<ProviderId, Bar> {
-  const columns = columnsOf(costed);
-  // The default view's scale, as the chart's "One per provider" copy draws it (components/columns.tsx).
-  const max = axisMax(columns.filter((c) => !isExtraTier(c.provider)));
+export function rowBars(costed: readonly Costed[], view: TierView = "one"): Map<ProviderId, Bar> {
+  const all = columnsOf(costed);
+  // Each tier view's own scale, as the chart draws one copy per view (components/columns.tsx).
+  const columns = view === "one" ? all.filter((c) => !isExtraTier(c.provider)) : all;
+  const max = axisMax(columns);
   return new Map(columns.map((c) => [c.provider, layout(c, max)]));
 }
+
+/** A row's bar in each tier view; `one` is undefined for a tier row, which shows only under Every CPU tier. */
+type RowBars = { one: Bar | undefined; all: Bar | undefined };
+
+const sameBar = (a: Bar | undefined, b: Bar | undefined) => a?.length === b?.length && a?.broken === b?.broken;
 
 /**
  * The bar a phone shows inside the row, in place of a separate chart: the
  * chart's length, break and colour.
  */
-function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
+function RowBar({ row, bars }: { row: RealisticRow; bars: RowBars }) {
+  // A first tier's bar can be scaled differently once hidden tiers join the chart; draw each view's and let CSS pick.
+  if (bars.one && bars.all && !sameBar(bars.one, bars.all))
+    return (
+      <>
+        <span data-tier-view="one">
+          <OneBar row={row} bar={bars.one} />
+        </span>
+        <span data-tier-view="all">
+          <OneBar row={row} bar={bars.all} />
+        </span>
+      </>
+    );
+  return <OneBar row={row} bar={isExtraTier(row.provider) ? bars.all : bars.one} />;
+}
+
+function OneBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
   if (!row.cost || !bar) return <span aria-hidden className="sm:hidden" />;
   const color = providerColor(row.provider);
   return (
@@ -191,7 +214,7 @@ function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
  * explanation behind a disclosure. On phones the row also carries the bar, so
  * the chart isn't drawn a second time above the list.
  */
-function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefined; track: TrackId | undefined }) {
+function ProviderRow({ row, bars, track }: { row: RealisticRow; bars: RowBars; track: TrackId | undefined }) {
   const note = row.cost ? priceNote(row.provider, track) : shortReason(row);
   return (
     <li className="border-t border-neutral-3" {...(isExtraTier(row.provider) ? { "data-tier-extra": "" } : {})}>
@@ -203,7 +226,7 @@ function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefi
             <span className="text-s leading-[1.1] font-medium">
               <Who id={row.provider} />
             </span>
-            <RowBar row={row} bar={bar} />
+            <RowBar row={row} bars={bars} />
             <span className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-left">
               <span className="sr-only">Per 1,000 completed: </span>
               {row.cost ? perThousand(row.cost.usdPerCompleted) : "n/a"}
@@ -244,7 +267,8 @@ function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefi
 
 /** Every provider in the workload, run or not, one row each. */
 export function ProviderRows({ costed, uncosted, track }: { costed: readonly Costed[]; uncosted: readonly RealisticRow[]; track?: TrackId }) {
-  const bars = rowBars(costed);
+  const one = rowBars(costed, "one");
+  const all = rowBars(costed, "all");
   const rows = [...costed, ...uncosted];
   return (
     <div className="mt-s sm:mt-l">
@@ -257,7 +281,7 @@ export function ProviderRows({ costed, uncosted, track }: { costed: readonly Cos
       </p>
       <ul className="flex flex-col">
         {rows.map((row) => (
-          <ProviderRow key={row.provider} row={row} bar={bars.get(row.provider)} track={track} />
+          <ProviderRow key={row.provider} row={row} bars={{ one: one.get(row.provider), all: all.get(row.provider) }} track={track} />
         ))}
       </ul>
     </div>
