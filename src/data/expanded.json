@@ -1,6 +1,2231 @@
 {
   "version": 1,
-  "scenarioCount": 0,
-  "categories": ["cpu", "agent-tasks", "agent-loops", "filesystem", "builds", "runtime"],
-  "metrics": []
+  "scenarioCount": 24,
+  "categories": [
+    "cpu",
+    "agent-tasks",
+    "agent-loops",
+    "filesystem",
+    "builds",
+    "runtime"
+  ],
+  "metrics": [
+    {
+      "id": "cpu-sha256-hash",
+      "category": "cpu",
+      "label": "SHA-256 hashing",
+      "description": "Streams SHA-256 over a seeded 32 MiB buffer eight times per round in Node, each pass and round under its own prefix, in rounds for at least a second, and reports hashing throughput.",
+      "unit": "MB/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 1796.163527324021,
+          "min": 1796.163527324021,
+          "max": 1796.163527324021
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 1937.8968989146056,
+          "min": 1937.8968989146056,
+          "max": 1937.8968989146056
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 2651.4537233737833,
+          "min": 2651.4537233737833,
+          "max": 2651.4537233737833
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 1794.2331458823464,
+          "min": 1794.2331458823464,
+          "max": 1794.2331458823464
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 1761.684819774046,
+          "min": 1761.684819774046,
+          "max": 1761.684819774046
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 1586.506096340342,
+          "min": 1586.506096340342,
+          "max": 1586.506096340342
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 1527.461424850481,
+          "min": 1527.461424850481,
+          "max": 1527.461424850481
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 2116.974080062919,
+          "min": 2116.974080062919,
+          "max": 2116.974080062919
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 1860.5523443956408,
+          "min": 1860.5523443956408,
+          "max": 1860.5523443956408
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 2371.2692121185305,
+          "min": 2371.2692121185305,
+          "max": 2371.2692121185305
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 1770.2391103236669,
+          "min": 1770.2391103236669,
+          "max": 1770.2391103236669
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1271.9547047802907,
+          "min": 1271.9547047802907,
+          "max": 1271.9547047802907
+        }
+      ]
+    },
+    {
+      "id": "cpu-gzip-compress",
+      "category": "cpu",
+      "label": "gzip roundtrip",
+      "description": "Compresses and decompresses a seeded 8 MiB JSON corpus with zlib, salted differently each round, in rounds for at least a second, and checks every round's roundtrip digest and gzip CRC-32.",
+      "unit": "MB/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 34.90218025292144,
+          "min": 34.90218025292144,
+          "max": 34.90218025292144
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 37.70374419569718,
+          "min": 37.70374419569718,
+          "max": 37.70374419569718
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 39.77746536845865,
+          "min": 39.77746536845865,
+          "max": 39.77746536845865
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 31.721182403956,
+          "min": 31.721182403956,
+          "max": 31.721182403956
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 31.651620309141457,
+          "min": 31.651620309141457,
+          "max": 31.651620309141457
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 24.78404870632693,
+          "min": 24.78404870632693,
+          "max": 24.78404870632693
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 28.5380088800485,
+          "min": 28.5380088800485,
+          "max": 28.5380088800485
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 41.15136464419695,
+          "min": 41.15136464419695,
+          "max": 41.15136464419695
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 31.973746461478157,
+          "min": 31.973746461478157,
+          "max": 31.973746461478157
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 46.70133591207449,
+          "min": 46.70133591207449,
+          "max": 46.70133591207449
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 42.12057477151221,
+          "min": 42.12057477151221,
+          "max": 42.12057477151221
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 33.192638773317256,
+          "min": 33.192638773317256,
+          "max": 33.192638773317256
+        }
+      ]
+    },
+    {
+      "id": "cpu-json-parse",
+      "category": "cpu",
+      "label": "JSON parse and walk",
+      "description": "Parses, walks and re-serializes a seeded 1 MiB package-graph JSON document 40 times in Node.",
+      "unit": "ops/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 55.21737048139727,
+          "min": 55.21737048139727,
+          "max": 55.21737048139727
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 30.876297799496275,
+          "min": 30.876297799496275,
+          "max": 30.876297799496275
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 72.11650662514424,
+          "min": 72.11650662514424,
+          "max": 72.11650662514424
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 42.42984837152704,
+          "min": 42.42984837152704,
+          "max": 42.42984837152704
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 49.28901301100067,
+          "min": 49.28901301100067,
+          "max": 49.28901301100067
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 34.1918196023733,
+          "min": 34.1918196023733,
+          "max": 34.1918196023733
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 56.06963357319801,
+          "min": 56.06963357319801,
+          "max": 56.06963357319801
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 76.64211532943415,
+          "min": 76.64211532943415,
+          "max": 76.64211532943415
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 46.2294949970637,
+          "min": 46.2294949970637,
+          "max": 46.2294949970637
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 84.80146200094931,
+          "min": 84.80146200094931,
+          "max": 84.80146200094931
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 80.46801355422534,
+          "min": 80.46801355422534,
+          "max": 80.46801355422534
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 46.54131634208231,
+          "min": 46.54131634208231,
+          "max": 46.54131634208231
+        }
+      ]
+    },
+    {
+      "id": "cpu-prime-sieve",
+      "category": "cpu",
+      "label": "Prime sieve",
+      "description": "Runs a segmented sieve of Eratosthenes over a 16-million-number window above 100 million, a new non-overlapping window each round, and hashes every prime found, in rounds for at least a second.",
+      "unit": "ops/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 173512715.86607304,
+          "min": 173512715.86607304,
+          "max": 173512715.86607304
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 201189710.39717153,
+          "min": 201189710.39717153,
+          "max": 201189710.39717153
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 371226269.9878604,
+          "min": 371226269.9878604,
+          "max": 371226269.9878604
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 234528696.45735508,
+          "min": 234528696.45735508,
+          "max": 234528696.45735508
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 232722255.8560292,
+          "min": 232722255.8560292,
+          "max": 232722255.8560292
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 116622227.38729104,
+          "min": 116622227.38729104,
+          "max": 116622227.38729104
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 106070795.58685297,
+          "min": 106070795.58685297,
+          "max": 106070795.58685297
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 227204342.8534854,
+          "min": 227204342.8534854,
+          "max": 227204342.8534854
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 264322058.99918282,
+          "min": 264322058.99918282,
+          "max": 264322058.99918282
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 188577447.18902832,
+          "min": 188577447.18902832,
+          "max": 188577447.18902832
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 181628930.14887083,
+          "min": 181628930.14887083,
+          "max": 181628930.14887083
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 76862062.70911099,
+          "min": 76862062.70911099,
+          "max": 76862062.70911099
+        }
+      ]
+    },
+    {
+      "id": "agent-fix-bug-node",
+      "category": "agent-tasks",
+      "label": "Fix a Node bug",
+      "description": "Writes a seeded Node ESM project (untimed), then sees node --test fail, fixes two bugs with file edits, and reruns the tests.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 1.562589571999999,
+          "min": 1.562589571999999,
+          "max": 1.562589571999999
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 1.1637508350000008,
+          "min": 1.1637508350000008,
+          "max": 1.1637508350000008
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 3.7015734740000044,
+          "min": 3.7015734740000044,
+          "max": 3.7015734740000044
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 2.1877666580000006,
+          "min": 2.1877666580000006,
+          "max": 2.1877666580000006
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 1.951075649000002,
+          "min": 1.951075649000002,
+          "max": 1.951075649000002
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 1.7527078739999997,
+          "min": 1.7527078739999997,
+          "max": 1.7527078739999997
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 2.418736546,
+          "min": 2.418736546,
+          "max": 2.418736546
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 1.789475824999994,
+          "min": 1.789475824999994,
+          "max": 1.789475824999994
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.9145795999999992,
+          "min": 0.9145795999999992,
+          "max": 0.9145795999999992
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 1.1459184139999998,
+          "min": 1.1459184139999998,
+          "max": 1.1459184139999998
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 1.0944030509999976,
+          "min": 1.0944030509999976,
+          "max": 1.0944030509999976
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1.694113338000001,
+          "min": 1.694113338000001,
+          "max": 1.694113338000001
+        }
+      ]
+    },
+    {
+      "id": "agent-fix-bug-python",
+      "category": "agent-tasks",
+      "label": "Fix a Python bug",
+      "description": "Writes a seeded Python package (untimed), then sees unittest fail, fixes the ledger bug with a file edit, and reruns the tests.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 1.2734724499999974,
+          "min": 1.2734724499999974,
+          "max": 1.2734724499999974
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.6304609679999994,
+          "min": 0.6304609679999994,
+          "max": 0.6304609679999994
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 2.491260435000001,
+          "min": 2.491260435000001,
+          "max": 2.491260435000001
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 1.448059574,
+          "min": 1.448059574,
+          "max": 1.448059574
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.6653788060000007,
+          "min": 0.6653788060000007,
+          "max": 0.6653788060000007
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.7471926960000019,
+          "min": 0.7471926960000019,
+          "max": 0.7471926960000019
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 1.0017258449999973,
+          "min": 1.0017258449999973,
+          "max": 1.0017258449999973
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 1.124826609,
+          "min": 1.124826609,
+          "max": 1.124826609
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.6580746220000001,
+          "min": 0.6580746220000001,
+          "max": 0.6580746220000001
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.6990823689999998,
+          "min": 0.6990823689999998,
+          "max": 0.6990823689999998
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.6861741780000011,
+          "min": 0.6861741780000011,
+          "max": 0.6861741780000011
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1.5462025350000004,
+          "min": 1.5462025350000004,
+          "max": 1.5462025350000004
+        }
+      ]
+    },
+    {
+      "id": "agent-refactor-codemod",
+      "category": "agent-tasks",
+      "label": "Codemod rename",
+      "description": "Writes 40 chained ES modules (untimed), then renames an exported function across them with a codemod and imports every module to check the result.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.7356715020000011,
+          "min": 0.7356715020000011,
+          "max": 0.7356715020000011
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.35569076499999935,
+          "min": 0.35569076499999935,
+          "max": 0.35569076499999935
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 1.4849486370000013,
+          "min": 1.4849486370000013,
+          "max": 1.4849486370000013
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.8446219529999999,
+          "min": 0.8446219529999999,
+          "max": 0.8446219529999999
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.5166035540000011,
+          "min": 0.5166035540000011,
+          "max": 0.5166035540000011
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.6366622019999996,
+          "min": 0.6366622019999996,
+          "max": 0.6366622019999996
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.5134817089999997,
+          "min": 0.5134817089999997,
+          "max": 0.5134817089999997
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.7089302880000014,
+          "min": 0.7089302880000014,
+          "max": 0.7089302880000014
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.25429832800000074,
+          "min": 0.25429832800000074,
+          "max": 0.25429832800000074
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.43383624899999995,
+          "min": 0.43383624899999995,
+          "max": 0.43383624899999995
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.4469524720000009,
+          "min": 0.4469524720000009,
+          "max": 0.4469524720000009
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.8633698150000019,
+          "min": 0.8633698150000019,
+          "max": 0.8633698150000019
+        }
+      ]
+    },
+    {
+      "id": "agent-debug-log-triage",
+      "category": "agent-tasks",
+      "label": "Log triage",
+      "description": "Generates 30,000 seeded JSONL service log lines with an error spike (untimed), then inspects them and finds the failing service and its p95 latency.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.667462152,
+          "min": 0.667462152,
+          "max": 0.667462152
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.3530096329999978,
+          "min": 0.3530096329999978,
+          "max": 0.3530096329999978
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 1.4607702900000004,
+          "min": 1.4607702900000004,
+          "max": 1.4607702900000004
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 1.1736589459999995,
+          "min": 1.1736589459999995,
+          "max": 1.1736589459999995
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.48887768499999945,
+          "min": 0.48887768499999945,
+          "max": 0.48887768499999945
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.5530862159999997,
+          "min": 0.5530862159999997,
+          "max": 0.5530862159999997
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.44250431399999796,
+          "min": 0.44250431399999796,
+          "max": 0.44250431399999796
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.6601928989999997,
+          "min": 0.6601928989999997,
+          "max": 0.6601928989999997
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.24703574200000003,
+          "min": 0.24703574200000003,
+          "max": 0.24703574200000003
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.5148252690000008,
+          "min": 0.5148252690000008,
+          "max": 0.5148252690000008
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.45514155299999765,
+          "min": 0.45514155299999765,
+          "max": 0.45514155299999765
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1.4316283680000015,
+          "min": 1.4316283680000015,
+          "max": 1.4316283680000015
+        }
+      ]
+    },
+    {
+      "id": "loop-rapid-exec-50",
+      "category": "agent-loops",
+      "label": "50 commands in a row",
+      "description": "Runs 50 short commands one after another, each hashing the previous reply in the guest, as a tool-calling agent does.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 10.827193083000006,
+          "min": 10.827193083000006,
+          "max": 10.827193083000006
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 4.245413906000001,
+          "min": 4.245413906000001,
+          "max": 4.245413906000001
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 24.562304853999997,
+          "min": 24.562304853999997,
+          "max": 24.562304853999997
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 11.673713116999995,
+          "min": 11.673713116999995,
+          "max": 11.673713116999995
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 4.826383087000002,
+          "min": 4.826383087000002,
+          "max": 4.826383087000002
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 6.608717232000003,
+          "min": 6.608717232000003,
+          "max": 6.608717232000003
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 5.618854564000001,
+          "min": 5.618854564000001,
+          "max": 5.618854564000001
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 9.488900669000003,
+          "min": 9.488900669000003,
+          "max": 9.488900669000003
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 3.5100756079999993,
+          "min": 3.5100756079999993,
+          "max": 3.5100756079999993
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 6.883764093999998,
+          "min": 6.883764093999998,
+          "max": 6.883764093999998
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 6.78532245,
+          "min": 6.78532245,
+          "max": 6.78532245
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 17.240666702,
+          "min": 17.240666702,
+          "max": 17.240666702
+        }
+      ]
+    },
+    {
+      "id": "loop-parallel-exec-16",
+      "category": "agent-loops",
+      "label": "16 commands at once",
+      "description": "Starts 16 commands in one sandbox at the same time, each deriving a token and writing its own file, then checks every file.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 1.2317424949999987,
+          "min": 1.2317424949999987,
+          "max": 1.2317424949999987
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.3278730289999985,
+          "min": 0.3278730289999985,
+          "max": 0.3278730289999985
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 1.1890328850000005,
+          "min": 1.1890328850000005,
+          "max": 1.1890328850000005
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.9101582199999976,
+          "min": 0.9101582199999976,
+          "max": 0.9101582199999976
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 1.0046227510000025,
+          "min": 1.0046227510000025,
+          "max": 1.0046227510000025
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.46606574499999986,
+          "min": 0.46606574499999986,
+          "max": 0.46606574499999986
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.5678447689999994,
+          "min": 0.5678447689999994,
+          "max": 0.5678447689999994
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.6982224889999997,
+          "min": 0.6982224889999997,
+          "max": 0.6982224889999997
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.2477603859999981,
+          "min": 0.2477603859999981,
+          "max": 0.2477603859999981
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.5023916819999976,
+          "min": 0.5023916819999976,
+          "max": 0.5023916819999976
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.5118870739999998,
+          "min": 0.5118870739999998,
+          "max": 0.5118870739999998
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.7813298429999995,
+          "min": 0.7813298429999995,
+          "max": 0.7813298429999995
+        }
+      ]
+    },
+    {
+      "id": "loop-grep-find-repo",
+      "category": "agent-loops",
+      "label": "Search a repo",
+      "description": "Searches a seeded 150-file repo with grep and find, then reads each matching file to confirm the 12 hidden markers.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.70565409,
+          "min": 0.70565409,
+          "max": 0.70565409
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 3.5541188279999987,
+          "min": 3.5541188279999987,
+          "max": 3.5541188279999987
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 2.7108391149999953,
+          "min": 2.7108391149999953,
+          "max": 2.7108391149999953
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.9160117170000013,
+          "min": 0.9160117170000013,
+          "max": 0.9160117170000013
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 1.5527059089999966,
+          "min": 1.5527059089999966,
+          "max": 1.5527059089999966
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 1.236335920999998,
+          "min": 1.236335920999998,
+          "max": 1.236335920999998
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 2.643998437000002,
+          "min": 2.643998437000002,
+          "max": 2.643998437000002
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 5.283916232999997,
+          "min": 5.283916232999997,
+          "max": 5.283916232999997
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 1.4371578960000042,
+          "min": 1.4371578960000042,
+          "max": 1.4371578960000042
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.9947763400000004,
+          "min": 0.9947763400000004,
+          "max": 0.9947763400000004
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1.6127074319999999,
+          "min": 1.6127074319999999,
+          "max": 1.6127074319999999
+        }
+      ]
+    },
+    {
+      "id": "loop-patch-test-cycle",
+      "category": "agent-loops",
+      "label": "Edit and test, 8 times",
+      "description": "Edits a feature flag and its test expectation, then runs node --test, eight times over, as an agent iterating on a change.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 6.027275085999994,
+          "min": 6.027275085999994,
+          "max": 6.027275085999994
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 4.818923529000004,
+          "min": 4.818923529000004,
+          "max": 4.818923529000004
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 19.002189777999998,
+          "min": 19.002189777999998,
+          "max": 19.002189777999998
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 8.416388959999997,
+          "min": 8.416388959999997,
+          "max": 8.416388959999997
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 4.793933996999999,
+          "min": 4.793933996999999,
+          "max": 4.793933996999999
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 4.986144887999996,
+          "min": 4.986144887999996,
+          "max": 4.986144887999996
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 7.381753366999997,
+          "min": 7.381753366999997,
+          "max": 7.381753366999997
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 9.035567976000006,
+          "min": 9.035567976000006,
+          "max": 9.035567976000006
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 9.717336816,
+          "min": 9.717336816,
+          "max": 9.717336816
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 5.262792072000003,
+          "min": 5.262792072000003,
+          "max": 5.262792072000003
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 5.901265856000002,
+          "min": 5.901265856000002,
+          "max": 5.901265856000002
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 7.2431399480000005,
+          "min": 7.2431399480000005,
+          "max": 7.2431399480000005
+        }
+      ]
+    },
+    {
+      "id": "fs-small-files-500",
+      "category": "filesystem",
+      "label": "500 small files",
+      "description": "Create 500 seeded source files across 20 directories, list and read every one back, hash the manifest and delete the tree, in rounds for at least a second.",
+      "unit": "files/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 63581.94824521406,
+          "min": 63581.94824521406,
+          "max": 63581.94824521406
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 10194.400489021307,
+          "min": 10194.400489021307,
+          "max": 10194.400489021307
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 32410.20205787451,
+          "min": 32410.20205787451,
+          "max": 32410.20205787451
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 22203.753918215036,
+          "min": 22203.753918215036,
+          "max": 22203.753918215036
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 6980.521448242999,
+          "min": 6980.521448242999,
+          "max": 6980.521448242999
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 19149.841415498566,
+          "min": 19149.841415498566,
+          "max": 19149.841415498566
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 11382.604382819956,
+          "min": 11382.604382819956,
+          "max": 11382.604382819956
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 50557.22723578142,
+          "min": 50557.22723578142,
+          "max": 50557.22723578142
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 11187.21416211815,
+          "min": 11187.21416211815,
+          "max": 11187.21416211815
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 30738.32430705252,
+          "min": 30738.32430705252,
+          "max": 30738.32430705252
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 14549.716959991065,
+          "min": 14549.716959991065,
+          "max": 14549.716959991065
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 22546.281958712574,
+          "min": 22546.281958712574,
+          "max": 22546.281958712574
+        }
+      ]
+    },
+    {
+      "id": "fs-sqlite-oltp",
+      "category": "filesystem",
+      "label": "SQLite OLTP",
+      "description": "SQLite on a disk file in WAL mode: 2,500 batched inserts, 500 indexed lookups, 250 updates, an aggregate and an integrity check, in rounds for at least a second.",
+      "unit": "queries/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 334591.5200886058,
+          "min": 334591.5200886058,
+          "max": 334591.5200886058
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 237745.9152573353,
+          "min": 237745.9152573353,
+          "max": 237745.9152573353
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 17946.984904604575,
+          "min": 17946.984904604575,
+          "max": 17946.984904604575
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 229364.43185272027,
+          "min": 229364.43185272027,
+          "max": 229364.43185272027
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 84482.84617247098,
+          "min": 84482.84617247098,
+          "max": 84482.84617247098
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 128065.97883618732,
+          "min": 128065.97883618732,
+          "max": 128065.97883618732
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 133862.4330587506,
+          "min": 133862.4330587506,
+          "max": 133862.4330587506
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 385218.7407872188,
+          "min": 385218.7407872188,
+          "max": 385218.7407872188
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 263873.3621363815,
+          "min": 263873.3621363815,
+          "max": 263873.3621363815
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 287117.8893715029,
+          "min": 287117.8893715029,
+          "max": 287117.8893715029
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 101898.45314782148,
+          "min": 101898.45314782148,
+          "max": 101898.45314782148
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 208594.7842428456,
+          "min": 208594.7842428456,
+          "max": 208594.7842428456
+        }
+      ]
+    },
+    {
+      "id": "fs-tar-extract-pack",
+      "category": "filesystem",
+      "label": "tar pack and extract",
+      "description": "Pack a seeded 6.4 MB, 120-file project with tar -czf, extract it to a clean directory and compare every byte, in rounds for at least a second.",
+      "unit": "MB/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 19.080485032322173,
+          "min": 19.080485032322173,
+          "max": 19.080485032322173
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 17.892745811635315,
+          "min": 17.892745811635315,
+          "max": 17.892745811635315
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 33.242174041803224,
+          "min": 33.242174041803224,
+          "max": 33.242174041803224
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 20.78893182246521,
+          "min": 20.78893182246521,
+          "max": 20.78893182246521
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 18.616761349888417,
+          "min": 18.616761349888417,
+          "max": 18.616761349888417
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 17.00572939396947,
+          "min": 17.00572939396947,
+          "max": 17.00572939396947
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 12.623108393529861,
+          "min": 12.623108393529861,
+          "max": 12.623108393529861
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 23.064348390841804,
+          "min": 23.064348390841804,
+          "max": 23.064348390841804
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 17.75778600658768,
+          "min": 17.75778600658768,
+          "max": 17.75778600658768
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 24.63883079536694,
+          "min": 24.63883079536694,
+          "max": 24.63883079536694
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 21.18563774326985,
+          "min": 21.18563774326985,
+          "max": 21.18563774326985
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 15.492016559769356,
+          "min": 15.492016559769356,
+          "max": 15.492016559769356
+        }
+      ]
+    },
+    {
+      "id": "fs-sdk-transfer-batch",
+      "category": "filesystem",
+      "label": "SDK file transfer",
+      "description": "Write 20 seeded files of 1 to 64 KiB through box.files.write, read each back byte-exact with box.files.read, and check the guest's copy.",
+      "unit": "files/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 3.5076874131840117,
+          "min": 3.5076874131840117,
+          "max": 3.5076874131840117
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 8.608637992414945,
+          "min": 8.608637992414945,
+          "max": 8.608637992414945
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 0.6512667683331042,
+          "min": 0.6512667683331042,
+          "max": 0.6512667683331042
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 2.585818812851811,
+          "min": 2.585818812851811,
+          "max": 2.585818812851811
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 7.4708424468366,
+          "min": 7.4708424468366,
+          "max": 7.4708424468366
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 3.8816172704480465,
+          "min": 3.8816172704480465,
+          "max": 3.8816172704480465
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 3.580769083033585,
+          "min": 3.580769083033585,
+          "max": 3.580769083033585
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 2.1239285272933004,
+          "min": 2.1239285272933004,
+          "max": 2.1239285272933004
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 4.919969322702244,
+          "min": 4.919969322702244,
+          "max": 4.919969322702244
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 4.942635283111993,
+          "min": 4.942635283111993,
+          "max": 4.942635283111993
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 3.3391249286527116,
+          "min": 3.3391249286527116,
+          "max": 3.3391249286527116
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 3.642576366267021,
+          "min": 3.642576366267021,
+          "max": 3.642576366267021
+        }
+      ]
+    },
+    {
+      "id": "build-ts-strip-bundle",
+      "category": "builds",
+      "label": "TypeScript strip and bundle",
+      "description": "Generate a 30-module TypeScript project (enums, generics, unions), then strip types with Node's built-in transformer, bundle it into one file and run it, in rounds for at least a second; reports the median round.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.044547102500000046,
+          "min": 0.044547102500000046,
+          "max": 0.044547102500000046
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 0.02472089850000002,
+          "min": 0.02472089850000002,
+          "max": 0.02472089850000002
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.05566586450000005,
+          "min": 0.05566586450000005,
+          "max": 0.05566586450000005
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.08566149699999993,
+          "min": 0.08566149699999993,
+          "max": 0.08566149699999993
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.03229297300000007,
+          "min": 0.03229297300000007,
+          "max": 0.03229297300000007
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.035146413999999994,
+          "min": 0.035146413999999994,
+          "max": 0.035146413999999994
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.03135976800000003,
+          "min": 0.03135976800000003,
+          "max": 0.03135976800000003
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.03843056400000001,
+          "min": 0.03843056400000001,
+          "max": 0.03843056400000001
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.07194193999999993,
+          "min": 0.07194193999999993,
+          "max": 0.07194193999999993
+        }
+      ]
+    },
+    {
+      "id": "build-python-bytecode",
+      "category": "builds",
+      "label": "Python bytecode build",
+      "description": "Generate a 60-module Python package, then compile it with python3 -m compileall and import and run its entry point from bytecode, in rounds for at least a second; reports the median round.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.09680179400000011,
+          "min": 0.09680179400000011,
+          "max": 0.09680179400000011
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.09595025600000007,
+          "min": 0.09595025600000007,
+          "max": 0.09595025600000007
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 0.08214687550000122,
+          "min": 0.08214687550000122,
+          "max": 0.08214687550000122
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.10843327199108899,
+          "min": 0.10843327199108899,
+          "max": 0.10843327199108899
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.12702145986258984,
+          "min": 0.12702145986258984,
+          "max": 0.12702145986258984
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.08657826199999974,
+          "min": 0.08657826199999974,
+          "max": 0.08657826199999974
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.1507866089232266,
+          "min": 0.1507866089232266,
+          "max": 0.1507866089232266
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.07105814099999996,
+          "min": 0.07105814099999996,
+          "max": 0.07105814099999996
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.12119412299999999,
+          "min": 0.12119412299999999,
+          "max": 0.12119412299999999
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.06282010599999976,
+          "min": 0.06282010599999976,
+          "max": 0.06282010599999976
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.09366676991339773,
+          "min": 0.09366676991339773,
+          "max": 0.09366676991339773
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.10973005599999652,
+          "min": 0.10973005599999652,
+          "max": 0.10973005599999652
+        }
+      ]
+    },
+    {
+      "id": "build-git-workflow",
+      "category": "builds",
+      "label": "git branch and merge",
+      "description": "Local git: init, 20 commits across main and two feature branches, two no-ff merges, log, diff and a clean status check, in rounds for at least a second; reports the median round.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.09963746099999997,
+          "min": 0.09963746099999997,
+          "max": 0.09963746099999997
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.6066184760000001,
+          "min": 0.6066184760000001,
+          "max": 0.6066184760000001
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 0.09229289800000004,
+          "min": 0.09229289800000004,
+          "max": 0.09229289800000004
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.21718771900000003,
+          "min": 0.21718771900000003,
+          "max": 0.21718771900000003
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 0.32557660800000005,
+          "min": 0.32557660800000005,
+          "max": 0.32557660800000005
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 0.4098753399999996,
+          "min": 0.4098753399999996,
+          "max": 0.4098753399999996
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.3389210810000002,
+          "min": 0.3389210810000002,
+          "max": 0.3389210810000002
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.13596842700000003,
+          "min": 0.13596842700000003,
+          "max": 0.13596842700000003
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 0.31417398199999996,
+          "min": 0.31417398199999996,
+          "max": 0.31417398199999996
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.1285193260000001,
+          "min": 0.1285193260000001,
+          "max": 0.1285193260000001
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.1921317475,
+          "min": 0.1921317475,
+          "max": 0.1921317475
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.13758364899999997,
+          "min": 0.13758364899999997,
+          "max": 0.13758364899999997
+        }
+      ]
+    },
+    {
+      "id": "build-http-server-load",
+      "category": "builds",
+      "label": "Local HTTP server load",
+      "description": "Serve seeded HMAC JSON from a Node HTTP server on an ephemeral port and drive 200 keep-alive fetches from 50 concurrent clients, checking every response, in rounds for at least a second.",
+      "unit": "ops/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 2300.83684705233,
+          "min": 2300.83684705233,
+          "max": 2300.83684705233
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 809.5972514445339,
+          "min": 809.5972514445339,
+          "max": 809.5972514445339
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 8398.434489818923,
+          "min": 8398.434489818923,
+          "max": 8398.434489818923
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 2137.7668202155905,
+          "min": 2137.7668202155905,
+          "max": 2137.7668202155905
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 2197.8577678144316,
+          "min": 2197.8577678144316,
+          "max": 2197.8577678144316
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 927.4775417504176,
+          "min": 927.4775417504176,
+          "max": 927.4775417504176
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 1553.8723815684364,
+          "min": 1553.8723815684364,
+          "max": 1553.8723815684364
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 3575.6172935763375,
+          "min": 3575.6172935763375,
+          "max": 3575.6172935763375
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 1785.9097170350574,
+          "min": 1785.9097170350574,
+          "max": 1785.9097170350574
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 5553.66174588104,
+          "min": 5553.66174588104,
+          "max": 5553.66174588104
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 2931.917492393829,
+          "min": 2931.917492393829,
+          "max": 2931.917492393829
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 978.6237683623532,
+          "min": 978.6237683623532,
+          "max": 978.6237683623532
+        }
+      ]
+    },
+    {
+      "id": "runtime-mem-alloc-128m",
+      "category": "runtime",
+      "label": "128 MiB memory touch",
+      "description": "Allocate a 128 MiB working set, write every 4 KiB page with seeded words, then read it back with a full XOR pass and a strided checksum, in rounds for at least a second.",
+      "unit": "MB/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 792.2702167901869,
+          "min": 792.2702167901869,
+          "max": 792.2702167901869
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 2324.6953994006763,
+          "min": 2324.6953994006763,
+          "max": 2324.6953994006763
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 603.633282286555,
+          "min": 603.633282286555,
+          "max": 603.633282286555
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 1112.297538932219,
+          "min": 1112.297538932219,
+          "max": 1112.297538932219
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 935.4989638989874,
+          "min": 935.4989638989874,
+          "max": 935.4989638989874
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 390.1203581934628,
+          "min": 390.1203581934628,
+          "max": 390.1203581934628
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 1015.7273237928717,
+          "min": 1015.7273237928717,
+          "max": 1015.7273237928717
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 2322.599267265382,
+          "min": 2322.599267265382,
+          "max": 2322.599267265382
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 1561.9428952762287,
+          "min": 1561.9428952762287,
+          "max": 1561.9428952762287
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 1373.3749042783102,
+          "min": 1373.3749042783102,
+          "max": 1373.3749042783102
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 966.0977352435328,
+          "min": 966.0977352435328,
+          "max": 966.0977352435328
+        }
+      ]
+    },
+    {
+      "id": "runtime-fork-spawn-100",
+      "category": "runtime",
+      "label": "Spawn 100 processes",
+      "description": "Spawn 100 short-lived /bin/sh children one after another, each printing a seeded token and its own pid, and check every exit code, output and pid, in rounds for at least a second.",
+      "unit": "spawns/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 1423.2035075043996,
+          "min": 1423.2035075043996,
+          "max": 1423.2035075043996
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 194.1150870576369,
+          "min": 194.1150870576369,
+          "max": 194.1150870576369
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 1246.4325446651576,
+          "min": 1246.4325446651576,
+          "max": 1246.4325446651576
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 812.8529838354998,
+          "min": 812.8529838354998,
+          "max": 812.8529838354998
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 552.9296353763023,
+          "min": 552.9296353763023,
+          "max": 552.9296353763023
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 204.25392055715477,
+          "min": 204.25392055715477,
+          "max": 204.25392055715477
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 514.7961093295628,
+          "min": 514.7961093295628,
+          "max": 514.7961093295628
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 944.1225621692124,
+          "min": 944.1225621692124,
+          "max": 944.1225621692124
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 397.6773044609907,
+          "min": 397.6773044609907,
+          "max": 397.6773044609907
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 1135.0403996017178,
+          "min": 1135.0403996017178,
+          "max": 1135.0403996017178
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 802.6756676099906,
+          "min": 802.6756676099906,
+          "max": 802.6756676099906
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 1035.5455793019096,
+          "min": 1035.5455793019096,
+          "max": 1035.5455793019096
+        }
+      ]
+    },
+    {
+      "id": "runtime-stdout-stream",
+      "category": "runtime",
+      "label": "stdout streaming",
+      "description": "Stream 7,500 seeded lines (about 0.5 MB) through box.run stdout, in rounds for at least a second, and check every line arrived intact and untruncated.",
+      "unit": "MB/s",
+      "better": "higher",
+      "values": [
+        {
+          "provider": "baseten",
+          "n": 1,
+          "median": 0.15866441198791778,
+          "min": 0.15866441198791778,
+          "max": 0.15866441198791778
+        },
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 0.2631648208317922,
+          "min": 0.2631648208317922,
+          "max": 0.2631648208317922
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 0.355041207995092,
+          "min": 0.355041207995092,
+          "max": 0.355041207995092
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 0.27670774169655327,
+          "min": 0.27670774169655327,
+          "max": 0.27670774169655327
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 1.0440931091929901,
+          "min": 1.0440931091929901,
+          "max": 1.0440931091929901
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 1.8079572449097663,
+          "min": 1.8079572449097663,
+          "max": 1.8079572449097663
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 0.18348753114338914,
+          "min": 0.18348753114338914,
+          "max": 0.18348753114338914
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 0.45488239931158736,
+          "min": 0.45488239931158736,
+          "max": 0.45488239931158736
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 1.3896488681551014,
+          "min": 1.3896488681551014,
+          "max": 1.3896488681551014
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 0.604047614512434,
+          "min": 0.604047614512434,
+          "max": 0.604047614512434
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 0.23649241772439533,
+          "min": 0.23649241772439533,
+          "max": 0.23649241772439533
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 0.9070805629163731,
+          "min": 0.9070805629163731,
+          "max": 0.9070805629163731
+        }
+      ]
+    },
+    {
+      "id": "runtime-env-isolation",
+      "category": "runtime",
+      "label": "Env, cwd, files, processes",
+      "description": "Check per-command env and its isolation, absolute and relative cwd, binary and UTF-8 file round trips, and stopping a background process.",
+      "unit": "s",
+      "better": "lower",
+      "values": [
+        {
+          "provider": "beam",
+          "n": 1,
+          "median": 1.9352111030000014,
+          "min": 1.9352111030000014,
+          "max": 1.9352111030000014
+        },
+        {
+          "provider": "boat",
+          "n": 1,
+          "median": 10.756003702999994,
+          "min": 10.756003702999994,
+          "max": 10.756003702999994
+        },
+        {
+          "provider": "boxd",
+          "n": 1,
+          "median": 5.320770566999999,
+          "min": 5.320770566999999,
+          "max": 5.320770566999999
+        },
+        {
+          "provider": "daytona",
+          "n": 1,
+          "median": 2.6232389160000023,
+          "min": 2.6232389160000023,
+          "max": 2.6232389160000023
+        },
+        {
+          "provider": "e2b",
+          "n": 1,
+          "median": 3.6588924909999987,
+          "min": 3.6588924909999987,
+          "max": 3.6588924909999987
+        },
+        {
+          "provider": "freestyle",
+          "n": 1,
+          "median": 2.9355561090000046,
+          "min": 2.9355561090000046,
+          "max": 2.9355561090000046
+        },
+        {
+          "provider": "instabox",
+          "n": 1,
+          "median": 4.108225280000013,
+          "min": 4.108225280000013,
+          "max": 4.108225280000013
+        },
+        {
+          "provider": "modal",
+          "n": 1,
+          "median": 1.7672692769999994,
+          "min": 1.7672692769999994,
+          "max": 1.7672692769999994
+        },
+        {
+          "provider": "tenki",
+          "n": 1,
+          "median": 2.8344174520000016,
+          "min": 2.8344174520000016,
+          "max": 2.8344174520000016
+        },
+        {
+          "provider": "upstash",
+          "n": 1,
+          "median": 4.133903382999997,
+          "min": 4.133903382999997,
+          "max": 4.133903382999997
+        },
+        {
+          "provider": "vercel",
+          "n": 1,
+          "median": 5.609371266000002,
+          "min": 5.609371266000002,
+          "max": 5.609371266000002
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-11-21T05:10:00Z",
+  "runId": "expanded-cloud-2026-11-21",
+  "runs": 1
 }

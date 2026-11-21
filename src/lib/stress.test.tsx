@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { StressSection } from "@/components/stress";
+import { tracks } from "@/lib/data";
 import type { BurstSurvivalExport, CpuBurstExport, CpuSustainedExport, StressExport } from "@/lib/inputs";
 import { hasStress, parseStress, survivalRanked } from "@/lib/stress";
 
@@ -113,6 +114,14 @@ describe("parse", () => {
     assert.deepEqual(survivalRanked(rows).map((x) => x.row.provider), ["daytona", "modal", "e2b"]);
     const tie = survivalRanked([{ ...rows[0]!, provider: "e2b", survivalRate: 1, attempted: 5 }, { ...rows[1]!, provider: "daytona", survivalRate: 1, attempted: 10 }]);
     assert.deepEqual(tie.map((x) => x.row.provider), ["daytona", "e2b"]);
+  });
+
+  test("the checked-in default track carries real stress data across all three suites", () => {
+    const s = tracks.default.stress;
+    assert.ok(s && hasStress(s));
+    assert.ok(s.cpuSustained.rows.length >= 10);
+    assert.ok(s.cpuBurst.length >= 1);
+    assert.ok(s.burstSurvival.length >= 1);
   });
 });
 

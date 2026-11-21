@@ -3,7 +3,7 @@ import { describe, test } from "node:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
-import emptyFile from "@/data/expanded.json";
+import expandedFile from "@/data/expanded.json";
 import { ExpandedBenchmarks } from "@/components/expanded-benchmarks";
 import { expandedProviders, hasExpanded, parseExpanded } from "@/lib/expanded";
 import { formatShort, formatValue, unitName } from "@/lib/format";
@@ -11,6 +11,8 @@ import { formatShort, formatValue, unitName } from "@/lib/format";
 // The expanded benchmarks: parsing the sweep's export, ordering best first, units, and showing nothing until there are results. Run with `bun test`.
 
 const categories = ["cpu", "agent-tasks", "agent-loops", "filesystem", "builds", "runtime"];
+
+const emptyExport = { version: 1, scenarioCount: 0, categories, metrics: [] };
 
 const value = (provider: string, median: number, n = 5) => ({ provider, n, median, min: median * 0.9, max: median * 1.2 });
 
@@ -43,12 +45,20 @@ const fixture = {
 const order = (html: string) => [...new Set([...html.matchAll(/aria-label="([^":&]+): Median/g)].flatMap((m) => (m[1] ? [m[1]] : [])))];
 
 describe("parse", () => {
-  test("the checked-in empty file parses and has nothing to show", () => {
-    const e = parseExpanded(emptyFile);
+  test("an empty export parses and has nothing to show", () => {
+    const e = parseExpanded(emptyExport);
     assert.equal(e.scenarioCount, 0);
     assert.deepEqual(e.groups.map((g) => g.label), ["CPU", "Agent tasks", "Agent loops", "Filesystem", "Builds", "Runtime"]);
     assert.equal(hasExpanded(e), false);
     assert.deepEqual([e.generatedAt, e.runId, e.runs], [null, null, null]);
+  });
+
+  test("the checked-in expanded.json parses cleanly with all 24 scenarios", () => {
+    const e = parseExpanded(expandedFile);
+    assert.equal(e.scenarioCount, 24);
+    assert.equal(hasExpanded(e), true);
+    assert.equal(e.groups.every((g) => g.metrics.length === 4), true);
+    assert.ok(expandedProviders(e).length >= 10);
   });
 
   test("metrics with no values are not results", () => {
@@ -92,7 +102,7 @@ describe("format", () => {
 
 describe("section", () => {
   test("renders nothing until a test has a result", () => {
-    assert.equal(renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(emptyFile)} />), "");
+    assert.equal(renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(emptyExport)} />), "");
     assert.equal(renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded({ ...fixture, metrics: [metric("x", "cpu", "s", "lower", [])] })} />), "");
   });
 

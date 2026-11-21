@@ -9882,5 +9882,2393 @@
  },
  "sourceNotes": {
   "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18)."
+ },
+ "stress": {
+  "observations": 1446,
+  "runs": [
+   {
+    "id": "stress261121-baseten-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-baseten-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-baseten-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-beam-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-beam-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-beam-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-boat-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-boat-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-boat-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-boxd-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-boxd-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-boxd-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-daytona-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-daytona-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-daytona-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-e2b-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-e2b-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-e2b-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-freestyle-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-freestyle-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-freestyle-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-instabox-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-instabox-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-instabox-sustained",
+    "suite": "cpu-sustained",
+    "samples": 16
+   },
+   {
+    "id": "stress261121-modal-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 23
+   },
+   {
+    "id": "stress261121-modal-survival",
+    "suite": "survival",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-modal-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-superserve-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-superserve-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-superserve-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-tenki-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-tenki-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-tenki-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-upstash-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "stress261121-upstash-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-upstash-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "stress261121-vercel-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 30
+   },
+   {
+    "id": "stress261121-vercel-survival",
+    "suite": "survival",
+    "samples": 26
+   },
+   {
+    "id": "stress261121-vercel-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   }
+  ],
+  "selectionRemoved": {},
+  "cpuSustained": [
+   {
+    "provider": "baseten",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 13313970.229075724,
+     "p95": 13396848.568520786,
+     "min": 13228260.423878523,
+     "max": 13396848.568520786,
+     "ciLow": 13228260.423878523,
+     "ciHigh": 13396848.568520786
+    },
+    "all": {
+     "n": 3,
+     "p50": 26295902.704215974,
+     "p95": 26568319.29301541,
+     "min": 25675230.105216946,
+     "max": 26568319.29301541,
+     "ciLow": 25675230.105216946,
+     "ciHigh": 26568319.29301541
+    },
+    "singleSeconds": {
+     "p50": 15.022,
+     "max": 15.119
+    },
+    "allSeconds": {
+     "p50": 15.211,
+     "max": 15.579
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.972,
+      "min": 0.957
+     },
+     "all": {
+      "p50": 0.965,
+      "min": 0.965
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.002,
+      "min": 0.999
+     },
+     "all": {
+      "p50": 1.014,
+      "min": 1.001
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "beam",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 22411734.250833757,
+     "p95": 22481137.75299926,
+     "min": 22275008.76827598,
+     "max": 22481137.75299926,
+     "ciLow": 22275008.76827598,
+     "ciHigh": 22481137.75299926
+    },
+    "all": {
+     "n": 3,
+     "p50": 21883535.664537694,
+     "p95": 21905872.8745612,
+     "min": 21866651.794777762,
+     "max": 21905872.8745612,
+     "ciLow": 21866651.794777762,
+     "ciHigh": 21905872.8745612
+    },
+    "singleSeconds": {
+     "p50": 8.924,
+     "max": 8.979
+    },
+    "allSeconds": {
+     "p50": 9.139,
+     "max": 9.146
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.974,
+      "min": 0.97
+     },
+     "all": {
+      "p50": 0.979,
+      "min": 0.976
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 0.992,
+      "min": 0.989
+     },
+     "all": {
+      "p50": 1.003,
+      "min": 0.998
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "boat",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 22180308.18503069,
+     "p95": 23508974.97853244,
+     "min": 19299550.52961223,
+     "max": 23508974.97853244,
+     "ciLow": 19299550.52961223,
+     "ciHigh": 23508974.97853244
+    },
+    "all": {
+     "n": 3,
+     "p50": 80435873.62580374,
+     "p95": 89943781.13429275,
+     "min": 74088219.49086073,
+     "max": 89943781.13429275,
+     "ciLow": 74088219.49086073,
+     "ciHigh": 89943781.13429275
+    },
+    "singleSeconds": {
+     "p50": 9.017,
+     "max": 10.363
+    },
+    "allSeconds": {
+     "p50": 9.946,
+     "max": 10.798
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.928,
+      "min": 0.884
+     },
+     "all": {
+      "p50": 0.958,
+      "min": 0.866
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.012,
+      "min": 1.002
+     },
+     "all": {
+      "p50": 1.022,
+      "min": 0.949
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 4,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 4,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "boxd",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 12367552.59564764,
+     "p95": 12940206.943442108,
+     "min": 12110444.75638998,
+     "max": 12940206.943442108,
+     "ciLow": 12110444.75638998,
+     "ciHigh": 12940206.943442108
+    },
+    "all": {
+     "n": 3,
+     "p50": 25226214.624453317,
+     "p95": 25390849.570937224,
+     "min": 23732176.83953321,
+     "max": 25390849.570937224,
+     "ciLow": 23732176.83953321,
+     "ciHigh": 25390849.570937224
+    },
+    "singleSeconds": {
+     "p50": 16.171,
+     "max": 16.515
+    },
+    "allSeconds": {
+     "p50": 15.857,
+     "max": 16.855
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.919,
+      "min": 0.898
+     },
+     "all": {
+      "p50": 0.959,
+      "min": 0.905
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.006,
+      "min": 1.003
+     },
+     "all": {
+      "p50": 1.001,
+      "min": 0.977
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "daytona",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 8858553.45522498,
+     "p95": 9645067.452794986,
+     "min": 8774344.85093736,
+     "max": 9645067.452794986,
+     "ciLow": 8774344.85093736,
+     "ciHigh": 9645067.452794986
+    },
+    "all": {
+     "n": 3,
+     "p50": 8943532.74515301,
+     "p95": 9550244.267570386,
+     "min": 8863709.342784043,
+     "max": 9550244.267570386,
+     "ciLow": 8863709.342784043,
+     "ciHigh": 9550244.267570386
+    },
+    "singleSeconds": {
+     "p50": 22.577,
+     "max": 22.794
+    },
+    "allSeconds": {
+     "p50": 22.363,
+     "max": 22.564
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.943,
+      "min": 0.93
+     },
+     "all": {
+      "p50": 0.953,
+      "min": 0.932
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1,
+      "min": 0.981
+     },
+     "all": {
+      "p50": 1,
+      "min": 0.988
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "e2b",
+    "requestedSize": null,
+    "template": "base",
+    "single": {
+     "n": 3,
+     "p50": 9212277.070561234,
+     "p95": 16470801.442455372,
+     "min": 6961792.830424401,
+     "max": 16470801.442455372,
+     "ciLow": 6961792.830424401,
+     "ciHigh": 16470801.442455372
+    },
+    "all": {
+     "n": 3,
+     "p50": 18759822.34311482,
+     "p95": 31776036.871583678,
+     "min": 15371224.703786619,
+     "max": 31776036.871583678,
+     "ciLow": 15371224.703786619,
+     "ciHigh": 31776036.871583678
+    },
+    "singleSeconds": {
+     "p50": 21.71,
+     "max": 28.728
+    },
+    "allSeconds": {
+     "p50": 21.322,
+     "max": 26.023
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.856,
+      "min": 0.646
+     },
+     "all": {
+      "p50": 0.854,
+      "min": 0.673
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.008,
+      "min": 0.963
+     },
+     "all": {
+      "p50": 0.99,
+      "min": 0.906
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "freestyle",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 10060414.424974352,
+     "p95": 10430248.077405944,
+     "min": 9711179.759035762,
+     "max": 10430248.077405944,
+     "ciLow": 9711179.759035762,
+     "ciHigh": 10430248.077405944
+    },
+    "all": {
+     "n": 3,
+     "p50": 41115789.07802996,
+     "p95": 41923365.198390454,
+     "min": 39708160.67201295,
+     "max": 41923365.198390454,
+     "ciLow": 39708160.67201295,
+     "ciHigh": 41923365.198390454
+    },
+    "singleSeconds": {
+     "p50": 19.88,
+     "max": 20.595
+    },
+    "allSeconds": {
+     "p50": 19.457,
+     "max": 20.147
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.895,
+      "min": 0.894
+     },
+     "all": {
+      "p50": 0.933,
+      "min": 0.855
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 0.967,
+      "min": 0.949
+     },
+     "all": {
+      "p50": 1.047,
+      "min": 1.01
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 4,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 4,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "instabox",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 2,
+     "p50": 21551310.53391127,
+     "p95": 23028802.758514162,
+     "min": 21551310.53391127,
+     "max": 23028802.758514162,
+     "ciLow": 21551310.53391127,
+     "ciHigh": 23028802.758514162
+    },
+    "all": {
+     "n": 2,
+     "p50": 85453375.62851863,
+     "p95": 92437323.45922774,
+     "min": 85453375.62851863,
+     "max": 92437323.45922774,
+     "ciLow": 85453375.62851863,
+     "ciHigh": 92437323.45922774
+    },
+    "singleSeconds": {
+     "p50": 8.685,
+     "max": 9.28
+    },
+    "allSeconds": {
+     "p50": 8.655,
+     "max": 9.362
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.966,
+      "min": 0.966
+     },
+     "all": {
+      "p50": 0.983,
+      "min": 0.983
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 0.985,
+      "min": 0.985
+     },
+     "all": {
+      "p50": 0.993,
+      "min": 0.993
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 4,
+      "count": 2
+     }
+    ],
+    "workers": [
+     {
+      "value": 4,
+      "count": 2
+     }
+    ],
+    "attempts": {
+     "successes": 2,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 1
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "modal",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 13812729.604260402,
+     "p95": 15384670.131555766,
+     "min": 12584311.455165178,
+     "max": 15384670.131555766,
+     "ciLow": 12584311.455165178,
+     "ciHigh": 15384670.131555766
+    },
+    "all": {
+     "n": 3,
+     "p50": 13583769.35141617,
+     "p95": 16100549.086999806,
+     "min": 12616295.66268649,
+     "max": 16100549.086999806,
+     "ciLow": 12616295.66268649,
+     "ciHigh": 16100549.086999806
+    },
+    "singleSeconds": {
+     "p50": 14.479,
+     "max": 15.893
+    },
+    "allSeconds": {
+     "p50": 14.723,
+     "max": 15.853
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.972,
+      "min": 0.953
+     },
+     "all": {
+      "p50": 0.919,
+      "min": 0.911
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.004,
+      "min": 1.002
+     },
+     "all": {
+      "p50": 1.002,
+      "min": 0.998
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 16.125,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "superserve",
+    "requestedSize": null,
+    "template": "sandbox-bench-node22-py311-1x1-pinned",
+    "single": {
+     "n": 3,
+     "p50": 20471091.096448008,
+     "p95": 20645818.616957266,
+     "min": 20300644.114569463,
+     "max": 20645818.616957266,
+     "ciLow": 20300644.114569463,
+     "ciHigh": 20645818.616957266
+    },
+    "all": {
+     "n": 3,
+     "p50": 20566755.40078796,
+     "p95": 20611285.919056874,
+     "min": 20549521.118696503,
+     "max": 20611285.919056874,
+     "ciLow": 20549521.118696503,
+     "ciHigh": 20611285.919056874
+    },
+    "singleSeconds": {
+     "p50": 9.77,
+     "max": 9.852
+    },
+    "allSeconds": {
+     "p50": 9.724,
+     "max": 9.733
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.974,
+      "min": 0.965
+     },
+     "all": {
+      "p50": 0.991,
+      "min": 0.983
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.003,
+      "min": 1.001
+     },
+     "all": {
+      "p50": 1.004,
+      "min": 0.996
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "tenki",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 21709652.323178835,
+     "p95": 22168463.877131052,
+     "min": 21594270.209252343,
+     "max": 22168463.877131052,
+     "ciLow": 21594270.209252343,
+     "ciHigh": 22168463.877131052
+    },
+    "all": {
+     "n": 3,
+     "p50": 42696672.68133449,
+     "p95": 44032109.66258204,
+     "min": 41880315.09805935,
+     "max": 44032109.66258204,
+     "ciLow": 41880315.09805935,
+     "ciHigh": 44032109.66258204
+    },
+    "singleSeconds": {
+     "p50": 9.212,
+     "max": 9.262
+    },
+    "allSeconds": {
+     "p50": 9.368,
+     "max": 9.551
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.927,
+      "min": 0.915
+     },
+     "all": {
+      "p50": 0.848,
+      "min": 0.843
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.012,
+      "min": 0.979
+     },
+     "all": {
+      "p50": 1.036,
+      "min": 0.998
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "upstash",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 15114529.271968354,
+     "p95": 15121035.480883215,
+     "min": 15095908.991058597,
+     "max": 15121035.480883215,
+     "ciLow": 15095908.991058597,
+     "ciHigh": 15121035.480883215
+    },
+    "all": {
+     "n": 3,
+     "p50": 30180906.236123886,
+     "p95": 30182867.913484897,
+     "min": 30167155.25086423,
+     "max": 30182867.913484897,
+     "ciLow": 30167155.25086423,
+     "ciHigh": 30182867.913484897
+    },
+    "singleSeconds": {
+     "p50": 13.232,
+     "max": 13.249
+    },
+    "allSeconds": {
+     "p50": 13.253,
+     "max": 13.259
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.998,
+      "min": 0.992
+     },
+     "all": {
+      "p50": 0.998,
+      "min": 0.997
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1,
+      "min": 1
+     },
+     "all": {
+      "p50": 1,
+      "min": 0.999
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   },
+   {
+    "provider": "vercel",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 12604759.640797313,
+     "p95": 13024410.120413434,
+     "min": 12318448.910699409,
+     "max": 13024410.120413434,
+     "ciLow": 12318448.910699409,
+     "ciHigh": 13024410.120413434
+    },
+    "all": {
+     "n": 3,
+     "p50": 25349282.500428643,
+     "p95": 25966110.094080467,
+     "min": 23853258.756614406,
+     "max": 25966110.094080467,
+     "ciLow": 23853258.756614406,
+     "ciHigh": 25966110.094080467
+    },
+    "singleSeconds": {
+     "p50": 15.867,
+     "max": 16.236
+    },
+    "allSeconds": {
+     "p50": 15.78,
+     "max": 16.769
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.877,
+      "min": 0.854
+     },
+     "all": {
+      "p50": 0.85,
+      "min": 0.85
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 0.986,
+      "min": 0.955
+     },
+     "all": {
+      "p50": 1.025,
+      "min": 1.007
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 2,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
+   }
+  ],
+  "cpuBurst": [
+   {
+    "k": 5,
+    "providers": [
+     {
+      "provider": "baseten",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 13097346.286584796,
+        "p95": 13345128.35385487,
+        "min": 12780943.878520757,
+        "max": 13345128.35385487,
+        "mean": 13079092.59821097,
+        "maxOverMin": 1.0441426298946719,
+        "cv": 0.011926600560619246
+       },
+       "all": {
+        "n": 10,
+        "p50": 26108578.712963726,
+        "p95": 26237729.182682045,
+        "min": 24690085.456536777,
+        "max": 26237729.182682045,
+        "mean": 25801719.63183639,
+        "maxOverMin": 1.062682801518434,
+        "cv": 0.01960669230490133
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.023,
+       "max": 1.044
+      },
+      "dispatchSkewMs": {
+       "p50": 0,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 6.415,
+       "max": 6.559
+      }
+     },
+     {
+      "provider": "beam",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 22019291.50203604,
+        "p95": 22326469.24530145,
+        "min": 21119541.476507258,
+        "max": 22326469.24530145,
+        "mean": 21855950.936570637,
+        "maxOverMin": 1.0571474418673694,
+        "cv": 0.016489614733598154
+       },
+       "all": {
+        "n": 10,
+        "p50": 21752277.310216777,
+        "p95": 22252468.358251434,
+        "min": 21126769.806342073,
+        "max": 22252468.358251434,
+        "mean": 21764675.588400852,
+        "maxOverMin": 1.0532830414790355,
+        "cv": 0.016209488815063944
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.004,
+       "max": 1.057
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 3.862,
+       "max": 3.967
+      }
+     },
+     {
+      "provider": "boat",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 2,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 0,
+       "single": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       },
+       "all": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       }
+      },
+      "withinCohortMaxOverMin": null,
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 5.872,
+       "max": 8.118
+      }
+     },
+     {
+      "provider": "boxd",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 12747037.421882126,
+        "p95": 13170556.498708209,
+        "min": 12307469.008585101,
+        "max": 13170556.498708209,
+        "mean": 12762253.371281669,
+        "maxOverMin": 1.0701271308927172,
+        "cv": 0.021833803694714583
+       },
+       "all": {
+        "n": 10,
+        "p50": 24215940.047404937,
+        "p95": 25981859.327157483,
+        "min": 22877571.10322143,
+        "max": 25981859.327157483,
+        "mean": 24214082.33430597,
+        "maxOverMin": 1.135691337595665,
+        "cv": 0.0447082251152664
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.051,
+       "max": 1.063
+      },
+      "dispatchSkewMs": {
+       "p50": 2,
+       "max": 3
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 6.957,
+       "max": 7.053
+      }
+     },
+     {
+      "provider": "daytona",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 1,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 1,
+       "single": {
+        "n": 5,
+        "p50": 9123609.224563215,
+        "p95": 9305081.804947255,
+        "min": 8563566.616793033,
+        "max": 9305081.804947255,
+        "mean": 9054909.549059495,
+        "maxOverMin": 1.08658952762744,
+        "cv": 0.028175036065207368
+       },
+       "all": {
+        "n": 5,
+        "p50": 8979106.877049513,
+        "p95": 9317329.599981314,
+        "min": 8743141.699182756,
+        "max": 9317329.599981314,
+        "mean": 9033263.214616712,
+        "maxOverMin": 1.0656729492159813,
+        "cv": 0.02165369454950568
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.087,
+       "max": 1.087
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 9.575,
+       "max": 9.886
+      }
+     },
+     {
+      "provider": "e2b",
+      "requestedSize": null,
+      "template": "base",
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 1,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 1,
+       "single": {
+        "n": 5,
+        "p50": 9467202.866031697,
+        "p95": 9848752.581041351,
+        "min": 9345057.2661967,
+        "max": 9848752.581041351,
+        "mean": 9557070.152739383,
+        "maxOverMin": 1.0538996498894273,
+        "cv": 0.018642095450711205
+       },
+       "all": {
+        "n": 5,
+        "p50": 19027290.788474448,
+        "p95": 20148326.382631272,
+        "min": 16138097.17691663,
+        "max": 20148326.382631272,
+        "mean": 18699453.601699244,
+        "maxOverMin": 1.2484945506122453,
+        "cv": 0.07440510450468822
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.054,
+       "max": 1.054
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 8.893,
+       "max": 9.402
+      }
+     },
+     {
+      "provider": "freestyle",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 2,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 0,
+       "single": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       },
+       "all": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       }
+      },
+      "withinCohortMaxOverMin": null,
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 10.25,
+       "max": 10.326
+      }
+     },
+     {
+      "provider": "instabox",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 1,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 1,
+       "single": {
+        "n": 5,
+        "p50": 22841287.062168166,
+        "p95": 23266669.383321755,
+        "min": 22447803.378478028,
+        "max": 23266669.383321755,
+        "mean": 22803624.53772965,
+        "maxOverMin": 1.0364786696959765,
+        "cv": 0.012893304897103275
+       },
+       "all": {
+        "n": 5,
+        "p50": 86611549.77217612,
+        "p95": 90766528.92458254,
+        "min": 84774574.84186378,
+        "max": 90766528.92458254,
+        "mean": 87494341.12846152,
+        "maxOverMin": 1.0706810278187298,
+        "cv": 0.029207973677212933
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.036,
+       "max": 1.036
+      },
+      "dispatchSkewMs": {
+       "p50": 0,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 3.872,
+       "max": 4.368
+      }
+     },
+     {
+      "provider": "modal",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 0,
+      "completeCohorts": 0,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 2,
+       "members": 3
+      },
+      "members": {
+       "attempted": 0,
+       "ready": 0,
+       "completed": 0
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 0,
+       "single": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       },
+       "all": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       }
+      },
+      "withinCohortMaxOverMin": null,
+      "dispatchSkewMs": null,
+      "allCompleteS": null
+     },
+     {
+      "provider": "superserve",
+      "requestedSize": null,
+      "template": "sandbox-bench-node22-py311-1x1-pinned",
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 19109597.46898466,
+        "p95": 20511518.841316104,
+        "min": 18887869.601857867,
+        "max": 20511518.841316104,
+        "mean": 19347250.18971436,
+        "maxOverMin": 1.085962539644944,
+        "cv": 0.030300461671311046
+       },
+       "all": {
+        "n": 10,
+        "p50": 19873845.222646426,
+        "p95": 20568197.706004333,
+        "min": 19612292.69538791,
+        "max": 20568197.706004333,
+        "mean": 19997401.74483014,
+        "maxOverMin": 1.0487400950752288,
+        "cv": 0.014724206316199197
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.079,
+       "max": 1.086
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 4.191,
+       "max": 4.251
+      }
+     },
+     {
+      "provider": "tenki",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 21709469.046793718,
+        "p95": 22450405.19714847,
+        "min": 20915513.7201498,
+        "max": 22450405.19714847,
+        "mean": 21821311.229540605,
+        "maxOverMin": 1.0733853109005862,
+        "cv": 0.020211409979903935
+       },
+       "all": {
+        "n": 10,
+        "p50": 42789319.29511044,
+        "p95": 43533530.874747105,
+        "min": 41914303.81777708,
+        "max": 43533530.874747105,
+        "mean": 42662444.254671216,
+        "maxOverMin": 1.0386318490224633,
+        "cv": 0.012431370460612334
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.035,
+       "max": 1.073
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 2
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 3.927,
+       "max": 3.945
+      }
+     },
+     {
+      "provider": "upstash",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 2,
+       "single": {
+        "n": 10,
+        "p50": 15099842.951046212,
+        "p95": 15134161.513774604,
+        "min": 15060432.042912774,
+        "max": 15134161.513774604,
+        "mean": 15100061.365223533,
+        "maxOverMin": 1.0048955747518893,
+        "cv": 0.0013361540551336706
+       },
+       "all": {
+        "n": 10,
+        "p50": 30137040.819997977,
+        "p95": 30213087.018168487,
+        "min": 30049883.87797746,
+        "max": 30213087.018168487,
+        "mean": 30132453.35893765,
+        "maxOverMin": 1.0054310739054346,
+        "cv": 0.0015055502560455795
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.003,
+       "max": 1.005
+      },
+      "dispatchSkewMs": {
+       "p50": 0,
+       "max": 0
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 5.463,
+       "max": 5.481
+      }
+     },
+     {
+      "provider": "vercel",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 0,
+      "completeCohorts": 0,
+      "excluded": {
+       "lowOverlap": 0,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 2,
+       "members": 4
+      },
+      "members": {
+       "attempted": 0,
+       "ready": 0,
+       "completed": 0
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 0,
+       "single": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       },
+       "all": {
+        "n": 0,
+        "p50": null,
+        "p95": null,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "maxOverMin": null,
+        "cv": null
+       }
+      },
+      "withinCohortMaxOverMin": null,
+      "dispatchSkewMs": null,
+      "allCompleteS": null
+     }
+    ]
+   }
+  ],
+  "burstSurvival": [
+   {
+    "k": 5,
+    "providers": [
+     {
+      "provider": "baseten",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "beam",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "boat",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "boxd",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "daytona",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "e2b",
+      "requestedSize": null,
+      "template": "base",
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "freestyle",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "instabox",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "modal",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 0,
+      "incomplete": {
+       "cohorts": 1,
+       "members": 4
+      },
+      "attempted": 0,
+      "survived": 0,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": null
+     },
+     {
+      "provider": "superserve",
+      "requestedSize": null,
+      "template": "sandbox-bench-node22-py311-1x1-pinned",
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "tenki",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "upstash",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "vercel",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     }
+    ]
+   }
+  ]
  }
 }
