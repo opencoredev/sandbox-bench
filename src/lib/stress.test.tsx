@@ -47,7 +47,13 @@ const burst = (provider: string, p50: number | null, maxOverMin: number | null):
   allCompleteS: { n: 3, p50: 41.5, max: 44 },
 });
 
-const survival = (provider: string, survived: number, attempted: number, rate: number | null): BurstSurvivalExport => ({
+const survival = (
+  provider: string,
+  survived: number,
+  attempted: number,
+  rate: number | null,
+  overrides: Partial<BurstSurvivalExport> = {},
+): BurstSurvivalExport => ({
   provider,
   ...alloc,
   windowS: 600,
@@ -64,6 +70,7 @@ const survival = (provider: string, survived: number, attempted: number, rate: n
   invalidReasons: {},
   windowFailures: none,
   survivalRate: rate,
+  ...overrides,
 });
 
 const empty: StressExport = { observations: 0, runs: [], selectionRemoved: {}, cpuSustained: [], cpuBurst: [], burstSurvival: [] };
@@ -78,7 +85,17 @@ const fixture: StressExport = {
   selectionRemoved: { "superseded-cohort": 4 },
   cpuSustained: [sustained("e2b", 1_200_000, 4_000_000), sustained("daytona", 1_500_000, 5_200_000, 2), sustained("modal", null, null, 5), sustained("not-a-provider", 9e9, 9e9)],
   cpuBurst: [{ k: 10, providers: [burst("e2b", 900_000, 1.12), burst("daytona", 1_100_000, 1.4), burst("boat", null, null), burst("unknown-co", 9e9, 1)] }],
-  burstSurvival: [{ k: 10, providers: [survival("e2b", 8, 10, 0.8), survival("daytona", 10, 10, 1), survival("modal", 9, 10, 0.9), survival("boat", 0, 10, null)] }],
+  burstSurvival: [
+    {
+      k: 10,
+      providers: [
+        survival("e2b", 8, 10, 0.8),
+        survival("daytona", 10, 10, 1),
+        survival("modal", 9, 10, 0.9),
+        survival("boat", 0, 0, null, { cohorts: 0, incomplete: { cohorts: 1, members: 4 }, createFailed: { total: 0, ...none }, died: 0, unresponsive: 0 }),
+      ],
+    },
+  ],
 };
 
 describe("parse", () => {
@@ -101,8 +118,14 @@ describe("parse", () => {
     assert.deepEqual(s.cpuBurst[0]?.rows.map((r) => r.provider), ["e2b", "daytona", "boat"]);
   });
 
-  test("a survival rate outside 0 to 1 or more survivors than attempts stops the build", () => {
+  test("malformed shapes, non-finite/negative metrics and contradictory survival rates stop the build", () => {
+    assert.throws(() => parseStress("bad", "default"), /must be an object/);
+    assert.throws(() => parseStress({ ...fixture, cpuSustained: [sustained("e2b", Number.NaN, 100)] }, "default"), /p50 is NaN/);
+    assert.throws(() => parseStress({ ...fixture, cpuSustained: [sustained("e2b", -10, 100)] }, "default"), /p50 is -10/);
+    assert.throws(() => parseStress({ ...fixture, cpuBurst: [{ k: 10, providers: [burst("e2b", Number.POSITIVE_INFINITY, 1.1)] }] }, "default"), /p50 is Infinity/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 8, 10, 1.2)] }] }, "default"), /survival rate 1.2/);
+    assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 8, 10, 0.5)] }] }, "default"), /expected 0.8/);
+    assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 0, 10, null)] }] }, "default"), /expected 0 \(0\/10\)/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 11, 10, 1)] }] }, "default"), /survived 11 of 10/);
     assert.throws(() => parseStress({ ...fixture, cpuBurst: [{ k: 0, providers: [] }] }, "default"), /cohort size 0/);
   });
@@ -168,5 +191,6 @@ describe("section", () => {
       assert.ok(survivalHtml.includes(text), `has "${text}"`);
     assert.ok(survivalHtml.includes("held for 600 s with a heartbeat every 5 s"));
     assert.match(survivalHtml, /No result for .*Boat/);
+    assert.ok(survivalHtml.includes("1 incomplete cohort (4 members) started fewer than 10 sandboxes and was not pooled into the 10-way result"));
   });
 });

@@ -212,8 +212,31 @@ function survivalColumns(group: Cohorts<BurstSurvival>): Column[] {
       ["Unresponsive", formatCount(row.unresponsive)],
       ["Interrupted", formatCount(row.interrupted)],
       ["Invalid evidence", formatCount(row.invalidEvidence)],
+      ...(row.incomplete.cohorts > 0 ? line("Incomplete cohorts", `${formatCount(row.incomplete.cohorts)} (${plural(row.incomplete.members, "member")})`) : []),
     ],
   }));
+}
+
+/** Why a survival row is missing a rate or had incomplete cohorts excluded from K-way pooling. */
+function survivalRowNote(r: BurstSurvival, k: number): Note | null {
+  const incompleteText =
+    r.incomplete.cohorts > 0
+      ? `${plural(r.incomplete.cohorts, "incomplete cohort")} (${plural(r.incomplete.members, "member")}) started fewer than ${k} sandboxes and was not pooled into the ${k}-way result`
+      : null;
+  if (survivalValue(r) === null) {
+    if (r.attempted === 0 && incompleteText !== null) {
+      return { text: <><Who id={r.provider} />, {k} at once: no rate, because {incompleteText}.</> };
+    }
+    const detail = `${formatCount(r.attempted)} attempted, ${formatCount(r.interrupted)} interrupted, ${formatCount(r.invalidEvidence)} with invalid evidence, ${formatCount(r.createFailed.accountLimit)} refused by an account limit`;
+    return {
+      text: (
+        <>
+          <Who id={r.provider} />, {k} at once: no rate, because no sandbox had a fair chance ({detail}){incompleteText ? `; ${incompleteText}` : ""}.
+        </>
+      ),
+    };
+  }
+  return incompleteText ? { text: <><Who id={r.provider} />, {k} at once: {incompleteText}.</> } : null;
 }
 
 /** "held for 600 s with a heartbeat every 5 s" when every provider ran the same plan. */
@@ -240,9 +263,7 @@ function SurvivalPanel({ stress, groups }: { stress: StressData; groups: readonl
       </div>
       <Footnotes
         items={[
-          ...shown.flatMap((g) =>
-            withoutValue(g.rows, survivalValue).map((r) => ({ text: <><Who id={r.provider} />, {g.k} at once: no rate, because no sandbox had a fair chance ({formatCount(r.attempted)} attempted, {formatCount(r.interrupted)} interrupted, {formatCount(r.invalidEvidence)} with invalid evidence, {formatCount(r.createFailed.accountLimit)} refused by an account limit).</> })),
-          ),
+          ...shown.flatMap((g) => g.rows.flatMap((r) => { const n = survivalRowNote(r, g.k); return n ? [n] : []; })),
           ...shown.flatMap((g) => othersNotes(g.others)),
           { lead: "Survival", text: "Each sandbox gets a heartbeat command at a fixed interval for the whole window. It survived only if it answered every one through the end of the window. It died if the provider reported it gone or in a dead state, or it came back with a different boot id. It was unresponsive if it missed any heartbeat, even one it recovered from." },
           { lead: "Rate", text: "Survived divided by the sandboxes the provider had a fair chance with: creates refused by an account limit or lost to our network, windows we cut short (interrupted) and heartbeat records that do not hold up (invalid evidence) are left out of the rate. The tag and card still count every attempt." },

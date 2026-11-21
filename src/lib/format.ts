@@ -5,6 +5,9 @@ export type ExpandedUnit = Extract<Unit, "s" | "ops/s" | "MB/s" | "files/s" | "q
 
 const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
+/** Compact throughput formatting that keeps two decimals for positive rates below 1 so small rates never round to 0. */
+const formatRate = (value: number) => (value > 0 && value < 1 ? value.toFixed(2) : compact.format(value));
+
 export function formatValue(value: number, unit: Unit) {
   switch (unit) {
     case "s":
@@ -12,15 +15,21 @@ export function formatValue(value: number, unit: Unit) {
     case "ms":
       return `${value.toFixed(value < 10 ? 1 : 0)} ms`;
     case "ops/s":
-      return `${compact.format(value)}/s`;
+      return `${formatRate(value)}/s`;
     case "MB/s":
-      return value >= 1000 ? `${(value / 1000).toFixed(1)} GB/s` : `${value.toFixed(0)} MB/s`;
+      return value >= 1000
+        ? `${(value / 1000).toFixed(1)} GB/s`
+        : value > 0 && value < 1
+          ? `${value.toFixed(2)} MB/s`
+          : value < 10
+            ? `${value.toFixed(1)} MB/s`
+            : `${value.toFixed(0)} MB/s`;
     case "IOPS":
-      return `${compact.format(value)} IOPS`;
+      return `${formatRate(value)} IOPS`;
     case "files/s":
     case "queries/s":
     case "spawns/s":
-      return `${compact.format(value)} ${unit}`;
+      return `${formatRate(value)} ${unit}`;
   }
 }
 
@@ -36,7 +45,7 @@ export function formatShort(value: number, unit: Unit) {
     case "files/s":
     case "queries/s":
     case "spawns/s":
-      return compact.format(value);
+      return formatRate(value);
   }
 }
 

@@ -90,10 +90,15 @@ describe("parse", () => {
 });
 
 describe("format", () => {
-  test("files/s, queries/s and spawns/s", () => {
+  test("files/s, queries/s, spawns/s and fractional small throughput rates", () => {
     assert.equal(formatValue(12_500, "files/s"), "12.5K files/s");
     assert.equal(formatValue(81_000, "queries/s"), "81K queries/s");
     assert.equal(formatValue(640, "spawns/s"), "640 spawns/s");
+    assert.equal(formatValue(0.158664, "MB/s"), "0.16 MB/s");
+    assert.equal(formatValue(1.808, "MB/s"), "1.8 MB/s");
+    assert.equal(formatValue(46.7, "MB/s"), "47 MB/s");
+    assert.equal(formatValue(2651, "MB/s"), "2.7 GB/s");
+    assert.equal(formatShort(0.158664, "MB/s"), "0.16");
     assert.equal(formatShort(12_500, "files/s"), "12.5K");
     assert.equal(unitName["queries/s"], "queries per second");
     assert.equal(unitName["spawns/s"], "process spawns per second");
