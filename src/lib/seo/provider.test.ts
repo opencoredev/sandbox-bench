@@ -4,7 +4,7 @@ import { describe, test } from "node:test";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { providerPageOf } from "@/lib/provider-pages";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, providerName } from "@/lib/providers";
 import { headlineRows, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { rankScores } from "@/lib/score";
@@ -34,7 +34,8 @@ describe("providerNotes", () => {
 describe("real-task placings", () => {
   test("time ranks follow the chart's order, fastest first", () => {
     const rows = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test");
-    const timed = [...rows.costed, ...rows.uncosted].filter((r) => r.medianWallS !== null).sort((a, b) => (a.medianWallS ?? 0) - (b.medianWallS ?? 0));
+    // Ranked among providers on their first CPU tier, as on the page.
+    const timed = [...rows.costed, ...rows.uncosted].filter((r) => r.medianWallS !== null && !isExtraTier(r.provider)).sort((a, b) => (a.medianWallS ?? 0) - (b.medianWallS ?? 0));
     assert.ok(timed.length > 1);
     const first = realTaskTime("same-spec", timed[0]!.provider, "fix-and-test");
     const last = realTaskTime("same-spec", timed[timed.length - 1]!.provider, "fix-and-test");
@@ -43,7 +44,7 @@ describe("real-task placings", () => {
   });
 
   test("cost ranks follow the cost chart, cheapest first", () => {
-    const { costed } = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test");
+    const costed = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test").costed.filter((r) => !isExtraTier(r.provider));
     costed.forEach((r, i) => {
       const c = realTaskCost("same-spec", r.provider, "fix-and-test");
       assert.ok(c.kind === "ranked" && c.rank === i + 1 && c.of === costed.length);

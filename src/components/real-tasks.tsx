@@ -5,7 +5,7 @@ import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { allocationNotes } from "@/lib/notes";
-import { providerColor } from "@/lib/providers";
+import { isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { completedText, noCostReason, profileFootprintNote, profileIds, profileInfo, profileWhat, runTrackOf, runNotes, wallText } from "@/lib/realistic";
 import type { ProfileId, RealisticRow } from "@/lib/realistic";
@@ -24,8 +24,10 @@ const isTimed = (r: RealisticRow): r is Timed => r.medianWallS !== null;
 export function taskTimes(track: Track, profile: ProfileId) {
   const rows = realistic.rows.filter((r) => r.variant === "headline" && r.track === runTrackOf[track.id] && r.profile === profile);
   const timed = rows.filter(isTimed).sort((a, b) => a.medianWallS - b.medianWallS);
-  const untimed = rows.filter((r) => !isTimed(r)).map((r) => ({ id: r.provider, why: r.completed === 0 ? noCostReason(r) : "no completed run" }));
-  const absent = track.providers.flatMap((p) => (rows.some((r) => r.provider === p.id) ? [] : [{ id: p.id, why: "not in the realistic pilot" }]));
+  // A CPU tier past a provider's first says why it has no time in the tier table, not here (on Default machines it never runs).
+  const untimed = rows.filter((r) => !isTimed(r) && !isExtraTier(r.provider)).map((r) => ({ id: r.provider, why: r.completed === 0 ? noCostReason(r) : "no completed run" }));
+  // A CPU tier past a provider's first that hasn't run the real tasks yet is a gap of the tier table, not of this chart.
+  const absent = track.providers.flatMap((p) => (rows.some((r) => r.provider === p.id) || isExtraTier(p.id) ? [] : [{ id: p.id, why: "not in the realistic pilot" }]));
   return { timed, missing: [...untimed, ...absent] };
 }
 

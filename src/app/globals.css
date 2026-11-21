@@ -274,3 +274,8 @@
 [data-track-view="default"] {
   display: none;
 }
+
+/* A CPU tier past a provider's first shows only under "Every CPU tier": while <head> holds tierStyle (lib/tiers.ts). */
+html:not(:has(> head > #tiers-all)) [data-tier-extra] {
+  display: none !important;
+}

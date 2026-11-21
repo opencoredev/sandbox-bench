@@ -7,7 +7,7 @@ import { Card } from "@/components/tabs";
 import { agentData } from "@/lib/agent-data";
 import { trackIds, trackInfo } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure, untested } from "@/lib/seo/copy";
@@ -17,8 +17,8 @@ import type { ProviderTrack } from "@/lib/seo/provider";
 
 const landing = trackIds[0];
 
-/** Every provider with results on the landing track, in the order the published model lists them. */
-const providerIds = (): ProviderId[] => agentData().tracks[landing].providers.map((p) => p.id);
+/** Every provider with results on the landing track, in the order the published model lists them, each on its first CPU tier (its page compares the others). */
+const providerIds = (): ProviderId[] => agentData().tracks[landing].providers.map((p) => p.id).filter((id) => !isExtraTier(id));
 
 const title = "Cloud sandbox providers for AI agents, benchmarked";
 

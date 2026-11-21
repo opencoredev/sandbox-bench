@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-18T22:45:24.819Z",
+  "generatedAt": "2026-11-20T19:23:29.309Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -18,7 +18,9 @@
         "modal",
         "baseten",
         "instabox",
-        "beam"
+        "beam",
+        "beam-shared",
+        "beam-spot"
       ],
       "profiles": [
         "fix-and-test",
@@ -67,6 +69,16 @@
         },
         {
           "provider": "beam",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
+        },
+        {
+          "provider": "beam-shared",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
+        },
+        {
+          "provider": "beam-spot",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
         }
@@ -124,6 +136,27 @@
       "providers": [
         "superserve",
         "tenki"
+      ]
+    },
+    {
+      "name": "bt-rw-performance/summary",
+      "generatedAt": "2026-11-20T17:14:27.258Z",
+      "providers": [
+        "beam"
+      ]
+    },
+    {
+      "name": "bt-rw-shared/summary",
+      "generatedAt": "2026-11-20T18:29:13.375Z",
+      "providers": [
+        "beam-shared"
+      ]
+    },
+    {
+      "name": "bt-rw-spot/summary",
+      "generatedAt": "2026-11-20T18:55:02.381Z",
+      "providers": [
+        "beam-spot"
       ]
     }
   ],
@@ -188,6 +221,54 @@
     },
     {
       "provider": "beam",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "beam-shared",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "beam-spot",
       "profile": "build",
       "track": "default",
       "variant": "headline",
@@ -569,12 +650,64 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 185.743,
-      "medianCpuS": 581.24,
+      "medianWallS": 149.224,
+      "medianCpuS": 495.53,
       "cost": {
         "kind": "estimate",
-        "usdPerCompleted": 0.0139674,
-        "wholeMachineUsdPerCompleted": 0.0139674,
+        "usdPerCompleted": 0.0117747,
+        "wholeMachineUsdPerCompleted": 0.0117747,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam-shared",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 133.173,
+      "medianCpuS": 290.23,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00329367,
+        "wholeMachineUsdPerCompleted": 0.00329367,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam-spot",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 194.696,
+      "medianCpuS": 350.84,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00198734,
+        "wholeMachineUsdPerCompleted": 0.00198734,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -948,6 +1081,54 @@
       "flags": []
     },
     {
+      "provider": "beam-shared",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "beam-spot",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "boat",
       "profile": "fix-and-test",
       "track": "default",
@@ -1293,12 +1474,64 @@
       "notRun": 0,
       "reasons": [],
       "prepare": null,
-      "medianWallS": 137.935,
-      "medianCpuS": 534.72,
+      "medianWallS": 114.671,
+      "medianCpuS": 423.84,
       "cost": {
         "kind": "estimate",
-        "usdPerCompleted": 0.0104663,
-        "wholeMachineUsdPerCompleted": 0.0104663,
+        "usdPerCompleted": 0.00911965,
+        "wholeMachineUsdPerCompleted": 0.00911965,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam-shared",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 82.823,
+      "medianCpuS": 274,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00222157,
+        "wholeMachineUsdPerCompleted": 0.00222157,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "beam-spot",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 96.559,
+      "medianCpuS": 266.77,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.001078,
+        "wholeMachineUsdPerCompleted": 0.001078,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

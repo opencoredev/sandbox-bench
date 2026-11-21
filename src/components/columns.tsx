@@ -5,9 +5,9 @@ import { HoverCardOnDemand } from "@/components/hover-card-on-demand";
 import type { DetailLine } from "@/components/hover-card";
 import { ProviderLogo } from "@/components/provider-logo";
 import { ProviderName } from "@/components/provider-name";
-import { markFill } from "@/lib/marks";
+import { markFill, rowFill } from "@/lib/marks";
 import type { MarkFill } from "@/lib/marks";
-import { providerColor, providerName } from "@/lib/providers";
+import { isExtraTier, providerBrand, providerColor, providerName } from "@/lib/providers";
 import { providerPageOf } from "@/lib/provider-pages";
 import type { ProviderPath } from "@/lib/provider-pages";
 import type { ProviderId } from "@/lib/providers";
@@ -97,9 +97,15 @@ function emphasis(column: Column, highlight: ProviderId | undefined) {
  */
 type Action = { kind: "trace"; trace: TraceKind } | { kind: "page"; href: ProviderPath } | { kind: "none" };
 
+/** The provider whose page a column leads to: a CPU tier leads to its provider's page, which compares the tiers. */
+const pageId = (id: ProviderId) => (isExtraTier(id) ? providerBrand(id) : id);
+
+/** A tier row past a provider's first is hidden under "One per provider" (globals.css, components/tier-switch.tsx). */
+const tierAttrs = (column: Pick<Column, "provider">) => (isExtraTier(column.provider) ? { "data-tier-extra": "" } : {});
+
 function actionOf(column: Column, still: boolean, linked: boolean): Action {
   if (!still && column.trace) return { kind: "trace", trace: column.trace };
-  const href = providerPageOf(column.provider);
+  const href = providerPageOf(pageId(column.provider));
   return href && (linked || !still) ? { kind: "page", href } : { kind: "none" };
 }
 
@@ -129,7 +135,7 @@ function hintOf(column: Column, action: Action) {
     case "trace":
       return "Click for where the time goes";
     case "page":
-      return `Open ${providerName(column.provider)}'s page`;
+      return `Open ${providerName(pageId(column.provider))}'s page`;
     case "none":
       return undefined;
     default: {
@@ -177,7 +183,7 @@ const Card = ({ column, action, className, style }: { column: Column; action: Ac
  * link once; under a bar that opens a breakdown, it is the page's own link.
  */
 function ColumnLabel({ column, still, own, bar }: { column: Column; still: boolean; own: boolean; bar: Action }) {
-  const page = providerPageOf(column.provider);
+  const page = providerPageOf(pageId(column.provider));
   const content = (
     <>
       {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
@@ -200,9 +206,9 @@ function ColumnLabel({ column, still, own, bar }: { column: Column; still: boole
       )}
     </>
   );
-  const linkProps = bar.kind === "page" ? ({ "aria-hidden": true, tabIndex: -1 } as const) : { "aria-label": `Open ${providerName(column.provider)}'s page` };
+  const linkProps = bar.kind === "page" ? ({ "aria-hidden": true, tabIndex: -1 } as const) : { "aria-label": `Open ${providerName(pageId(column.provider))}'s page` };
   return (
-    <span className={`relative block min-w-0 flex-1 px-0.5 text-center ${own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}>
+    <span {...tierAttrs(column)} className={`relative block min-w-0 flex-1 px-0.5 text-center ${own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}>
       {page ? (
         <a
           href={page}
@@ -247,6 +253,7 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
               aria-label={describe(column, bar, action)}
               {...target(column, action)}
               {...attrs}
+              {...tierAttrs(column)}
               className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${action.kind === "none" ? "" : "cursor-pointer"}`}
             >
               <span className={`mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums ${own ? "font-bold" : ""}`}>
@@ -262,7 +269,7 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
                     key={i}
                     aria-hidden
                     className={`relative w-full ${i === column.segments.length - 1 ? "rounded-t-xs" : ""}`}
-                    style={{ height: `${segmentPercent(bar, i)}%`, ...markFill(s.fill, s.color) }}
+                    style={{ height: `${segmentPercent(bar, i)}%`, ...markFill(rowFill(column.provider, s.fill), s.color) }}
                   >
                     {bar.broken === i ? <Break color={s.color} along="y" /> : null}
                   </div>
@@ -309,6 +316,7 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
             aria-label={describe(column, bar, action)}
             {...target(column, action)}
             {...attrs}
+            {...tierAttrs(column)}
             className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[8.5rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[7.5rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
           >
             <span aria-hidden className={`line-clamp-2 text-s leading-[1.1] sm:text-xs ${own ? "font-bold text-neutral-10" : "text-neutral-8"}`}>
@@ -321,7 +329,7 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
                   <div
                     key={i}
                     className={`relative h-full ${i === column.segments.length - 1 ? "rounded-r-xs" : ""}`}
-                    style={{ width: `${segmentPercent(bar, i)}%`, ...markFill(s.fill, s.color) }}
+                    style={{ width: `${segmentPercent(bar, i)}%`, ...markFill(rowFill(column.provider, s.fill), s.color) }}
                   >
                     {bar.broken === i ? <Break color={s.color} along="x" /> : null}
                   </div>

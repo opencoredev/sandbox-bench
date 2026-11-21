@@ -6,8 +6,8 @@ import { Disclosure } from "@/components/disclosure";
 import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
-import { markFill } from "@/lib/marks";
-import { providerColor } from "@/lib/providers";
+import { markFill, rowFill } from "@/lib/marks";
+import { isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingText,
@@ -66,7 +66,7 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
             <span className="font-mono tabular-nums text-neutral-10">{perThousand(p.pick.cost.usdPerCompleted)}</span> <span className="text-neutral-7">per 1,000</span>
           </p>
           {p.lower.map((r) => (
-            <p key={r.provider} className="text-xs text-neutral-7">
+            <p key={r.provider} className="text-xs text-neutral-7" {...(isExtraTier(r.provider) ? { "data-tier-extra": "" } : {})}>
               Not counted: <Who id={r.provider} /> {perThousand(r.cost.usdPerCompleted)} ({lowerWhy(r)}).
             </p>
           ))}
@@ -78,7 +78,7 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
         <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
           <p className="font-medium">{p.label}: no provider meets the pick rule.</p>
           {p.lower.map((r) => (
-            <p key={r.provider} className="text-xs text-neutral-7">
+            <p key={r.provider} className="text-xs text-neutral-7" {...(isExtraTier(r.provider) ? { "data-tier-extra": "" } : {})}>
               Not counted: <Who id={r.provider} /> {perThousand(r.cost.usdPerCompleted)} ({lowerWhy(r)}).
             </p>
           ))}
@@ -178,7 +178,7 @@ function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
   const color = providerColor(row.provider);
   return (
     <span aria-hidden data-bar-share={bar.length.toFixed(6)} className="flex h-3 items-stretch border-l border-neutral-4 sm:hidden">
-      <span className="relative rounded-r-xs" style={{ width: `${bar.length * 100}%`, minWidth: 2, ...markFill("solid", color) }}>
+      <span className="relative rounded-r-xs" style={{ width: `${bar.length * 100}%`, minWidth: 2, ...markFill(rowFill(row.provider, "solid"), color) }}>
         {bar.broken === null ? null : <Break color={color} along="x" />}
       </span>
     </span>
@@ -193,7 +193,7 @@ function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
 function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefined; track: TrackId | undefined }) {
   const note = row.cost ? priceNote(row.provider, track) : shortReason(row);
   return (
-    <li className="border-t border-neutral-3">
+    <li className="border-t border-neutral-3" {...(isExtraTier(row.provider) ? { "data-tier-extra": "" } : {})}>
       <Disclosure
         className="gap-0"
         triggerClassName="w-full items-center gap-s py-s hover:bg-neutral-3/40"
@@ -264,7 +264,9 @@ export function ProviderRows({ costed, uncosted, track }: { costed: readonly Cos
 }
 
 /** "Not in the chart: Daytona, E2B and Superserve (its default machine is too small …)", one group per reason. */
-function NotInChart({ rows }: { rows: readonly RealisticRow[] }) {
+function NotInChart({ rows: all }: { rows: readonly RealisticRow[] }) {
+  // A CPU tier past a provider's first says why it has no cost in the tier table; on Default machines it never runs.
+  const rows = all.filter((r) => !isExtraTier(r.provider));
   if (rows.length === 0) return null;
   const groups = new Map<string, ProviderId[]>();
   for (const r of rows) groups.set(noCostReason(r), [...(groups.get(noCostReason(r)) ?? []), r.provider]);
@@ -290,7 +292,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(footprint ? [{ lead: "Workload size", text: footprint }] : []),
     { lead: "Cost per task", text: "The cost of every attempt divided by the tasks that completed. Each task starts from the provider's base image and installs its own toolchain." },
     ...scopeNotes(data),
-    { lead: "Cheapest", text: "The lowest cost with at most 1 incomplete run. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
+    { lead: "Cheapest", text: "The lowest cost with at most 1 incomplete run, on the CPU tier a new account gets. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
     { lead: "Whole machine at list price", text: "The machine's published rate over each task's billed time. For providers that bill usage, this is a what-if, not their bill." },
     ...(track === "default" ? [{ lead: "Default machines", text: "Each provider's own default size, so sizes differ. A default too small for the workload wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),
@@ -435,7 +437,7 @@ function IdleBar({ point, provider, max }: { point: IdlePoint; provider: Provide
         {idleLabel(point)}
       </span>
       <div aria-hidden data-idle-share={share.toFixed(6)} className={`relative flex h-3 items-stretch border-l border-neutral-4 ${failed ? "opacity-40" : ""}`}>
-        <div className="rounded-r-xs" style={{ width: `${share * 100}%`, minWidth: 2, ...markFill("solid", providerColor(provider)) }} />
+        <div className="rounded-r-xs" style={{ width: `${share * 100}%`, minWidth: 2, ...markFill(rowFill(provider, "solid"), providerColor(provider)) }} />
       </div>
       <span aria-hidden className={`hidden text-right font-mono text-xxs whitespace-nowrap tabular-nums sm:block ${failed ? "text-neutral-6" : "text-neutral-8"}`}>
         {multiple ?? ""}
@@ -518,7 +520,8 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
 /** "Not in this test: Freestyle and Luxor (no billing data we can read) and Superserve (account totals only).", one group per short reason. */
 function NotTested() {
   const groups = new Map<string, ProviderId[]>();
-  for (const n of realistic.coverage.idle.notTested) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
+  // A CPU tier past a provider's first is idle-tested, or not, with its provider; naming it here would repeat Beam.
+  for (const n of realistic.coverage.idle.notTested.filter((x) => !isExtraTier(x.provider))) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
   const parts = [...groups];
   if (parts.length === 0) return null;
   return (

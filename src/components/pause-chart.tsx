@@ -8,7 +8,7 @@ import type { Provider, Track } from "@/lib/data";
 import { formatShort, formatValue } from "@/lib/format";
 import { allocationNotes, autoStandby } from "@/lib/notes";
 import { pauses } from "@/lib/pause";
-import { providerColor } from "@/lib/providers";
+import { isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace } from "@/lib/traces";
 
@@ -28,7 +28,8 @@ const list = (ps: readonly { id: ProviderId }[]) =>
  * pause, or absent. See pause.ts.
  */
 function classify(track: Track) {
-  const all = pauses(track);
+  // A CPU tier past a provider's first skips pause by design (lib/providers.ts), so it is neither timed nor missing here.
+  const all = pauses(track).filter(({ p }) => !isExtraTier(p.id));
   return {
     split: all.flatMap(({ p, r }) => (r.kind === "split" ? [{ p, split: r }] : [])),
     whole: all.flatMap(({ p, r }) => (r.kind === "total" ? [{ p, total: r.total }] : [])),

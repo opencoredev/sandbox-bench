@@ -18,6 +18,12 @@
  *     --parts scripts/realistic-parts/sbx-beam.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-disk-rerun/summary.json \
  *     --parts scripts/realistic-parts/sbx-disk-rerun.json \
+ *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-performance/summary/summary.json \
+ *     --parts scripts/realistic-parts/beam-tiers-performance.json \
+ *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-shared/summary/summary.json \
+ *     --parts scripts/realistic-parts/beam-tiers-shared.json \
+ *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-spot/summary/summary.json \
+ *     --parts scripts/realistic-parts/beam-tiers-spot.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -53,6 +59,13 @@
  * runs on 2026-11-18, harness 6074f7b, billed from Instabox's per-machine usage
  * API); the Baseten pair, missing from the command above until now, is the one
  * its own rebuild used, and every other provider's rows came out unchanged.
+ *
+ * Rebuilt on 2026-11-20 with Beam's CPU tiers (bt-rw-{performance,shared,spot},
+ * headline runs that day, harness ceede7e on the sandbox-sdk branch
+ * beam-tiers-bench). Beam's same-machine rows now come from bt-rw-performance,
+ * the same plan run the same day as its tiers, so the tier table compares
+ * same-day runs; its Nov 18 run (sbx-beam) took 138 s and 186 s. Every other
+ * provider's rows came out unchanged.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

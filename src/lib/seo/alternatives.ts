@@ -1,4 +1,5 @@
 import { agentData } from "@/lib/agent-data";
+import { isExtraTier } from "@/lib/providers";
 import { trackIds } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import type { ProviderId } from "@/lib/providers";
@@ -24,7 +25,8 @@ export function alternativesTrack(trackId: TrackId, target: ProviderId) {
   const t = agentData().tracks[trackId];
   if (!t.published || !t.providers.some((p) => p.id === target)) return null;
   const alternatives = t.providers.flatMap((p): Alternative[] => {
-    if (p.id === target) return [];
+    // A provider's own cheaper CPU tier isn't an alternative to anyone; its provider is.
+    if (p.id === target || isExtraTier(p.id)) return [];
     const pair = compareTrack(trackId, p.id, target);
     return pair ? [{ id: p.id, pair, cold: rowOf(pair, "cold"), tool: rowOf(pair, "tool-replay") }] : [];
   });
@@ -35,7 +37,7 @@ export function alternativesTrack(trackId: TrackId, target: ProviderId) {
     label: t.label,
     description: t.description,
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
-    providerCount: t.providers.length,
+    providerCount: t.providers.filter((p) => !isExtraTier(p.id)).length,
     /** The replaced provider's own side, the same on every pair. */
     target: first.pair.sides.b,
     alternatives,

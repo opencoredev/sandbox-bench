@@ -70,6 +70,21 @@ export const advertised = {
     source: "https://docs.beam.cloud/v2/reference/ts-sdk.md",
     note: "Beam's default sandbox is 1 CPU and 128 MiB, enforced as the sandbox's memory limit. That is too little memory for our dev server and Python install, which were killed for running out of it, and for both realistic workloads. Beam has no disk setting and doesn't bill disk.",
   },
+  // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
+  "beam-shared": {
+    vcpu: 1,
+    memoryGiB: 0.125,
+    diskGiB: null,
+    source: "https://docs.beam.cloud/v2/sandbox/configuration.md",
+    note: "Beam's Shared tier is the same sandbox as Beam, on shared vCPUs; it ran on Same machine only, at 4 vCPU and 8 GB.",
+  },
+  "beam-spot": {
+    vcpu: 1,
+    memoryGiB: 0.125,
+    diskGiB: null,
+    source: "https://docs.beam.cloud/v2/sandbox/configuration.md",
+    note: "Beam's Spot tier is the same sandbox as Beam, on spare capacity; it ran on Same machine only, at 4 vCPU and 8 GB.",
+  },
 } as const satisfies Record<
   ProviderId,
   { vcpu: number | null; memoryGiB: number | null; diskGiB: number | null; source: string; note: string | null }
@@ -82,6 +97,8 @@ export const advertised = {
  */
 export const sharedDisk: Partial<Record<ProviderId, string>> = {
   beam: "no disk of its own: the root file system is a shared mount reporting the host's whole disk, about 21 TB",
+  "beam-shared": "no disk of its own: the root file system is a shared mount reporting the host's whole disk",
+  "beam-spot": "no disk of its own: the root file system is a shared mount reporting the host's whole disk",
 };
 
 /** The size to show: advertised where the provider states it, otherwise what we measured inside. */

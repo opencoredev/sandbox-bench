@@ -7,7 +7,7 @@ import { realTasksSection, taskTimes } from "@/components/real-tasks";
 import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { providerColor } from "@/lib/providers";
+import { isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { perThousand, pickFor, profileInfo, runTrackOf } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
@@ -27,7 +27,8 @@ interface Stat {
 function fastest(track: Track, id: string) {
   const best = track
     .metric(id)
-    .values.flatMap((v) => (v.p50 === null ? [] : [{ provider: v.provider, p50: v.p50 }]))
+    // Providers are ranked on the tier a new account gets.
+    .values.flatMap((v) => (v.p50 === null || isExtraTier(v.provider) ? [] : [{ provider: v.provider, p50: v.p50 }]))
     .sort((a, b) => a.p50 - b.p50)[0];
   return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
 }
@@ -36,7 +37,7 @@ const pilot = `Pilot, ${realistic.coverage.headline.attempts} runs per provider`
 
 /** The provider that finished a real task fastest, by median time from create to confirmed delete. */
 function fastestTask(track: Track, profile: ProfileId): Omit<Stat, "section" | "tab"> | null {
-  const [best] = taskTimes(track, profile).timed;
+  const [best] = taskTimes(track, profile).timed.filter((t) => !isExtraTier(t.provider));
   return best ? { label: `Fastest ${profileInfo[profile].label.toLowerCase()}`, provider: best.provider, value: `${formatShort(best.medianWallS, "s")}s`, caption: pilot } : null;
 }
 

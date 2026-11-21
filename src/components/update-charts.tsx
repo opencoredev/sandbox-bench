@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { TierTable } from "@/components/cpu-tiers";
 import { MetricChart } from "@/components/metric-chart";
 import { RealTaskHeadline, taskTimes } from "@/components/real-tasks";
 import { RealtaskBurstChart } from "@/components/realtask-burst";
@@ -135,6 +136,15 @@ export function UpdateCharts({ charts }: { charts: Charts }) {
       return (
         <section className="pt-xxl">
           <RealtaskBurstChart data={realtaskBurst} />
+        </section>
+      );
+    case "tiers":
+      return (
+        <section className="pt-xxl">
+          <SectionTitle id="tiers">{providerName(charts.provider)} on each CPU tier</SectionTitle>
+          <div className="surface mt-l p-m sm:p-l">
+            <TierTable brand={charts.provider} track={tracks["same-spec"]} realistic={realistic} burst={realtaskBurst} />
+          </div>
         </section>
       );
     default: {

@@ -9,7 +9,7 @@ import type { Metric, MetricValue, Track } from "@/lib/data";
 import { formatCount, formatShort, formatValue, unitName } from "@/lib/format";
 import { absentNote, allocationNotes, mergeNotes, sentence } from "@/lib/notes";
 import type { Notes } from "@/lib/notes";
-import { isProviderId, providerColor } from "@/lib/providers";
+import { isExtraTier, isProviderId, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { hasTrace } from "@/lib/traces";
 import type { TraceKind } from "@/lib/traces";
@@ -36,13 +36,13 @@ export function ChartHead({ title, sub, meta }: { title: string; sub: ReactNode;
  * the first thing read: one bullet each, an optional bold lead, marks keeping
  * their numbers.
  */
-export function Footnotes({ items }: { items: readonly { mark?: number; lead?: string; text: ReactNode }[] }) {
+export function Footnotes({ items }: { items: readonly { mark?: number; lead?: string; text: ReactNode; /** The row the note is about, so a hidden CPU tier's note hides with it. */ about?: ProviderId }[] }) {
   if (items.length === 0) return null;
   return (
     <Disclosure className="mt-m gap-xs" triggerClassName="w-fit justify-start text-s text-neutral-7 hover:text-neutral-10" summary={`Notes (${items.length})`}>
       <ul className="flex flex-col gap-xs text-xs leading-relaxed text-pretty text-neutral-8">
         {items.map((item, i) => (
-          <li key={i} className="flex gap-xs">
+          <li key={i} className="flex gap-xs" {...(item.about !== undefined && isExtraTier(item.about) ? { "data-tier-extra": "" } : {})}>
             {item.mark === undefined ? <span aria-hidden className="mt-[0.6em] size-1 shrink-0 rounded-full bg-neutral-6" /> : <span className="w-3 shrink-0 font-mono">{item.mark}</span>}
             <span className="max-w-[80ch]">
               {item.lead ? <span className="font-medium text-neutral-10">{item.lead}: </span> : null}
@@ -137,7 +137,8 @@ export function MetricChart({
   const measured = values
     .flatMap(({ value }) => (value && isMeasured(value) ? [value] : []))
     .sort((a, b) => sign * (a.p50 - b.p50));
-  const missing = values.filter(({ value }) => !value || !isMeasured(value));
+  // A CPU tier past a provider's first runs only the tests its CPU can move (lib/providers.ts), so a gap there is by design, not a missing result.
+  const missing = values.filter(({ id, value }) => (!value || !isMeasured(value)) && !isExtraTier(id));
   // Providers left out of this chart on purpose still get their note.
   const leftOut = only ? providers.flatMap((p) => (only.includes(p.id) || !notes[p.id] ? [] : [p.id])) : [];
 
@@ -178,7 +179,7 @@ export function MetricChart({
           items={[
             ...measured.flatMap((v) => {
               const note = notes[v.provider];
-              return note ? [{ mark: marks.get(v.provider), text: <><Who id={v.provider} />: {sentence(note)}</> }] : [];
+              return note ? [{ mark: marks.get(v.provider), about: v.provider, text: <><Who id={v.provider} />: {sentence(note)}</> }] : [];
             }),
             ...leftOut.map((id) => ({ text: <><Who id={id} />: {sentence(notes[id] ?? "")}</> })),
             ...(missing.length > 0
@@ -236,7 +237,7 @@ export function CompactNotes({ items }: { items: readonly { mark: number | undef
   return (
     <ul className="mt-s flex flex-col gap-xxs text-xxs text-neutral-7">
       {items.map(({ mark, id, note }) => (
-        <li key={id} className="flex gap-1.5">
+        <li key={id} className="flex gap-1.5" {...(isExtraTier(id) ? { "data-tier-extra": "" } : {})}>
           <span className="w-2.5 shrink-0 font-mono">{mark}</span>
           <span>
             <Who id={id} />: {sentence(note)}
