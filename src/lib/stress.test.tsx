@@ -13,7 +13,7 @@ import { hasStress, parseStress, survivalRanked } from "@/lib/stress";
 const none = { accountLimit: 0, clientNetwork: 0, provider: 0 };
 const alloc = { requestedSize: "small", template: null };
 
-const throughput = (p50: number | null, n = 5) => ({ n: p50 === null ? 0 : n, p50, p95: p50 === null ? null : p50 * 1.1, min: p50, max: p50, ciLow: p50 === null ? null : p50 * 0.9, ciHigh: p50 === null ? null : p50 * 1.05 });
+const throughput = (p50: number | null, n = 5) => ({ n: p50 === null ? 0 : n, p50, p95: p50 === null ? null : p50 * 1.1, min: p50, max: p50 === null ? null : p50 * 1.15, ciLow: p50 === null ? null : p50 * 0.9, ciHigh: p50 === null ? null : p50 * 1.05 });
 
 const sustained = (provider: string, single: number | null, all: number | null, failed = 0): CpuSustainedExport => ({
   provider,
@@ -29,7 +29,7 @@ const sustained = (provider: string, single: number | null, all: number | null, 
   attempts: { successes: single === null && all === null ? 0 : 5, failures: { ...none, provider: failed }, blocked: 0, skipped: 0 },
 });
 
-const spread = (p50: number | null, maxOverMin: number | null) => ({ n: p50 === null ? 0 : 10, p50, p95: p50, min: p50, max: p50, mean: p50, maxOverMin, cv: 0.02 });
+const spread = (p50: number | null, maxOverMin: number | null) => ({ n: p50 === null ? 0 : 10, p50, p95: p50, min: p50, max: p50, mean: p50, maxOverMin, cv: p50 === null ? null : 0.02 });
 
 const burst = (provider: string, p50: number | null, maxOverMin: number | null): CpuBurstExport => ({
   provider,
@@ -53,25 +53,28 @@ const survival = (
   attempted: number,
   rate: number | null,
   overrides: Partial<BurstSurvivalExport> = {},
-): BurstSurvivalExport => ({
-  provider,
-  ...alloc,
-  windowS: 600,
-  heartbeatS: 5,
-  cohorts: 1,
-  incomplete: { cohorts: 0, members: 0 },
-  attempted,
-  survived,
-  createFailed: { total: 1, ...none, provider: 1 },
-  died: 2,
-  unresponsive: 3,
-  interrupted: 0,
-  invalidEvidence: 0,
-  invalidReasons: {},
-  windowFailures: none,
-  survivalRate: rate,
-  ...overrides,
-});
+): BurstSurvivalExport => {
+  const lost = Math.max(0, attempted - survived);
+  return {
+    provider,
+    ...alloc,
+    windowS: 600,
+    heartbeatS: 5,
+    cohorts: 1,
+    incomplete: { cohorts: 0, members: 0 },
+    attempted,
+    survived,
+    createFailed: { total: 0, ...none },
+    died: lost,
+    unresponsive: 0,
+    interrupted: 0,
+    invalidEvidence: 0,
+    invalidReasons: {},
+    windowFailures: none,
+    survivalRate: rate,
+    ...overrides,
+  };
+};
 
 const empty: StressExport = { observations: 0, runs: [], selectionRemoved: {}, cpuSustained: [], cpuBurst: [], burstSurvival: [] };
 
@@ -89,10 +92,10 @@ const fixture: StressExport = {
     {
       k: 10,
       providers: [
-        survival("e2b", 8, 10, 0.8),
+        survival("e2b", 4, 10, 0.4, { createFailed: { total: 1, ...none, provider: 1 }, died: 2, unresponsive: 3 }),
         survival("daytona", 10, 10, 1),
         survival("modal", 9, 10, 0.9),
-        survival("boat", 0, 0, null, { cohorts: 0, incomplete: { cohorts: 1, members: 4 }, createFailed: { total: 0, ...none }, died: 0, unresponsive: 0 }),
+        survival("boat", 0, 0, null, { cohorts: 0, incomplete: { cohorts: 1, members: 4 } }),
       ],
     },
   ],
@@ -122,10 +125,19 @@ describe("parse", () => {
     assert.throws(() => parseStress("bad", "default"), /must be an object/);
     assert.throws(() => parseStress({ ...fixture, cpuSustained: [sustained("e2b", Number.NaN, 100)] }, "default"), /p50 is NaN/);
     assert.throws(() => parseStress({ ...fixture, cpuSustained: [sustained("e2b", -10, 100)] }, "default"), /p50 is -10/);
+    assert.throws(
+      () => parseStress({ ...fixture, cpuSustained: [{ ...sustained("e2b", 1_000_000, 2_000_000), single: { ...throughput(1_000_000), p95: 0.0001 } }] }, "default"),
+      /p50 1000000 > p95 0.0001/,
+    );
+    assert.throws(
+      () => parseStress({ ...fixture, cpuBurst: [{ k: 10, providers: [{ ...burst("e2b", 900_000, 1.1), perSandbox: { cohorts: 1, single: { ...spread(900_000, 1.1), p95: 500_000 }, all: spread(2_000_000, null) } }] }] }, "default"),
+      /p50 900000 > p95 500000/,
+    );
     assert.throws(() => parseStress({ ...fixture, cpuBurst: [{ k: 10, providers: [burst("e2b", Number.POSITIVE_INFINITY, 1.1)] }] }, "default"), /p50 is Infinity/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 8, 10, 1.2)] }] }, "default"), /survival rate 1.2/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 8, 10, 0.5)] }] }, "default"), /expected 0.8/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 0, 10, null)] }] }, "default"), /expected 0 \(0\/10\)/);
+    assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 5, 5, 1, { died: 999 })] }] }, "default"), /outcomes sum to 1004, expected attempted 5/);
     assert.throws(() => parseStress({ ...fixture, burstSurvival: [{ k: 10, providers: [survival("e2b", 11, 10, 1)] }] }, "default"), /survived 11 of 10/);
     assert.throws(() => parseStress({ ...fixture, cpuBurst: [{ k: 0, providers: [] }] }, "default"), /cohort size 0/);
   });
@@ -187,7 +199,7 @@ describe("section", () => {
     const html = renderToStaticMarkup(<StressSection stress={parseStress(fixture, "default")} />);
     const survivalHtml = html.slice(html.indexOf("Burst survival, 10 at once"));
     assert.deepEqual(order(survivalHtml), ["Daytona", "Modal", "E2B"]);
-    for (const text of ["100%", "90.0%", "80.0%", "10/10", "9/10", "8/10", "Window 600 s", "Heartbeat every 5 s", "Create failed 1", "Died 2", "Unresponsive 3", "Interrupted 0", "Invalid evidence 0"])
+    for (const text of ["100%", "90.0%", "40.0%", "10/10", "9/10", "4/10", "Window 600 s", "Heartbeat every 5 s", "Create failed 1", "Died 2", "Unresponsive 3", "Interrupted 0", "Invalid evidence 0"])
       assert.ok(survivalHtml.includes(text), `has "${text}"`);
     assert.ok(survivalHtml.includes("held for 600 s with a heartbeat every 5 s"));
     assert.match(survivalHtml, /No result for .*Boat/);

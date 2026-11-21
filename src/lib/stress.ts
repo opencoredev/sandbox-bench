@@ -141,11 +141,17 @@ function readThroughput(v: unknown, track: string, where: string): StressThrough
   const max = readNullableFinite(obj.max, track, `${where}.max`, 0, true);
   const ciLow = readNullableFinite(obj.ciLow, track, `${where}.ciLow`, 0, false);
   const ciHigh = readNullableFinite(obj.ciHigh, track, `${where}.ciHigh`, 0, false);
-  if (n === 0 && (p50 !== null || p95 !== null || min !== null || max !== null)) fail(track, `${where} has values with n=0`);
-  if (n > 0 && p50 === null) fail(track, `${where} has n=${n} without p50`);
-  if (min !== null && p50 !== null && min > p50) fail(track, `${where} has min ${min} > p50 ${p50}`);
-  if (max !== null && p50 !== null && p50 > max) fail(track, `${where} has p50 ${p50} > max ${max}`);
-  if (ciLow !== null && ciHigh !== null && ciLow > ciHigh) fail(track, `${where} has ciLow ${ciLow} > ciHigh ${ciHigh}`);
+  if (n === 0 && (p50 !== null || p95 !== null || min !== null || max !== null || ciLow !== null || ciHigh !== null)) {
+    return fail(track, `${where} has values with n=0`);
+  }
+  if (n > 0 && p50 === null) return fail(track, `${where} has n=${n} without p50`);
+  if (min !== null && p50 !== null && min > p50) return fail(track, `${where} has min ${min} > p50 ${p50}`);
+  if (p50 !== null && p95 !== null && p50 > p95) return fail(track, `${where} has p50 ${p50} > p95 ${p95}`);
+  if (p95 !== null && max !== null && p95 > max) return fail(track, `${where} has p95 ${p95} > max ${max}`);
+  if (min !== null && p95 !== null && min > p95) return fail(track, `${where} has min ${min} > p95 ${p95}`);
+  if (max !== null && p50 !== null && p50 > max) return fail(track, `${where} has p50 ${p50} > max ${max}`);
+  if (min !== null && max !== null && min > max) return fail(track, `${where} has min ${min} > max ${max}`);
+  if (ciLow !== null && ciHigh !== null && ciLow > ciHigh) return fail(track, `${where} has ciLow ${ciLow} > ciHigh ${ciHigh}`);
   return { n, p50, p95, min, max, ciLow, ciHigh };
 }
 
@@ -159,10 +165,18 @@ function readSpread(v: unknown, track: string, where: string): StressSpreadExpor
   const mean = readNullableFinite(obj.mean, track, `${where}.mean`, 0, true);
   const maxOverMin = readNullableFinite(obj.maxOverMin, track, `${where}.maxOverMin`, 1, false);
   const cv = readNullableFinite(obj.cv, track, `${where}.cv`, 0, false);
-  if (n === 0 && (p50 !== null || p95 !== null || min !== null || max !== null || mean !== null)) fail(track, `${where} has values with n=0`);
-  if (n > 0 && p50 === null) fail(track, `${where} has n=${n} without p50`);
-  if (min !== null && p50 !== null && min > p50) fail(track, `${where} has min ${min} > p50 ${p50}`);
-  if (max !== null && p50 !== null && p50 > max) fail(track, `${where} has p50 ${p50} > max ${max}`);
+  if (n === 0 && (p50 !== null || p95 !== null || min !== null || max !== null || mean !== null || maxOverMin !== null || cv !== null)) {
+    return fail(track, `${where} has values with n=0`);
+  }
+  if (n > 0 && p50 === null) return fail(track, `${where} has n=${n} without p50`);
+  if (min !== null && p50 !== null && min > p50) return fail(track, `${where} has min ${min} > p50 ${p50}`);
+  if (p50 !== null && p95 !== null && p50 > p95) return fail(track, `${where} has p50 ${p50} > p95 ${p95}`);
+  if (p95 !== null && max !== null && p95 > max) return fail(track, `${where} has p95 ${p95} > max ${max}`);
+  if (min !== null && p95 !== null && min > p95) return fail(track, `${where} has min ${min} > p95 ${p95}`);
+  if (max !== null && p50 !== null && p50 > max) return fail(track, `${where} has p50 ${p50} > max ${max}`);
+  if (min !== null && max !== null && min > max) return fail(track, `${where} has min ${min} > max ${max}`);
+  if (min !== null && mean !== null && mean < min - 1e-6) return fail(track, `${where} has mean ${mean} < min ${min}`);
+  if (max !== null && mean !== null && mean > max + 1e-6) return fail(track, `${where} has mean ${mean} > max ${max}`);
   return { n, p50, p95, min, max, mean, maxOverMin, cv };
 }
 
@@ -337,8 +351,26 @@ function parseSurvivalRow(v: unknown, track: string, k: number, index: number): 
     windowFailures: readFailures(obj.windowFailures, track, `${where}.windowFailures`),
     survivalRate: readNullableFinite(obj.survivalRate, track, `${where}.survivalRate`, 0, false),
   };
-  if (row.survived > row.attempted) fail(track, `${where} survived ${row.survived} of ${row.attempted}`);
-  if (row.survivalRate !== null && row.survivalRate > 1) fail(track, `${where} has survival rate ${row.survivalRate}`);
+  if (row.survived > row.attempted) return fail(track, `${where} survived ${row.survived} of ${row.attempted}`);
+  const outcomeTotal =
+    row.survived +
+    row.createFailed.total +
+    row.died +
+    row.unresponsive +
+    row.interrupted +
+    row.invalidEvidence;
+  if (outcomeTotal !== row.attempted) {
+    return fail(track, `${where} outcomes sum to ${outcomeTotal}, expected attempted ${row.attempted}`);
+  }
+  const windowFailureTotal = row.windowFailures.accountLimit + row.windowFailures.clientNetwork + row.windowFailures.provider;
+  if (windowFailureTotal > row.died + row.unresponsive + row.interrupted) {
+    return fail(track, `${where} windowFailures sum to ${windowFailureTotal} > non-surviving window outcomes`);
+  }
+  const invalidReasonTotal = Object.values(row.invalidReasons).reduce((sum, count) => sum + count, 0);
+  if (invalidReasonTotal !== row.invalidEvidence) {
+    return fail(track, `${where} invalidReasons sum to ${invalidReasonTotal}, expected invalidEvidence ${row.invalidEvidence}`);
+  }
+  if (row.survivalRate !== null && row.survivalRate > 1) return fail(track, `${where} has survival rate ${row.survivalRate}`);
   const denominator = survivalDenominator(row);
   if (denominator < 0) fail(track, `${where} has negative fair-chance denominator ${denominator}`);
   if (denominator === 0) {
