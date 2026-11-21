@@ -31,7 +31,8 @@ export interface Update {
   body: readonly string[];
   charts: UpdateCharts;
   /** The home page section and tab the update's page links to last, and the section's name. */
-  home: { section: string; tab: string; label: string };
+  /** `tab` only for a section with tabs. */
+  home: { section: string; tab?: string; label: string };
 }
 
 export const updates = [
@@ -47,7 +48,7 @@ export const updates = [
       "The site shows each provider once by default, on the tier a new account gets; Every CPU tier adds the others to every chart, and ranks and Cheapest picks always use the first tier.",
     ],
     charts: { kind: "tiers", provider: "beam" },
-    home: { section: "tiers", tab: "beam", label: "CPU tiers" },
+    home: { section: "tiers", label: "CPU tiers" },
   },
   {
     slug: "real-tasks-at-once",
@@ -119,7 +120,7 @@ export type UpdateSlug = (typeof updates)[number]["slug"];
 export const latestUpdates = updates.slice(0, 3);
 
 /** The home page section an update links to, opened on its tab: the `#section/tab` hash JumpLink and TabCard read. */
-export const homeHref = ({ home }: Pick<Update, "home">) => `/#${home.section}/${home.tab}`;
+export const homeHref = ({ home }: Pick<Update, "home">) => (home.tab === undefined ? `/#${home.section}` : `/#${home.section}/${home.tab}`);
 
 /** "Nov 18", for the hero. */
 export const updateDay = (u: Pick<Update, "date">) => new Date(`${u.date}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });

@@ -904,7 +904,7 @@ describe("page", () => {
 
   test("on phones the chart is hidden and each provider row carries its bar instead", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /<div class="hidden sm:block"><figure/);
+    assert.match(html, /<div class="hidden sm:block">(<div data-tier-view="one">)?<figure/);
     const costedRows = headlineRows(realistic, "same-machine", "fix-and-test").costed.length;
     const buildRows = headlineRows(realistic, "same-machine", "build").costed.length;
     assert.equal((html.match(/class="flex h-3 items-stretch border-l border-neutral-4 sm:hidden"/g) ?? []).length, costedRows + buildRows);

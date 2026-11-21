@@ -789,7 +789,7 @@ export default function Page() {
           >
             <div className="mb-m flex flex-wrap items-center gap-x-m gap-y-xs">
               <TierSwitch />
-              <p className="max-w-[60ch] text-s text-pretty text-neutral-7">Every CPU tier adds each tier as its own row in every chart on the page.</p>
+              <p data-tier-switch="" className="max-w-[60ch] text-s text-pretty text-neutral-7">Every CPU tier adds each tier as its own row in every chart on the page.</p>
             </div>
             <Tracked>
               {(track) => {

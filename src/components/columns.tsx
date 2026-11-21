@@ -386,6 +386,22 @@ export function Columns({
   /** A provider page's chart: this provider's column stays at full colour with its name in bold, and the others dim. */
   highlight?: ProviderId;
 }) {
+  // A chart with extra CPU tier rows draws twice, each on its own scale, so hidden tiers never flatten the default view.
+  if (columns.some((c) => isExtraTier(c.provider)))
+    return (
+      <>
+        <div data-tier-view="one">
+          <Chart columns={columns.filter((c) => !isExtraTier(c.provider))} label={label} compact={compact} linked={linked} highlight={highlight} />
+        </div>
+        <div data-tier-view="all">
+          <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} />
+        </div>
+      </>
+    );
+  return <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} />;
+}
+
+function Chart({ columns, label, compact, linked, highlight }: { columns: readonly Column[]; label: string; compact: boolean; linked: boolean; highlight: ProviderId | undefined }) {
   const max = axisMax(columns);
   const cut = columns.some((c) => total(c) > max);
   return (

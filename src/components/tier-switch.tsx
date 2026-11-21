@@ -59,7 +59,7 @@ const Segment = themePart("a", "toggle-group", "control", "ui-button");
 export function TierSwitch() {
   const active = useSyncExternalStore(subscribe, current, (): TierView => "one");
   return (
-    <nav aria-label="CPU tiers shown" className="w-full sm:w-fit">
+    <nav aria-label="CPU tiers shown" data-tier-switch="" className="w-full sm:w-fit">
       <ul className="surface flex w-full gap-xxs p-xxs sm:w-fit">
         {tierViews.map((view) => {
           const on = view === active;

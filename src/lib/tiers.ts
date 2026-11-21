@@ -21,5 +21,8 @@ export const tierViewInfo = {
 
 export const tierStyle = { id: "tiers-all" } as const;
 
+/** Marks that scripts run, so the switch shows (globals.css hides it otherwise). */
+export const tierScriptMark = { id: "tiers-js" } as const;
+
 /** Runs in <head> before the page paints, so a shared `?tiers=all` link never flashes the shorter charts first. */
-export const tierScript = `(function(){try{if(new URLSearchParams(location.search).get(${JSON.stringify(tierParam)})===${JSON.stringify(allTiersValue)}){var s=document.createElement("style");s.id=${JSON.stringify(tierStyle.id)};document.head.appendChild(s)}}catch(e){}})()`;
+export const tierScript = `(function(){try{var m=document.createElement("style");m.id=${JSON.stringify(tierScriptMark.id)};document.head.appendChild(m);if(new URLSearchParams(location.search).get(${JSON.stringify(tierParam)})===${JSON.stringify(allTiersValue)}){var s=document.createElement("style");s.id=${JSON.stringify(tierStyle.id)};document.head.appendChild(s)}}catch(e){}})()`;

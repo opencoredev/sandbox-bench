@@ -5,7 +5,8 @@ import { ChartHead } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
 import type { Provider, Track } from "@/lib/data";
 import { formatCount } from "@/lib/format";
-import { providerColor, providerName } from "@/lib/providers";
+import { isExtraTier, providerColor, providerName } from "@/lib/providers";
+import type { ProviderId } from "@/lib/providers";
 import { successRate } from "@/lib/status";
 
 /** Shorter wording for the raw failure messages that need it. */
@@ -16,6 +17,9 @@ const plain = (reason: string) =>
     .replace(/\.$/, "");
 
 type Failure = Provider["failureReasons"][number];
+
+/** A CPU tier past a provider's first shows only under Every CPU tier (globals.css). */
+const tierAttrs = (id: ProviderId) => (isExtraTier(id) ? { "data-tier-extra": "" } : {});
 
 /** The structured cause, where the export records one: "HTTP 503 · sandbox_unavailable · during create". */
 export function causeText(f: Failure) {
@@ -56,7 +60,12 @@ export function Reliability({ track }: { track: Track }) {
     detail: [`${formatCount(s.attempts - s.succeeded)} of ${formatCount(s.attempts)} attempts failed`],
   }));
   const rows = ranked.flatMap(({ p }) => p.failureReasons.map((f, i) => ({ p, f, first: i === 0 })));
-  const runs = rows.reduce((sum, { f }) => sum + f.runs, 0);
+  const tally = (counted: typeof rows) => {
+    const runs = counted.reduce((sum, { f }) => sum + f.runs, 0);
+    return `${runs} ${runs === 1 ? "run" : "runs"} across ${new Set(counted.map((r) => r.p.id)).size} providers`;
+  };
+  const firsts = tally(rows.filter((r) => !isExtraTier(r.p.id)));
+  const every = tally(rows);
 
   return (
     <>
@@ -70,7 +79,12 @@ export function Reliability({ track }: { track: Track }) {
           <span>
             Every failure and its cause{" "}
             <span className="font-normal text-neutral-7">
-              · {runs} {runs === 1 ? "run" : "runs"} across {new Set(rows.map((r) => r.p.id)).size} providers
+              · {firsts === every ? firsts : (
+                <>
+                  <span data-tier-view="one">{firsts}</span>
+                  <span data-tier-view="all">{every}</span>
+                </>
+              )}
             </span>
           </span>
         }
@@ -81,7 +95,7 @@ export function Reliability({ track }: { track: Track }) {
             p.failureReasons.length === 0
               ? []
               : [
-                  <li key={p.id}>
+                  <li key={p.id} {...tierAttrs(p.id)}>
                     <p className="text-s font-medium" style={{ color: providerColor(p.id) }}>
                       <ProviderName id={p.id} />
                     </p>
@@ -112,7 +126,7 @@ export function Reliability({ track }: { track: Track }) {
             </thead>
             <tbody>
               {rows.map(({ p, f, first }) => (
-                <tr key={`${p.id}${f.reason}`} className={first ? "[&>*]:pt-s" : ""}>
+                <tr key={`${p.id}${f.reason}`} {...tierAttrs(p.id)} className={first ? "[&>*]:pt-s" : ""}>
                   <th scope="row" className="px-m py-1.5 align-top font-medium whitespace-nowrap" style={{ color: providerColor(p.id) }}>
                     {first ? <ProviderName id={p.id} /> : <span className="sr-only">{providerName(p.id)}</span>}
                   </th>

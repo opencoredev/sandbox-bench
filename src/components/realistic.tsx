@@ -165,7 +165,8 @@ const rowGrid =
  */
 export function rowBars(costed: readonly Costed[]): Map<ProviderId, Bar> {
   const columns = columnsOf(costed);
-  const max = axisMax(columns);
+  // The default view's scale, as the chart's "One per provider" copy draws it (components/columns.tsx).
+  const max = axisMax(columns.filter((c) => !isExtraTier(c.provider)));
   return new Map(columns.map((c) => [c.provider, layout(c, max)]));
 }
 
