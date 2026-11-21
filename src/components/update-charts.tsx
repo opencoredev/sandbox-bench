@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { TierTable } from "@/components/cpu-tiers";
 import { MetricChart } from "@/components/metric-chart";
 import { RealTaskHeadline, taskTimes } from "@/components/real-tasks";
 import { RealtaskBurstChart } from "@/components/realtask-burst";
@@ -7,7 +8,7 @@ import { ordinal, SectionTitle } from "@/components/seo/page-parts";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { profileIds, profileInfo } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
@@ -91,7 +92,10 @@ function MetricStanding({ id, track, metric }: { id: ProviderId; track: TrackId;
 
 /** A real task's standing for one provider: its place among the timed providers, fastest first. */
 function TaskStanding({ id, track, profile }: { id: ProviderId; track: TrackId; profile: ProfileId }) {
-  const { timed, missing } = taskTimes(tracks[track], profile);
+  const all = taskTimes(tracks[track], profile);
+  // Ranked on each provider's first CPU tier, as every rank on the site is; the chart beside it keeps the tiers for Every CPU tier.
+  const timed = all.timed.filter((r) => !isExtraTier(r.provider));
+  const missing = all.missing;
   const i = timed.findIndex((r) => r.provider === id);
   const row = timed[i];
   if (row) return <Rank rank={i + 1} of={timed.length} value={`${formatShort(row.medianWallS, "s")} s`} />;
@@ -135,6 +139,15 @@ export function UpdateCharts({ charts }: { charts: Charts }) {
       return (
         <section className="pt-xxl">
           <RealtaskBurstChart data={realtaskBurst} />
+        </section>
+      );
+    case "tiers":
+      return (
+        <section className="pt-xxl">
+          <SectionTitle id="tiers">{providerName(charts.provider)} on each CPU tier</SectionTitle>
+          <div className="surface mt-l p-m sm:p-l">
+            <TierTable brand={charts.provider} track={tracks["same-spec"]} realistic={realistic} burst={realtaskBurst} />
+          </div>
         </section>
       );
     default: {

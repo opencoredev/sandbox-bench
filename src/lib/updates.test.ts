@@ -31,7 +31,7 @@ describe("updates", () => {
     }
   });
 
-  test("each update page links back to a home page section and tab", () => {
-    for (const u of updates) assert.match(homeHref(u), /^\/#[\w-]+\/[\w-]+$/);
+  test("each update page links back to a home page section, and its tab where it has tabs", () => {
+    for (const u of updates) assert.match(homeHref(u), /^\/#[\w-]+(\/[\w-]+)?$/);
   });
 });

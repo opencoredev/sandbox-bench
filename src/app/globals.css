@@ -274,3 +274,20 @@
 [data-track-view="default"] {
   display: none;
 }
+
+/* A CPU tier past a provider's first shows only under "Every CPU tier": while <head> holds tierStyle (lib/tiers.ts). */
+html:not(:has(> head > #tiers-all)) [data-tier-extra] {
+  display: none !important;
+}
+/* A chart drawn once per view, each on its own scale (components/columns.tsx). */
+[data-tier-view] {
+  display: contents;
+}
+html:not(:has(> head > #tiers-all)) [data-tier-view="all"],
+html:has(> head > #tiers-all) [data-tier-view="one"] {
+  display: none !important;
+}
+/* Without scripts nothing can add tierStyle, so the switch hides (tierScript adds #tiers-js). */
+html:not(:has(> head > #tiers-js)) [data-tier-switch] {
+  display: none !important;
+}

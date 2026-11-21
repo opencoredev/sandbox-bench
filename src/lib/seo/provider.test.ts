@@ -4,7 +4,7 @@ import { describe, test } from "node:test";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { providerPageOf } from "@/lib/provider-pages";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, providerName } from "@/lib/providers";
 import { headlineRows, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { rankScores } from "@/lib/score";
@@ -34,7 +34,8 @@ describe("providerNotes", () => {
 describe("real-task placings", () => {
   test("time ranks follow the chart's order, fastest first", () => {
     const rows = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test");
-    const timed = [...rows.costed, ...rows.uncosted].filter((r) => r.medianWallS !== null).sort((a, b) => (a.medianWallS ?? 0) - (b.medianWallS ?? 0));
+    // Ranked among providers on their first CPU tier, as on the page.
+    const timed = [...rows.costed, ...rows.uncosted].filter((r) => r.medianWallS !== null && !isExtraTier(r.provider)).sort((a, b) => (a.medianWallS ?? 0) - (b.medianWallS ?? 0));
     assert.ok(timed.length > 1);
     const first = realTaskTime("same-spec", timed[0]!.provider, "fix-and-test");
     const last = realTaskTime("same-spec", timed[timed.length - 1]!.provider, "fix-and-test");
@@ -43,7 +44,7 @@ describe("real-task placings", () => {
   });
 
   test("cost ranks follow the cost chart, cheapest first", () => {
-    const { costed } = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test");
+    const costed = headlineRows(realistic, runTrackOf["same-spec"], "fix-and-test").costed.filter((r) => !isExtraTier(r.provider));
     costed.forEach((r, i) => {
       const c = realTaskCost("same-spec", r.provider, "fix-and-test");
       assert.ok(c.kind === "ranked" && c.rank === i + 1 && c.of === costed.length);
@@ -221,7 +222,7 @@ describe("FAQ", () => {
     const e = scorecard("same-spec", "boxd").find((x) => x.category.id === "cost");
     assert.ok(e?.cell.kind === "valued" && e.rank, `boxd's cost is ${e?.cell.kind ?? "missing"}`);
     assert.equal(e.cell.display, "$5.50");
-    assert.deepEqual(e.rank, { rank: 3, of: tracks["same-spec"].providers.length });
+    assert.deepEqual(e.rank, { rank: 3, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
     const cost = providerFaqs("boxd")[1];
     assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 3rd cheapest of 14, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
     const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
@@ -231,7 +232,7 @@ describe("FAQ", () => {
   test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {
     for (const tid of trackIds) {
       const { costed } = headlineRows(realistic, runTrackOf[tid], "fix-and-test");
-      const field = costed.filter((r) => r.incomplete <= 1).length;
+      const field = costed.filter((r) => r.incomplete <= 1 && !isExtraTier(r.provider)).length;
       for (const id of providerPages) {
         const e = scorecard(tid, id).find((x) => x.category.id === "cost");
         if (e?.rank) assert.equal(e.rank.of, field, `${tid} ${id}`);

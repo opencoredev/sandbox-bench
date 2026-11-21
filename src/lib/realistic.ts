@@ -1,6 +1,6 @@
 import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
 import type { CostStatusKind } from "@/lib/cost";
-import { isProviderId, providerName } from "@/lib/providers";
+import { isExtraTier, isPreemptible, isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TrackId } from "@/lib/tracks";
 
@@ -649,17 +649,23 @@ export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.
 
 /**
  * Why a row can't be called cheapest, in plain words, or [] when it can: more
- * than one incomplete run, or, on the same-machine track, the wrong machine
- * size. How the cost was priced doesn't matter. Selection, the chart and the
+ * than one incomplete run, on the same-machine track the wrong machine size,
+ * or capacity the provider can take back mid-task. How the cost was priced doesn't matter. Selection, the chart and the
  * exports all read this one list.
  */
-export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track">): string[] {
+export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider">): string[] {
   const failed = r.incomplete > 1 ? [`${r.incomplete} of its runs didn't complete, and the pick allows at most 1`] : [];
   const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
-  return [...failed, ...size];
+  // Spot capacity can be stopped mid-task. Any other tier past a provider's first is compared in CPU tiers, not ranked against other providers.
+  const tier = isPreemptible(r.provider)
+    ? ["the provider can stop it before the task ends (spot capacity)"]
+    : isExtraTier(r.provider)
+      ? ["a cheaper CPU tier of its provider; providers are ranked on the tier a new account gets, and CPU tiers compares the rest"]
+      : [];
+  return [...failed, ...size, ...tier];
 }
 
-export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track">) => notCountedWhy(r).length === 0;
+export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider">) => notCountedWhy(r).length === 0;
 
 /**
  * The pick: the cheapest counted row. `counted` is every provider that could
@@ -795,7 +801,8 @@ export type Note = { lead: string; text: string };
  */
 export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
   const costed = d.rows.filter((r) => r.cost !== null);
-  const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))];
+  // Named by provider: a CPU tier past the first is priced the same way as its provider's row.
+  const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))].filter((id) => !isExtraTier(id));
   const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
   const estimates = has((r) => r.cost?.kind === "estimate");
@@ -816,7 +823,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
 
 /** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
 export const runNotes: Note[] = [
-  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox and Beam Nov 18. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
+  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18, Beam Nov 20. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
   { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
 ];
 

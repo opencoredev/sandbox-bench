@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 
 import { Break, Columns, axisMax, layout } from "@/components/columns";
 import type { Bar, Column } from "@/components/columns";
+import type { TierView } from "@/lib/tiers";
 import { Disclosure } from "@/components/disclosure";
 import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
-import { markFill } from "@/lib/marks";
-import { providerColor } from "@/lib/providers";
+import { markFill, rowFill } from "@/lib/marks";
+import { isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingText,
@@ -66,7 +67,7 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
             <span className="font-mono tabular-nums text-neutral-10">{perThousand(p.pick.cost.usdPerCompleted)}</span> <span className="text-neutral-7">per 1,000</span>
           </p>
           {p.lower.map((r) => (
-            <p key={r.provider} className="text-xs text-neutral-7">
+            <p key={r.provider} className="text-xs text-neutral-7" {...(isExtraTier(r.provider) ? { "data-tier-extra": "" } : {})}>
               Not counted: <Who id={r.provider} /> {perThousand(r.cost.usdPerCompleted)} ({lowerWhy(r)}).
             </p>
           ))}
@@ -78,7 +79,7 @@ function Pick({ costed }: { costed: readonly Costed[] }) {
         <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
           <p className="font-medium">{p.label}: no provider meets the pick rule.</p>
           {p.lower.map((r) => (
-            <p key={r.provider} className="text-xs text-neutral-7">
+            <p key={r.provider} className="text-xs text-neutral-7" {...(isExtraTier(r.provider) ? { "data-tier-extra": "" } : {})}>
               Not counted: <Who id={r.provider} /> {perThousand(r.cost.usdPerCompleted)} ({lowerWhy(r)}).
             </p>
           ))}
@@ -163,22 +164,45 @@ const rowGrid =
  * (an outlier more than 4x the runner-up is cut short) and its break mark.
  * The phone rows draw exactly these, so the two views can't disagree.
  */
-export function rowBars(costed: readonly Costed[]): Map<ProviderId, Bar> {
-  const columns = columnsOf(costed);
+export function rowBars(costed: readonly Costed[], view: TierView = "one"): Map<ProviderId, Bar> {
+  const all = columnsOf(costed);
+  // Each tier view's own scale, as the chart draws one copy per view (components/columns.tsx).
+  const columns = view === "one" ? all.filter((c) => !isExtraTier(c.provider)) : all;
   const max = axisMax(columns);
   return new Map(columns.map((c) => [c.provider, layout(c, max)]));
 }
+
+/** A row's bar in each tier view; `one` is undefined for a tier row, which shows only under Every CPU tier. */
+type RowBars = { one: Bar | undefined; all: Bar | undefined };
+
+const sameBar = (a: Bar | undefined, b: Bar | undefined) => a?.length === b?.length && a?.broken === b?.broken;
 
 /**
  * The bar a phone shows inside the row, in place of a separate chart: the
  * chart's length, break and colour.
  */
-function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
+function RowBar({ row, bars }: { row: RealisticRow; bars: RowBars }) {
+  // A first tier's bar can be scaled differently once hidden tiers join the chart; draw each view's and let CSS pick.
+  if (bars.one && bars.all && !sameBar(bars.one, bars.all))
+    return (
+      <>
+        <span data-tier-view="one">
+          <OneBar row={row} bar={bars.one} />
+        </span>
+        <span data-tier-view="all">
+          <OneBar row={row} bar={bars.all} />
+        </span>
+      </>
+    );
+  return <OneBar row={row} bar={isExtraTier(row.provider) ? bars.all : bars.one} />;
+}
+
+function OneBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
   if (!row.cost || !bar) return <span aria-hidden className="sm:hidden" />;
   const color = providerColor(row.provider);
   return (
     <span aria-hidden data-bar-share={bar.length.toFixed(6)} className="flex h-3 items-stretch border-l border-neutral-4 sm:hidden">
-      <span className="relative rounded-r-xs" style={{ width: `${bar.length * 100}%`, minWidth: 2, ...markFill("solid", color) }}>
+      <span className="relative rounded-r-xs" style={{ width: `${bar.length * 100}%`, minWidth: 2, ...markFill(rowFill(row.provider, "solid"), color) }}>
         {bar.broken === null ? null : <Break color={color} along="x" />}
       </span>
     </span>
@@ -190,10 +214,10 @@ function RowBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
  * explanation behind a disclosure. On phones the row also carries the bar, so
  * the chart isn't drawn a second time above the list.
  */
-function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefined; track: TrackId | undefined }) {
+function ProviderRow({ row, bars, track }: { row: RealisticRow; bars: RowBars; track: TrackId | undefined }) {
   const note = row.cost ? priceNote(row.provider, track) : shortReason(row);
   return (
-    <li className="border-t border-neutral-3">
+    <li className="border-t border-neutral-3" {...(isExtraTier(row.provider) ? { "data-tier-extra": "" } : {})}>
       <Disclosure
         className="gap-0"
         triggerClassName="w-full items-center gap-s py-s hover:bg-neutral-3/40"
@@ -202,7 +226,7 @@ function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefi
             <span className="text-s leading-[1.1] font-medium">
               <Who id={row.provider} />
             </span>
-            <RowBar row={row} bar={bar} />
+            <RowBar row={row} bars={bars} />
             <span className="text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-left">
               <span className="sr-only">Per 1,000 completed: </span>
               {row.cost ? perThousand(row.cost.usdPerCompleted) : "n/a"}
@@ -243,7 +267,8 @@ function ProviderRow({ row, bar, track }: { row: RealisticRow; bar: Bar | undefi
 
 /** Every provider in the workload, run or not, one row each. */
 export function ProviderRows({ costed, uncosted, track }: { costed: readonly Costed[]; uncosted: readonly RealisticRow[]; track?: TrackId }) {
-  const bars = rowBars(costed);
+  const one = rowBars(costed, "one");
+  const all = rowBars(costed, "all");
   const rows = [...costed, ...uncosted];
   return (
     <div className="mt-s sm:mt-l">
@@ -256,7 +281,7 @@ export function ProviderRows({ costed, uncosted, track }: { costed: readonly Cos
       </p>
       <ul className="flex flex-col">
         {rows.map((row) => (
-          <ProviderRow key={row.provider} row={row} bar={bars.get(row.provider)} track={track} />
+          <ProviderRow key={row.provider} row={row} bars={{ one: one.get(row.provider), all: all.get(row.provider) }} track={track} />
         ))}
       </ul>
     </div>
@@ -264,7 +289,9 @@ export function ProviderRows({ costed, uncosted, track }: { costed: readonly Cos
 }
 
 /** "Not in the chart: Daytona, E2B and Superserve (its default machine is too small …)", one group per reason. */
-function NotInChart({ rows }: { rows: readonly RealisticRow[] }) {
+function NotInChart({ rows: all }: { rows: readonly RealisticRow[] }) {
+  // A CPU tier past a provider's first says why it has no cost in the tier table; on Default machines it never runs.
+  const rows = all.filter((r) => !isExtraTier(r.provider));
   if (rows.length === 0) return null;
   const groups = new Map<string, ProviderId[]>();
   for (const r of rows) groups.set(noCostReason(r), [...(groups.get(noCostReason(r)) ?? []), r.provider]);
@@ -290,7 +317,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(footprint ? [{ lead: "Workload size", text: footprint }] : []),
     { lead: "Cost per task", text: "The cost of every attempt divided by the tasks that completed. Each task starts from the provider's base image and installs its own toolchain." },
     ...scopeNotes(data),
-    { lead: "Cheapest", text: "The lowest cost with at most 1 incomplete run. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
+    { lead: "Cheapest", text: "The lowest cost with at most 1 incomplete run, on the CPU tier a new account gets. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
     { lead: "Whole machine at list price", text: "The machine's published rate over each task's billed time. For providers that bill usage, this is a what-if, not their bill." },
     ...(track === "default" ? [{ lead: "Default machines", text: "Each provider's own default size, so sizes differ. A default too small for the workload wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),
@@ -435,7 +462,7 @@ function IdleBar({ point, provider, max }: { point: IdlePoint; provider: Provide
         {idleLabel(point)}
       </span>
       <div aria-hidden data-idle-share={share.toFixed(6)} className={`relative flex h-3 items-stretch border-l border-neutral-4 ${failed ? "opacity-40" : ""}`}>
-        <div className="rounded-r-xs" style={{ width: `${share * 100}%`, minWidth: 2, ...markFill("solid", providerColor(provider)) }} />
+        <div className="rounded-r-xs" style={{ width: `${share * 100}%`, minWidth: 2, ...markFill(rowFill(provider, "solid"), providerColor(provider)) }} />
       </div>
       <span aria-hidden className={`hidden text-right font-mono text-xxs whitespace-nowrap tabular-nums sm:block ${failed ? "text-neutral-6" : "text-neutral-8"}`}>
         {multiple ?? ""}
@@ -518,7 +545,8 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
 /** "Not in this test: Freestyle and Luxor (no billing data we can read) and Superserve (account totals only).", one group per short reason. */
 function NotTested() {
   const groups = new Map<string, ProviderId[]>();
-  for (const n of realistic.coverage.idle.notTested) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
+  // A CPU tier past a provider's first is idle-tested, or not, with its provider; naming it here would repeat Beam.
+  for (const n of realistic.coverage.idle.notTested.filter((x) => !isExtraTier(x.provider))) groups.set(n.short, [...(groups.get(n.short) ?? []), n.provider]);
   const parts = [...groups];
   if (parts.length === 0) return null;
   return (

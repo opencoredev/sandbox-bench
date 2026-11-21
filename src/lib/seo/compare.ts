@@ -2,7 +2,7 @@ import { agentData, groups } from "@/lib/agent-data";
 import { trackIds } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import { formatValue } from "@/lib/format";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { blankWhy, isRanked, providerTrack, tied } from "@/lib/seo/provider";
 import type { MetricData, ProviderTrack, Ranked } from "@/lib/seo/provider";
@@ -29,7 +29,8 @@ export interface CompareRow {
 }
 
 function compareMetric(m: MetricData, a: ProviderId, b: ProviderId): CompareRow {
-  const ranked = m.results.filter(isRanked);
+  // Ranked among providers on their first CPU tier, as on the provider pages.
+  const ranked = m.results.filter(isRanked).filter((r) => r.provider === a || r.provider === b || !isExtraTier(r.provider));
   const fmt = (v: number) => formatValue(v, m.unit);
   const side = (id: ProviderId): Side => {
     const r = ranked.find((x) => x.provider === id);
@@ -71,7 +72,7 @@ export function compareTrack(trackId: TrackId, a: ProviderId, b: ProviderId) {
     label: t.label,
     description: t.description,
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
-    providerCount: t.providers.length,
+    providerCount: t.providers.filter((p) => !isExtraTier(p.id)).length,
     sides: { a: pa, b: pb },
     groups: rowGroups,
     tally: {

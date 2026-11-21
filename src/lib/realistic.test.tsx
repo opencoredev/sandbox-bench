@@ -883,6 +883,21 @@ describe("page", () => {
     assert.doesNotMatch(renderToStaticMarkup(<Columns columns={columns} label="x" />), /NaN/);
   });
 
+  test("phone bars follow each tier view's chart scale, so hidden tiers never flatten them and Every CPU tier matches its chart", () => {
+    const rows = [costed("e2b", 0.001, false), costed("beam", 0.002, false), costed("beam-spot", 0.003, false)];
+    const one = rowBars(rows, "one");
+    const all = rowBars(rows, "all");
+    assert.equal(one.get("beam-spot"), undefined, "a tier row has no bar in the default view");
+    const firsts = columnsOf(rows).filter((c) => c.provider !== "beam-spot");
+    const beam = firsts.find((c) => c.provider === "beam");
+    assert.ok(beam);
+    assert.deepEqual(one.get("beam"), layout(beam, axisMax(firsts)));
+    assert.ok((all.get("beam")?.length ?? 0) < (one.get("beam")?.length ?? 0), "Beam's bar is shorter once Spot sets the scale");
+    const phone = renderToStaticMarkup(<ProviderRows costed={rows} uncosted={[]} />);
+    assert.match(phone, /data-tier-view="one"/);
+    assert.match(phone, /data-tier-view="all"/);
+  });
+
   test("phone bars share the chart's axis: lengths follow cost, an outlier is cut and marked the same way", () => {
     const outlier = [costed("boat", 0.001, false), costed("e2b", 0.00999, false), costed("daytona", 0.01049, false), costed("vercel", 0.1, false)];
     const columns = columnsOf(outlier);
@@ -904,7 +919,7 @@ describe("page", () => {
 
   test("on phones the chart is hidden and each provider row carries its bar instead", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /<div class="hidden sm:block"><figure/);
+    assert.match(html, /<div class="hidden sm:block">(<div data-tier-view="one">)?<figure/);
     const costedRows = headlineRows(realistic, "same-machine", "fix-and-test").costed.length;
     const buildRows = headlineRows(realistic, "same-machine", "build").costed.length;
     assert.equal((html.match(/class="flex h-3 items-stretch border-l border-neutral-4 sm:hidden"/g) ?? []).length, costedRows + buildRows);

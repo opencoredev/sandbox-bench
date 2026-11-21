@@ -4,6 +4,7 @@ import { Tracked } from "@/components/track";
 import { costStatus, costTag, isPriced, perTaskText, taskCostOf } from "@/lib/cost";
 import { hasResults } from "@/lib/data";
 import type { Track } from "@/lib/data";
+import { isExtraTier } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TraceKind } from "@/lib/traces";
 
@@ -19,8 +20,9 @@ function failures(track: Track, id: ProviderId): WaterfallProvider["failures"] {
   return { cold: of("cold"), pause: of("pause"), replay: of("replay") };
 }
 
+// Each provider on its first CPU tier, like every list visible by default; a tier's own breakdown opens from its column.
 export const providersOf = (track: Track): WaterfallProvider[] =>
-  track.providers.map((p) => {
+  track.providers.filter((p) => !isExtraTier(p.id)).map((p) => {
     const c = taskCostOf(track, p.id);
     return {
       id: p.id,

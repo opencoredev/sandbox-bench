@@ -33,7 +33,7 @@ import { chipBasisLabel, fingerprintDate, hardware, probeDate } from "@/lib/hard
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, autoStandby, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { pauseOf } from "@/lib/pause";
-import { isProviderId, providerName } from "@/lib/providers";
+import { isExtraTier, isProviderId, providerBrand, providerName, tierOf } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingTag,
@@ -307,14 +307,15 @@ export function quickPicks(track: Track): QuickPick[] {
   // Format from the raw medians, not the rounded export, so picks match the page exactly.
   const timed = (id: string, label: string): QuickPick => {
     const m = track.metric(id);
-    const ranked = new Set(results(track, m).filter((r) => r.status === "measured" && r.median !== null).map((r) => r.provider));
+    // Providers are ranked on their first CPU tier.
+    const ranked = new Set(results(track, m).filter((r) => r.status === "measured" && r.median !== null && !isExtraTier(r.provider)).map((r) => r.provider));
     const [a, b] = m.values
       .filter((v) => ranked.has(v.provider) && v.p50 !== null)
       .sort((x, y) => (m.better === "lower" ? 1 : -1) * ((x.p50 ?? 0) - (y.p50 ?? 0)));
     const cell = (v: typeof a) => (v ? `${name(v.provider)} ${formatValue(v.p50 ?? 0, m.unit)}` : "n/a");
     return { need: label, pick: cell(a), runnerUp: cell(b), note: null };
   };
-  const reliable = track.providers.map((p) => ({ p, rate: successRate(track, p).rate ?? 0 })).sort((a, b) => b.rate - a.rate);
+  const reliable = track.providers.filter((p) => !isExtraTier(p.id)).map((p) => ({ p, rate: successRate(track, p).rate ?? 0 })).sort((a, b) => b.rate - a.rate);
   const top = reliable.filter((x) => x.rate === reliable[0]?.rate);
   const rest = reliable.slice(top.length);
   const picks = [
@@ -629,6 +630,13 @@ function regionOf(p: Provider) {
   return note ? { region: p.pricingRegion, regionMultiplier: p.regionMultiplier, regionNote: note } : {};
 }
 
+/** A row's CPU tier as plain data, or null for a provider that sells one tier. */
+function tierFacts(id: ProviderId) {
+  const t = tierOf(id);
+  if (!t) return null;
+  return { name: t.name, cpu: t.cpu, preemptible: t.preemptible, ratesUsd: t.rates, firstTier: !isExtraTier(id), promise: t.promise };
+}
+
 /** One track as plain data. */
 function trackData(track: Track) {
   const notes = allocationNotes(track);
@@ -647,6 +655,9 @@ function trackData(track: Track) {
       return {
         id: p.id,
         name: providerName(p.id),
+        // The company, and for a provider that sells more than one CPU tier, which one this row ran on.
+        provider: providerBrand(p.id),
+        cpuTier: tierFacts(p.id),
         allocation: allocationOf(p),
         allocationNote: notes[p.id] ?? (track.id === "default" ? advertised[p.id].note : null),
         advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
@@ -689,7 +700,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
@@ -848,7 +859,8 @@ const setAsideSummary = () => allProviders.flatMap((id) => { const s = setAsideS
  * own group, never the others'.
  */
 function billingSummary() {
-  const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))];
+  // Pages quote these sentences by name, so each provider is listed on its first CPU tier; a tier's billing is in its own row.
+  const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))].filter((id) => !isExtraTier(id));
   const byLabel = new Map<string, ProviderId[]>();
   for (const id of ids) {
     const label = billingLabel(billingBases[id]);
@@ -881,7 +893,7 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten and Beam costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten and Beam costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 

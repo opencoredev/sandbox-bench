@@ -402,14 +402,70 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "beam-shared",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 3748.4603271484375
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
+  },
+  {
+   "provider": "beam-spot",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 3748.4603271484375
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-11-19T19:24:04.464Z"
+  "end": "2026-11-20T18:10:19.106Z"
  },
- "observations": 42514,
+ "observations": 46680,
  "runs": [
   {
    "id": "sbx53-same-spec-burst-r8b2",
@@ -730,6 +786,16 @@
    "id": "rb1118-e2b-same-spec-burst",
    "suite": "burst",
    "samples": 123
+  },
+  {
+   "id": "bt-main-shared",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "bt-main-spot",
+   "suite": "main",
+   "samples": 2183
   }
  ],
  "excluded": [
@@ -866,6 +932,36 @@
      "suite": "burst",
      "scenario": "burst-25/*",
      "reason": "Not run: our Beam account's quota is 30 vCPU, and a burst of 25 sandboxes at 4 vCPU needs 100"
+    }
+   ],
+   "replacements": []
+  },
+  "beam-shared": {
+   "removed": {
+    "documented-not-run": 100
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "beam-shared",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "reason": "Not available: Beam sandboxes have no pause call (Beam's persistent VMs pause and resume, but they are a different product, not benchmarked here)"
+    }
+   ],
+   "replacements": []
+  },
+  "beam-spot": {
+   "removed": {
+    "documented-not-run": 100
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "beam-spot",
+     "suite": "main",
+     "scenario": "pause-resume",
+     "reason": "Not available: Beam sandboxes have no pause call (Beam's persistent VMs pause and resume, but they are a different product, not benchmarked here)"
     }
    ],
    "replacements": []
@@ -2508,6 +2604,216 @@
    "ourFailures": [],
    "pauseSplit": null,
    "standbyResume": null
+  },
+  {
+   "id": "beam-shared",
+   "costPerTask": {
+    "usd": null,
+    "kind": "estimate",
+    "source": "https://www.beam.cloud/pricing",
+    "confidence": "none",
+    "n": 0,
+    "settled": false,
+    "bound": null
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 3748.4603271484375
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.088,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.088,
+   "perVcpuHour": 0.022,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.011,
+    "memoryGiBHour": 0.0055,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://www.beam.cloud/pricing",
+   "pricingNotes": "Published Sandboxes rates on the Shared tier ($0.011/vCPU-hour, $0.0055/GiB RAM-hour; shared vCPUs, not preemptible, up to 8 vCPU / 16 GiB), priced on the allocation and billed per millisecond while running (2026-11-20). Run with the adapter's cpuTier option. Disk not billed. Credits excluded.",
+   "reliability": {
+    "successes": 2083,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": 4,
+    "memoryGiB": 8,
+    "diskGiB": 3748.4603271484375,
+    "cpuModels": [],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": "EPYC4000D4U",
+    "kernel": "4.19.0-gvisor",
+    "location": [
+     {
+      "value": "Dallas, US",
+      "count": 100
+     }
+    ],
+    "network": [
+     {
+      "value": "AS26863 Gameserverkings",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": null,
+   "standbyResume": null
+  },
+  {
+   "id": "beam-spot",
+   "costPerTask": {
+    "usd": null,
+    "kind": "estimate",
+    "source": "https://www.beam.cloud/pricing",
+    "confidence": "none",
+    "n": 0,
+    "settled": false,
+    "bound": null
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 8,
+     "diskGiB": 3748.4603271484375
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.036,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.036,
+   "perVcpuHour": 0.009,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0063,
+    "memoryGiBHour": 0.00135,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://www.beam.cloud/pricing",
+   "pricingNotes": "Published Sandboxes rates on the Spot tier ($0.0063/vCPU-hour, $0.00135/GiB RAM-hour; spare capacity, reclaimed with 30 seconds' notice), priced on the allocation and billed per millisecond while running (2026-11-20). Run with the adapter's cpuTier option. Disk not billed. Credits excluded.",
+   "reliability": {
+    "successes": 2082,
+    "failures": 1,
+    "raw": 0.99951992318771,
+    "adjusted": 0.99951992318771,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 1
+   },
+   "hardware": {
+    "fingerprints": 100,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": 4,
+    "memoryGiB": 8,
+    "diskGiB": 3748.4603271484375,
+    "cpuModels": [],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "unreported",
+    "hypervisor": false,
+    "host": "EPYC4000D4U",
+    "kernel": "4.19.0-gvisor",
+    "location": [
+     {
+      "value": "Dallas, US",
+      "count": 100
+     }
+    ],
+    "network": [
+     {
+      "value": "AS26863 Gameserverkings",
+      "count": 100
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Beam GET /pods/{containerId}/files/download/{path} failed: no response before the deadline. (timeout)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Write + read 10 MB"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": null,
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -2698,6 +3004,32 @@
      "min": 0.3174216739998665,
      "ciLow": 0.40655509800004075,
      "ciHigh": 0.4189758810000494,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 0.44936270399997014,
+     "p95": 0.5129310379996896,
+     "min": 0.4136520229997113,
+     "ciLow": 0.44133573399996384,
+     "ciHigh": 0.4555384840006009,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 0.44326276699989103,
+     "p95": 0.5009191620000638,
+     "min": 0.4032962230001576,
+     "ciLow": 0.4372074380000122,
+     "ciHigh": 0.44823167399992236,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -2896,6 +3228,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 0.09469559300038964,
+     "p95": 0.09930054200004088,
+     "min": 0.09151282700011507,
+     "ciLow": 0.09417199900001287,
+     "ciHigh": 0.09540909700002521,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 0.09308920199994464,
+     "p95": 0.10257089900015853,
+     "min": 0.08789611199963838,
+     "ciLow": 0.0926210790000041,
+     "ciHigh": 0.09361060200000065,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3086,6 +3444,32 @@
      "min": 0.1008702930000145,
      "ciLow": 0.10775079000007827,
      "ciHigh": 0.10918493700004182,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 0.15496915100002662,
+     "p95": 0.16150461499998348,
+     "min": 0.1491272339997813,
+     "ciLow": 0.15427629500022158,
+     "ciHigh": 0.1559475040002726,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 0.15245267000002788,
+     "p95": 0.16234170700004324,
+     "min": 0.1459776679999195,
+     "ciLow": 0.15164086199970916,
+     "ciHigh": 0.1529791409999598,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3284,6 +3668,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 27.98472085900001,
+     "p95": 32.68360371600045,
+     "min": 8.635744572,
+     "ciLow": 27.07547174399998,
+     "ciHigh": 28.502094904999947,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 99,
+     "p50": 20.359476694999962,
+     "p95": 47.6020650589997,
+     "min": 5.752435855999589,
+     "ciLow": 19.779523009999888,
+     "ciHigh": 21.199112301999996,
+     "successes": 99,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3474,6 +3884,32 @@
      "min": 0.20094651999999769,
      "ciLow": 0.2100574800000759,
      "ciHigh": 0.21637853700004053,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 0.2973787930000108,
+     "p95": 0.308702488000039,
+     "min": 0.2874759649997577,
+     "ciLow": 0.2965182630000636,
+     "ciHigh": 0.2991866469999077,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 0.2914239789999556,
+     "p95": 0.30147326599992813,
+     "min": 0.2811962749999948,
+     "ciLow": 0.2900155910002068,
+     "ciHigh": 0.29267391899996437,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3819,6 +4255,32 @@
      "min": 0.03293902000016533,
      "ciLow": 0.03610821299999952,
      "ciHigh": 0.03672332099999767,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 0.0457030219999142,
+     "p95": 0.04895368200005032,
+     "min": 0.04277576299989596,
+     "ciLow": 0.045511678999755535,
+     "ciHigh": 0.046051103999838236,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 0.03847094999998808,
+     "p95": 0.05333171999966726,
+     "min": 0.034651159999892114,
+     "ciLow": 0.03813457200000994,
+     "ciHigh": 0.03903421900002286,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4327,6 +4789,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 1.079746703999932,
+     "p95": 1.305307738000003,
+     "min": 0.9570172010000096,
+     "ciLow": 1.0719393519998994,
+     "ciHigh": 1.088937937000068,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 1.0719849690000118,
+     "p95": 1.303627957999939,
+     "min": 0.8184339230000042,
+     "ciLow": 1.0539881779999996,
+     "ciHigh": 1.1132324490000027,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4517,6 +5005,32 @@
      "min": 0.9402844750000077,
      "ciLow": 1.1212908360000002,
      "ciHigh": 1.2192627479999791,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 0.6402391549998429,
+     "p95": 0.7277058739999775,
+     "min": 0.5527965229999973,
+     "ciLow": 0.6119193149998319,
+     "ciHigh": 0.665893419,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 0.6540012190000002,
+     "p95": 0.7439410510000307,
+     "min": 0.5496859640000621,
+     "ciLow": 0.6244384729999584,
+     "ciHigh": 0.6645029639999848,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -4715,6 +5229,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 2.366623346999986,
+     "p95": 3.322122091999976,
+     "min": 2.226169055000006,
+     "ciLow": 2.349315961999935,
+     "ciHigh": 2.4789628499998946,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 2.935714389000088,
+     "p95": 3.6569461209999865,
+     "min": 2.308103817999945,
+     "ciLow": 2.718379687000008,
+     "ciHigh": 3.1742468750000117,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4905,6 +5445,32 @@
      "min": 0.9417216599999229,
      "ciLow": 1.107197317000013,
      "ciHigh": 1.1938532059999998,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 1.1268244290000002,
+     "p95": 1.1835210929999593,
+     "min": 1.062797338000033,
+     "ciLow": 1.1039568759999239,
+     "ciHigh": 1.1359878019999015,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 1.1056502869999967,
+     "p95": 1.179500149999978,
+     "min": 0.8811180679999961,
+     "ciLow": 1.0935017920000245,
+     "ciHigh": 1.1179000280000038,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5103,6 +5669,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 0.21297415499994532,
+     "p95": 0.2602112549999729,
+     "min": 0.192675241000019,
+     "ciLow": 0.20703455300000498,
+     "ciHigh": 0.218644596000202,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 0.21249043900007383,
+     "p95": 0.2284010450001806,
+     "min": 0.19482503700000234,
+     "ciLow": 0.20693833299994002,
+     "ciHigh": 0.2174943360000616,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5297,6 +5889,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 0.3738412810000591,
+     "p95": 0.3823049929998815,
+     "min": 0.3680741430000053,
+     "ciLow": 0.372848387999984,
+     "ciHigh": 0.375854779999936,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 0.366531679000007,
+     "p95": 0.3725659890000243,
+     "min": 0.35622529699996813,
+     "ciLow": 0.3636853129999945,
+     "ciHigh": 0.3687017600000836,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5487,6 +6105,32 @@
      "min": 10.23746304199999,
      "ciLow": 10.726810592000025,
      "ciHigh": 11.30888939799997,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 30,
+     "p50": 13.646464278999948,
+     "p95": 13.90492985799996,
+     "min": 13.456738565000007,
+     "ciLow": 13.61116362300003,
+     "ciHigh": 13.726211814000038,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 30,
+     "p50": 13.573253223999986,
+     "p95": 13.892860581999994,
+     "min": 13.216117460000095,
+     "ciLow": 13.475743014999987,
+     "ciHigh": 13.637157919000137,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6047,6 +6691,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 29670811.83732461,
+     "p95": 30129794.938423514,
+     "min": 17776167.96800661,
+     "ciLow": 29465606.16807074,
+     "ciHigh": 29724069.38323055,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 29448684.69511228,
+     "p95": 30085525.627978995,
+     "min": 18336501.23897002,
+     "ciLow": 29256871.94185233,
+     "ciHigh": 29582077.426236268,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6237,6 +6907,32 @@
      "min": 24919330.52025662,
      "ciLow": 41110383.651452735,
      "ciHigh": 42501004.77687928,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 71084748.46332988,
+     "p95": 76841584.94451405,
+     "min": 45988898.83168845,
+     "ciLow": 69773011.12598683,
+     "ciHigh": 71708223.25523469,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 71228282.58567683,
+     "p95": 76911161.60927065,
+     "min": 42682839.25136831,
+     "ciLow": 70001650.28890432,
+     "ciHigh": 72640269.49539992,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -6435,6 +7131,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 35313.929791327704,
+     "p95": 40289.58380908791,
+     "min": 18600.439186780313,
+     "ciLow": 34273.55217438281,
+     "ciHigh": 36551.620318851776,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 36466.81175615962,
+     "p95": 40386.52745586364,
+     "min": 19579.99963711766,
+     "ciLow": 35455.60824984241,
+     "ciHigh": 37770.65050191273,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6625,6 +7347,32 @@
      "min": 1841.5741397890663,
      "ciLow": 2003.1410236646177,
      "ciHigh": 2059.8025656102272,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 4518.573800581248,
+     "p95": 5266.8214065271795,
+     "min": 3671.840359619874,
+     "ciLow": 4447.138852879838,
+     "ciHigh": 4588.527011401563,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 4505.874521725387,
+     "p95": 5166.126694261132,
+     "min": 3251.9568282461128,
+     "ciLow": 4458.391527809892,
+     "ciHigh": 4568.297371990531,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -6823,6 +7571,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 11885.616318861363,
+     "p95": 15014.784364937519,
+     "min": 7866.148264928615,
+     "ciLow": 11431.917274516694,
+     "ciHigh": 12219.4164369624,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 11625.286977600794,
+     "p95": 14426.041692403536,
+     "min": 8434.82239188539,
+     "ciLow": 11317.048492122223,
+     "ciHigh": 11825.106689430353,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7013,6 +7787,32 @@
      "min": 54560.571078682755,
      "ciLow": 95923.80053095298,
      "ciHigh": 108182.75786586059,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 291384.57756066555,
+     "p95": 326199.41997664305,
+     "min": 122559.2281832437,
+     "ciLow": 277914.9862400984,
+     "ciHigh": 299316.83271354187,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 276035.78113822493,
+     "p95": 323627.86840682913,
+     "min": 146426.19976537515,
+     "ciLow": 242208.18171669988,
+     "ciHigh": 296070.81643832463,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7211,6 +8011,32 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 306615.83551016985,
+     "p95": 332200.04671527277,
+     "min": 177608.9259586231,
+     "ciLow": 276241.6034961115,
+     "ciHigh": 314852.5543027361,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 305384.67135937046,
+     "p95": 333338.97578854626,
+     "min": 36675.219442451016,
+     "ciLow": 292054.07563741325,
+     "ciHigh": 314926.14612867177,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7386,6 +8212,32 @@
      "min": 2.872496399999136,
      "ciLow": 3.4358393999999848,
      "ciHigh": 3.62212400000006,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-shared",
+     "n": 100,
+     "p50": 1.8099816000001212,
+     "p95": 2.0209373999999336,
+     "min": 1.5577112000009663,
+     "ciLow": 1.7831541999999256,
+     "ciHigh": 1.8256715999999784,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "beam-spot",
+     "n": 100,
+     "p50": 1.8270264000000758,
+     "p95": 2.0405436000000776,
+     "min": 1.642310999999097,
+     "ciLow": 1.8055796000000512,
+     "ciHigh": 1.8682924000000156,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8822,6 +9674,210 @@
    0.501,
    0.75,
    0.891
+  ],
+  "beam-shared": [
+   0.414,
+   0.415,
+   0.417,
+   0.418,
+   0.421,
+   0.421,
+   0.423,
+   0.423,
+   0.423,
+   0.424,
+   0.424,
+   0.425,
+   0.426,
+   0.427,
+   0.428,
+   0.428,
+   0.428,
+   0.428,
+   0.428,
+   0.429,
+   0.43,
+   0.43,
+   0.43,
+   0.431,
+   0.432,
+   0.433,
+   0.433,
+   0.434,
+   0.434,
+   0.435,
+   0.436,
+   0.436,
+   0.437,
+   0.437,
+   0.437,
+   0.437,
+   0.438,
+   0.44,
+   0.441,
+   0.441,
+   0.442,
+   0.442,
+   0.445,
+   0.446,
+   0.446,
+   0.446,
+   0.446,
+   0.448,
+   0.449,
+   0.449,
+   0.449,
+   0.45,
+   0.451,
+   0.451,
+   0.451,
+   0.451,
+   0.451,
+   0.453,
+   0.454,
+   0.456,
+   0.456,
+   0.456,
+   0.457,
+   0.459,
+   0.459,
+   0.46,
+   0.46,
+   0.462,
+   0.463,
+   0.463,
+   0.464,
+   0.465,
+   0.465,
+   0.465,
+   0.467,
+   0.467,
+   0.468,
+   0.468,
+   0.469,
+   0.469,
+   0.471,
+   0.473,
+   0.473,
+   0.478,
+   0.479,
+   0.482,
+   0.484,
+   0.484,
+   0.488,
+   0.488,
+   0.488,
+   0.502,
+   0.502,
+   0.512,
+   0.513,
+   0.519,
+   0.519,
+   0.545,
+   0.577,
+   1.015
+  ],
+  "beam-spot": [
+   0.403,
+   0.408,
+   0.409,
+   0.41,
+   0.41,
+   0.412,
+   0.412,
+   0.413,
+   0.415,
+   0.415,
+   0.416,
+   0.418,
+   0.42,
+   0.422,
+   0.422,
+   0.423,
+   0.423,
+   0.423,
+   0.424,
+   0.425,
+   0.425,
+   0.426,
+   0.427,
+   0.428,
+   0.428,
+   0.429,
+   0.43,
+   0.431,
+   0.432,
+   0.432,
+   0.432,
+   0.433,
+   0.433,
+   0.433,
+   0.433,
+   0.433,
+   0.435,
+   0.435,
+   0.436,
+   0.437,
+   0.438,
+   0.438,
+   0.44,
+   0.44,
+   0.441,
+   0.441,
+   0.441,
+   0.442,
+   0.442,
+   0.443,
+   0.443,
+   0.445,
+   0.445,
+   0.445,
+   0.445,
+   0.445,
+   0.446,
+   0.446,
+   0.448,
+   0.448,
+   0.448,
+   0.448,
+   0.449,
+   0.45,
+   0.451,
+   0.451,
+   0.452,
+   0.453,
+   0.454,
+   0.455,
+   0.457,
+   0.458,
+   0.459,
+   0.459,
+   0.461,
+   0.461,
+   0.462,
+   0.463,
+   0.464,
+   0.464,
+   0.464,
+   0.467,
+   0.468,
+   0.468,
+   0.469,
+   0.473,
+   0.478,
+   0.48,
+   0.481,
+   0.484,
+   0.484,
+   0.488,
+   0.497,
+   0.499,
+   0.501,
+   0.501,
+   0.504,
+   0.512,
+   0.517,
+   1.081
   ]
  },
  "missing": {},

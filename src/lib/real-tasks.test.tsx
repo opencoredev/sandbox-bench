@@ -5,9 +5,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { RealTasks, taskTimes } from "@/components/real-tasks";
 import { tracks } from "@/lib/data";
+import { isExtraTier } from "@/lib/providers";
 import { profileIds } from "@/lib/realistic";
 
-// The real-task charts time every provider on the page, or say why one has no time.
+// The real-task charts time every provider on the page (each on its first CPU tier), or say why one has no time.
 describe("real tasks", () => {
   for (const track of Object.values(tracks))
     for (const profile of profileIds)
@@ -15,7 +16,8 @@ describe("real tasks", () => {
         const { timed, missing } = taskTimes(track, profile);
         const ids = [...timed.map((r) => r.provider), ...missing.map((m) => m.id)];
 
-        for (const p of track.providers) assert.ok(ids.includes(p.id), `${p.id} missing from ${track.id} ${profile}`);
+        // A CPU tier past a provider's first is compared in the tier table; its gaps here are by design.
+        for (const p of track.providers.filter((x) => !isExtraTier(x.id))) assert.ok(ids.includes(p.id), `${p.id} missing from ${track.id} ${profile}`);
         assert.equal(new Set(ids).size, ids.length, "no provider listed twice");
         for (const m of missing) assert.ok(m.why.length > 0, m.id);
         const times = timed.map((r) => r.medianWallS);

@@ -1,5 +1,6 @@
 import { Who, sentence } from "@/components/metric-chart";
 import type { Provider, Track } from "@/lib/data";
+import { isExtraTier } from "@/lib/providers";
 import { absentNote, allocationNotes, measuredText, requestedText } from "@/lib/notes";
 import { advertised } from "@/lib/sizes";
 
@@ -27,7 +28,8 @@ const Verdict = ({ ok, text }: { ok: boolean; text: string }) => (
  * screens, one block per provider on phones.
  */
 export function Allocations({ track }: { track: Track }) {
-  const rows = track.providers.map((p) => ({
+  // A CPU tier is the same machine as its provider's first row, so it isn't listed again.
+  const rows = track.providers.filter((p) => !isExtraTier(p.id)).map((p) => ({
     p,
     requested: requestedText(p),
     measured: measuredText(p) ?? "not measured",
