@@ -1,14 +1,17 @@
 import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
 import { costKinds, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
-import { trackIds } from "@/lib/data";
-import type { TrackId } from "@/lib/data";
-import { formatValue } from "@/lib/format";
+import { trackIds, trackInfo, tracks } from "@/lib/data";
+import type { Track, TrackId } from "@/lib/data";
+import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { trackScores } from "@/lib/score-categories";
+import type { ScoreCategory, ScoreCell } from "@/lib/score-categories";
+import type { Better } from "@/lib/score";
 
 /**
  * One provider's results as a page reads them. Everything comes from
@@ -51,21 +54,30 @@ export const blankWhy = (status: string) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
 
-function standingOf(m: MetricData, id: ProviderId): Standing {
+/**
+ * A provider's standing on one test. The words come from the track's own
+ * unrounded values, as the home page's charts print them: the published
+ * model rounds to 3 decimals first, which would print 1.24996 s as 1.3 s where
+ * the chart says 1.2 s. Rank, ties and status come from the published model.
+ */
+function standingOf(m: MetricData, id: ProviderId, track: Track): Standing {
   const unit: Unit = m.unit;
   const ranked = m.results.filter(isRanked);
   const mine = ranked.find((r) => r.provider === id);
   if (!mine) return { kind: "blank", why: blankWhy(m.results.find((r) => r.provider === id)?.status ?? "not run") };
   const leader = ranked[0];
+  const raw = (provider: ProviderId) => track.findMetric(m.id)?.values.find((v) => v.provider === provider);
+  const own = raw(id);
   const fmt = (v: number) => formatValue(v, unit);
+  const exact = (value: number | null | undefined, rounded: number) => fmt(value ?? rounded);
   return {
     kind: "ranked",
     rank: ranked.indexOf(mine) + 1,
     of: ranked.length,
-    median: fmt(mine.median),
-    p95: mine.p95 === null ? "n/a" : fmt(mine.p95),
-    ci: `${fmt(mine.ci95[0])} to ${fmt(mine.ci95[1])}`,
-    leader: leader && leader.provider !== id ? { id: leader.provider, median: fmt(leader.median) } : null,
+    median: exact(own?.p50, mine.median),
+    p95: mine.p95 === null ? "n/a" : exact(own?.p95, mine.p95),
+    ci: `${exact(own?.ciLow, mine.ci95[0])} to ${exact(own?.ciHigh, mine.ci95[1])}`,
+    leader: leader && leader.provider !== id ? { id: leader.provider, median: exact(raw(leader.provider)?.p50, leader.median) } : null,
     tiedWith: ranked.filter((r) => r.provider !== id && tied(r, mine)).map((r) => r.provider),
   };
 }
@@ -114,7 +126,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
       title: g.title,
       rows: g.ids.flatMap((mid): MetricRow[] => {
         const m = t.metrics.find((x) => x.id === mid);
-        return m ? [{ id: m.id, label: m.label, better: m.better, standing: standingOf(m, id) }] : [];
+        return m ? [{ id: m.id, label: m.label, better: m.better, standing: standingOf(m, id, tracks[trackId]) }] : [];
       }),
     })),
   };
@@ -209,3 +221,259 @@ export function providerNotes(id: ProviderId) {
     .split(/(?<=\.) (?=[A-Z])/)
     .filter((s) => names.some((n) => new RegExp(`(^|[\\s(])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}('s)?[\\s,.;)]`).test(s)));
 }
+
+/* ---------------------------------------------------------------------------
+ * The provider page's summaries: the scorecard, the verdict, where it stands
+ * out and trails, the meta description and the FAQ. Every sentence is built
+ * from the numbers above, so a page can say nothing the charts don't show.
+ * ------------------------------------------------------------------------- */
+
+/** The machine a track ran on, in words, from the track's own definition. */
+export const machineOf = (trackId: TrackId) => (trackId === "same-spec" ? `the same ${trackInfo["same-spec"].short} machine` : "its default machine");
+
+/** A rank among providers with a result, ties counted as the better place: "2nd of 12". */
+export type Rank = { rank: number; of: number };
+export const rankText = (r: Rank) => `${ordinal(r.rank)} of ${r.of}`;
+
+/**
+ * One score category for one provider on one track: the home page's own cell
+ * (lib/score-categories.ts), so the numbers match the home page's Scores by
+ * category exactly, and where it ranks among the providers with a result.
+ */
+export interface ScorecardEntry {
+  category: Pick<ScoreCategory, "id" | "label" | "measure" | "better" | "shows" | "link">;
+  cell: ScoreCell;
+  rank: Rank | null;
+}
+
+/** A value's place among every provider's value, best first; equal values share the better place. */
+const rankAmong = ({ own, values, better }: { own: number; values: readonly number[]; better: Better }): Rank => ({
+  rank: values.filter((v) => (better === "lower" ? v < own : v > own)).length + 1,
+  of: values.length,
+});
+
+const measuredValue = (cell: ScoreCell) => (cell.kind === "scored" || cell.kind === "valued" ? cell.value : null);
+
+export function scorecard(trackId: TrackId, id: ProviderId): ScorecardEntry[] {
+  return trackScores(tracks[trackId]).map(({ category, scores }) => {
+    const cell: ScoreCell = scores.find((s) => s.provider === id) ?? { kind: "not-measured", provider: id };
+    const own = measuredValue(cell);
+    const values = scores.flatMap((s) => {
+      const v = measuredValue(s);
+      return v === null ? [] : [v];
+    });
+    const rank = own === null ? null : rankAmong({ own, values, better: category.better });
+    const { id: cid, label, measure, better, shows, link } = category;
+    return { category: { id: cid, label, measure, better, shows, link }, cell, rank };
+  });
+}
+
+/** One ranked result in a few words, for the strengths and trade-offs: "Cold start, 0.31 s, 1st of 12". */
+export interface Placed {
+  id: string;
+  label: string;
+  value: string;
+  rank: Rank;
+  tied: boolean;
+}
+
+/**
+ * Every ranked result of a provider on one track: each test in the results
+ * table, plus the real tasks' time and cost as the scorecard ranks them.
+ * Only results ranked among at least three providers, so "stands out" means something.
+ */
+export function placings(t: ProviderTrack, id: ProviderId): Placed[] {
+  const rows = t.groups.flatMap((g) => g.rows);
+  const fromRows = rows.flatMap((r): Placed[] =>
+    r.standing.kind === "ranked" ? [{ id: r.id, label: r.label, value: r.standing.median, rank: { rank: r.standing.rank, of: r.standing.of }, tied: r.standing.tiedWith.length > 0 }] : [],
+  );
+  const card = scorecard(t.id, id);
+  const fromCard = card.flatMap((e): Placed[] => {
+    if (e.rank === null || (e.cell.kind !== "scored" && e.cell.kind !== "valued")) return [];
+    switch (e.category.id) {
+      case "real-tasks":
+        return [{ id: "fix-and-test", label: "Real task: fix and test", value: e.cell.display, rank: e.rank, tied: false }];
+      case "cost":
+        return [{ id: "fix-and-test-cost", label: "Fix and test cost, per 1,000", value: e.cell.display, rank: e.rank, tied: false }];
+      default:
+        // Speed and Bursts are the cold start and burst rows of the results table, already listed.
+        return [];
+    }
+  });
+  const build = realTaskTime(t.id, id, "build");
+  const fromBuild: Placed[] = build.kind === "ranked" ? [{ id: "build", label: "Real task: build", value: build.value, rank: { rank: build.rank, of: build.of }, tied: false }] : [];
+  return [...fromRows, ...fromCard, ...fromBuild].filter((p) => p.rank.of >= 3);
+}
+
+/** How far down the field a result sits, 0 for first and 1 for last. */
+const depth = (p: Placed) => (p.rank.rank - 1) / (p.rank.of - 1);
+
+/**
+ * Where a provider stands out and where it trails on one track: up to three
+ * results from the top third of the field, best first, and up to three from
+ * the bottom third, worst first. The thirds never overlap, so no result is both.
+ */
+export function highlights(t: ProviderTrack, id: ProviderId, count = 3): { leads: Placed[]; trails: Placed[] } {
+  const all = placings(t, id);
+  const third = (p: Placed) => Math.ceil(p.rank.of / 3);
+  const leads = all
+    .filter((p) => p.rank.rank <= third(p))
+    .sort((a, b) => depth(a) - depth(b) || a.rank.rank - b.rank.rank)
+    .slice(0, count);
+  const trails = all
+    .filter((p) => p.rank.rank > p.rank.of - third(p))
+    .sort((a, b) => depth(b) - depth(a) || b.rank.rank - a.rank.rank)
+    .slice(0, count);
+  return { leads, trails };
+}
+
+const entryOf = (card: readonly ScorecardEntry[], id: string) => card.find((e) => e.category.id === id);
+
+/** A scorecard entry's reading and rank, when it has both. */
+function reading(e: ScorecardEntry | undefined): { display: string; rank: Rank } | null {
+  if (!e || e.rank === null || (e.cell.kind !== "scored" && e.cell.kind !== "valued")) return null;
+  return { display: e.cell.display, rank: e.rank };
+}
+
+/**
+ * The provider's results on one track in one sentence, for the top of its
+ * page: cold start, the fix and test task's time and its cost, each with its
+ * rank, from the scorecard below it.
+ */
+export function verdict(t: ProviderTrack, id: ProviderId): string {
+  const name = providerName(id);
+  const card = scorecard(t.id, id);
+  const cold = reading(entryOf(card, "speed"));
+  const task = reading(entryOf(card, "real-tasks"));
+  const cost = reading(entryOf(card, "cost"));
+  const parts = [
+    cold ? `starts a sandbox in ${cold.display} (${rankText(cold.rank)})` : null,
+    task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${rankText(cost.rank)} on cost)` : ""}` : null,
+    !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${rankText(cost.rank)})` : null,
+  ].filter((x) => x !== null);
+  if (parts.length === 0) return `${name} has no ranked cold start, real task or cost result on ${machineOf(t.id)} yet.`;
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  return `On ${machineOf(t.id)}, ${name} ${list}.`;
+}
+
+/** One sentence of measured facts for the meta description, from the landing track, machine first. */
+export function providerSummary(id: ProviderId): string {
+  const r = providerResults(id);
+  const t = r.tracks[0];
+  if (!t) return `${r.name} sandbox results from Sandbox bench.`;
+  const cold = headline(t, "cold");
+  const tool = headline(t, "tool-replay");
+  const card = scorecard(t.id, id);
+  const task = reading(entryOf(card, "real-tasks"));
+  const cost = reading(entryOf(card, "cost"));
+  const parts = [
+    cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
+    tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
+    task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000` : ""}` : null,
+    !task && t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 quick tasks (${t.cost.tag})` : null,
+  ].filter((x) => x !== null);
+  return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
+}
+
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
+
+/** "On the same 4 vCPU, 8 GB machine, …" for each track the provider has results on. */
+function perTrack(r: ReturnType<typeof providerResults>, say: (t: ProviderTrack) => string): string {
+  const said = r.tracks.map((t) => ({ t, text: say(t) }));
+  const [first] = said;
+  // The same words on both tracks read once.
+  if (first && said.length > 1 && said.every((x) => x.text === first.text)) return sentence(`On both the same ${trackInfo["same-spec"].short} machine and its default machine, ${first.text}`);
+  return said.map(({ t, text }) => sentence(`On ${machineOf(t.id)}, ${text}`)).join(" ");
+}
+
+function coldAnswer(r: ReturnType<typeof providerResults>): string {
+  const lead = perTrack(r, (t) => {
+    const row = t.groups.flatMap((g) => g.rows).find((x) => x.id === "cold");
+    if (!row) return "cold start wasn't measured";
+    const s = row.standing;
+    return s.kind === "ranked"
+      ? `${r.name}'s median cold start is ${s.median} (p95 ${s.p95}), ${ordinal(s.rank)} of ${s.of} providers${s.tiedWith.length ? `, tied with ${s.tiedWith.map(providerName).join(", ")}` : ""}`
+      : `there is no cold start result: ${s.why.charAt(0).toLowerCase()}${s.why.slice(1)}`;
+  });
+  return `${lead} Cold start is the provider's own time, from create() until the first command runs in the new sandbox.`;
+}
+
+/** The fix and test cost in words, ranked as the scorecard ranks it, or why it has no rank. */
+function taskCostText(t: ProviderTrack, id: ProviderId): string {
+  const e = entryOf(scorecard(t.id, id), "cost");
+  const row = realTaskCost(t.id, id, "fix-and-test");
+  const what = "a fix and test task (an agent fixes a real Vue bug and runs its tests)";
+  if (e?.cell.kind === "valued" && e.rank) {
+    // Ranked with everyone, but a row on the wrong machine size still can't be the chart's "Cheapest" pick.
+    const caveat = row.kind === "ranked" && row.notCounted.length > 0 ? `, though it can't be the cheapest pick (${row.notCounted.join("; ")})` : "";
+    return `${what} costs ${e.cell.display} per 1,000 completed, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
+  }
+  if (row.kind === "ranked") return `${what} costs ${row.value} per 1,000 completed, not counted for the cheapest pick (${e?.cell.kind === "excluded" ? e.cell.why : row.notCounted.join("; ")})`;
+  return `there is no fix and test cost (${row.why})`;
+}
+
+function costAnswer(id: ProviderId, r: ReturnType<typeof providerResults>): string {
+  const lead = perTrack(r, (t) => `${taskCostText(t, id)}${t.cost.kind === "priced" ? `; the quick task (create, 100 tool calls, delete) costs ${t.cost.perThousand} per 1,000 (${t.cost.tag})` : ""}`);
+  const billing = r.tracks[0]?.billing;
+  return billing ? `${lead} Billing: ${billing}.` : lead;
+}
+
+function pauseAnswer(r: ReturnType<typeof providerResults>): string {
+  // A note is a sentence that starts with the provider's name, so it keeps its capital.
+  return perTrack(r, (t) => (t.pause.supported && "split" in t.pause && t.pause.split ? `yes: ${pauseText(t)}` : pauseText(t)));
+}
+
+function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
+  const h = r.hardware;
+  const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : ""}`);
+  if (!h) return machines;
+  const memory = h.memory.type ? `, ${h.memory.type} memory` : "";
+  return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;
+}
+
+function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
+  return perTrack(r, (t) => {
+    const rel = t.reliability;
+    if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
+    const list = t.failures
+      .map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`)
+      .join("; ");
+    const detail =
+      t.failures.length === 0
+        ? "with no failures recorded"
+        : rel.succeeded === rel.attempts
+          ? `with separate errors recorded outside those attempts: ${list}`
+          : `with failures recorded: ${list}`;
+    return `${formatCount(rel.succeeded)} of ${formatCount(rel.attempts)} attempts succeeded (${formatPercent(rel.successRate, 2)}), ${detail}`;
+  });
+}
+
+/**
+ * Five questions people search about a sandbox provider, each answered from
+ * its measured results on every track it has them on. For the page's FAQ and
+ * its FAQPage structured data, which must say the same thing.
+ */
+export function providerFaqs(id: ProviderId): Faq[] {
+  const r = providerResults(id);
+  if (r.tracks.length === 0) return [];
+  const name = r.name;
+  return [
+    { question: `How fast is ${name}'s cold start?`, answer: coldAnswer(r) },
+    { question: `How much does ${name} cost for AI coding tasks?`, answer: costAnswer(id, r) },
+    { question: `Does ${name} support pause and resume?`, answer: pauseAnswer(r) },
+    { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(r) },
+    { question: `How reliable is ${name}?`, answer: reliabilityAnswer(r) },
+  ].map((f) => ({ question: f.question, answer: capitalise(f.answer) }));
+}
+
+/** The FAQ as schema.org FAQPage, for a page's JSON-LD graph. */
+export const faqJsonLd = (faqs: readonly Faq[]) => ({
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })),
+});

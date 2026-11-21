@@ -20,8 +20,9 @@ const wrapper: Record<Layout, string> = {
 
 /**
  * A provider's name as shown on the page. A tagged product renders its short
- * name and its tag in muted text ("Upstash" + "Ephemeral"), no pill, so it
- * sits in a chart label like any other name; screen readers hear the full name. In `flow`, both are inline, not flex, so a wrapped tag follows
+ * name and its tag ("Upstash" + "Ephemeral") in the surrounding weight and
+ * colour, no pill, so it reads as one name in a chart label, bold and bright
+ * together when highlighted; screen readers hear the full name. In `flow`, both are inline, not flex, so a wrapped tag follows
  * the parent's text-align: centred under a chart column, left in a table. The
  * space between them collapses at the wrap. The name's colour comes from the
  * surrounding text.
@@ -34,7 +35,7 @@ export function ProviderName({ id, layout = "flow" }: { id: ProviderId; layout?:
     case "tagged":
       return (
         <span className={wrapper[layout]}>
-          {label.short} <span className="font-normal whitespace-nowrap text-neutral-7">{label.tag}</span>
+          {label.short} <span className="whitespace-nowrap">{label.tag}</span>
           {label.rest ? <span className="sr-only"> {label.rest}</span> : null}
         </span>
       );

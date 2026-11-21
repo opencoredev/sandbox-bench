@@ -84,6 +84,8 @@ export interface Track {
   id: TrackId;
   providers: readonly Provider[];
   metric: (id: string) => Metric;
+  /** The metric, or null when this track's export doesn't carry it yet, for readers that must work before a new key lands. */
+  findMetric: (id: string) => Metric | null;
   coldSamples: Partial<Record<ProviderId, readonly number[]>>;
   window: { start: string; end: string };
   runs: readonly { id: string; suite: string; samples: number }[];
@@ -195,8 +197,9 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
       ? [{ id: m.id, label: m.label, unit: m.unit, better: m.better, values: m.values.flatMap((v) => (isProviderId(v.provider) ? [{ ...v, provider: v.provider }] : [])) }]
       : [],
   );
+  const findMetric = (metricId: string) => metrics.find((m) => m.id === metricId) ?? null;
   const metric = (metricId: string) => {
-    const found = metrics.find((m) => m.id === metricId);
+    const found = findMetric(metricId);
     if (!found) throw new Error(`Unknown metric ${metricId}`);
     return found;
   };
@@ -206,6 +209,7 @@ function parseTrack(id: TrackId, raw: SiteExport, extras: ExtrasExport): Omit<Tr
     id,
     providers,
     metric,
+    findMetric,
     coldSamples: Object.fromEntries(Object.entries(raw.coldSamples).filter(([pid]) => isProviderId(pid))),
     window: raw.window,
     runs: raw.runs,

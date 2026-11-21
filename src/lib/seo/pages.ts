@@ -1,25 +1,15 @@
 import { trackIds, tracks } from "@/lib/data";
+import { providerPages, providerPath, providersPath } from "@/lib/provider-pages";
+import type { ProviderPageId, ProviderPath } from "@/lib/provider-pages";
 import type { ProviderId } from "@/lib/providers";
 import { updates } from "@/lib/updates";
 import type { UpdateSlug } from "@/lib/updates";
 
 export const site = "https://aisandboxbench.com";
 
-/**
- * Providers with a page at /providers/<id>/, in the order they shipped. Pages
- * roll out a few at a time, and only for providers with published results on
- * the live site.
- */
-export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten", "instabox", "beam"] as const satisfies readonly ProviderId[];
-export type ProviderPageId = (typeof providerPages)[number];
-export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
-
-/** The index of every provider page. */
-export const providersPath = "/providers/";
-
-export type ProviderPath = `/providers/${ProviderPageId}/`;
-export const providerPath = (id: ProviderPageId): ProviderPath => `/providers/${id}/`;
-
+// Provider pages live in lib/provider-pages.ts, which client components can import without the benchmark data.
+export { isProviderPage, providerPageOf, providerPages, providerPath, providersPath } from "@/lib/provider-pages";
+export type { ProviderPageId, ProviderPath } from "@/lib/provider-pages";
 /**
  * Pairs with a page at /compare/<a>-vs-<b>/. Only pairs people search for, and
  * only when both have published results on the same track.
@@ -57,8 +47,11 @@ export const updatesPath = "/updates/";
 export type UpdatePath = `/updates/${UpdateSlug}/`;
 export const updatePath = (slug: UpdateSlug): UpdatePath => `/updates/${slug}/`;
 
+/** The page where sandbox providers read about private benchmarks and get in touch. Outside /providers/, where every page is one provider's results. */
+export const forProvidersPath = "/for-providers/";
+
 /** Every public page. Adding a provider, comparison, alternatives or update page without a content date below fails to compile. */
-export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
+export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -66,23 +59,24 @@ export type SitePath = "/" | typeof providersPath | ProviderPath | ComparePath |
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-19",
-  "/providers/e2b/": "2026-11-18",
+  "/": "2026-11-20",
+  "/providers/e2b/": "2026-11-20",
   "/providers/": "2026-11-18",
-  "/providers/daytona/": "2026-11-18",
-  "/providers/superserve/": "2026-11-18",
-  "/providers/upstash/": "2026-11-18",
-  "/providers/upstash-ephemeral/": "2026-11-18",
-  "/providers/boat/": "2026-11-18",
-  "/providers/freestyle/": "2026-11-18",
-  "/providers/tenki/": "2026-11-18",
-  "/providers/baseten/": "2026-11-18",
-  "/providers/instabox/": "2026-11-18",
-  "/providers/beam/": "2026-11-18",
+  "/providers/daytona/": "2026-11-20",
+  "/providers/superserve/": "2026-11-20",
+  "/providers/upstash/": "2026-11-20",
+  "/providers/upstash-ephemeral/": "2026-11-20",
+  "/providers/boat/": "2026-11-20",
+  "/providers/freestyle/": "2026-11-20",
+  "/providers/tenki/": "2026-11-20",
+  "/providers/baseten/": "2026-11-20",
+  "/providers/instabox/": "2026-11-20",
+  "/providers/beam/": "2026-11-20",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
   "/alternatives/e2b/": "2026-11-18",
+  "/for-providers/": "2026-11-19",
   "/updates/": "2026-11-19",
   "/updates/every-provider-on-real-tasks/": "2026-11-19",
   "/updates/beam-added/": "2026-11-19",
@@ -112,4 +106,5 @@ export const sitePaths: readonly SitePath[] = [
   ...alternativesPages.map(alternativesPath),
   updatesPath,
   ...updates.map((u) => updatePath(u.slug)),
+  forProvidersPath,
 ];
