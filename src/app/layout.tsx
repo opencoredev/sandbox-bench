@@ -8,6 +8,7 @@ import { Theme } from "@/components/theme";
 import { trackScript } from "@/components/track";
 import { tierScript } from "@/lib/tiers";
 import { TracePanel } from "@/components/trace-panel";
+import { databuddyScripts } from "@/lib/databuddy";
 import { PostHogProvider } from "@/lib/posthog-provider";
 import { homeOpenGraph, homeTwitter, siteDescription as description, siteTitle as title } from "@/lib/seo/home";
 
@@ -50,6 +51,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: trackScript }} />
         <script dangerouslySetInnerHTML={{ __html: tierScript }} />
+        {databuddyScripts({ nodeEnv: process.env.NODE_ENV }).map((props) => (
+          <script key={props.src} {...props} />
+        ))}
         <link rel="preload" href="/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         {/* Without scripts the themed disclosures cannot open, so show every panel, undoing its closed and
