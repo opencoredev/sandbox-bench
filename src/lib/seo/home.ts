@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { trackIds, tracks } from "@/lib/data";
-import { providerBrand, providerInfo, providerName } from "@/lib/providers";
+import { isExtraTier, providerBrand, providerInfo, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 
@@ -13,7 +13,8 @@ export const siteTitle = "Sandbox bench: cloud sandboxes for agents, measured";
  * way the facts line counts them, by brand.
  */
 export function publishedProviders() {
-  const ids = [...new Set(trackIds.flatMap((t) => tracks[t].providers.map((p) => p.id)))];
+  // Each provider on its first CPU tier: Beam Shared is Beam's sandbox on another CPU, not another product.
+  const ids = [...new Set(trackIds.flatMap((t) => tracks[t].providers.map((p) => p.id)))].filter((id) => !isExtraTier(id));
   const byBrand = new Map<ProviderId, ProviderId[]>();
   for (const id of ids) byBrand.set(providerBrand(id), [...(byBrand.get(providerBrand(id)) ?? []), id]);
   const names = [...byBrand.values()].map(([first, ...rest]) => {

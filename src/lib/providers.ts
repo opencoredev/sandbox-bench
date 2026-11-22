@@ -26,6 +26,11 @@ export const providerInfo = {
   baseten: { name: "Baseten", color: "oklch(0.72 0.18 351)" },
   instabox: { name: "Instabox", color: "oklch(0.97 0.14 110)" },
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
+  // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
+  // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
+  // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
+  "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
+  "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;
@@ -61,3 +66,77 @@ export function providerLabel(id: ProviderId): ProviderLabel {
   const rest = info.name.replace(info.short, "").replace(info.tag, "").trim();
   return { kind: "tagged", short: info.short, tag: info.tag, rest };
 }
+
+/**
+ * How a CPU tier treats the processor it sells. `dedicated`: vCPUs no one
+ * else runs on; `shared`: vCPUs shared with other customers' sandboxes;
+ * `spot`: spare capacity the provider can take back mid-task.
+ */
+export type CpuClass = "dedicated" | "shared" | "spot";
+
+export interface CpuTier {
+  /** The row its results sit under. */
+  id: ProviderId;
+  /** The provider's own name for the tier. */
+  name: string;
+  cpu: CpuClass;
+  /** The provider can stop it before the task ends, so it is never picked as cheapest. */
+  preemptible: boolean;
+  /** List rates in US dollars. */
+  rates: { vcpuHour: number; memoryGiBHour: number };
+  /** What the provider says about it, in a few words. */
+  promise: string;
+}
+
+/**
+ * Providers that sell one sandbox product on more than one CPU tier, each with
+ * its own rate card, tiers in the provider's own order, the one a new account
+ * gets first. The first is the provider's own row; every other tier is a
+ * sibling row, shown only under "Every tier" (components/tier-switch.tsx).
+ *
+ * Who gets a row of their own, so the page stays readable as providers add
+ * options: a separate product (Upstash Ephemeral Box) or a CPU tier sold at its
+ * own rate gets one. Machine size, region and plain settings never do: the
+ * tracks, By location and the notes cover those. At most four rows per provider.
+ */
+export const cpuTiers = {
+  beam: [
+    { id: "beam", name: "Performance", cpu: "dedicated", preemptible: false, rates: { vcpuHour: 0.05, memoryGiBHour: 0.01 }, promise: "No CPU sharing, not preemptible" },
+    { id: "beam-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.011, memoryGiBHour: 0.0055 }, promise: "Shared vCPUs, not preemptible, up to 8 vCPU and 16 GiB" },
+    { id: "beam-spot", name: "Spot", cpu: "spot", preemptible: true, rates: { vcpuHour: 0.0063, memoryGiBHour: 0.00135 }, promise: "Spare capacity, can be stopped with 30 seconds' notice" },
+  ],
+} as const satisfies Partial<Record<ProviderId, readonly [CpuTier, ...CpuTier[]]>>;
+
+export type TieredProvider = keyof typeof cpuTiers;
+
+/** Where a provider's tiers and their rates are published. */
+export const tierSources = {
+  beam: {
+    url: "https://www.beam.cloud/pricing",
+    checked: "Nov 20, 2026",
+    note: "Every tier's real tasks ran on Nov 20, one tier at a time, 5 runs each; Beam's own real-task results are that day's Performance run. Performance's quick tests are Beam's own row, from Nov 18: a same-day rerun on the same Intel hosts in Warrenton came within 7% on cold start, commands, 100 tool calls and every CPU, memory and disk test, and took 3.6 s for the 10 MB write and read against 2.9 s. Five Fix and test runs at once, against the same task alone that day, took 1.23 times as long on Performance, 1.40 on Shared and 1.48 on Spot. No Spot sandbox was taken back, but each lived at most 4 minutes, so this says little about long Spot work.",
+  },
+} as const satisfies Record<TieredProvider, { url: string; checked: string; note: string }>;
+
+/** A tier's list price per hour for a machine. */
+export const tierHourly = (t: Pick<CpuTier, "rates">, m: { cpu: number; memoryGiB: number }) => t.rates.vcpuHour * m.cpu + t.rates.memoryGiBHour * m.memoryGiB;
+
+const tierList: readonly CpuTier[] = Object.values(cpuTiers).flat();
+
+/** The CPU tier a row ran on, for a provider that sells more than one; undefined otherwise. */
+export const tierOf = (id: ProviderId): CpuTier | undefined => tierList.find((t) => t.id === id);
+
+/** A tier row past the provider's first, hidden under "One per provider". */
+export const isExtraTier = (id: ProviderId) => {
+  const tier = tierOf(id);
+  return tier !== undefined && tier.id !== providerBrand(tier.id);
+};
+
+/** Every tier of a row's provider, the row's own included, or just the row when its provider has one tier. */
+export function tiersOf(id: ProviderId): readonly CpuTier[] {
+  const brand = providerBrand(id);
+  return tierList.filter((t) => providerBrand(t.id) === brand);
+}
+
+/** Can the provider stop this row's sandboxes before the task ends? */
+export const isPreemptible = (id: ProviderId) => tierOf(id)?.preemptible === true;

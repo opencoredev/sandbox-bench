@@ -1,6 +1,6 @@
 import type { PriceBound, Provider, TaskCost, Track } from "@/lib/data";
 import { usdPrice } from "@/lib/fx";
-import { providerName } from "@/lib/providers";
+import { isExtraTier, isPreemptible, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 export type Priced = Exclude<TaskCost, { kind: "none" }>;
@@ -220,6 +220,16 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "beam.cloud/pricing (checked Nov 18, 2026): sandboxes billed per millisecond while running, $0.05 per vCPU-hour and $0.01 per GiB of RAM per hour on the Performance tier, the default for new accounts (Shared and Spot tiers are cheaper); disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
   },
+  "beam-shared": {
+    kind: "unconfirmed",
+    evidence:
+      "beam.cloud/pricing (checked Nov 20, 2026): the Shared tier bills $0.011 per vCPU-hour and $0.0055 per GiB of RAM per hour, per millisecond while running, on shared vCPUs; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
+  },
+  "beam-spot": {
+    kind: "unconfirmed",
+    evidence:
+      "beam.cloud/pricing (checked Nov 20, 2026): the Spot tier bills $0.0063 per vCPU-hour and $0.00135 per GiB of RAM per hour, per millisecond while running, on spare capacity Beam can take back with 30 seconds' notice; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",
@@ -337,7 +347,8 @@ export const noPickWhy = (c: Extract<CostPick, { kind: "none" }>) =>
 
 export function costPick(track: Track): CostPick {
   const all = pricedTasks(track);
-  const exact = all.filter((t) => !isLowerBound(t.cost));
+  // Providers are picked on their first CPU tier; the CPU tiers table compares the rest (Spot can also be taken back mid-task).
+  const exact = all.filter((t) => !isLowerBound(t.cost) && !isExtraTier(t.id) && !isPreemptible(t.id));
   const sized = (t: PricedTask) => track.id === "default" || track.providers.some((p) => p.id === t.id && p.equalSpec);
   const [pick, runnerUp] = exact.filter(sized);
   if (pick) return { kind: "picked", pick, runnerUp: runnerUp ?? null, lower: exact.filter((t) => !sized(t) && t.cost.usd < pick.cost.usd) };
@@ -348,6 +359,8 @@ export function costPick(track: Track): CostPick {
 /** Providers with no cost at all, and why: no data or a failed run. */
 export const unpricedTasks = (track: Track) =>
   track.providers.flatMap((p): { id: ProviderId; why: string }[] => {
+    // A CPU tier past the first skips the cost run by design, so it isn't listed as missing a cost.
+    if (isExtraTier(p.id)) return [];
     const c = taskCostOf(track, p.id);
     return !c ? [{ id: p.id, why: "no cost data" }] : c.kind === "none" ? [{ id: p.id, why: c.why }] : [];
   });

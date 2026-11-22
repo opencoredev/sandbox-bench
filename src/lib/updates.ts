@@ -1,3 +1,4 @@
+import type { TieredProvider } from "@/lib/providers";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import type { TrackId } from "@/lib/tracks";
 
@@ -14,7 +15,9 @@ export type UpdateCharts =
   /** A provider's standing on the headline metrics, on both tracks. */
   | { kind: "provider"; provider: ProviderPageId }
   /** Fix and test, several at once on each provider, on the same machine. */
-  | { kind: "realtask-burst" };
+  | { kind: "realtask-burst" }
+  /** One provider's CPU tiers side by side, on the same machine. */
+  | { kind: "tiers"; provider: TieredProvider };
 
 export interface Update {
   /** The page's address under /updates/. */
@@ -28,10 +31,25 @@ export interface Update {
   body: readonly string[];
   charts: UpdateCharts;
   /** The home page section and tab the update's page links to last, and the section's name. */
-  home: { section: string; tab: string; label: string };
+  /** `tab` only for a section with tabs. */
+  home: { section: string; tab?: string; label: string };
 }
 
 export const updates = [
+  {
+    slug: "beam-cpu-tiers",
+    date: "2026-11-20",
+    title: "Beam's CPU tiers, side by side",
+    text: "Beam sells its sandbox on three CPU tiers. Shared and Spot ran on faster AMD hosts and did Fix and test for a quarter and a tenth of Performance's cost, but moved files and made calls more slowly from Dallas.",
+    body: [
+      "Beam now sells the same sandbox on three CPU tiers: Performance, the default, with no CPU sharing; Shared, on vCPUs shared with other customers; and Spot, on spare capacity Beam can take back with 30 seconds' notice. On our 4 vCPU, 8 GB machine they list at $0.28, $0.088 and $0.036 an hour.",
+      "We ran Shared and Spot through the same quick tests and real tasks as every provider. Both landed on AMD hosts in Dallas, where Performance ran on Intel hosts in Warrenton, Virginia, and both were faster on every CPU, memory and disk test, about 1.7 times on all cores. Calls that cross Beam's network were slower: 100 tool calls took 14 s against 11 s, and writing and reading a 10 MB file took 28 s on Shared and 20 s on Spot against 2.9 s.",
+      "On the same day, Fix and test took 115 s on Performance, 83 s on Shared and 97 s on Spot, at $9.12, $2.22 and $1.08 per 1,000. Build took 149 s, 133 s and 195 s: Spot spent about a minute uploading the dependency cache. Five tasks at once slowed Shared and Spot more than Performance. Beam's own real-task results on the main charts are now that day's Performance run; its Nov 18 run took 138 s and 186 s.",
+      "The site shows each provider once by default, on the tier a new account gets; Every CPU tier adds the others to every chart, and ranks and Cheapest picks always use the first tier.",
+    ],
+    charts: { kind: "tiers", provider: "beam" },
+    home: { section: "tiers", label: "CPU tiers" },
+  },
   {
     slug: "real-tasks-at-once",
     date: "2026-11-19",
@@ -102,7 +120,7 @@ export type UpdateSlug = (typeof updates)[number]["slug"];
 export const latestUpdates = updates.slice(0, 3);
 
 /** The home page section an update links to, opened on its tab: the `#section/tab` hash JumpLink and TabCard read. */
-export const homeHref = ({ home }: Pick<Update, "home">) => `/#${home.section}/${home.tab}`;
+export const homeHref = ({ home }: Pick<Update, "home">) => (home.tab === undefined ? `/#${home.section}` : `/#${home.section}/${home.tab}`);
 
 /** "Nov 18", for the hero. */
 export const updateDay = (u: Pick<Update, "date">) => new Date(`${u.date}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });

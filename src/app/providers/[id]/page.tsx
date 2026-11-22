@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Columns } from "@/components/columns";
+import { TierTable, tieredWithData } from "@/components/cpu-tiers";
 import { NoCostResults, costColumns } from "@/components/cost";
 import { ComingNext, CompactNotes, Footnotes, MetricChart } from "@/components/metric-chart";
 import { ProviderLogo } from "@/components/provider-logo";
@@ -17,7 +18,9 @@ import { TrackSwitch } from "@/components/track-switch";
 import { hasTaskCosts } from "@/lib/cost";
 import { allocationNotes } from "@/lib/notes";
 import { privateTitle } from "@/lib/private-benchmarks";
-import { providerColor, providerFormerName, providerName } from "@/lib/providers";
+import { cpuTiers, providerColor, providerFormerName, providerName } from "@/lib/providers";
+import type { TieredProvider } from "@/lib/providers";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
@@ -32,6 +35,8 @@ import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, provider
 import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
 
 export const dynamicParams = false;
+
+const isTiered = (id: ProviderId): id is TieredProvider => Object.hasOwn(cpuTiers, id);
 
 export function generateStaticParams() {
   return providerPages.map((id) => ({ id }));
@@ -694,6 +699,18 @@ export default async function ProviderPage(props: Props) {
             {(t) => <Charts id={id} t={t} />}
           </ByTrack>
         </section>
+
+        {isTiered(id) && tieredWithData(tracks["same-spec"]).includes(id) ? (
+          <section aria-labelledby="tiers" className="pt-xxl">
+            <SectionTitle id="tiers">{name}&apos;s CPU tiers</SectionTitle>
+            <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
+              {name} sells its sandbox on {cpuTiers[id].length} CPU tiers at different prices. The ranks above use {cpuTiers[id][0].name}, the tier a new account gets. Here each tier runs the same tests on the same {trackInfo["same-spec"].short} machine.
+            </p>
+            <Card>
+              <TierTable brand={id} track={tracks["same-spec"]} realistic={realistic} burst={realtaskBurst} />
+            </Card>
+          </section>
+        ) : null}
 
         <section aria-labelledby="results" className="pt-xxl">
           <SectionTitle id="results">Every test</SectionTitle>

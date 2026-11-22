@@ -4,11 +4,15 @@ import { describe, test } from "node:test";
 import { tracks, trackIds } from "@/lib/data";
 import { headlineRows, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { isExtraTier } from "@/lib/providers";
 import type { Track } from "@/lib/data";
 import { metricReadings, scoreCategories, trackScores } from "@/lib/score-categories";
 import type { ScoreCategory } from "@/lib/score-categories";
 import { rankScores, scoreReadings } from "@/lib/score";
 import type { Excluded, Reading, Score } from "@/lib/score";
+
+/** Providers scored on a track: one row each, on the CPU tier a new account gets. */
+const firsts = (track: Track) => track.providers.filter((p) => !isExtraTier(p.id));
 
 const scoreOf = (scores: readonly Score[], provider: string) => scores.find((s) => s.provider === provider);
 
@@ -136,7 +140,7 @@ describe("score categories on the committed data", () => {
     for (const id of trackIds) {
       const track = tracks[id];
       for (const { category, scores } of trackScores(track)) {
-        assert.equal(scores.length, track.providers.length, `${id} ${category.id}`);
+        assert.equal(scores.length, firsts(track).length, `${id} ${category.id}`);
         if (category.shows === "value") {
           assert.ok(scores.every((s) => s.kind !== "scored"), `${id} ${category.id} shows values, not scores`);
           continue;
@@ -258,7 +262,7 @@ describe("cost shows dollars, not a score", () => {
     assert.deepEqual(shown(cells).slice(0, 3), [["instabox", "$0.76"], ["boat", "$0.95"], ["boxd", "$5.50"]]);
     assert.deepEqual(shown(cells).find(([p]) => p === "e2b"), ["e2b", "$10.07"]);
     assert.deepEqual(shown(cells).at(-1), ["vercel", "$43.14"]);
-    assert.equal(cells.length, tracks["same-spec"].providers.length);
+    assert.equal(cells.length, firsts(tracks["same-spec"]).length);
     // Every provider is a dollar value, never a 0 to 100 score.
     assert.ok(cells.every((s) => s.kind === "valued" && s.display.startsWith("$")));
   });

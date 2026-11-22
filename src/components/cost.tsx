@@ -25,7 +25,8 @@ import type { PricedTask } from "@/lib/cost";
 import { provider } from "@/lib/data";
 import type { Track } from "@/lib/data";
 import { allocationNotes } from "@/lib/notes";
-import { providerColor } from "@/lib/providers";
+import { isExtraTier, providerColor } from "@/lib/providers";
+import type { ProviderId } from "@/lib/providers";
 
 /** Stands in for a cost chart until the cost run has results. */
 export const NoCostResults = ({ compact = false }: { compact?: boolean }) => (
@@ -57,6 +58,9 @@ const Amount = ({ t }: { t: PricedTask }) => (
 );
 
 /** The cheapest exact cost, and any cheaper one that ran a different machine. A lower bound is never picked: its charge is unknown above the bound. */
+/** A tier row past a provider's first hides under "One per provider" (globals.css). */
+const tierAttrs = (id: ProviderId) => (isExtraTier(id) ? { "data-tier-extra": "" } : {});
+
 export function CostPick({ track }: { track: Track }) {
   const c = costPick(track);
   switch (c.kind) {
@@ -119,7 +123,7 @@ export function CostTable({ track }: { track: Track }) {
     <div className="mt-l">
       <ul className="flex flex-col divide-y divide-neutral-3 sm:hidden">
         {rows.map(({ t, billing, w }) => (
-          <li key={t.id} className="py-s text-s">
+          <li key={t.id} className="py-s text-s" {...tierAttrs(t.id)}>
             <p className="flex items-baseline justify-between gap-s">
               <Who id={t.id} />
               <span className="font-mono text-xs tabular-nums">{perThousandText(t.cost, "tight")}</span>
@@ -151,7 +155,7 @@ export function CostTable({ track }: { track: Track }) {
         </thead>
         <tbody>
           {rows.map(({ t, billing, w }) => (
-            <tr key={t.id} className="align-top">
+            <tr key={t.id} className="align-top" {...tierAttrs(t.id)}>
               <th scope="row" className="py-s pr-5 font-medium">
                 <Who id={t.id} />
               </th>

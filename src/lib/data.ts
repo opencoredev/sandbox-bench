@@ -5,7 +5,7 @@ import sameSpecExtras from "@/data/extras.same-spec.json";
 
 import type { Unit } from "@/lib/format";
 import type { ExclusionsExport, ExtrasExport, ExtrasProviderExport, SiteExport, SiteProviderExport, StandbyResumeExport } from "@/lib/inputs";
-import { isProviderId, providerInfo } from "@/lib/providers";
+import { isExtraTier, isProviderId, providerInfo } from "@/lib/providers";
 import { parseStress } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
 import type { ProviderId } from "@/lib/providers";
@@ -172,7 +172,9 @@ function toStandby(s: StandbyResumeExport | null | undefined, p: SiteProviderExp
  */
 export function readCostPerTask(p: SiteProviderExport): TaskCost {
   const c = p.costPerTask;
-  if (c === undefined || c === null || c.usd === null || c.n === 0) return { kind: "none", why: "coming in the next update" };
+  if (c === undefined || c === null || c.usd === null || c.n === 0)
+    // A CPU tier past a provider's first skips the quick cost run by design; the tier table has its real-task cost.
+    return { kind: "none", why: isProviderId(p.id) && isExtraTier(p.id) ? "not run on this CPU tier: tiers run the quick tests and real tasks only" : "coming in the next update" };
   if (!isCostKind(c.kind)) return { kind: "none", why: `unknown cost kind "${c.kind}"` };
   return { kind: c.kind, usd: c.usd, n: c.n, confidence: toConfidence(c.confidence), source: c.source, settled: c.settled, bound: toBound(c.bound, `${p.id} cost per task`) };
 }
@@ -238,15 +240,17 @@ const parsed = {
 // Every provider with results in at least one track, so one missing from a track's data is named as
 // absent there, not silently dropped. A provider registered in providerInfo with no data anywhere yet
 // (one whose runs haven't landed) is left out everywhere rather than named absent in both tracks.
+// A CPU tier past a provider's first runs on Same machine only, by design, so it is never named absent from the other track.
 const everyone = new Set<ProviderId>(
   Object.keys(providerInfo)
     .filter(isProviderId)
     .filter((pid) => trackIds.some((t) => parsed[t].providers.some((p) => p.id === pid))),
 );
+const absentFrom = (t: TrackId) => [...everyone].filter((pid) => !isExtraTier(pid) && !parsed[t].providers.some((p) => p.id === pid));
 
 export const tracks: Record<TrackId, Track> = {
-  default: { ...parsed.default, absent: [...everyone].filter((pid) => !parsed.default.providers.some((p) => p.id === pid)) },
-  "same-spec": { ...parsed["same-spec"], absent: [...everyone].filter((pid) => !parsed["same-spec"].providers.some((p) => p.id === pid)) },
+  default: { ...parsed.default, absent: absentFrom("default") },
+  "same-spec": { ...parsed["same-spec"], absent: absentFrom("same-spec") },
 };
 
 /** Tracks with results, in page order. A track collected later shows a placeholder until then. */

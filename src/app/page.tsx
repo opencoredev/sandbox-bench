@@ -9,6 +9,7 @@ import { Lockup } from "@/components/brand";
 import { HomeLogoLink } from "@/components/home-logo-link";
 import { ByLocation } from "@/components/by-location";
 import { CostPerTaskChart, NoCostResults } from "@/components/cost";
+import { TierTable, tieredWithData } from "@/components/cpu-tiers";
 import { MachineSizes } from "@/components/machine-sizes";
 import { MethodList } from "@/components/method-list";
 import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/components/realistic";
@@ -41,6 +42,7 @@ import { StatStrip } from "@/components/stat-strip";
 import { Card, TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { Tracked } from "@/components/track";
+import { TierSwitch } from "@/components/tier-switch";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
@@ -52,7 +54,7 @@ import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
-import { providerBrand, providerColor } from "@/lib/providers";
+import { isExtraTier, isProviderId, providerBrand, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
@@ -88,6 +90,9 @@ const sections = [
   ["locations", "Locations", "combined"],
   ["method", "Method"],
 ] as const;
+
+/** The rows the Machines section lists: a CPU tier runs on its provider's machine, so the tier table covers it instead. */
+const machineRows = (track: Track) => track.providers.filter((p) => !isExtraTier(p.id));
 
 /** The machine a provider ran on in a track, for hover cards: "4 vCPU, 8 GB RAM". */
 const ranOn = (p: Provider | undefined) => {
@@ -352,9 +357,11 @@ function Headlines({ track }: { track: Track }) {
 /** The facts line under the title, for one track. */
 function Facts({ track }: { track: Track }) {
   // A config is one provider id; a provider is its brand (Upstash Box and Upstash Ephemeral Box are one provider).
-  const configs = track.providers.length;
+  // A CPU tier is a config but not a product of its own (Beam Shared is Beam's sandbox on a cheaper CPU).
+  const configs = track.providers.filter((p) => !isExtraTier(p.id)).length;
+  const tiers = track.providers.length - configs;
   const providers = new Set(track.providers.map((p) => providerBrand(p.id))).size;
-  const count = configs === providers ? `${providers} providers` : `${providers} providers, ${configs} products`;
+  const count = [`${providers} providers`, ...(configs === providers ? [] : [`${configs} products`]), ...(tiers > 0 ? [`${tiers} more CPU ${tiers === 1 ? "tier" : "tiers"}`] : [])].join(", ");
   const facts = hasResults(track) ? [count, dayRange(track.window), "From Florida and Frankfurt"] : ["Coming in the next update"];
   return (
     <>
@@ -480,7 +487,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads; our Beam account's 30 vCPU quota keeps its Same machine bursts from running. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets a second row only for a product it sells separately, not for a setting on the same product. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads; our Beam account's 30 vCPU quota keeps its Same machine bursts from running. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. We will add results if a paid plan or quota increase lifts these.",
+  },
+  {
+    term: "Rows",
+    line: "A provider gets a row of its own for a product it sells separately, or a CPU tier sold at its own price; never for a size, a region or a setting.",
+    more: "Tiers past the first, such as Beam Shared and Beam Spot, are hidden until you pick Every CPU tier, so each provider shows once by default, on the tier a new account gets. A provider shows at most four rows. A tier runs the quick tests and the real tasks on Same machine; it skips snapshots and bursts of sandboxes, which don't depend on the CPU it sells. Ranks, headline numbers and Cheapest use each provider's first tier; the CPU tiers table compares the rest.",
   },
   {
     term: "Superserve",
@@ -496,6 +508,9 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
 
 // The switch appears only once both tracks have results; until then one side would be empty sections.
 const showSwitch = trackIds.every((id) => tracks[id].providers.length > 0);
+
+// The tier switch and section appear once a provider has results for more than one CPU tier.
+const showTiers = trackIds.some((id) => tieredWithData(tracks[id]).length > 0);
 
 export const metadata: Metadata = homeMetadata;
 
@@ -549,6 +564,14 @@ export default function Page() {
                 <TrackSwitch />
               </div>
             ) : null}
+            {showTiers ? (
+              <div className="mt-m flex flex-wrap items-center gap-x-s gap-y-xs md:mt-l">
+                <TierSwitch />
+                <a href="#tiers" className="focus-ring rounded-xs text-s text-neutral-7 underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+                  Compare tiers
+                </a>
+              </div>
+            ) : null}
           </div>
           <Updates />
         </div>
@@ -587,7 +610,7 @@ export default function Page() {
                     content: (
                       <>
                         <ChartHead title="Every cold start" sub="Each successful cold start, one ridge per provider · Log scale · Further left is faster" />
-                        <Ridgelines samples={track.coldSamples} />
+                        <Ridgelines samples={Object.fromEntries(Object.entries(track.coldSamples).filter(([id]) => isProviderId(id) && !isExtraTier(id)))} />
                       </>
                     ),
                   },
@@ -794,6 +817,36 @@ export default function Page() {
           </PerTrack>
         </Section>
 
+        {showTiers ? (
+          <Section
+            id="tiers"
+            title="CPU tiers"
+            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GB machine, so the table shows what changes when you pay less."
+          >
+            <div className="mb-m flex flex-wrap items-center gap-x-m gap-y-xs">
+              <TierSwitch />
+              <p data-tier-switch="" className="max-w-[60ch] text-s text-pretty text-neutral-7">Every CPU tier adds each tier as its own row in every chart on the page.</p>
+            </div>
+            <Tracked>
+              {(track) => {
+                const brands = tieredWithData(track);
+                return brands.length === 0 ? (
+                  <Card className="text-s text-neutral-7">CPU tiers ran on {trackInfo["same-spec"].label} only, where every provider has the same machine.</Card>
+                ) : (
+                  <div className="flex flex-col gap-m">
+                    {brands.map((brand) => (
+                      <Card key={brand}>
+                        <ChartHead title={`${providerName(brand)} on each CPU tier`} sub="Same sandbox, same tests · Median · Green is better and red is worse than the tier a new account gets" />
+                        <TierTable brand={brand} track={track} realistic={realistic} burst={realtaskBurst} />
+                      </Card>
+                    ))}
+                  </div>
+                );
+              }}
+            </Tracked>
+          </Section>
+        ) : null}
+
         <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
           <PerTrack>
             {(track) => (
@@ -832,7 +885,7 @@ export default function Page() {
                           content: (
                             <>
                               <ChartHead title="Default machine size" sub="Advertised size of each provider's default sandbox · Tap or focus a bar for what we measured inside" />
-                              <MachineSizes providers={track.providers} />
+                              <MachineSizes providers={machineRows(track)} />
                               <Footnotes items={[{ text: <><Who id="e2b" />: {advertised.e2b.note}</> }]} />
                             </>
                           ),
@@ -845,7 +898,7 @@ export default function Page() {
                     content: (
                       <>
                         <ChartHead title="Hardware inside each sandbox" sub="Chip, memory, cloud and region, and how each sandbox is isolated" />
-                        <SpecSheet providers={track.providers} track={track.id} />
+                        <SpecSheet providers={machineRows(track)} track={track.id} />
                       </>
                     ),
                   },

@@ -4,7 +4,8 @@ import type { DetailLine } from "@/components/hover-card";
 import { ProviderName } from "@/components/provider-name";
 import { formatPerThousand, perPriceLabel } from "@/lib/cost";
 import { formatValue } from "@/lib/format";
-import { providerColor, providerName } from "@/lib/providers";
+import { markFill, rowFill } from "@/lib/marks";
+import { isExtraTier, providerBrand, providerColor, providerName, tierOf, tiersOf } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 export interface ScatterPoint {
@@ -67,8 +68,10 @@ export function Scatter({
   const y1 = yTicks.at(-1) ?? y0 + 1;
   const fx = (x: number) => (Math.log(x) - Math.log(x0)) / (Math.log(x1) - Math.log(x0));
   const fy = (y: number) => (y - y0) / (y1 - y0);
-  const mx = fx(median(points.map((p) => p.x)));
-  const my = fy(median(points.map((p) => p.y)));
+  // The quadrant and the summary use each provider's first CPU tier, so they don't move when the tier switch shows the rest.
+  const firsts = points.filter((p) => !isExtraTier(p.provider));
+  const mx = fx(median(firsts.map((p) => p.x)));
+  const my = fy(median(firsts.map((p) => p.y)));
   // Whether p's label, `nudge` px below its dot on the `flip` side, crosses another dot. Measured on the
   // phone plot, the shortest, where a label spans up to about 0.4 of the width.
   const runsOver = ({ p, flip, nudge }: { p: ScatterPoint; flip: boolean; nudge: number }) =>
@@ -77,7 +80,13 @@ export function Scatter({
       const dx = fx(q.x) - fx(p.x);
       return (flip ? dx < 0 : dx > 0) && Math.abs(dx) < 0.4 && Math.abs((fy(q.y) - fy(p.y)) * PHONE_PLOT_PX + nudge) < 10;
     });
-  const summary = points
+  // A provider's CPU tiers, joined in the provider's own tier order, so the trade between them reads as one line.
+  const tierLines = [...new Set(points.filter((p) => tierOf(p.provider)).map((p) => providerBrand(p.provider)))].flatMap((brand) => {
+    const order = tiersOf(brand).map((t) => t.id);
+    const own = points.filter((p) => providerBrand(p.provider) === brand && order.includes(p.provider)).sort((a, b) => order.indexOf(a.provider) - order.indexOf(b.provider));
+    return own.length > 1 ? [{ brand, own }] : [];
+  });
+  const summary = firsts
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
 
@@ -126,6 +135,28 @@ export function Scatter({
           ))}
           <div aria-hidden className="absolute right-[18px] bottom-[30px] left-[56px] border-t border-neutral-5" />
           <div aria-hidden className="absolute top-[14px] bottom-[30px] left-[56px] border-l border-neutral-5" />
+          {tierLines.map(({ brand, own }) =>
+            // Every segment past the first tier leads to a hidden row, so the line hides with them under "One per provider".
+            <svg
+              key={brand}
+              aria-hidden
+              data-tier-extra=""
+              className="pointer-events-none absolute overflow-visible"
+              style={{ left: INSET.left, right: INSET.right, top: INSET.top, bottom: INSET.bottom, width: `calc(100% - ${INSET.left + INSET.right}px)`, height: `calc(100% - ${INSET.top + INSET.bottom}px)` }}
+              viewBox="0 0 1 1"
+              preserveAspectRatio="none"
+            >
+              <polyline
+                points={own.map((p) => `${fx(p.x)},${1 - fy(p.y)}`).join(" ")}
+                fill="none"
+                stroke={providerColor(brand)}
+                strokeOpacity={0.55}
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+          )}
           {points.map((p) => {
             const px = fx(p.x);
             const py = fy(p.y);
@@ -150,6 +181,7 @@ export function Scatter({
             return (
               <div
                 key={p.provider}
+                {...(isExtraTier(p.provider) ? { "data-tier-extra": "" } : {})}
                 tabIndex={0}
                 role="img"
                 aria-label={`${providerName(p.provider)}: ${lines.map(detailText).join(", ")}`}
@@ -159,7 +191,7 @@ export function Scatter({
                 <span
                   aria-hidden
                   className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-neutral-2 transition-[scale] duration-[var(--motion-duration)] group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-accent motion-reduce:transition-none"
-                  style={{ backgroundColor: color }}
+                  style={markFill(rowFill(p.provider, "solid"), color)}
                 />
                 {/* A wider invisible target than the 12px dot. */}
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />

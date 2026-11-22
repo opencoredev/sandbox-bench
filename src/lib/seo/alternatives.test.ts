@@ -3,6 +3,7 @@ import { describe, test } from "node:test";
 
 import { agentData } from "@/lib/agent-data";
 import { trackIds } from "@/lib/data";
+import { isExtraTier } from "@/lib/providers";
 import { alternativesTrack, verdictCount } from "@/lib/seo/alternatives";
 import { compareTrack } from "@/lib/seo/compare";
 import { alternativesPages } from "@/lib/seo/pages";
@@ -12,10 +13,11 @@ import { alternativesPages } from "@/lib/seo/pages";
 describe("alternativesTrack on the published data", () => {
   for (const target of alternativesPages) {
     for (const tid of trackIds) {
-      test(`${target}, ${tid}: every other provider on the track, with the comparison page's tally`, () => {
+      test(`${target}, ${tid}: every other provider on the track (first CPU tiers), with the comparison page's tally`, () => {
         const t = alternativesTrack(tid, target);
         if (!t) return;
-        const others = agentData().tracks[tid].providers.map((p) => p.id).filter((id) => id !== target);
+        // A provider's own cheaper CPU tier is not an alternative to anyone.
+        const others = agentData().tracks[tid].providers.map((p) => p.id).filter((id) => id !== target && !isExtraTier(id));
         assert.deepEqual(t.alternatives.map((a) => a.id), others);
         for (const a of t.alternatives) {
           assert.deepEqual(a.pair.tally, compareTrack(tid, a.id, target)?.tally, a.id);

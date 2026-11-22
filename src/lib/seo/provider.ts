@@ -4,7 +4,7 @@ import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
-import { isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
+import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
@@ -62,7 +62,8 @@ export const blankWhy = (status: string) => {
  */
 function standingOf(m: MetricData, id: ProviderId, track: Track): Standing {
   const unit: Unit = m.unit;
-  const ranked = m.results.filter(isRanked);
+  // A provider is ranked against other providers, not against its own cheaper CPU tiers.
+  const ranked = m.results.filter(isRanked).filter((r) => r.provider === id || !isExtraTier(r.provider));
   const mine = ranked.find((r) => r.provider === id);
   if (!mine) return { kind: "blank", why: blankWhy(m.results.find((r) => r.provider === id)?.status ?? "not run") };
   const leader = ranked[0];
@@ -94,7 +95,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     label: t.label,
     description: t.description,
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
-    providerCount: t.providers.length,
+    providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
     ranIn: p.ranIn,
     cost:
@@ -162,7 +163,7 @@ const notInPilot = "not in the realistic pilot";
  */
 export function realTaskTime(trackId: TrackId, id: ProviderId, profile: ProfileId): Placing {
   const { costed, uncosted } = headlineRows(realistic, runTrackOf[trackId], profile);
-  const rows = [...costed, ...uncosted];
+  const rows = [...costed, ...uncosted].filter((r) => r.provider === id || !isExtraTier(r.provider));
   const mine = rows.find((r) => r.provider === id);
   if (!mine) return { kind: "blank", why: notInPilot };
   if (mine.medianWallS === null) return { kind: "blank", why: mine.completed === 0 ? noCostReason(mine) : "no completed run" };
@@ -177,7 +178,9 @@ export function realTaskTime(trackId: TrackId, id: ProviderId, profile: ProfileI
  * (too many failed runs, or the wrong machine size), if it can't.
  */
 export function realTaskCost(trackId: TrackId, id: ProviderId, profile: ProfileId): Placing & { notCounted: string[] } {
-  const { costed, uncosted } = headlineRows(realistic, runTrackOf[trackId], profile);
+  const rows = headlineRows(realistic, runTrackOf[trackId], profile);
+  const costed = rows.costed.filter((r) => r.provider === id || !isExtraTier(r.provider));
+  const uncosted = rows.uncosted;
   const index = costed.findIndex((r) => r.provider === id);
   const mine = costed[index];
   if (mine) return { kind: "ranked", value: perThousand(mine.cost.usdPerCompleted), rank: index + 1, of: costed.length, notCounted: notCountedWhy(mine) };
