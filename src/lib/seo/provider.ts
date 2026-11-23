@@ -299,7 +299,8 @@ export function placings(t: ProviderTrack, id: ProviderId): Placed[] {
       case "cost":
         return [{ id: "fix-and-test-cost", label: "Fix and test cost, per 1,000", value: e.cell.display, rank: e.rank, tied: false }];
       default:
-        // Speed and Bursts are the cold start and burst rows of the results table, already listed.
+        // Speed and Bursts are the cold start and burst rows of the results table, already listed. Reliability is
+        // left out: most providers complete every run, so a rank among equals says nothing.
         return [];
     }
   });

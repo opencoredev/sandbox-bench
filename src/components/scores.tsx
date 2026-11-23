@@ -6,7 +6,7 @@ import type { ScoreColumn, ScoreRow } from "@/components/score-parts";
 import { ScoreTable } from "@/components/score-table";
 import { Card, TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
-import { allocationNotes } from "@/lib/notes";
+import { allocationNotes, upstashTwinNote } from "@/lib/notes";
 import { isExtraTier } from "@/lib/providers";
 import { rankScores } from "@/lib/score";
 import { trackScores } from "@/lib/score-categories";
@@ -26,8 +26,21 @@ function scoreGrid(track: Track) {
     mark: marked.includes(p.id) ? marked.indexOf(p.id) + 1 : null,
     cells: byCategory.map(({ scores }) => scores.find((s) => s.provider === p.id) ?? { kind: "not-measured", provider: p.id }),
   }));
-  return { columns, rows, notes: marked.map((id, i) => ({ mark: i + 1, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })) };
+  const twin = upstashTwinNote(track);
+  return {
+    columns,
+    rows,
+    notes: [
+      ...marked.map((id, i) => ({ mark: i + 1, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
+      { lead: "Reliability", text: reliabilityNote(track) },
+      ...(twin ? [{ text: twin }] : []),
+    ],
+  };
 }
+
+/** What the Reliability column counts on a track: every real task run that started, never one that didn't. */
+const reliabilityNote = (track: Track) =>
+  `fix and test and build runs that completed, out of those that started${track.id === "same-spec" ? ", plus fix and test 5 at once" : ""}. Runs that never started, such as on a default machine too small for the task or a burst our quota couldn't fit, are left out rather than counted as failures.`;
 
 /** One category, best first, for phones: each row opens the chart behind it. A value column right-aligns its numbers. */
 function RankedList({ column, rows, index }: { column: ScoreColumn; rows: readonly ScoreRow[]; index: number }) {
@@ -64,7 +77,7 @@ function RankedList({ column, rows, index }: { column: ScoreColumn; rows: readon
   );
 }
 
-const label = "Scores by category: speed, real tasks and bursts 0 to 100, cost in dollars per 1,000 tasks";
+const label = "Scores by category: speed, real tasks, bursts and reliability 0 to 100, cost in dollars per 1,000 tasks";
 
 /**
  * Each provider's score per category, for one track: a sortable table on wide
@@ -83,7 +96,7 @@ export function Scores({ track }: { track: Track }) {
         <ScoreTable columns={columns} rows={rows} label={label} />
       </Card>
       <p className="mt-m max-w-[80ch] text-s text-pretty text-neutral-8">
-        Twice as slow as the best scores 50. Not measured means no result yet, not a 0.{anyExcluded ? " Not counted means the chart leaves it out; open it for why." : ""}
+        Twice as slow as the best scores 50. Reliability is the share of real task runs that completed, so 18/20 scores 90. Not measured means no result yet, not a 0.{anyExcluded ? " Not counted means the chart leaves it out; open it for why." : ""}
       </p>
       <Footnotes items={notes} />
     </>

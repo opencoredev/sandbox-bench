@@ -53,7 +53,7 @@ import type { Provider, Track } from "@/lib/data";
 import { dayRange, formatGiB, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
-import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes, upstashTwinNote } from "@/lib/notes";
+import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes } from "@/lib/notes";
 import { isExtraTier, isProviderId, providerBrand, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
@@ -100,14 +100,15 @@ const ranOn = (p: Provider | undefined) => {
   return m ? `${m.cpu} vCPU, ${formatGiB(m.memoryGiB)} RAM` : "size not measured";
 };
 
-function Section({ id, title, lede, children }: { id: string; title: string; lede: ReactNode; children: ReactNode }) {
+/** A titled section. `tight` is for the first one under the hero, so it starts above the fold. */
+function Section({ id, title, lede, tight = false, children }: { id: string; title: string; lede: ReactNode; tight?: boolean; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-24 pt-xxl sm:pt-[calc(var(--space-xxl)*1.5)]">
+    <section id={id} aria-labelledby={`${id}-title`} className={`scroll-mt-24 ${tight ? "pt-xl" : "pt-xxl sm:pt-[calc(var(--space-xxl)*1.5)]"}`}>
       <h2 id={`${id}-title`} className="flex items-center gap-s font-brand text-l font-medium">
         <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
         {title}
       </h2>
-      <p className="mt-xs mb-l max-w-[72ch] text-m text-neutral-8">{lede}</p>
+      <p className={`mt-xs max-w-[72ch] text-m text-pretty text-neutral-8 ${tight ? "mb-m" : "mb-l"}`}>{lede}</p>
       {children}
     </section>
   );
@@ -365,10 +366,10 @@ function Facts({ track }: { track: Track }) {
   const facts = hasResults(track) ? [count, dayRange(track.window), "From Florida and Frankfurt"] : ["Coming in the next update"];
   return (
     <>
-      <p className="mt-m max-w-[40ch] text-l text-pretty text-neutral-10">
+      <p className="mt-s max-w-[40ch] text-l text-pretty text-neutral-10">
         Independent benchmarks of cloud sandboxes for AI agents: real coding tasks, start-up, tool calls and cost.
       </p>
-      <p className="mt-m flex flex-wrap gap-x-m gap-y-xxs text-s text-neutral-7">
+      <p className="mt-s flex flex-wrap gap-x-m gap-y-xxs text-s text-neutral-7">
         {facts.map((f) => (
           <span key={f}>{f}</span>
         ))}
@@ -377,25 +378,74 @@ function Facts({ track }: { track: Track }) {
   );
 }
 
-/** The newest three updates, beside the title. Each opens its own page. */
+const quietLink = "focus-ring rounded-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10";
+
+/** Who makes the site, what it runs on and who pays for it, in one quiet line under the facts. */
+function Attribution() {
+  const links = [
+    { href: "https://leodev.cv", text: "By Leo (@leodev)" },
+    { href: "#method", text: "open-source Sandbox SDK" },
+    { href: forProvidersPath, text: "independent, funded by private provider runs, zero pay-to-play" },
+  ] as const;
+  return (
+    // Inline, not flex, so a phone wraps it like a sentence and a separator never starts a line.
+    <p className="mt-xs text-s text-pretty text-neutral-7">
+      {links.map((l, i) => (
+        <span key={l.href}>
+          {i > 0 ? <span aria-hidden>{" · "}</span> : null}
+          <a href={l.href} className={quietLink}>
+            {l.text}
+          </a>
+        </span>
+      ))}
+    </p>
+  );
+}
+
+/** The newest update beside the title, title only, so the scores stay above the fold. The full strip sits under the scores. */
+function LatestUpdate() {
+  const [u] = latestUpdates;
+  if (!u) return null;
+  return (
+    <section aria-labelledby="latest-update-title" className="flex flex-col gap-xxs lg:pt-xs">
+      <h2 id="latest-update-title" className="sr-only">
+        Latest update
+      </h2>
+      <a href={updatePath(u.slug)} className="group focus-ring flex flex-col gap-xxs rounded-xs">
+        <span className="text-xs font-medium text-accent">Update · {updateDay(u)}</span>
+        <span className="flex items-start justify-between gap-s text-m font-medium">
+          <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+          <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+        </span>
+      </a>
+      <a href={updatesPath} className={`${quietLink} -my-xs self-start py-xs text-s text-neutral-7`}>
+        All updates
+      </a>
+    </section>
+  );
+}
+
+/** The newest three updates, each with its summary, under the scores. Each opens its own page. */
 function Updates() {
   return (
-    <section aria-labelledby="updates-title" className="flex flex-col gap-m lg:pt-xs">
-      <h2 id="updates-title" className="sr-only">
+    <section aria-labelledby="updates-title" className="pt-xxl">
+      <h2 id="updates-title" className="flex items-center gap-s font-brand text-l font-medium">
+        <span aria-hidden className="size-s shrink-0 bg-neutral-10" />
         Latest updates
       </h2>
-      {/* Phones show the latest one, so the results stay near the top. */}
-      {latestUpdates.map((u, i) => (
-        <a key={u.slug} href={updatePath(u.slug)} className={`group focus-ring flex-col gap-xxs rounded-xs ${i === 0 ? "flex" : "hidden lg:flex"}`}>
-          <span className="text-xs font-medium text-accent">Update · {updateDay(u)}</span>
-          <span className="flex items-start justify-between gap-s text-m font-medium">
-            <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
-            <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
-          </span>
-          <span className="text-s text-pretty text-neutral-7">{u.text}</span>
-        </a>
-      ))}
-      <a href={updatesPath} className="focus-ring -my-xs self-start rounded-xs py-xs text-s text-neutral-7 underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+      <div className="mt-m grid gap-l md:grid-cols-3">
+        {latestUpdates.map((u) => (
+          <a key={u.slug} href={updatePath(u.slug)} className="group focus-ring flex flex-col gap-xxs rounded-xs">
+            <span className="text-xs font-medium text-accent">Update · {updateDay(u)}</span>
+            <span className="flex items-start justify-between gap-s text-m font-medium">
+              <span className="group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{u.title}</span>
+              <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
+            </span>
+            <span className="text-s text-pretty text-neutral-7">{u.text}</span>
+          </a>
+        ))}
+      </div>
+      <a href={updatesPath} className={`${quietLink} -my-xs mt-s inline-block py-xs text-s text-neutral-7`}>
         All updates
       </a>
     </section>
@@ -496,8 +546,8 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Superserve",
-    line: "Superserve ran a custom template we built with Node 22 and Python 3.11.",
-    more: "Its stock templates offer one or the other, and our tests need both. Before this template, our setup installed Python on every create.",
+    line: "Superserve ran a template we built only to bundle Node 22 and Python 3.11, because its stock images ship one or the other; nothing in it is tuned for speed.",
+    more: "Our tests need both runtimes. Before this template, our setup installed Python on every create.",
   },
   {
     term: "Independent",
@@ -554,37 +604,29 @@ export default function Page() {
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
       <main className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
         {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
-        <div className="grid gap-xl pt-l pb-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:pt-xxl">
+        {/* Kept short so the stat tiles and the top of the scores fit in a 1440 x 900 window. The CPU tier switch lives under CPU tiers. */}
+        <div className="grid gap-m pt-s pb-m lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-xl lg:pt-xl lg:pb-l">
           <div className="flex flex-col">
             <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">Cloud sandboxes, measured</h1>
             <Tracked>{(track) => <Facts track={track} />}</Tracked>
+            <Attribution />
             {showSwitch ? (
               // From tablet width up the switch sits in the header.
-              <div className="mt-l md:hidden">
+              <div className="mt-m md:hidden">
                 <TrackSwitch />
               </div>
             ) : null}
-            {showTiers ? (
-              <div className="mt-m flex flex-wrap items-center gap-x-s gap-y-xs md:mt-l">
-                <TierSwitch />
-                <a href="#tiers" className="focus-ring rounded-xs text-s text-neutral-7 underline decoration-dotted underline-offset-4 hover:text-neutral-10">
-                  Compare tiers
-                </a>
-              </div>
-            ) : null}
           </div>
-          <Updates />
+          <LatestUpdate />
         </div>
 
-        <div className="pb-m">
-          <PerTrack>{(track) => <StatStrip track={track} />}</PerTrack>
-          <Tracked>{(track) => { const note = upstashTwinNote(track); return note ? <p className="mt-s text-s text-neutral-7">{note}</p> : null; }}</Tracked>
-        </div>
+        <PerTrack>{(track) => <StatStrip track={track} />}</PerTrack>
 
         <Section
           id={scoresSection}
           title="Scores by category"
-          lede="Speed, real tasks and bursts scored 0 to 100 against the best provider, plus real task cost in dollars. No overall score."
+          lede="Speed, real tasks, bursts and reliability scored 0 to 100 against the best provider, plus real task cost in dollars. No overall score."
+          tight
         >
           <PerTrack>{(track) => <Scores track={track} />}</PerTrack>
         </Section>
@@ -627,9 +669,8 @@ export default function Page() {
           title="Real tasks"
           lede="Two real coding jobs, each in a fresh sandbox from create to confirmed delete: a Vue bug fixed and its tests run, and a Jitsi Meet production build. Time to finish, so CPU, disk and network all count."
         >
-          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
-            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>Early results from {realistic.coverage.headline.attempts} runs per provider. What each task costs is under Cost.</span>
+          <p role="note" className="-mt-xs mb-l max-w-[72ch] text-s text-pretty text-neutral-7">
+            {realistic.coverage.headline.attempts} runs per provider. What each task costs is under Cost.
           </p>
           <PerTrack>{(track) => <RealTasks track={track} />}</PerTrack>
           <div id={realtaskBurstSection} className="mt-l scroll-mt-24">
@@ -773,11 +814,10 @@ export default function Page() {
         <Section
           id={taskCostSection}
           title="What a task costs"
-          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Then the sandbox is left open, to show what idle time costs and which providers shut it down."
+          lede="Real work instead of a tiny task: a Vue bug fixed and tested, and a Jitsi Meet production build, each in a fresh sandbox from create to confirmed delete. Costs span 50x or more because list rates and billing models both differ widely: from $0.004/vCPU-hr on Instabox to $0.128/active vCPU-hr plus memory and data transfer on Vercel, alongside whole-machine billing, flat per-size rates, and regional multipliers (Modal's US-East rate is 1.75x its base). Then the sandbox is left open, to show what idle time costs and which providers shut it down."
         >
-          <p role="note" className="-mt-xs mb-l flex max-w-[72ch] items-baseline gap-xs text-s text-pretty text-neutral-8">
-            <span className="shrink-0 rounded-s bg-warning-transparent px-xs py-px font-mono text-xs text-warning">Pilot</span>
-            <span>Early results from {realistic.coverage.headline.attempts} runs per provider.</span>
+          <p role="note" className="-mt-xs mb-l max-w-[72ch] text-s text-pretty text-neutral-7">
+            {realistic.coverage.headline.attempts} runs per provider.
           </p>
           <Tracked>{(track) => <TaskCost track={track} />}</Tracked>
           <Card className="mt-m">
@@ -924,6 +964,8 @@ export default function Page() {
         >
           <ByLocation />
         </Section>
+
+        <Updates />
 
         <Section id="method" title="Method" lede="How the numbers were made, and what could bias them.">
           <Card>

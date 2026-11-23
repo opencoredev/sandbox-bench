@@ -19,6 +19,8 @@ export type Better = "lower" | "higher";
 export interface Reading {
   provider: ProviderId;
   value: number;
+  /** How the cell prints the reading when its value alone can't say it, such as "18/20" runs completed. Never used to score. */
+  display?: string;
 }
 
 /** A reading the linked chart shows but doesn't count, such as a cost run on the wrong machine size, with why. */

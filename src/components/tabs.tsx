@@ -69,7 +69,7 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
           activateOnFocus
           aria-label={label}
           // Phones wrap the tabs onto more lines so every one is visible; wider screens scroll with a fade.
-          className="scroll-fade flex-wrap gap-x-l gap-y-0 sm:flex-nowrap sm:overflow-x-auto sm:[scrollbar-width:none]"
+          className="scroll-fade flex-wrap gap-x-m gap-y-0 sm:flex-nowrap sm:gap-x-l sm:overflow-x-auto sm:[scrollbar-width:none]"
         >
           {tabs.map((tab) =>
             isOpenable(tab) ? (

@@ -73,8 +73,9 @@ const names = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-/** Where a chart lives on the home page, on this track: `/#startup/cold`, `/?track=default#startup/cold`. */
-const fullChart = (trackId: TrackId, section: string, tab: string) => `/${trackId === "default" ? "?track=default" : ""}#${section}/${tab}`;
+/** Where a chart lives on the home page, on this track: `/#startup/cold`, `/?track=default#startup/cold`, or `/#section` when there are no tabs. */
+const fullChart = (trackId: TrackId, section: string, tab: string | null) =>
+  `/${trackId === "default" ? "?track=default" : ""}#${tab ? `${section}/${tab}` : section}`;
 
 /** A comparison card, as the home page's headline cards: a title that opens the full chart, a one-line subtitle, the compact chart. */
 function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: string; marker: string; title: string; sub: string; href: string; children: ReactNode }) {
@@ -363,9 +364,12 @@ function scoreHref(t: ProviderTrack, e: ScorecardEntry): { href: string; here: b
     case "cost":
       return { href: `#${t.id}-fix-and-test-cost`, here: true };
     default:
-      return { href: fullChart(t.id, e.category.link.section, e.category.link.tab ?? ""), here: false };
+      return { href: fullChart(t.id, e.category.link.section, e.category.link.tab), here: false };
   }
 }
+
+/** What a score's reading is: a median time for most categories, a count of runs for Reliability. */
+const readingText = (e: ScorecardEntry, display: string) => (e.category.id === "reliability" ? `${display} runs completed` : `${display} median`);
 
 /** One category's score, as the home page's Scores by category shows it, with the provider's rank. */
 function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: ScorecardEntry }) {
@@ -392,7 +396,7 @@ function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: Scor
             <span className="block h-full rounded-full" style={{ width: `${c.score}%`, backgroundColor: providerColor(id) }} />
           </span>
           <span className="mt-auto flex items-baseline justify-between gap-s pt-s">
-            <span className="text-s tabular-nums text-neutral-8">{c.display} median</span>
+            <span className="text-s tabular-nums text-neutral-8">{readingText(e, c.display)}</span>
             {rank}
           </span>
         </>
@@ -417,9 +421,10 @@ function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: Scor
 
 function Scorecard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
   return (
-    <ul className="grid grid-cols-1 gap-s min-[480px]:grid-cols-2 lg:grid-cols-4">
+    // Five tiles: a row of five where they fit, else rows of three or two, the odd one out spanning the row on two columns.
+    <ul className="grid grid-cols-1 gap-s min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {scorecard(t.id, id).map((e) => (
-        <li key={e.category.id}>
+        <li key={e.category.id} className="min-[480px]:last:odd:col-span-2 lg:last:odd:col-span-1">
           <ScoreTile id={id} t={t} e={e} />
         </li>
       ))}
@@ -671,7 +676,7 @@ export default async function ProviderPage(props: Props) {
         <section aria-labelledby="scores" className="pt-xxl">
           <SectionTitle id="scores">Scores by category</SectionTitle>
           <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
-            The same scores as the home page: 100 is the best provider, twice as slow scores 50. Cost is in dollars, cheapest first.
+            The same scores as the home page: 100 is the best provider, twice as slow scores 50. Reliability is the share of real task runs that completed. Cost is in dollars, cheapest first.
           </p>
           <ByTrack id={id} r={r}>
             {(t) => <Scorecard id={id} t={t} />}

@@ -72,8 +72,33 @@ function RowProvider({ provider, mark }: { provider: ProviderId; mark: number | 
   );
 }
 
-/** The default order. */
+/** Alphabetical, from the Provider title. */
 const byName: Sort = { kind: "name" };
+
+/** The column the table opens sorted by, best first: real tasks are the work an agent does, so they lead. */
+const defaultColumn = "real-tasks";
+
+/** The order the table opens in and Reset goes back to: `id`'s column best first, or A to Z when there is no such column. */
+export function defaultSort(columns: readonly Pick<ScoreColumn, "id">[], id: string = defaultColumn): Sort {
+  const index = columns.findIndex((c) => c.id === id);
+  return index === -1 ? byName : { kind: "category", index };
+}
+
+const sameSort = (a: Sort, b: Sort) => (a.kind === "name" ? b.kind === "name" : b.kind === "category" && a.index === b.index);
+
+/** A sort in words, for the Reset button: "provider A to Z", "Real tasks, best first". */
+function sortName(sort: Sort, columns: readonly ScoreColumn[]): string {
+  switch (sort.kind) {
+    case "name":
+      return "provider A to Z";
+    case "category":
+      return `${columns[sort.index]?.label ?? "the first column"}, best first`;
+    default: {
+      const _exhaustive: never = sort;
+      return _exhaustive;
+    }
+  }
+}
 
 /** A column title's click: sort by that category, or, when it already sorts by it, back to A to Z. */
 export function nextSort(current: Sort, index: number): Sort {
@@ -95,16 +120,19 @@ const sortClass = `${sortBase} w-[calc(100%+var(--space-xs)*2)]`;
  * sorts by that category, a provider's name opens its page, and each score
  * opens the chart behind it.
  */
-export function ScoreTable({ columns, rows, label, initialSort = byName }: { columns: readonly ScoreColumn[]; rows: readonly ScoreRow[]; label: string; initialSort?: Sort }) {
-  const [sort, setSort] = useState<Sort>(initialSort);
+export function ScoreTable({ columns, rows, label, initialSort }: { columns: readonly ScoreColumn[]; rows: readonly ScoreRow[]; label: string; initialSort?: Sort }) {
+  const opening = initialSort ?? defaultSort(columns);
+  const [sort, setSort] = useState<Sort>(opening);
+  const reset = defaultSort(columns);
   const sorted = sortRows(rows, columns, sort);
   const isSorted = (index: number) => sort.kind === "category" && sort.index === index;
   return (
     <table className="w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-0 text-left">
-      <caption className="sr-only">{label}. Select a column title to sort by it, and again to go back to A to Z.</caption>
+      <caption className="sr-only">{label}. Sorted by {sortName(reset, columns)} to start. Select a column title to sort by it, and again to go back to A to Z.</caption>
       <thead>
         <tr className="align-bottom">
-          <th scope="col" aria-sort={sort.kind === "name" ? "ascending" : "none"} className="w-[19%] pr-s pb-s font-normal">
+          {/* Five metric columns share what Provider leaves; tablets keep Provider wide enough to distinguish Upstash Box and Upstash Ephemeral. */}
+          <th scope="col" aria-sort={sort.kind === "name" ? "ascending" : "none"} className="w-[22%] pr-xs pb-s font-normal lg:w-[19%] lg:pr-s">
             <span className="flex items-end justify-between gap-xs">
               <button type="button" className={`${sortBase} min-w-0 flex-1`} onClick={() => setSort(byName)}>
                 <span className="flex items-center gap-xxs text-s font-medium text-neutral-10">
@@ -113,22 +141,22 @@ export function ScoreTable({ columns, rows, label, initialSort = byName }: { col
                 </span>
                 <span className="text-xxs text-neutral-7">A to Z</span>
               </button>
-              {/* Always visible while a category sorts, so there is an obvious way back to the default order. */}
-              {sort.kind === "category" ? (
+              {/* Always visible away from the opening order, so there is an obvious way back to it. */}
+              {sameSort(sort, reset) ? null : (
                 <button
                   type="button"
                   className="focus-ring flex shrink-0 items-center gap-xxs rounded-xs px-xs py-xxs text-xs text-neutral-7 hover:bg-neutral-3 hover:text-neutral-10"
-                  onClick={() => setSort(byName)}
-                  aria-label="Reset sort to provider A to Z"
+                  onClick={() => setSort(reset)}
+                  aria-label={`Reset sort to ${sortName(reset, columns)}`}
                 >
                   <RotateCcw aria-hidden className="size-3" />
                   Reset
                 </button>
-              ) : null}
+              )}
             </span>
           </th>
           {columns.map((c, i) => (
-            <th key={c.id} scope="col" aria-sort={isSorted(i) ? bestFirst(c) : "none"} className="px-s pb-s font-normal">
+            <th key={c.id} scope="col" aria-sort={isSorted(i) ? bestFirst(c) : "none"} className="px-xs pb-s font-normal lg:px-s">
               <button type="button" className={sortClass} onClick={() => setSort((current) => nextSort(current, i))}>
                 <span className={`flex items-center gap-xxs text-s font-medium ${isSorted(i) ? "text-neutral-10" : "text-neutral-8 group-hover:text-neutral-10"}`}>
                   {c.label}
@@ -143,7 +171,7 @@ export function ScoreTable({ columns, rows, label, initialSort = byName }: { col
       <tbody>
         {sorted.map((r) => (
           <tr key={r.provider} className="group/row">
-            <th scope="row" className="rounded-l-s py-0 pr-s font-normal group-hover/row:bg-neutral-3/40">
+            <th scope="row" className="rounded-l-s py-0 pr-xs font-normal group-hover/row:bg-neutral-3/40 lg:pr-s">
               <RowProvider provider={r.provider} mark={r.mark} />
             </th>
             {r.cells.map((cell, i) => {
