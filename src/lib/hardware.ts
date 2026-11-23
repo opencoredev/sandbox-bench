@@ -47,6 +47,7 @@ export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
+  { providers: ["archil"], date: "Nov 23, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -61,7 +62,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten and Instabox
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam and Archil
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -338,6 +339,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "No DMI, so the memory type is inferred from the chip. It runs as an ordinary user with passwordless sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
+  },
+  archil: {
+    chip: "AMD EPYC, 5th Gen (Turin)",
+    family: "Zen 5, from CPU features: AVX-512 VP2INTERSECT, AVX-VNNI, MOVDIRI and MOVDIR64B, none of which Zen 4 has; the model and clock are hidden",
+    chipBasis: "inferred",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
+    cloud: "AWS, from its outbound IPs",
+    region: "Outbound IPs are Amazon's in Ashburn, Virginia, on every sandbox, consistent with us-east-1, the API region our runs used; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "Virginia",
+    runsAs: "Firecracker microVM",
+    runsAsDetail: "one per sandbox with its own kernel under KVM, per Archil's docs; inside, a hypervisor flag and Linux 6.18",
+    storage: "About 1 TB root disk (ext4), fixed whatever the size; Archil bills the data on it as storage",
+    kernel: "Linux 6.18, Debian 12 (node:24-bookworm, Archil's default image)",
+    hidden: [
+      "The CPU names itself only as \"AMD EPYC\", with no model number or clock. Its AVX-512 VP2INTERSECT, AVX-VNNI, MOVDIRI and MOVDIR64B instructions, which Zen 4 lacks, place it in 5th Gen EPYC. Every sandbox showed the same feature set, apart from the ht flag at 4 vCPU.",
+      "Swap is compressed memory (zram), about half the RAM.",
+      "No DMI, so the memory type is inferred from the chip. It runs as root, with no sudo.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB size ran on the same CPU type with the same disk and outbound region, with about 7.8 GiB of memory visible.",
   },
 };
 

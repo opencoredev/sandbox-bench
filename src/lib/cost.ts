@@ -230,6 +230,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "beam.cloud/pricing (checked Nov 20, 2026): the Spot tier bills $0.0063 per vCPU-hour and $0.00135 per GiB of RAM per hour, per millisecond while running, on spare capacity Beam can take back with 30 seconds' notice; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
   },
+  archil: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, not while it is paused or stopped",
+    evidence:
+      "docs.archil.com/administration/billing.md (checked Nov 21, 2026): compute bills the vCPUs and memory a running sandbox is allocated, sampled each minute, at $0.055 per vCPU-hour and $0.020 per GiB-hour; paused and stopped sandboxes accrue no compute. Its per-sandbox usage API reports those hours. Data on the root disk is billed as storage ($0.20 per GiB-month active) and egress at $0.07 per GB; neither is priced here. No per-start fee is stated. Plan minimums and credits are left out.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",

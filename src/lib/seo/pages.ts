@@ -73,6 +73,7 @@ const contentDates = {
   "/providers/instabox/": "2026-11-20",
   "/providers/beam/": "2026-11-20",
   "/providers/modal/": "2026-11-23",
+  "/providers/archil/": "2026-11-23",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",

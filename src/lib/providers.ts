@@ -6,9 +6,12 @@
  * between Upstash, Superserve and Modal, and Instabox's pale lemon: its mark is black and white and its site's
  * green sits in the same crowded range, so it takes the one gap left, ΔE ≥ 7.9 from every other), and Beam's coral (Beam's own palette is neutral with a blue accent, every blue sits too
  * close to Daytona and Freestyle under colour-blind simulation, and the pale yellows are taken, so it takes the best
- * gap left, between E2B's orange and boxd's rose), with lightness spread so every pair stays apart under
+ * gap left, between E2B's orange and boxd's rose), and Archil's violet (its mark is black and white, as
+ * Instabox's is, and no in-gamut colour at 6:1 keeps ΔE ≥ 6.7 from every other, so it takes a deeper violet
+ * than Freestyle's, ΔE ≥ 7.8 from every other, at 5.7:1), with lightness spread so every pair stays apart under
  * protanopia and deuteranopia (OKLab ΔE ≥ 6.7; names and logos sit beside
- * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
+ * every colour) and as 12px text on the card surface (WCAG contrast on Neutral 2, #202020: ≥ 6:1 for most,
+ * boxd 5.3, Upstash Ephemeral Box 5.5 and Archil 5.7). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
 export const providerInfo = {
@@ -31,6 +34,7 @@ export const providerInfo = {
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
+  archil: { name: "Archil", color: "oklch(0.7 0.19 302)" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;

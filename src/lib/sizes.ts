@@ -70,6 +70,13 @@ export const advertised = {
     source: "https://docs.beam.cloud/v2/reference/ts-sdk.md",
     note: "Beam's default sandbox is 1 CPU and 128 MiB, enforced as the sandbox's memory limit. That is too little memory for our dev server and Python install, which were killed for running out of it, and for both realistic workloads. Beam has no disk setting and doesn't bill disk.",
   },
+  archil: {
+    vcpu: 1,
+    memoryGiB: 2,
+    diskGiB: null,
+    source: "https://docs.archil.com/api-reference/sandboxes/create-sandbox.md",
+    note: "Archil's default sandbox is 1 vCPU and 2048 MiB on its node:24-bookworm image; the 4 vCPU, 8 GB size is asked for as 4 vCPU and 8192 MiB. Archil has no disk setting: the root disk is about 1 TB and fixed.",
+  },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {
     vcpu: 1,
