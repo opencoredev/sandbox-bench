@@ -59,9 +59,9 @@ export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | Pr
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-20",
+  "/": "2026-11-23",
   "/providers/e2b/": "2026-11-20",
-  "/providers/": "2026-11-18",
+  "/providers/": "2026-11-23",
   "/providers/daytona/": "2026-11-20",
   "/providers/superserve/": "2026-11-20",
   "/providers/upstash/": "2026-11-20",
