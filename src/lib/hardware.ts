@@ -353,8 +353,8 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     storage: "51 GB virtio disk (vda), ext4",
     kernel: "Linux 6.16.9+, Debian 12",
     hidden: [
-      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by the hypervisor. Its family and model IDs (25, model 33), 512 KB of L2 per core and its instructions (VAES, no AVX-512) place it in Zen 3. Every sandbox showed the same feature set.",
-      "Styne's sandboxes are a shared-CPU class: each new sandbox gets 10 minutes of full speed, then is held to 16% of each vCPU.",
+      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by the hypervisor. Its family and model IDs (25, model 33), 512 KB of L2 per core and its instructions (VAES, no AVX-512) place it in Zen 3. 259 of 260 sandboxes shared the same feature set; one also reported rdseed.",
+      "Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less if the account kept more than 16% of its vCPUs busy over the last hour), drops to a 16% baseline per vCPU when credit runs out, and regains full speed once credit replenishes.",
       "DMI names only Cloud Hypervisor, so the memory type isn't shown. It runs as root, with sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",

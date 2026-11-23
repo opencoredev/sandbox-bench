@@ -59,6 +59,18 @@ describe("cost pick", () => {
     });
   }
 
+  test("same-spec: lists cheaper exact costs on a different machine in lower", () => {
+    const withoutStyne: Track = {
+      ...tracks["same-spec"],
+      providers: tracks["same-spec"].providers.filter((p) => p.id !== "styne"),
+      costs: Object.fromEntries(Object.entries(tracks["same-spec"].costs).filter(([k]) => k !== "styne")),
+    };
+    const c = costPick(withoutStyne);
+    assert.ok(c.kind === "picked");
+    assert.equal(c.pick.id, "upstash-ephemeral");
+    assert.deepEqual(c.lower.map((t) => t.id), ["boxd"]);
+  });
+
   test("Boat's usage cost is in the chart like every other provider's, not listed as unpriced", () => {
     for (const id of trackIds) {
       if (!tracks[id].costs.boat) continue;

@@ -233,7 +233,7 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
   styne: {
     kind: "unconfirmed",
     evidence:
-      "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), and Styne puts a sandbox to sleep when nothing runs inside it, so costs from our measured time are an upper bound.",
+      "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep when nothing runs inside it, so idle gaps between calls are unbilled and actual charges can sit below elapsed-time estimates.",
   },
   vercel: {
     kind: "usage",
