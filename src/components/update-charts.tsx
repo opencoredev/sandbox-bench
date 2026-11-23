@@ -19,8 +19,8 @@ import type { UpdateCharts as Charts } from "@/lib/updates";
 
 /** The charts an update page shows: the home page's compact headline charts, every one in view at once. */
 
-const pilot = `Pilot · ${realistic.coverage.headline.attempts} runs per provider`;
-const realTaskSub = `Create to delete · Median s · lower is better · ${pilot}`;
+const runs = `${realistic.coverage.headline.attempts} runs per provider`;
+const realTaskSub = `Create to delete · Median s · lower is better · ${runs}`;
 
 /** One chart in a card, titled as the home page's headline cards are, with a provider's standing above it when the update is about one. */
 function ChartCard({ marker, title, sub, standing, children }: { marker: string; title: string; sub: string; standing?: ReactNode; children: ReactNode }) {

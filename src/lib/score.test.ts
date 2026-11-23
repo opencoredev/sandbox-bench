@@ -125,9 +125,9 @@ describe("rankScores", () => {
 });
 
 describe("score categories on the committed data", () => {
-  test("four columns in order: Speed, Real tasks, Bursts, Cost, with no Reliability; Cost alone shows a value", () => {
-    assert.deepEqual(scoreCategories.map((c) => c.label), ["Speed", "Real tasks", "Bursts", "Cost"]);
-    assert.deepEqual(scoreCategories.map((c) => c.shows), ["score", "score", "score", "value"]);
+  test("five columns in order: Speed, Real tasks, Bursts, Reliability, Cost; Cost alone shows a value", () => {
+    assert.deepEqual(scoreCategories.map((c) => c.label), ["Speed", "Real tasks", "Bursts", "Reliability", "Cost"]);
+    assert.deepEqual(scoreCategories.map((c) => c.shows), ["score", "score", "score", "score", "value"]);
   });
 
   test("every category has a unique id and links to a section", () => {
@@ -275,5 +275,47 @@ describe("cost shows dollars, not a score", () => {
     assert.ok(kinds.slice(firstMissing).every((k) => k === "not-measured"));
     assert.equal(cells.find((s) => s.provider === "e2b")?.kind, "not-measured");
     assert.deepEqual(shown(cells)[0], ["instabox", "$0.81"]);
+  });
+});
+
+describe("reliability", () => {
+  const reliabilityOn = (id: keyof typeof tracks) => {
+    const r = trackScores(tracks[id]).find((c) => c.category.id === "reliability");
+    assert.ok(r);
+    assert.equal(r.category.better, "higher");
+    assert.deepEqual(r.category.link, { section: "real-tasks", tab: "fix-and-test" });
+    return (provider: string) => {
+      const s = r.scores.find((x) => x.provider === provider);
+      return s?.kind === "scored" ? [s.score, s.display] : s?.kind;
+    };
+  };
+
+  test("Same machine counts fix and test, build and fix and test 5 at once: 20 runs, fewer where the burst never ran", () => {
+    const cell = reliabilityOn("same-spec");
+    assert.deepEqual(cell("e2b"), [100, "20/20"]);
+    assert.deepEqual(cell("upstash-ephemeral"), [90, "18/20"]);
+    assert.deepEqual(cell("tenki"), [55, "11/20"]);
+    // Daytona's quota couldn't fit the burst, so only its 10 started runs count, not 10 more failures.
+    assert.deepEqual(cell("daytona"), [90, "9/10"]);
+  });
+
+  test("Default machines count only runs that started; a machine too small for both tasks is not measured", () => {
+    const cell = reliabilityOn("default");
+    assert.deepEqual(cell("vercel"), [90, "9/10"]);
+    // Luxor's default machine ran fix and test but was too small for the build.
+    assert.deepEqual(cell("tenki"), [100, "5/5"]);
+    assert.equal(cell("e2b"), "not-measured");
+    assert.equal(cell("beam"), "not-measured");
+  });
+
+  test("a reading's own display wins over the category's format, and never changes the score", () => {
+    const providers = ["e2b", "modal"] as const;
+    const [only] = trackScores(tracks["same-spec"], [
+      { id: "x", label: "X", measure: "X", better: "higher", shows: "score", link: { section: "x", tab: null }, format: () => "formatted", read: () => [{ provider: providers[0], value: 1, display: "4/4" }, { provider: providers[1], value: 0.5 }] },
+    ]);
+    const e2b = only?.scores.find((s) => s.provider === "e2b");
+    const modal = only?.scores.find((s) => s.provider === "modal");
+    assert.ok(e2b?.kind === "scored" && e2b.display === "4/4" && e2b.score === 100);
+    assert.ok(modal?.kind === "scored" && modal.display === "formatted" && modal.score === 50);
   });
 });

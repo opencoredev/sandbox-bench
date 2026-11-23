@@ -17,28 +17,39 @@ interface Stat {
   label: string;
   value: string;
   provider: ProviderId;
+  /** Providers whose result prints the same as the leader's, so the tile names them too instead of crowning one. */
+  tied: readonly ProviderId[];
   /** One quiet line at the foot of the tile, such as how the result was measured. */
   caption?: string;
   section: string;
   tab: string;
 }
 
-/** The provider with the lowest median for a metric, or null when nobody has one. */
-function fastest(track: Track, id: string) {
-  const best = track
-    .metric(id)
-    // Providers are ranked on the tier a new account gets.
-    .values.flatMap((v) => (v.p50 === null || isExtraTier(v.provider) ? [] : [{ provider: v.provider, p50: v.p50 }]))
-    .sort((a, b) => a.p50 - b.p50)[0];
-  return best ? { provider: best.provider, value: `${formatShort(best.p50, "s")}s` } : null;
+/** Seconds as a tile prints them: "82s". */
+const tileSeconds = (s: number) => `${formatShort(s, "s")}s`;
+
+/**
+ * The fastest of some times and every provider that prints the same, fastest
+ * first: a tie at the shown value is a tie to the reader, so the tile names
+ * them all. Providers are ranked on the tier a new account gets. Null when
+ * nobody has a time.
+ */
+export function leaders(times: readonly { provider: ProviderId; seconds: number }[]): { provider: ProviderId; tied: ProviderId[]; value: string } | null {
+  const [best, ...rest] = times.filter((t) => !isExtraTier(t.provider)).sort((a, b) => a.seconds - b.seconds);
+  if (!best) return null;
+  const value = tileSeconds(best.seconds);
+  return { provider: best.provider, tied: rest.flatMap((t) => (tileSeconds(t.seconds) === value ? [t.provider] : [])), value };
 }
 
-const pilot = `Pilot, ${realistic.coverage.headline.attempts} runs per provider`;
+/** The provider with the lowest median for a metric, with any that print the same, or null when nobody has one. */
+const fastest = (track: Track, id: string) => leaders(track.metric(id).values.flatMap((v) => (v.p50 === null ? [] : [{ provider: v.provider, seconds: v.p50 }])));
 
-/** The provider that finished a real task fastest, by median time from create to confirmed delete. */
+const runs = `${realistic.coverage.headline.attempts} runs`;
+
+/** The provider that finished a real task fastest, by median time from create to confirmed delete, with any that print the same. */
 function fastestTask(track: Track, profile: ProfileId): Omit<Stat, "section" | "tab"> | null {
-  const [best] = taskTimes(track, profile).timed.filter((t) => !isExtraTier(t.provider));
-  return best ? { label: `Fastest ${profileInfo[profile].label.toLowerCase()}`, provider: best.provider, value: `${formatShort(best.medianWallS, "s")}s`, caption: pilot } : null;
+  const lead = leaders(taskTimes(track, profile).timed.map((t) => ({ provider: t.provider, seconds: t.medianWallS })));
+  return lead ? { label: `Fastest ${profileInfo[profile].label.toLowerCase()}`, ...lead, caption: runs } : null;
 }
 
 /**
@@ -50,7 +61,7 @@ function costTile(track: Track, profile: ProfileId): Omit<Stat, "section" | "tab
   const p = pickFor(realistic, runTrackOf[track.id], profile);
   switch (p.kind) {
     case "picked":
-      return { label: `Cheapest ${profileInfo[profile].label.toLowerCase()}, per 1,000`, provider: p.pick.provider, value: perThousand(p.pick.cost.usdPerCompleted), caption: pilot };
+      return { label: `Cheapest ${profileInfo[profile].label.toLowerCase()}, per 1,000`, provider: p.pick.provider, tied: [], value: perThousand(p.pick.cost.usdPerCompleted), caption: runs };
     case "none":
     case "empty":
       return null;
@@ -76,7 +87,8 @@ function stats(track: Track): Stat[] {
 
 /**
  * The winners row under the title, one cell per headline result. Each cell
- * opens the chart it comes from; medians only, so a close second may be tied.
+ * opens the chart it comes from; a provider that prints the same median is
+ * named as tied, and a close second may still be tied within its interval.
  */
 export function StatStrip({ track }: { track: Track }) {
   const cells = stats(track);
@@ -100,6 +112,19 @@ export function StatStrip({ track }: { track: Track }) {
                 <ProviderName id={s.provider} />
               </span>
             </span>
+            {s.tied.length > 0 ? (
+              <span className="mt-xxs text-xs text-pretty text-neutral-8">
+                Tied with{" "}
+                {s.tied.map((id, i) => (
+                  <span key={id}>
+                    {i === 0 ? "" : i === s.tied.length - 1 ? " and " : ", "}
+                    <span className="font-medium" style={{ color: providerColor(id) }}>
+                      <ProviderName id={id} />
+                    </span>
+                  </span>
+                ))}
+              </span>
+            ) : null}
             {/* The qualifier sits on the tile's last line, so captions line up across the row. */}
             {s.caption ? <span className="mt-auto pt-xs text-xs text-pretty text-neutral-7">{s.caption}</span> : null}
           </JumpLink>
