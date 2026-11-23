@@ -230,6 +230,11 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "beam.cloud/pricing (checked Nov 20, 2026): the Spot tier bills $0.0063 per vCPU-hour and $0.00135 per GiB of RAM per hour, per millisecond while running, on spare capacity Beam can take back with 30 seconds' notice; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
   },
+  styne: {
+    kind: "unconfirmed",
+    evidence:
+      "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), and Styne puts a sandbox to sleep when nothing runs inside it, so costs from our measured time are an upper bound.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",

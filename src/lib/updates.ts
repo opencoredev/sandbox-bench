@@ -37,6 +37,21 @@ export interface Update {
 
 export const updates = [
   {
+    slug: "styne-added",
+    date: "2026-11-23",
+    title: "Styne added",
+    text: "Styne on both machines, with snapshots, bursts and both real tasks. It was the fastest at cold start, 100 tool calls and both real tasks, on both tracks.",
+    body: [
+      "Styne joined on both tracks, from its own runs on Nov 23: pause and resume, snapshots, bursts of 10 and 25 and both real tasks included. Its default machine is 4 vCPU, 8 GB and a 51 GB disk, so both tracks ran the same machine.",
+      "On 4 vCPU and 8 GB it started in 0.20 s, against Modal's 0.38 s, and ran 100 tool calls in 7.6 s, against Beam's 11 s. It was also first on bursts of 10 and 25 and on taking and starting from a snapshot. Fix and test took 56 s and Build 89 s; the next fastest took 82 s and 133 s.",
+      "At Styne's list price of $0.032 an hour for this size, Fix and test cost $0.55 per 1,000 and Build $0.89, the lowest on the chart. These are estimates from our measured time: Styne's usage API reports daily account totals, not per sandbox.",
+      "Five Fix and test tasks at once took 87.5 s, still the fastest, but 1.44 times its 61 s alone, the largest change on that chart. A new Styne sandbox runs at full speed for its first 10 minutes, then at 16% of each vCPU; every real task finished inside those 10 minutes.",
+      "On the default track, 10 of 2,989 operations failed with Styne errors: 9 commands that returned HTTP 503 in one run, and one file write that returned HTTP 500. One of five default-track Builds failed while its sandbox was being created, with the same 503. The same-machine track had no failures.",
+    ],
+    charts: { kind: "provider", provider: "styne" },
+    home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
+  },
+  {
     slug: "beam-cpu-tiers",
     date: "2026-11-20",
     title: "Beam's CPU tiers, side by side",

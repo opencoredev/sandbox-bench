@@ -46,8 +46,8 @@ describe("cost status", () => {
 describe("cost pick", () => {
   // The published data, pinned: a change to the rule or the data must change these on purpose.
   const expected = {
-    "same-spec": { pick: "upstash-ephemeral", lower: ["boxd"] },
-    default: { pick: "boxd", lower: [] },
+    "same-spec": { pick: "styne", lower: [] },
+    default: { pick: "styne", lower: [] },
   } as const satisfies Record<(typeof trackIds)[number], { pick: string; lower: readonly string[] }>;
 
   for (const id of trackIds) {

@@ -570,10 +570,10 @@ describe("pick", () => {
       return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
     }));
     assert.deepEqual(picks.sort(), [
-      "default/build: instabox []",
-      "default/fix-and-test: instabox []",
-      "same-machine/build: instabox []",
-      "same-machine/fix-and-test: instabox []",
+      "default/build: styne []",
+      "default/fix-and-test: styne []",
+      "same-machine/build: styne []",
+      "same-machine/fix-and-test: styne []",
     ]);
   });
 
@@ -765,7 +765,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\) and Superserve \(account totals only\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\) and Superserve and Styne \(account totals only\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -851,12 +851,12 @@ describe("page", () => {
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
     const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
-    assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
-    // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
+    assert.match(text, /Cheapest: Styne \$0\.55 per 1,000/);
+    // In the published data boxd's $5.50 is on the wrong size but dearer than Styne, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
+    // Without Styne, Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
     // Superserve since its Nov 18 rerun with a 20 GB disk.
-    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox") }, "same-machine", "fix-and-test");
+    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox" && r.provider !== "styne") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
     assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);

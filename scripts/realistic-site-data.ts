@@ -24,6 +24,8 @@
  *     --parts scripts/realistic-parts/beam-tiers-shared.json \
  *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-spot/summary/summary.json \
  *     --parts scripts/realistic-parts/beam-tiers-spot.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-styne/summary.json \
+ *     --parts scripts/realistic-parts/sbx-styne.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -66,6 +68,14 @@
  * the same plan run the same day as its tiers, so the tier table compares
  * same-day runs; its Nov 18 run (sbx-beam) took 138 s and 186 s. Every other
  * provider's rows came out unchanged.
+ *
+ * Rebuilt on 2026-11-23 with Styne added (sbx-styne: headline runs that day,
+ * 19:36 to 20:01 UTC, sandbox-sdk cd2e6e1 with the estimate-list fix 1cfc6dc
+ * on the styne-provider branch). Its costs are list-price estimates: Styne's
+ * usage API reports daily account totals, so it has no held-open run. Its one
+ * incomplete run (a build on the default track) failed to create, not in
+ * setup, so it needs no --attempts file. Every other provider's rows and
+ * held-open entries came out unchanged.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

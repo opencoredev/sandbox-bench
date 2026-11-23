@@ -33,8 +33,16 @@ export type BurstProvider =
       /** Uploading the toolchain from our machine, part of every task's time. */
       medianUploadS: number | null;
       soloMedianUploadS: number | null;
+      /** The provider's own run, when it ran apart from the file's main run. */
+      run: BurstRun | null;
     }
   | { provider: ProviderId; status: "not-run"; reason: string };
+
+export interface BurstRun {
+  id: string;
+  sdkCommit: string;
+  startedAt: string;
+}
 
 export interface RealtaskBurst {
   generatedAt: string;
@@ -130,7 +138,13 @@ function parseProvider(v: unknown, path: string): BurstProvider {
     changeNote: orNull(str)(o.changeNote, `${path}.changeNote`),
     medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
     soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
+    run: orNull(parseRun)(o.run, `${path}.run`),
   };
+}
+
+function parseRun(v: unknown, path: string): BurstRun {
+  const o = obj(v, path);
+  return { id: str(o.id, `${path}.id`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), startedAt: str(o.startedAt, `${path}.startedAt`) };
 }
 
 /** Parses the file, so a malformed one stops the build instead of reaching the page. */

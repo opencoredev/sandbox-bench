@@ -17,7 +17,8 @@
       "instabox",
       "beam",
       "beam-shared",
-      "beam-spot"
+      "beam-spot",
+      "styne"
     ],
     "profiles": [
       "fix-and-test",
@@ -78,6 +79,11 @@
         "provider": "beam-spot",
         "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
         "short": "no billing data we can read"
+      },
+      {
+        "provider": "styne",
+        "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "account totals only"
       }
     ]
   }

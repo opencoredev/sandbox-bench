@@ -9,7 +9,7 @@ import type { ProviderId } from "@/lib/providers";
  * components (the score table, the trace panel) can link a provider to its
  * page without shipping that data to the browser.
  */
-export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten", "instabox", "beam", "modal"] as const satisfies readonly ProviderId[];
+export const providerPages = ["e2b", "daytona", "superserve", "upstash", "upstash-ephemeral", "boat", "freestyle", "tenki", "baseten", "instabox", "beam", "modal", "styne"] as const satisfies readonly ProviderId[];
 export type ProviderPageId = (typeof providerPages)[number];
 export const isProviderPage = (id: string): id is ProviderPageId => (providerPages as readonly string[]).includes(id);
 

@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-20T19:23:29.309Z",
+  "generatedAt": "2026-11-23T20:14:26.377Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -20,7 +20,8 @@
         "instabox",
         "beam",
         "beam-shared",
-        "beam-spot"
+        "beam-spot",
+        "styne"
       ],
       "profiles": [
         "fix-and-test",
@@ -81,6 +82,11 @@
           "provider": "beam-spot",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
+        },
+        {
+          "provider": "styne",
+          "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "account totals only"
         }
       ]
     }
@@ -157,6 +163,13 @@
       "generatedAt": "2026-11-20T18:55:02.381Z",
       "providers": [
         "beam-spot"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-styne",
+      "generatedAt": "2026-11-23T20:08:04.169Z",
+      "providers": [
+        "styne"
       ]
     }
   ],
@@ -465,6 +478,37 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "create-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 86.3975,
+      "medianCpuS": 170.389,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000773333,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
     },
     {
       "provider": "superserve",
@@ -895,6 +939,32 @@
       "flags": []
     },
     {
+      "provider": "styne",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 89.048,
+      "medianCpuS": 173.654,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000892444,
+        "wholeMachineUsdPerCompleted": 0.000892444,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "superserve",
       "profile": "build",
       "track": "same-machine",
@@ -1302,6 +1372,32 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 56.219,
+      "medianCpuS": 134.368,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000533333,
+        "wholeMachineUsdPerCompleted": 0.000533333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
     },
     {
       "provider": "superserve",
@@ -1722,6 +1818,32 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 56.028,
+      "medianCpuS": 134.685,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000545778,
+        "wholeMachineUsdPerCompleted": 0.000545778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
     },
     {
       "provider": "superserve",

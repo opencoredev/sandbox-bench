@@ -70,6 +70,13 @@ export const advertised = {
     source: "https://docs.beam.cloud/v2/reference/ts-sdk.md",
     note: "Beam's default sandbox is 1 CPU and 128 MiB, enforced as the sandbox's memory limit. That is too little memory for our dev server and Python install, which were killed for running out of it, and for both realistic workloads. Beam has no disk setting and doesn't bill disk.",
   },
+  styne: {
+    vcpu: 4,
+    memoryGiB: 8,
+    diskGiB: 51,
+    source: "https://docs.styne.ai/guide-templates",
+    note: "Styne's default base template is 4 vCPU, 8 GiB RAM and a 51 GiB root disk, so both tracks ran the same machine.",
+  },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {
     vcpu: 1,

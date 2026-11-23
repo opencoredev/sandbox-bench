@@ -47,6 +47,7 @@ export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
+  { providers: ["styne"], date: "Nov 23, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -61,7 +62,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten and Instabox
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam and Styne
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -336,6 +337,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "The CPU names itself only as \"AMD EPYC\", with no model number. Its family and model IDs (26, model 2), 1 MB of L2 per core and Zen 5-only instructions such as AVX-512 VP2INTERSECT place it in 5th Gen EPYC. Every sandbox showed the same feature set.",
       "Outbound HTTPS to public DNS resolvers is blocked: 1.1.1.1, 1.0.0.1, 8.8.8.8 and 9.9.9.9 on port 443 time out, so the TCP connect probe, which dials 1.1.1.1:443, can't run. Other port 443 traffic, such as GitHub and npm, works.",
       "No DMI, so the memory type is inferred from the chip. It runs as an ordinary user with passwordless sudo.",
+    ],
+    sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
+  },
+  styne: {
+    chip: "AMD Zen 3",
+    family: "Zen 3 (CPU family 25, model 33), 4.29 GHz, 512 KB L2 per core, 32 MB L3 shown",
+    chipBasis: "inferred",
+    memory: { kind: "unknown", why: "Cloud Hypervisor's DMI names only the hypervisor, with no memory details" },
+    cloud: "G-Core Labs, from its outbound IPs",
+    region: "Outbound IPs are G-Core Labs' (AS199524) in Manassas, Virginia for 259 of 260 sandboxes and Chicago for one; that is where traffic leaves, not proof of where the sandbox runs. Styne's region is ash (Ashburn, Virginia)",
+    regionShort: "Virginia",
+    runsAs: "Cloud Hypervisor microVM",
+    runsAsDetail: "KVM under Cloud Hypervisor, with Linux 6.16.9+ inside",
+    storage: "51 GB virtio disk (vda), ext4",
+    kernel: "Linux 6.16.9+, Debian 12",
+    hidden: [
+      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by the hypervisor. Its family and model IDs (25, model 33), 512 KB of L2 per core and its instructions (VAES, no AVX-512) place it in Zen 3. Every sandbox showed the same feature set.",
+      "Styne's sandboxes are a shared-CPU class: each new sandbox gets 10 minutes of full speed, then is held to 16% of each vCPU.",
+      "DMI names only Cloud Hypervisor, so the memory type isn't shown. It runs as root, with sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
   },
