@@ -37,6 +37,20 @@ export interface Update {
 
 export const updates = [
   {
+    slug: "archil-added",
+    date: "2026-11-23",
+    title: "Archil added",
+    text: "Archil on both machines, with bursts, locations, stress and expanded tests. The fastest pip install and preview URL first byte on both.",
+    body: [
+      "Archil joined on both tracks, from its own runs on Nov 23: pause and resume, bursts of 10 and 25, the quick task's cost, calls from Frankfurt and Florida, SDK setup, the stress tests, the expanded benchmarks and Fix and test 5 at once. Its snapshot tests didn't run, because our Archil adapter has no snapshots.",
+      "It had the fastest pip install, 2.9 s, and the fastest preview URL first byte, 0.14 s, on both machines.",
+      "Its quick-task cost on Default machines comes from a second cost run: in the first, one tool replay timed out after 180 s, and cost per task needs all 10 tasks to finish. Archil's costs are shown as unsettled, because Archil drops a deleted sandbox's record within about half an hour, so we can't confirm a charge is final.",
+      "Its ratio at 5 at once to one task alone is held back: one of its two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other, so two tasks can't set its baseline.",
+    ],
+    charts: { kind: "provider", provider: "archil" },
+    home: { section: "agent", tab: "preview-first-byte", label: "Tool calls" },
+  },
+  {
     slug: "beam-cpu-tiers",
     date: "2026-11-20",
     title: "Beam's CPU tiers, side by side",

@@ -115,6 +115,16 @@ const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>>
   },
 };
 
+/**
+ * Why a billed cost is unsettled, when the general reason (the provider
+ * hasn't settled it) would be wrong. Applies only while the export says
+ * unsettled, so a settled re-run drops it on its own.
+ */
+const unsettledWhy: Partial<Record<ProviderId, string>> = {
+  archil:
+    "Archil drops a deleted sandbox's record within about half an hour, so we can't read back a charge's end time to confirm it is final; the figures are from Archil's own per-sandbox usage API",
+};
+
 /** Where a cost sits in the table above. A lower bound is checked first: no other status makes it comparable. */
 export function costStatus(id: ProviderId, c: Priced): CostStatus {
   if (isLowerBound(c))
@@ -125,7 +135,7 @@ export function costStatus(id: ProviderId, c: Priced): CostStatus {
     case "estimate":
       return { kind: "estimate", why: estimateSources[id]?.why ?? "our measured time at list price, not the provider's bill or meter" };
     case "billed":
-      return c.settled ? { kind: "verified" } : { kind: "unsettled", why: `${providerName(id)} has not settled this charge yet, so it can still change` };
+      return c.settled ? { kind: "verified" } : { kind: "unsettled", why: unsettledWhy[id] ?? `${providerName(id)} has not settled this charge yet, so it can still change` };
     case "metered":
       return { kind: "unreconciled", why: `${providerName(id)}'s usage records at its published rates haven't been checked against the charges it settled yet` };
     default: {
@@ -378,6 +388,28 @@ export const costBasis = (c: Priced) =>
 /** The second line of a hover card: what the amount is, without jargon. */
 export const costSource = (id: ProviderId, c: Priced) =>
   `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}`;
+
+/**
+ * Why a provider's cost comes from a rerun of the cost suite, keyed by the
+ * rerun's id. A note shows only while the track's exclusions record the cost
+ * suite replaced from that run, so a later cost run drops it on its own.
+ */
+const costReruns: Partial<Record<ProviderId, { run: string; why: string }>> = {
+  archil: {
+    run: "sbxar-default-cost-r2",
+    why: "its cost comes from a second cost run on Nov 23. In the first, one tool replay timed out after 180 s, and cost per task needs all 10 tasks to finish; that timed-out attempt still counts in Archil's main results",
+  },
+};
+
+/** The rerun notes for providers priced on this track, for the notes under its cost chart and the agent files. */
+export function costRerunNotes(track: Track) {
+  return pricedTasks(track).flatMap(({ id }) => {
+    const rerun = costReruns[id];
+    if (!rerun) return [];
+    const replaced = track.exclusions[id]?.replacements.some((r) => r.suite === "cost" && r.sourceRunIds.includes(rerun.run)) ?? false;
+    return replaced ? [{ id, why: rerun.why }] : [];
+  });
+}
 
 /** Providers whose figure is not straight from a bill, grouped by how it was priced, for the one note under a cost chart. */
 export function notFromBill(track: Track) {
