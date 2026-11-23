@@ -875,14 +875,43 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "archil",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 2
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 2,
+     "diskGiB": 0
+    }
+   },
+   "measured": [
+    {
+     "cpu": 1,
+     "memoryGiB": 1.9338417053222656,
+     "diskGiB": 1006.853931427002
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-19T19:18:29.681Z"
+  "end": "2026-11-23T23:12:01.871Z"
  },
- "observations": 42617,
+ "observations": 45286,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1198,6 +1227,56 @@
    "id": "sbxbm-default-cost",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbxar-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxar-default-main-makeup",
+   "suite": "main",
+   "samples": 20
+  },
+  {
+   "id": "sbxar-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxar-default-cost-r2",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxar-default-burst10-c1",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-default-burst10-c2",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-default-burst10-c3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-default-burst25-c1",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxar-default-burst25-c2",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxar-default-burst25-c3",
+   "suite": "burst",
+   "samples": 101
   }
  ],
  "excluded": [
@@ -1333,6 +1412,69 @@
     }
    ],
    "replacements": []
+  },
+  "archil": {
+   "removed": {
+    "replaced-source": 50,
+    "above-target": 10
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "archil",
+     "suite": "snapshot",
+     "scenario": "snapshot",
+     "reason": "Not run: the Archil adapter has no snapshot capability"
+    },
+    {
+     "provider": "archil",
+     "suite": "snapshot",
+     "scenario": "create-from-snapshot",
+     "reason": "Not run: the Archil adapter has no snapshot capability"
+    }
+   ],
+   "replacements": [
+    {
+     "provider": "archil",
+     "suite": "cost",
+     "scenario": "cold",
+     "sourceRunIds": [
+      "sbxar-default-cost-r2"
+     ]
+    },
+    {
+     "provider": "archil",
+     "suite": "cost",
+     "scenario": "tool-replay-prepare",
+     "sourceRunIds": [
+      "sbxar-default-cost-r2"
+     ]
+    },
+    {
+     "provider": "archil",
+     "suite": "cost",
+     "scenario": "tool-replay",
+     "sourceRunIds": [
+      "sbxar-default-cost-r2"
+     ]
+    },
+    {
+     "provider": "archil",
+     "suite": "cost",
+     "scenario": "destroy",
+     "sourceRunIds": [
+      "sbxar-default-cost-r2"
+     ]
+    },
+    {
+     "provider": "archil",
+     "suite": "cost",
+     "scenario": "sandbox-lifetime",
+     "sourceRunIds": [
+      "sbxar-default-cost-r2"
+     ]
+    }
+   ]
   }
  },
  "providers": [
@@ -3559,6 +3701,127 @@
    "ourFailures": [],
    "pauseSplit": null,
    "standbyResume": null
+  },
+  {
+   "id": "archil",
+   "costPerTask": {
+    "usd": 0.001583,
+    "kind": "billed",
+    "source": "GET /api/sandboxes/{id}/usage (Archil control plane)",
+    "confidence": "low",
+    "n": 10,
+    "settled": false,
+    "bound": null
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 2
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 2,
+     "diskGiB": 0
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 1,
+     "memoryGiB": 1.9338417053222656,
+     "diskGiB": 1006.853931427002
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.095,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.38,
+   "perVcpuHour": 0.095,
+   "pricingAllocation": {
+    "cpu": 1,
+    "memoryGiB": 2
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.05499999999999999,
+    "memoryGiBHour": 0.02,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://docs.archil.com/administration/billing.md",
+   "pricingNotes": "Published sandbox rates ($0.055/vCPU-hour, $0.020/GiB RAM-hour), priced on the allocation while running (2026-11-21). Compute is sampled each minute; the billing increment and minimum are not stated, so this is a one-second estimate. Paused and stopped sandboxes accrue no compute. The root disk's data is billed as storage ($0.20/GiB-month active) and egress at $0.07/GB; neither is priced. No per-start fee stated. Plan minimums (Developer $10/month, Team $500/month) and credits excluded. The snapshot tests did not run: the adapter has no snapshot.",
+   "reliability": {
+    "successes": 2665,
+    "failures": 2,
+    "raw": 0.9992500937382827,
+    "adjusted": 0.9992500937382827,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 2
+   },
+   "hardware": {
+    "fingerprints": 102,
+    "vcpu": 1,
+    "visibleCpus": [
+     1
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 1.9338417053222656,
+    "diskGiB": 1006.853931427002,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC",
+      "count": 102
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.39",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 102
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 102
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Archil guest operation timed out starting. (timeout)",
+     "count": 2,
+     "runs": 2,
+     "tests": [
+      "Dev server ready",
+      "Agent tool replay"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 1.1013034680001437,
+    "resume": 0.5071900730000343,
+    "n": 100
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -3749,6 +4012,19 @@
      "min": 0.3267091260002926,
      "ciLow": 0.40009096700046215,
      "ciHigh": 0.4151492409997154,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.664535390999983,
+     "p95": 0.7712250490000006,
+     "min": 0.650275083999848,
+     "ciLow": 0.6619975229997653,
+     "ciHigh": 0.6665740789999254,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3947,6 +4223,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.16621394899999722,
+     "p95": 0.1739605159999337,
+     "min": 0.159089496999979,
+     "ciLow": 0.16539112400007436,
+     "ciHigh": 0.1672115660000127,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4137,6 +4426,19 @@
      "min": 0.10046212999988348,
      "ciLow": 0.1078740739999339,
      "ciHigh": 0.10986053000018,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.3845964480000548,
+     "p95": 0.400623424999998,
+     "min": 0.37352453600009905,
+     "ciLow": 0.38354002900002526,
+     "ciHigh": 0.3869665310001001,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4335,6 +4637,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1.619725002999883,
+     "p95": 2.4951828850000166,
+     "min": 1.5532121350001544,
+     "ciLow": 1.6041841539999586,
+     "ciHigh": 1.650822230000049,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4529,6 +4844,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.524525151000009,
+     "p95": 0.5416536070000147,
+     "min": 0.5092936040000059,
+     "ciLow": 0.5223715410002042,
+     "ciHigh": 0.52573683300009,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4667,6 +4995,19 @@
      "min": 1.0045809019999579,
      "ciLow": 2.6993820679998026,
      "ciHigh": 2.9397039530002513,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1.616404508000007,
+     "p95": 3.3159984720000066,
+     "min": 1.5560127999999096,
+     "ciLow": 1.606167698000092,
+     "ciHigh": 1.639112404999789,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4870,6 +5211,19 @@
      "min": 0.033098244999535384,
      "ciLow": 0.035488764999434354,
      "ciHigh": 0.03678882699925452,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.644524802000029,
+     "p95": 1.1785898009999656,
+     "min": 0.635123415999813,
+     "ciLow": 0.6419754679999314,
+     "ciHigh": 0.6457501240000129,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5378,6 +5732,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.4569213339999551,
+     "p95": 0.5651332239999901,
+     "min": 0.37689716000005136,
+     "ciLow": 0.44249865399999544,
+     "ciHigh": 0.4730892099998891,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5568,6 +5935,19 @@
      "min": 1.1248303260002286,
      "ciLow": 1.2236658290000633,
      "ciHigh": 1.649991043000482,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 1.0534248039999512,
+     "p95": 1.1897609329999979,
+     "min": 0.9530112819999922,
+     "ciLow": 1.024640160000068,
+     "ciHigh": 1.0723643619999639,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5766,6 +6146,19 @@
      "failures": 16,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 2.8762645359999732,
+     "p95": 3.0305065320000284,
+     "min": 2.6063033719998785,
+     "ciLow": 2.8384396039999555,
+     "ciHigh": 2.9207512199999766,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5958,6 +6351,19 @@
      "ciHigh": 1.6736387320002541,
      "successes": 10,
      "failures": 20,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 29,
+     "p50": 1.285984448999865,
+     "p95": 1.3833537329999963,
+     "min": 0.9379891890000436,
+     "ciLow": 1.2755974810000044,
+     "ciHigh": 1.295008096000005,
+     "successes": 29,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -6154,6 +6560,19 @@
      "failures": 30,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.14131939800013787,
+     "p95": 0.18608304599998518,
+     "min": 0.1293029210001696,
+     "ciLow": 0.13463716400001433,
+     "ciHigh": 0.1543814550000243,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6331,6 +6750,19 @@
      "min": 0.4894567559999414,
      "ciLow": 0.538008048000047,
      "ciHigh": 0.5907337379999809,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.4516973070001695,
+     "p95": 0.4816978750000708,
+     "min": 0.4408988649999956,
+     "ciLow": 0.44634430900006555,
+     "ciHigh": 0.45547144900000425,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6529,6 +6961,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 29,
+     "p50": 22.55541968500009,
+     "p95": 23.972798300999973,
+     "min": 22.178974187999962,
+     "ciLow": 22.48961772800004,
+     "ciHigh": 22.62541872399999,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6723,6 +7168,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 3,
+     "p50": 0.774932325,
+     "p95": 0.7836180890000003,
+     "min": 0.733143595,
+     "ciLow": 0.733143595,
+     "ciHigh": 0.7836180890000003,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6900,6 +7358,19 @@
      "min": 1.9894785589999993,
      "ciLow": 1.9894785589999993,
      "ciHigh": 2.762324177999999,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 3,
+     "p50": 0.9575464069999998,
+     "p95": 1.5762616380000003,
+     "min": 0.9321439980000005,
+     "ciLow": 0.9321439980000005,
+     "ciHigh": 1.5762616380000003,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -7098,6 +7569,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 24068166.63171575,
+     "p95": 24701587.53150795,
+     "min": 11256061.03711655,
+     "ciLow": 23789270.078108054,
+     "ciHigh": 24159936.070876434,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7288,6 +7772,19 @@
      "min": 8065473.5137472,
      "ciLow": 13289606.452624897,
      "ciHigh": 13680530.981901754,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 20147257.51400562,
+     "p95": 21456373.678021632,
+     "min": 8760991.342616152,
+     "ciLow": 19971777.082933016,
+     "ciHigh": 20354374.960194442,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7486,6 +7983,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 45405.28330807821,
+     "p95": 48052.59094606755,
+     "min": 22893.6976597847,
+     "ciLow": 44825.49626011797,
+     "ciHigh": 45761.75280504039,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7676,6 +8186,19 @@
      "min": 1566.6405571050327,
      "ciLow": 2000.105684619502,
      "ciHigh": 2049.194195933954,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 733.6938242422473,
+     "p95": 880.3436376123726,
+     "min": 417.20998239805255,
+     "ciLow": 718.5302923408872,
+     "ciHigh": 747.3078866180624,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7874,6 +8397,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 23613.41881364844,
+     "p95": 27773.51394080133,
+     "min": 21094.925313080363,
+     "ciLow": 23293.924247475406,
+     "ciHigh": 23841.5171291683,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8064,6 +8600,19 @@
      "min": 41176.32393541082,
      "ciLow": 86117.63534428242,
      "ciHigh": 105234.68568125756,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 13818.843277529262,
+     "p95": 14996.781842927528,
+     "min": 2743.960489369924,
+     "ciLow": 13576.790646100195,
+     "ciHigh": 14004.684348090983,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8262,6 +8811,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 982687.8046893647,
+     "p95": 1135657.8830625676,
+     "min": 831330.778722211,
+     "ciLow": 965491.2313795056,
+     "ciHigh": 995024.8756217886,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8439,6 +9001,19 @@
      "ciHigh": 3.6142464000000096,
      "successes": 93,
      "failures": 7,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1.830005800000034,
+     "p95": 2.21916000000002,
+     "min": 1.3673699999998234,
+     "ciLow": 1.7394439999998568,
+     "ciHigh": 1.900820000000003,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -9873,6 +10448,108 @@
    0.53,
    0.584,
    0.745
+  ],
+  "archil": [
+   0.65,
+   0.651,
+   0.652,
+   0.652,
+   0.652,
+   0.653,
+   0.654,
+   0.654,
+   0.654,
+   0.655,
+   0.655,
+   0.655,
+   0.656,
+   0.656,
+   0.656,
+   0.656,
+   0.656,
+   0.657,
+   0.657,
+   0.657,
+   0.658,
+   0.658,
+   0.658,
+   0.658,
+   0.659,
+   0.659,
+   0.659,
+   0.66,
+   0.66,
+   0.661,
+   0.661,
+   0.661,
+   0.661,
+   0.661,
+   0.661,
+   0.662,
+   0.662,
+   0.662,
+   0.662,
+   0.662,
+   0.663,
+   0.663,
+   0.663,
+   0.663,
+   0.663,
+   0.664,
+   0.664,
+   0.664,
+   0.664,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.666,
+   0.666,
+   0.666,
+   0.666,
+   0.666,
+   0.667,
+   0.667,
+   0.667,
+   0.667,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.669,
+   0.67,
+   0.67,
+   0.67,
+   0.671,
+   0.671,
+   0.672,
+   0.672,
+   0.672,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.674,
+   0.676,
+   0.678,
+   0.679,
+   0.68,
+   0.687,
+   0.692,
+   0.695,
+   0.697,
+   0.7,
+   0.705,
+   0.732,
+   0.771,
+   0.846,
+   0.933,
+   0.938,
+   0.947,
+   1.242
   ]
  },
  "missing": {
@@ -9881,10 +10558,10 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18)."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Archil's is from its own runs (Nov 23)."
  },
  "stress": {
-  "observations": 1446,
+  "observations": 1565,
   "runs": [
    {
     "id": "stress261121-baseten-cpuburst",
@@ -10080,6 +10757,21 @@
     "id": "stress261121-vercel-sustained",
     "suite": "cpu-sustained",
     "samples": 21
+   },
+   {
+    "id": "sbxar-stress-sustained",
+    "suite": "cpu-sustained",
+    "samples": 21
+   },
+   {
+    "id": "sbxar-stress-cpuburst",
+    "suite": "cpu-burst",
+    "samples": 72
+   },
+   {
+    "id": "sbxar-stress-survival",
+    "suite": "survival",
+    "samples": 26
    }
   ],
   "selectionRemoved": {},
@@ -11032,6 +11724,79 @@
      "blocked": 0,
      "skipped": 0
     }
+   },
+   {
+    "provider": "archil",
+    "requestedSize": null,
+    "template": null,
+    "single": {
+     "n": 3,
+     "p50": 25863169.480166752,
+     "p95": 26490412.95133879,
+     "min": 25722355.091204636,
+     "max": 26490412.95133879,
+     "ciLow": 25722355.091204636,
+     "ciHigh": 26490412.95133879
+    },
+    "all": {
+     "n": 3,
+     "p50": 26634513.43942737,
+     "p95": 27141509.76483648,
+     "min": 25940062.814855613,
+     "max": 27141509.76483648,
+     "ciLow": 25940062.814855613,
+     "ciHigh": 27141509.76483648
+    },
+    "singleSeconds": {
+     "p50": 7.733,
+     "max": 7.775
+    },
+    "allSeconds": {
+     "p50": 7.509,
+     "max": 7.71
+    },
+    "consistency": {
+     "single": {
+      "p50": 0.863,
+      "min": 0.858
+     },
+     "all": {
+      "p50": 0.983,
+      "min": 0.977
+     }
+    },
+    "trend": {
+     "single": {
+      "p50": 1.014,
+      "min": 1.004
+     },
+     "all": {
+      "p50": 1.007,
+      "min": 1.006
+     }
+    },
+    "guestVcpus": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "workers": [
+     {
+      "value": 1,
+      "count": 3
+     }
+    ],
+    "attempts": {
+     "successes": 3,
+     "failures": {
+      "accountLimit": 0,
+      "clientNetwork": 0,
+      "provider": 0
+     },
+     "blocked": 0,
+     "skipped": 0
+    }
    }
   ],
   "cpuBurst": [
@@ -11856,6 +12621,71 @@
       "withinCohortMaxOverMin": null,
       "dispatchSkewMs": null,
       "allCompleteS": null
+     },
+     {
+      "provider": "archil",
+      "requestedSize": null,
+      "template": null,
+      "work": {
+       "segments": 4,
+       "steps": 10000000
+      },
+      "cohorts": 2,
+      "completeCohorts": 2,
+      "excluded": {
+       "lowOverlap": 1,
+       "invalidEvidence": 0
+      },
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "members": {
+       "attempted": 10,
+       "ready": 10,
+       "completed": 10
+      },
+      "failures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "perSandbox": {
+       "cohorts": 1,
+       "single": {
+        "n": 5,
+        "p50": 26400459.045901813,
+        "p95": 27002042.256262798,
+        "min": 26097582.299880583,
+        "max": 27002042.256262798,
+        "mean": 26524291.26530377,
+        "maxOverMin": 1.0346568485152876,
+        "cv": 0.011778070858255598
+       },
+       "all": {
+        "n": 5,
+        "p50": 26343900.165643796,
+        "p95": 26932353.399295792,
+        "min": 26099861.0476675,
+        "max": 26932353.399295792,
+        "mean": 26463886.410643537,
+        "maxOverMin": 1.0318964284946908,
+        "cv": 0.012551747126725979
+       }
+      },
+      "withinCohortMaxOverMin": {
+       "p50": 1.035,
+       "max": 1.035
+      },
+      "dispatchSkewMs": {
+       "p50": 1,
+       "max": 1
+      },
+      "allCompleteS": {
+       "n": 2,
+       "p50": 3.252,
+       "max": 3.315
+      }
      }
     ]
    }
@@ -12238,6 +13068,37 @@
      },
      {
       "provider": "vercel",
+      "requestedSize": null,
+      "template": null,
+      "windowS": 60,
+      "heartbeatS": 10,
+      "cohorts": 1,
+      "incomplete": {
+       "cohorts": 0,
+       "members": 0
+      },
+      "attempted": 5,
+      "survived": 5,
+      "createFailed": {
+       "total": 0,
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "died": 0,
+      "unresponsive": 0,
+      "interrupted": 0,
+      "invalidEvidence": 0,
+      "invalidReasons": {},
+      "windowFailures": {
+       "accountLimit": 0,
+       "clientNetwork": 0,
+       "provider": 0
+      },
+      "survivalRate": 1
+     },
+     {
+      "provider": "archil",
       "requestedSize": null,
       "template": null,
       "windowS": 60,

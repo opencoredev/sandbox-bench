@@ -5,7 +5,7 @@ import { Card } from "@/components/tabs";
 import { tracks } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { allocationNotes } from "@/lib/notes";
-import { providerColor } from "@/lib/providers";
+import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { wallText } from "@/lib/realistic";
 import { burstTimes } from "@/lib/realtask-burst";
@@ -75,6 +75,12 @@ export function RealtaskBurstChart({ data }: { data: RealtaskBurst }) {
   const { timed, missing } = burstTimes(data);
   const marks = marksFor(timed);
   const title = `Fix and test, ${data.size} at once`;
+  const reruns = timed.filter((p) => p.run != null);
+  const runDates =
+    reruns.length > 0
+      ? `each on its own run day (${dayOf(data.run.startedAt)}; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run!.startedAt)}`).join("; ")})`
+      : `all on ${dayOf(data.run.startedAt)}`;
+  const rerunCommits = reruns.length > 0 ? `; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run!.startedAt)}, SDK ${p.run!.sdkCommit.slice(0, 7)}`).join("; ")}` : "";
   return (
     <Card>
       <ChartHead title={title} sub={`${data.size} Fix and test tasks started together, ${data.rounds} rounds · 4 vCPU, 8 GB · Median seconds per task · Tag: time at 5 at once ÷ time alone · Lower is better`} />
@@ -87,10 +93,10 @@ export function RealtaskBurstChart({ data }: { data: RealtaskBurst }) {
           { lead: "Time", text: "Each task is the published Fix and test workload, from the create request to confirmed deletion. The bar is the median of the tasks that finished." },
           {
             lead: "Compared with alone",
-            text: `One provider ran at a time. Each ran one task alone, ${data.size} at once, one alone and ${data.size} at once again, all on ${dayOf(data.run.startedAt)}, so both numbers share the hour and our network. The tag divides the time at ${data.size} at once by the median of the two tasks alone. With only two tasks alone, a change within about 10% is not a measurable slowdown.`,
+            text: `One provider ran at a time. Each ran one task alone, ${data.size} at once, one alone and ${data.size} at once again, ${runDates}, so both numbers share the hour and our network. The tag divides the time at ${data.size} at once by the median of the two tasks alone. With only two tasks alone, a change within about 10% is not a measurable slowdown.`,
           },
           { lead: "Upload", text: `Every task uploads the same 152 MB toolchain from our machine in Florida. ${data.size} at once share that upload link, which adds a few seconds to most providers; the hover card shows the change with and without it.` },
-          { lead: "Runs", text: `${data.rounds} rounds of ${data.size} per provider (SDK commit ${data.run.sdkCommit.slice(0, 7)}). Few runs, so read the times as descriptive.` },
+          { lead: "Runs", text: `${data.rounds} rounds of ${data.size} per provider (SDK commit ${data.run.sdkCommit.slice(0, 7)}${rerunCommits}). Few runs, so read the times as descriptive.` },
           { lead: "Cost", text: "Timing only. These runs weren't reconciled against bills, so they add nothing to the cost charts." },
         ]}
       />

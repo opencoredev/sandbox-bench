@@ -56,5 +56,35 @@ describe("real tasks at once", () => {
     assert.match(text, /No result for/);
     assert.match(text, /1 of 2 tasks failed \(tests timed out\)/);
     assert.match(text, /not run: the account allows 10 vCPU/);
+    assert.match(text, /all on Nov 19/);
+  });
+
+  test("attributes per-provider reruns without saying all ran on the original day", () => {
+    const rerun = structuredClone(fixture);
+    rerun.providers[3] = {
+      provider: "daytona",
+      status: "ran",
+      tasks: [task(1, 66), task(1, 68)],
+      medianWallS: 67,
+      completed: 2,
+      attempts: 2,
+      roundAllDoneS: [69],
+      soloMedianWallS: 64,
+      slowdown: 67 / 64,
+      run: { id: "dv2-rtb", sdkCommit: "75a7dd2abcdef", startedAt: "2026-11-23T15:00:00Z" },
+    } as (typeof rerun.providers)[number];
+    const text = renderToStaticMarkup(<RealtaskBurstChart data={parseRealtaskBurst(rerun)} />).replace(/<[^>]+>/g, " ");
+    assert.doesNotMatch(text, /all on Nov 19/);
+    assert.match(text, /each on its own run day \(Nov 19; Daytona on Nov 23\)/);
+    assert.match(text, /Daytona on Nov 23, SDK 75a7dd2/);
+
+    for (const invalid of ["undefined", "0", "2026-02-30T15:00:00Z", "2026-11-23"]) {
+      const badDate = structuredClone(rerun);
+      (badDate.providers[3] as unknown as { run: { startedAt: string } }).run.startedAt = invalid;
+      assert.throws(() => parseRealtaskBurst(badDate), /ISO-8601 timestamp/);
+    }
+    const earlyYear = structuredClone(rerun);
+    (earlyYear.providers[3] as unknown as { run: { startedAt: string } }).run.startedAt = "0001-01-01T15:00:00Z";
+    assert.equal(parseRealtaskBurst(earlyYear).providers[3]?.status, "ran");
   });
 });

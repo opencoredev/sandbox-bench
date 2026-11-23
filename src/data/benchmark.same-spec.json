@@ -458,14 +458,42 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "archil",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.767444610595703,
+     "diskGiB": 1006.853931427002
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.912Z",
-  "end": "2026-11-20T18:10:19.106Z"
+  "end": "2026-11-23T22:42:50.639Z"
  },
- "observations": 46680,
+ "observations": 49349,
  "runs": [
   {
    "id": "sbx53-same-spec-burst-r8b2",
@@ -796,6 +824,51 @@
    "id": "bt-main-spot",
    "suite": "main",
    "samples": 2183
+  },
+  {
+   "id": "sbxar-same-spec-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxar-same-spec-main-makeup",
+   "suite": "main",
+   "samples": 20
+  },
+  {
+   "id": "sbxar-same-spec-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxar-same-spec-burst10-c1",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-same-spec-burst10-c2",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-same-spec-burst10-c3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxar-same-spec-burst25-c1",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxar-same-spec-burst25-c2",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxar-same-spec-burst25-c3",
+   "suite": "burst",
+   "samples": 101
   }
  ],
  "excluded": [
@@ -962,6 +1035,27 @@
      "suite": "main",
      "scenario": "pause-resume",
      "reason": "Not available: Beam sandboxes have no pause call (Beam's persistent VMs pause and resume, but they are a different product, not benchmarked here)"
+    }
+   ],
+   "replacements": []
+  },
+  "archil": {
+   "removed": {
+    "above-target": 10
+   },
+   "superseded": [],
+   "notRun": [
+    {
+     "provider": "archil",
+     "suite": "snapshot",
+     "scenario": "snapshot",
+     "reason": "Not run: the Archil adapter has no snapshot capability"
+    },
+    {
+     "provider": "archil",
+     "suite": "snapshot",
+     "scenario": "create-from-snapshot",
+     "reason": "Not run: the Archil adapter has no snapshot capability"
     }
    ],
    "replacements": []
@@ -2814,6 +2908,134 @@
    "ourFailures": [],
    "pauseSplit": null,
    "standbyResume": null
+  },
+  {
+   "id": "archil",
+   "costPerTask": {
+    "usd": 0.006333,
+    "kind": "billed",
+    "source": "GET /api/sandboxes/{id}/usage (Archil control plane)",
+    "confidence": "low",
+    "n": 10,
+    "settled": false,
+    "bound": null
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.767444610595703,
+     "diskGiB": 1006.853931427002
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.38,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.38,
+   "perVcpuHour": 0.095,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.05499999999999999,
+    "memoryGiBHour": 0.02,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://docs.archil.com/administration/billing.md",
+   "pricingNotes": "Published sandbox rates ($0.055/vCPU-hour, $0.020/GiB RAM-hour), priced on the allocation while running (2026-11-21). Compute is sampled each minute; the billing increment and minimum are not stated, so this is a one-second estimate. Paused and stopped sandboxes accrue no compute. The root disk's data is billed as storage ($0.20/GiB-month active) and egress at $0.07/GB; neither is priced. No per-start fee stated. Plan minimums (Developer $10/month, Team $500/month) and credits excluded. The snapshot tests did not run: the adapter has no snapshot.",
+   "reliability": {
+    "successes": 2665,
+    "failures": 2,
+    "raw": 0.9992500937382827,
+    "adjusted": 0.9992500937382827,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 2
+   },
+   "hardware": {
+    "fingerprints": 102,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.767444610595703,
+    "diskGiB": 1006.853931427002,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC",
+      "count": 102
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.18.39",
+    "location": [
+     {
+      "value": "Ashburn, US",
+      "count": 102
+     }
+    ],
+    "network": [
+     {
+      "value": "AS14618 Amazon.com, Inc.",
+      "count": 102
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Process termination could not be confirmed. (outcome_unknown)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Dev server ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Archil guest operation timed out starting. (timeout)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Write + read 1 KB"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 1.6333551890002564,
+    "resume": 0.5883146120000164,
+    "n": 100
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -3030,6 +3252,19 @@
      "min": 0.4032962230001576,
      "ciLow": 0.4372074380000122,
      "ciHigh": 0.44823167399992236,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.6687346770002042,
+     "p95": 0.851882707,
+     "min": 0.6554487699999009,
+     "ciLow": 0.66726654399978,
+     "ciHigh": 0.6712036470000167,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3254,6 +3489,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.1685630330000131,
+     "p95": 0.18183088500006125,
+     "min": 0.16202914600004442,
+     "ciLow": 0.16783731200010515,
+     "ciHigh": 0.16961784999980592,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3472,6 +3720,19 @@
      "ciHigh": 0.1529791409999598,
      "successes": 100,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 99,
+     "p50": 0.388451803999953,
+     "p95": 0.42177855800022374,
+     "min": 0.37597067399998196,
+     "ciLow": 0.3870370549999643,
+     "ciHigh": 0.3916813119999133,
+     "successes": 99,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -3694,6 +3955,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1.6409808610000183,
+     "p95": 2.501508591999998,
+     "min": 1.5571787460001651,
+     "ciLow": 1.6230521110000555,
+     "ciHigh": 1.6747418080000207,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3914,6 +4188,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.5275007919999771,
+     "p95": 0.5524296619999223,
+     "min": 0.5099817389999517,
+     "ciLow": 0.5253634079999756,
+     "ciHigh": 0.5292059019999579,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4052,6 +4339,19 @@
      "min": 1.1237539169997908,
      "ciLow": 2.7123570579998195,
      "ciHigh": 3.138311020999914,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 2.2267750819998327,
+     "p95": 3.956384881999984,
+     "min": 1.6387713480000385,
+     "ciLow": 2.215595442999853,
+     "ciHigh": 2.2427677290001884,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4281,6 +4581,19 @@
      "min": 0.034651159999892114,
      "ciLow": 0.03813457200000994,
      "ciHigh": 0.03903421900002286,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 0.6446335579999722,
+     "p95": 1.7041414500000538,
+     "min": 0.6361608549999074,
+     "ciLow": 0.6434489410000388,
+     "ciHigh": 0.6505990309999324,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4815,6 +5128,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.46235663499997465,
+     "p95": 0.555518630000006,
+     "min": 0.37790540100005454,
+     "ciLow": 0.44516542099998335,
+     "ciHigh": 0.47928745199998957,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5031,6 +5357,19 @@
      "min": 0.5496859640000621,
      "ciLow": 0.6244384729999584,
      "ciHigh": 0.6645029639999848,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.7844225729999599,
+     "p95": 0.8993807660000166,
+     "min": 0.6747981790000049,
+     "ciLow": 0.7687889910000376,
+     "ciHigh": 0.8124912870000117,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5255,6 +5594,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 2.899767358999998,
+     "p95": 3.058026317999931,
+     "min": 2.6900041539999657,
+     "ciLow": 2.8474282810000004,
+     "ciHigh": 2.937275373999961,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5475,6 +5827,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 29,
+     "p50": 0.947586975999875,
+     "p95": 1.3051187219999847,
+     "min": 0.8841561499999371,
+     "ciLow": 0.9123490549999987,
+     "ciHigh": 1.2737928889999166,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5691,6 +6056,19 @@
      "min": 0.19482503700000234,
      "ciLow": 0.20693833299994002,
      "ciHigh": 0.2174943360000616,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.1395221160000656,
+     "p95": 0.1909303610000061,
+     "min": 0.12905574700003491,
+     "ciLow": 0.1345347139998339,
+     "ciHigh": 0.1536093439999968,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5915,6 +6293,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 0.45280320600001145,
+     "p95": 0.47079422599999815,
+     "min": 0.4402366290001664,
+     "ciLow": 0.4506115710000004,
+     "ciHigh": 0.4561853720000072,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6135,6 +6526,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 30,
+     "p50": 22.479894054000034,
+     "p95": 143.10423061400002,
+     "min": 22.162082235999872,
+     "ciLow": 22.36413959199982,
+     "ciHigh": 22.573980724999913,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6316,6 +6720,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 3,
+     "p50": 4.4525319660000005,
+     "p95": 4.878498774,
+     "min": 1.1535309710000001,
+     "ciLow": 1.1535309710000001,
+     "ciHigh": 4.878498774,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6493,6 +6910,19 @@
      "min": 4.3229939040000005,
      "ciLow": 4.3229939040000005,
      "ciHigh": 4.881288390999999,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 3,
+     "p50": 2.2096236970000005,
+     "p95": 2.8986679920000005,
+     "min": 1.6023527330000003,
+     "ciLow": 1.6023527330000003,
+     "ciHigh": 2.8986679920000005,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -6717,6 +7147,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 24186025.36291758,
+     "p95": 24665560.284738358,
+     "min": 19976209.93206772,
+     "ciLow": 24073594.51915528,
+     "ciHigh": 24255007.446287706,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6933,6 +7376,19 @@
      "min": 42682839.25136831,
      "ciLow": 70001650.28890432,
      "ciHigh": 72640269.49539992,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 63160236.65193236,
+     "p95": 80699167.90685403,
+     "min": 50640945.99515317,
+     "ciLow": 61969294.957980074,
+     "ciHigh": 71913253.91832885,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7157,6 +7613,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 45589.12462567069,
+     "p95": 48110.1268118668,
+     "min": 38253.72249407538,
+     "ciLow": 44921.44216435887,
+     "ciHigh": 46019.74790457616,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7373,6 +7842,19 @@
      "min": 3251.9568282461128,
      "ciLow": 4458.391527809892,
      "ciHigh": 4568.297371990531,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 741.1705800771276,
+     "p95": 876.3391412840945,
+     "min": 450.2220240642284,
+     "ciLow": 727.534664290787,
+     "ciHigh": 757.2821710811168,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7597,6 +8079,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 24325.45258939558,
+     "p95": 29572.99069036549,
+     "min": 11514.718877217934,
+     "ciLow": 23680.979239711014,
+     "ciHigh": 24775.193523715683,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7813,6 +8308,19 @@
      "min": 146426.19976537515,
      "ciLow": 242208.18171669988,
      "ciHigh": 296070.81643832463,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 16560.681539322864,
+     "p95": 19083.329295519234,
+     "min": 3853.9313645235056,
+     "ciLow": 15898.762641534631,
+     "ciHigh": 17132.352104636186,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8037,6 +8545,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1043620.0570710661,
+     "p95": 1160629.2786859986,
+     "min": 863930.885529433,
+     "ciLow": 1027040.03851251,
+     "ciHigh": 1066355.6462706614,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8238,6 +8759,19 @@
      "min": 1.642310999999097,
      "ciLow": 1.8055796000000512,
      "ciHigh": 1.8682924000000156,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "archil",
+     "n": 100,
+     "p50": 1.8575292000002186,
+     "p95": 2.292823599999849,
+     "min": 1.3660250000000929,
+     "ciLow": 1.7936852000001835,
+     "ciHigh": 1.9194274000000178,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -9878,11 +10412,113 @@
    0.512,
    0.517,
    1.081
+  ],
+  "archil": [
+   0.655,
+   0.657,
+   0.657,
+   0.658,
+   0.658,
+   0.66,
+   0.661,
+   0.661,
+   0.661,
+   0.662,
+   0.662,
+   0.662,
+   0.663,
+   0.663,
+   0.663,
+   0.663,
+   0.664,
+   0.664,
+   0.664,
+   0.664,
+   0.664,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.665,
+   0.666,
+   0.666,
+   0.666,
+   0.666,
+   0.666,
+   0.666,
+   0.667,
+   0.667,
+   0.667,
+   0.667,
+   0.667,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.668,
+   0.669,
+   0.669,
+   0.669,
+   0.67,
+   0.67,
+   0.67,
+   0.671,
+   0.671,
+   0.671,
+   0.671,
+   0.671,
+   0.672,
+   0.672,
+   0.672,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.673,
+   0.675,
+   0.675,
+   0.675,
+   0.675,
+   0.677,
+   0.679,
+   0.679,
+   0.68,
+   0.681,
+   0.683,
+   0.683,
+   0.683,
+   0.684,
+   0.684,
+   0.684,
+   0.686,
+   0.687,
+   0.688,
+   0.692,
+   0.696,
+   0.703,
+   0.74,
+   0.761,
+   0.771,
+   0.852,
+   0.944,
+   0.944,
+   0.947,
+   0.954,
+   1.792
   ]
  },
  "missing": {},
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18).",
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Archil's is from its own runs (Nov 23).",
   "burst-10": "E2B's bursts of 10 are from a rerun on Nov 18 on the same SDK commit (1185278), after one of its first three bursts had two creates time out on E2B's side. The rerun ran only bursts of 10, so they came closer together than in the first run, which alternated them with bursts of 25. As with every run we stopped early, the first run's failures aren't counted."
  }
 }

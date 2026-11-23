@@ -33,6 +33,8 @@ export type BurstProvider =
       /** Uploading the toolchain from our machine, part of every task's time. */
       medianUploadS: number | null;
       soloMedianUploadS: number | null;
+      /** Set when this provider came from a separate rerun with a different date or SDK commit. */
+      run?: { id: string; sdkCommit: string; startedAt: string } | null;
     }
   | { provider: ProviderId; status: "not-run"; reason: string };
 
@@ -91,6 +93,32 @@ function parseSolo(v: unknown, path: string) {
   return { tasks, completed, attempts };
 }
 
+const ISO_TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|([+-])(\d{2}):(\d{2}))$/;
+
+/** True only for a real calendar ISO-8601 timestamp (rejects bare numbers like "0" and rollover dates like Feb 30). */
+export function isIsoTimestamp(value: string): boolean {
+  const m = ISO_TIMESTAMP.exec(value);
+  if (!m) return false;
+  const [, yStr, moStr, dStr, hStr, miStr, sStr, , tzHStr, tzMStr] = m;
+  const y = Number(yStr);
+  const mo = Number(moStr);
+  const d = Number(dStr);
+  const h = Number(hStr);
+  const mi = Number(miStr);
+  const s = Number(sStr);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || s > 59) return false;
+  if (tzHStr !== undefined && (Number(tzHStr) > 23 || Number(tzMStr) > 59)) return false;
+  const cal = new Date(0);
+  cal.setUTCFullYear(y, mo - 1, d);
+  return cal.getUTCFullYear() === y && cal.getUTCMonth() === mo - 1 && cal.getUTCDate() === d && !Number.isNaN(Date.parse(value));
+}
+
+function isoTimestamp(v: unknown, path: string): string {
+  const value = str(v, path);
+  if (!isIsoTimestamp(value)) fail(path, "must be a valid ISO-8601 timestamp");
+  return value;
+}
+
 function parseProvider(v: unknown, path: string): BurstProvider {
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
@@ -115,6 +143,13 @@ function parseProvider(v: unknown, path: string): BurstProvider {
   }
   if (slowdown !== null && (medianWallS === null || soloMedianWallS === null)) fail(`${path}.slowdown`, "needs both medians");
   agrees(slowdown, medianWallS !== null && soloMedianWallS !== null ? medianWallS / soloMedianWallS : null, `${path}.slowdown`);
+  const providerRun =
+    o.run === undefined || o.run === null
+      ? null
+      : (() => {
+          const r = obj(o.run, `${path}.run`);
+          return { id: str(r.id, `${path}.run.id`), sdkCommit: str(r.sdkCommit, `${path}.run.sdkCommit`), startedAt: isoTimestamp(r.startedAt, `${path}.run.startedAt`) };
+        })();
   return {
     provider,
     status: "ran",
@@ -130,6 +165,7 @@ function parseProvider(v: unknown, path: string): BurstProvider {
     changeNote: orNull(str)(o.changeNote, `${path}.changeNote`),
     medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
     soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
+    ...(providerRun ? { run: providerRun } : {}),
   };
 }
 
@@ -147,7 +183,7 @@ export function parseRealtaskBurst(raw: unknown): RealtaskBurst {
   }
   return {
     generatedAt: str(o.generatedAt, "generatedAt"),
-    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: str(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
+    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: isoTimestamp(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
     size: count(o.size, "size"),
     rounds: count(o.rounds, "rounds"),
     providers,
