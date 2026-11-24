@@ -8,7 +8,7 @@ import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/
 import { TabCard } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { markFill, rowFill } from "@/lib/marks";
-import { isExtraTier, providerColor } from "@/lib/providers";
+import { isExtraTier, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingText,
@@ -16,9 +16,11 @@ import {
   completedText,
   flagsOf,
   headlineRows,
+  holdUsageTag,
   idleGroups,
   idleLabel,
   idleOutcome,
+  idleRefusal,
   notCountedWhy,
   isCounterfactual,
   laterLine,
@@ -471,7 +473,10 @@ function IdleBar({ point, provider, max }: { point: IdlePoint; provider: Provide
   const multiple = multipleText(point);
   const outcome = idleOutcomeShort(point);
   const failed = resumeFailed(point);
-  const label = `${idleLabel(point)}: ${usd === null ? "n/a" : `${perThousand(usd)} per 1,000`}${multiple ? ` (${multiple} the no-wait cost)` : ""}, ${point.completed} of ${point.runs} completed${point.stopped ? ", stopped while idle" : ""}${failed ? ", resume failed, so not a price for leaving work open" : ""}`;
+  // Only a usage cost (Archil's) carries a tag, and only a wait with a known refusal a reason; every other bar draws as before.
+  const tag = holdUsageTag(point);
+  const refusal = idleRefusal(point);
+  const label = `${idleLabel(point)}: ${usd === null ? "n/a" : `${perThousand(usd)} per 1,000`}${tag ? `, ${tag}` : ""}${multiple ? ` (${multiple} the no-wait cost)` : ""}, ${point.completed} of ${point.runs} completed${refusal ? ` (${refusal.short})` : ""}${point.stopped ? ", stopped while idle" : ""}${failed ? ", resume failed, so not a price for leaving work open" : ""}`;
   return (
     // Phones put the multiple on the line under the bar, so the bar track keeps its width; wider screens give it a fixed column.
     <div role="listitem" aria-label={label} className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.5rem] items-center gap-x-2.5 sm:grid-cols-[3.75rem_minmax(0,1fr)_3.25rem_4.5rem]">
@@ -492,6 +497,13 @@ function IdleBar({ point, provider, max }: { point: IdlePoint; provider: Provide
           {multiple ? <span className={`font-mono tabular-nums sm:hidden ${failed ? "text-neutral-6" : "text-neutral-8"}`}>{multiple}</span> : null}
           {multiple && outcome ? <span className="sm:hidden"> · </span> : null}
           {outcome ? <span className={outcome.tone}>{outcome.text}</span> : null}
+          {refusal ? <span className="text-neutral-7"> ({refusal.short})</span> : null}
+        </span>
+      ) : null}
+      {tag ? (
+        // Under the amount, in the cost table's tag style, so the bar track keeps its width.
+        <span aria-hidden className="col-span-full -mt-0.5 text-right text-xxs leading-tight text-neutral-7">
+          {tag}
         </span>
       ) : null}
     </div>
@@ -522,6 +534,9 @@ function IdleProvider({ group }: { group: IdleGroup }) {
   );
 }
 
+/** A small line under a table value (Archil's usage-cost tag or refusal), as on the cost table; nothing when there is none. */
+const TableTag = ({ text }: { text: string | null }) => (text === null ? null : <span className="block font-sans text-xxs leading-tight text-neutral-7">{text}</span>);
+
 function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
   return (
     <div className="overflow-x-auto">
@@ -545,8 +560,12 @@ function IdleTable({ groups }: { groups: readonly IdleGroup[] }) {
                 <td className="py-1.5 pr-4">{idleLabel(p)}</td>
                 <td className="py-1.5 pr-4 font-mono tabular-nums">
                   {p.completed} of {p.runs}
+                  <TableTag text={idleRefusal(p)?.short ?? null} />
                 </td>
-                <td className="py-1.5 pr-4 font-mono tabular-nums">{p.medianCostUsd === null ? "n/a" : perThousand(p.medianCostUsd)}</td>
+                <td className="py-1.5 pr-4 font-mono tabular-nums">
+                  {p.medianCostUsd === null ? "n/a" : perThousand(p.medianCostUsd)}
+                  <TableTag text={holdUsageTag(p)} />
+                </td>
                 <td className="py-1.5 pr-4 font-mono tabular-nums">{multipleText(p) ?? "n/a"}</td>
                 <td className="py-1.5 pr-4 font-mono tabular-nums">{p.medianWakeMs === null ? "n/a" : `${(p.medianWakeMs / 1000).toFixed(2)} s`}</td>
                 <td className="py-1.5 pr-4 text-neutral-8">{p.transitions.length ? p.transitions.join(", ") : "none seen"}</td>
@@ -618,6 +637,7 @@ export function IdleChart() {
           { lead: "Paired runs", text: "Each run is paired with a no-wait run (fix and test, then resume straight away). On most providers the idle part can't be measured alone." },
           { lead: "While waiting", text: "Nothing runs in the sandbox: no command, open stream or keepalive from us. Each provider's default idle, standby and pause behaviour applies." },
           ...(groups.some((g) => g.provider === "vercel") ? [{ lead: "Vercel", text: vercelHeldOpenLine.replace(/^Vercel's /, "Its ") }] : []),
+          ...groups.flatMap((g) => g.points.flatMap((p) => [idleRefusal(p)].flatMap((r) => (r ? [{ lead: `${providerName(g.provider)}, ${idleLabel(p)}`, text: sentence(r.text) }] : [])))),
           ...scopeNotes(realistic),
           ...runNotes,
           { lead: "Billing status", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },

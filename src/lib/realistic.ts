@@ -760,6 +760,40 @@ export const holdTag = (p: Pick<HeldOpen, "provider" | "statuses" | "costKind" |
     ? "n/a"
     : kindStatusWithPart({ id: p.provider, kind: p.costKind, statuses: isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], part: p.estimatedPart });
 
+/**
+ * "usage cost, unsettled" beside a held-open amount that is a provider-reported
+ * usage cost (Archil's), in the words of the quick-task cost chart's tag
+ * (lib/cost.ts, usageCostTag); null for every other provider, whose amounts show alone.
+ */
+export const holdUsageTag = (p: Pick<HeldOpen, "provider" | "statuses" | "costKind" | "estimatedPart">) =>
+  p.costKind !== null && isUsageCost(p.provider, { kind: p.costKind }) ? holdTag(p) : null;
+
+/** Why a held-open run didn't complete, where the data's reason ("check-failed") doesn't say. */
+export interface IdleRefusal {
+  /** A few words, beside the "2 of 3" result. */
+  short: string;
+  /** A sentence for the notes and the agent files. */
+  text: string;
+}
+
+/**
+ * Refusals read from a wait's attempt log, keyed by provider and wait. Shown
+ * only while that wait still has an incomplete run, so a clean rerun drops it.
+ */
+const idleRefusals: Partial<Record<ProviderId, Partial<Record<IdleId, IdleRefusal>>>> = {
+  // provider-runs/sbx-archil/held-open/attempts.jsonl: the incomplete held-60 attempt's resume-status step failed with
+  // "Sandbox is paused or stopped ... Call box.resume() first".
+  archil: {
+    "held-60": {
+      short: "1 refused, sandbox paused",
+      text: "One of its three 1-hour runs was refused at the resume step because Archil had paused the idle sandbox; a paused Archil sandbox stays asleep until it is resumed, and the test doesn't resume it",
+    },
+  },
+};
+
+export const idleRefusal = (p: Pick<IdlePoint, "provider" | "idle" | "completed" | "runs">): IdleRefusal | null =>
+  p.completed < p.runs ? (idleRefusals[p.provider]?.[p.idle] ?? null) : null;
+
 /** "0.30%": the estimated part's share of the figure it sits in, said beside that figure, never as one range for every cost. */
 export const shareText = (part: number, total: number) => `${((part / total) * 100).toFixed(2)}%`;
 
@@ -805,6 +839,25 @@ export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {
 export type Note = { lead: string; text: string };
 
 /**
+ * Providers whose realistic costs cover compute and memory only, with where
+ * those charges come from: the billing source reports nothing else, and the
+ * data adds no storage estimate for them. Said only for a provider with a cost
+ * and no estimated part, so a later disk estimate drops the sentence.
+ */
+const computeAndMemoryOnly: Partial<Record<ProviderId, string>> = {
+  archil: "the charges its usage API reports",
+};
+
+/** The compute-and-memory-only providers in the data, each with its source. */
+function computeAndMemoryOnlyIn(costed: readonly RealisticRow[]) {
+  const ids = [...new Set(costed.map((r) => r.provider))].filter((id) => !costed.some((r) => r.provider === id && r.estimatedPart !== null));
+  return ids.flatMap((id) => {
+    const source = computeAndMemoryOnly[id];
+    return source === undefined ? [] : [{ id, source }];
+  });
+}
+
+/**
  * The cost scope as short notes for the page, from the same data as
  * `scopeLine`: what a cost includes, where disk is added or unknown, which
  * costs are list-price estimates, and what isn't counted.
@@ -822,6 +875,10 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
+    ...computeAndMemoryOnlyIn(costed).map(({ id, source }) => ({
+      lead: providerName(id),
+      text: `Its headline and held-open figures cover compute and memory only, ${source}. Disk storage and egress are not included, and no storage estimate is added.`,
+    })),
     {
       lead: "Not counted",
       text: transfer.length
@@ -857,6 +914,9 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time.` : "",
+    ...computeAndMemoryOnlyIn(costed).map(
+      ({ id, source }) => `${providerName(id)}'s headline and held-open figures cover compute and memory only, ${source}; disk storage and egress are not included, and no storage estimate is added.`,
+    ),
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
       : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

@@ -977,12 +977,12 @@ describe("page", () => {
     ]);
     assert.deepEqual(lead, { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
     assert.equal(leaders([]), null);
-    // On the published data Superserve, Luxor and Instabox all print 82s for fix and test on Same machine.
+    // On the published data Archil leads fix and test on Same machine at 64s, alone, ahead of the old 82s tie.
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     const fix = html.slice(html.indexOf("Fastest fix and test"), html.indexOf("Fastest build"));
-    assert.match(fix, /82s/);
-    assert.match(fix, /Superserve/);
-    assert.match(fix, /Tied with/);
-    for (const name of ["Luxor", "Instabox"]) assert.ok(fix.includes(name), name);
+    assert.match(fix, /64s/);
+    assert.match(fix, /Archil/);
+    assert.doesNotMatch(fix, /Tied with/);
+    for (const name of ["Superserve", "Luxor", "Instabox"]) assert.ok(!fix.includes(name), name);
   });
 });

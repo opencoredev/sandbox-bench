@@ -50,6 +50,7 @@ import {
   idleGroups,
   idleLabel,
   idleOutcome,
+  idleRefusal,
   multipleNote,
   multipleText,
   resumeFailed,
@@ -464,6 +465,12 @@ function realisticProfile(id: TrackId, profile: ProfileId) {
   };
 }
 
+/** Why a wait lost a run, where its attempt log says (Archil's 1 hour); nothing for any other wait, so other providers' exports are unchanged. */
+function refusalField(p: Parameters<typeof idleRefusal>[0]) {
+  const r = idleRefusal(p);
+  return r === null ? {} : { incompleteWhy: `${r.text}.` };
+}
+
 /** The realistic workloads as plain data: definitions, the pilot label, per track and workload the pick and every provider, and the idle test. */
 export function realisticData() {
   return {
@@ -501,6 +508,7 @@ export function realisticData() {
           changeVsNoWait: changeText(p),
           vsNoWait: multipleText(p),
           ...(resumeFailed(p) ? { resumeFailed: true, note: "No run resumed, so this figure is what the failed runs cost, not a price for leaving work open." } : {}),
+          ...refusalField(p),
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
@@ -556,6 +564,7 @@ function realisticMarkdown() {
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
     ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("estimatedPart" in w && w.estimatedPart ? [`${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`, ""] : []))),
+    ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("incompleteWhy" in w && w.incompleteWhy ? [`${g.name}, ${idleLabel(w)}: ${w.incompleteWhy}`, ""] : []))),
     ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
   );
   return lines;

@@ -4,12 +4,15 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { CostPerTaskChart, CostTable, costColumns } from "@/components/cost";
-import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
+import { agentData, agentMarkdown, llmsTxt, realisticData } from "@/lib/agent-data";
 import { isPriced, perThousandText, taskCostOf, usageCostField } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 import type { TrackId } from "@/lib/data";
 import type { ProviderId } from "@/lib/providers";
-import { billingTag, estimatedPartText, holdTag, statusTag } from "@/lib/realistic";
+import { IdleChart } from "@/components/realistic";
+import { providerName } from "@/lib/providers";
+import { billingTag, estimatedPartText, holdTag, holdUsageTag, idleGroups, idleRefusal, scopeLine, scopeNotes, statusTag } from "@/lib/realistic";
+import { realistic } from "@/lib/realistic-data";
 import type { EstimatedPart } from "@/lib/realistic";
 import { providerNotes } from "@/lib/seo/provider";
 
@@ -168,5 +171,109 @@ describe("item 4: realistic cost labels say usage cost for Archil", () => {
     }
     // A metered or estimated Archil figure is not a usage cost: only its billed export is.
     assert.deepEqual(usageCostField("archil", { kind: "metered" }), {});
+  });
+});
+
+// Archil's realistic figures are compute and memory charges from its usage API, with no storage
+// estimate added, and one of its three 1-hour held-open runs was refused because Archil had paused
+// the idle sandbox (its attempt log; the data says only "check-failed"). Both are said for Archil only.
+
+const archilScope =
+  "Archil's headline and held-open figures cover compute and memory only, the charges its usage API reports; disk storage and egress are not included, and no storage estimate is added.";
+const withoutArchil = { rows: realistic.rows.filter((r) => r.provider !== "archil") };
+
+describe("item 3: the realistic cost scope says Archil's figures cover compute and memory only", () => {
+  test("the scope line adds one sentence for Archil, and is otherwise the line the other providers' data gives", () => {
+    const line = scopeLine(realistic);
+    assert.ok(line.includes(` ${archilScope} `), line);
+    assert.equal(line.replace(` ${archilScope}`, ""), scopeLine(withoutArchil));
+    assert.doesNotMatch(scopeLine(withoutArchil), /Archil|compute and memory only/);
+  });
+
+  test("the chart notes add one Archil note, and are otherwise the notes the other providers' data gives", () => {
+    const notes = scopeNotes(realistic);
+    const archil = notes.filter((n) => n.lead === "Archil");
+    assert.deepEqual(archil, [
+      { lead: "Archil", text: "Its headline and held-open figures cover compute and memory only, the charges its usage API reports. Disk storage and egress are not included, and no storage estimate is added." },
+    ]);
+    assert.deepEqual(
+      notes.filter((n) => n.lead !== "Archil"),
+      scopeNotes(withoutArchil),
+    );
+  });
+
+  test("a storage estimate added for Archil later drops the sentence", () => {
+    const rows = realistic.rows.map((r) => (r.provider === "archil" && r.cost ? { ...r, estimatedPart: { usd: 0.001, labels: ["disk at list price"] } } : r));
+    assert.doesNotMatch(scopeLine({ rows }), /compute and memory only/);
+    assert.ok(scopeNotes({ rows }).every((n) => n.lead !== "Archil"));
+  });
+
+  test("every export carries the same scope line", () => {
+    const d = agentData();
+    assert.ok(JSON.stringify(d).includes(JSON.stringify(archilScope).slice(1, -1)));
+    for (const text of [agentMarkdown(), llmsTxt()]) assert.equal(text.split(archilScope).length - 1, 1);
+  });
+});
+
+describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-hour run failed", () => {
+  const html = renderToStaticMarkup(<IdleChart />);
+  // Each provider's bars, up to the line under the grid, so the last block holds no table or notes.
+  const blocks = html.slice(0, html.indexOf("Not in this test:")).split('<div class="flex min-w-0 flex-col gap-xs">').slice(1);
+  const archilBlock = blocks.find((b) => b.includes(">Archil<")) ?? "";
+  const refusal = "1 refused, sandbox paused";
+
+  test("each Archil bar has its amount and the tag under it, and the 1-hour bar the refusal beside 2 of 3 done", () => {
+    const bars = archilBlock.split('role="listitem"').slice(1);
+    assert.equal(bars.length, 3);
+    for (const [bar, amount] of bars.map((b, i) => [b, ["$12.67", "$76.00", "$393"][i]] as const)) {
+      assert.ok(bar.includes(`>${amount}</span>`), amount);
+      assert.ok(bar.includes(`col-span-full -mt-0.5 text-right text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
+      assert.ok(bar.includes(`${amount} per 1,000, ${usageTag}`), `${amount} aria-label`);
+    }
+    assert.match(bars[2] ?? "", /2 of 3 done<\/span><span class="text-neutral-7"> \(1 refused, sandbox paused\)<\/span>/);
+    for (const bar of bars.slice(0, 2)) assert.ok(!bar.includes("refused"));
+  });
+
+  test("Archil's table rows put the tag under each amount and the refusal under 2 of 3", () => {
+    const rows = html.split("<tr").filter((r) => r.includes(">Archil<") && r.includes("<td"));
+    assert.equal(rows.length, 3);
+    for (const [row, amount] of rows.map((r, i) => [r, ["$12.67", "$76.00", "$393"][i]] as const))
+      assert.ok(row.includes(`${amount}<span class="block font-sans text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
+    assert.ok(rows[2]?.includes(`2 of 3<span class="block font-sans text-xxs leading-tight text-neutral-7">${refusal}</span>`));
+    assert.ok(html.includes("Archil, 1 hour: </span>One of its three 1-hour runs was refused at the resume step because Archil had paused the idle sandbox"));
+  });
+
+  test("no other provider's bar or table row gains a tag or a refusal", () => {
+    const others = blocks.filter((b) => b !== archilBlock);
+    assert.equal(others.length, idleGroups(realistic).length - 1);
+    for (const b of others) {
+      assert.ok(!b.includes("usage cost") && !b.includes("refused") && !b.includes("text-right text-xxs leading-tight"), b.slice(0, 200));
+    }
+    const ids = idleGroups(realistic).map((g) => g.provider).filter((id) => id !== "archil");
+    for (const row of html.split("<tr").filter((r) => r.includes("<td") && ids.some((id) => r.includes(`>${providerName(id)}<`))))
+      assert.ok(!row.includes("block font-sans"), row.slice(0, 200));
+    for (const g of idleGroups(realistic).filter((x) => x.provider !== "archil"))
+      for (const p of g.points) {
+        assert.equal(holdUsageTag(p), null, `${g.provider} ${p.idle}`);
+        assert.equal(idleRefusal(p), null, `${g.provider} ${p.idle}`);
+      }
+  });
+
+  test("the refusal is said only while that wait has an incomplete run", () => {
+    const point = idleGroups(realistic).find((g) => g.provider === "archil")?.points.find((p) => p.idle === "held-60");
+    assert.ok(point);
+    assert.equal(idleRefusal(point)?.short, refusal);
+    assert.equal(idleRefusal({ ...point, completed: point.runs }), null);
+    assert.equal(idleRefusal({ ...point, idle: "held-10" }), null);
+  });
+
+  test("results.json and results.md carry the refusal for Archil's 1 hour only", () => {
+    const waits = realisticData().idle.providers.flatMap((g) => g.waits.map((w) => ({ provider: g.provider, w })));
+    const withWhy = waits.filter(({ w }) => "incompleteWhy" in w);
+    assert.deepEqual(
+      withWhy.map(({ provider, w }) => [provider, w.minutes]),
+      [["archil", 60]],
+    );
+    assert.equal(agentMarkdown().split("Archil, 1 hour: One of its three 1-hour runs was refused").length - 1, 1);
   });
 });
