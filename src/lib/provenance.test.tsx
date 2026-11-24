@@ -178,6 +178,10 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
   test("results.md lists Archil's own runs; llms.txt carries the same howToRead", () => {
     const md = agentMarkdown();
     assert.ok(md.includes("## Own runs for By location and SDK setup"));
+    // The old shared-run claims were false: Instabox and boxd have later location batches, Baseten, Instabox and Beam their own SDK setup commits.
+    assert.ok(!md.includes("By location rows come from batch") && !md.includes("SDK setup from the run at commit"));
+    assert.ok(!md.includes("every other row comes from") && !md.includes("every other figure comes from"));
+    assert.ok(md.includes("These providers' By location rows or SDK setup figures come from their own runs, named here:"));
     assert.ok(
       md.includes(
         `- Archil: By location from its own batches, commit 1f1de78: EU-Central ${batches.eu.join(" and ")}; US-East ${batches["us-east"].join(" and ")}. SDK setup from run sbx57-mwtux8wi (commit 1f1de78, Nov 23, 2026).`,
