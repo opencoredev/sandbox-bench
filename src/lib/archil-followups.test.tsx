@@ -125,7 +125,7 @@ describe("item 2: By location says what is known about where Archil runs", () =>
   });
 });
 
-describe("item 3: the cost scatter numbers its dots below 1340 px", () => {
+describe("item 3: the cost scatter numbers its dots below 640 px", () => {
   const point = (provider: ProviderId, x: number, y: number): ScatterPoint => ({ provider, x, y, detail: [] });
 
   test("numbers run left to right with no gaps, and clear every dot and every other number in a tight cluster", () => {
@@ -153,14 +153,13 @@ describe("item 3: the cost scatter numbers its dots below 1340 px", () => {
     }
   });
 
-  test("names stay beside the dots from 1340 px up; numbers and the legend show below it", () => {
+  test("names stay beside the dots from 640 px up; numbers and the legend show below it", () => {
     const pts = [point("e2b", 15, 0.002), point("daytona", 12, 0.0016), point("boat", 40, 0.0005)];
     const html = renderToStaticMarkup(<Scatter points={pts} xTicks={[10, 20, 50]} yTicks={[0, 0.002, 0.004]} xTitle="x" yTitle="y" />);
-    assert.equal(html.split("whitespace-nowrap text-neutral-8 max-[1340px]:hidden").length - 1, pts.length);
-    assert.equal(html.split("tabular-nums min-[1340px]:hidden").length - 1, pts.length);
-    assert.ok(!html.includes("sm:hidden"));
+    assert.equal(html.split("whitespace-nowrap text-neutral-8 max-sm:hidden").length - 1, pts.length);
+    assert.equal(html.split("tabular-nums sm:hidden").length - 1, pts.length);
     const legend = html.slice(html.indexOf("<ol"));
-    assert.ok(legend.includes("min-[1340px]:hidden"));
+    assert.ok(legend.includes("sm:hidden"));
     assert.equal(legend.split("<li").length - 1, pts.length);
   });
 });
