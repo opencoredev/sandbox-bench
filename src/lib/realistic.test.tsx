@@ -21,7 +21,7 @@ import { providerBrand } from "@/lib/providers";
 import { publishedProviders, siteDescription } from "@/lib/seo/home";
 import { readExclusions } from "@/lib/data";
 import { iterationRanges, setAside, setAsideSentence } from "@/lib/exclusions";
-import { StatStrip } from "@/components/stat-strip";
+import { StatStrip, leaders } from "@/components/stat-strip";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
 import { billingBases, billingLabel } from "@/lib/cost";
 import { tracks } from "@/lib/data";
@@ -943,11 +943,13 @@ describe("page", () => {
     assert.doesNotMatch(html, /min-w-\[4.5rem\] items-baseline/);
   });
 
-  test("the stat card shows the cheapest fix and test and the pilot label", () => {
+  test("the stat card shows the cheapest fix and test and the run count", () => {
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     assert.match(html, /Cheapest fix and test, per 1,000/);
-    // The pilot caption is its own line at the foot of the tile, never cut by the provider's name.
-    assert.match(html, />Pilot, 5 runs per provider<\/span>/);
+    // The run count sits on its own line at the foot of the tile, never cut by the provider's name.
+    assert.match(html, />5 runs<\/span>/);
+    assert.doesNotMatch(html, /Pilot/);
+    assert.doesNotMatch(html, /runs per provider/);
     assert.doesNotMatch(html, /verified/i);
   });
 
@@ -963,5 +965,24 @@ describe("page", () => {
       }
       assert.doesNotMatch(html, /snapshot|resume|tool calls/i);
     }
+  });
+
+  test("a tie at the shown time names every tied provider, fastest first", () => {
+    const lead = leaders([
+      { provider: "instabox", seconds: 82.4 },
+      { provider: "superserve", seconds: 81.9 },
+      { provider: "e2b", seconds: 90 },
+      { provider: "tenki", seconds: 82.1 },
+      { provider: "beam-shared", seconds: 10 },
+    ]);
+    assert.deepEqual(lead, { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
+    assert.equal(leaders([]), null);
+    // On the published data Superserve, Luxor and Instabox all print 82s for fix and test on Same machine.
+    const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
+    const fix = html.slice(html.indexOf("Fastest fix and test"), html.indexOf("Fastest build"));
+    assert.match(fix, /82s/);
+    assert.match(fix, /Superserve/);
+    assert.match(fix, /Tied with/);
+    for (const name of ["Luxor", "Instabox"]) assert.ok(fix.includes(name), name);
   });
 });

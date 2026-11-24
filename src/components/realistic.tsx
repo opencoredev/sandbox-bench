@@ -323,7 +323,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),
     ...(has("vercel") ? [{ lead: "Vercel", text: "Costs include data transfer at $0.15 per GB. Its Nov 16 bill was $1.47 against our meter's $1.70." }] : []),
     ...runNotes,
-    { lead: "Pilot", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
+    { lead: "Billing status", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
   ];
 }
 
@@ -402,11 +402,28 @@ function CheapestShort({ costed }: { costed: readonly Costed[] }) {
  * a compact chart across the card, with a cheaper bar that can't count and the providers with
  * no cost in one small block under it.
  */
+/**
+ * Why the costs are so far apart, in one line: the cheapest and dearest fix
+ * and test per 1,000 on the track, each provider's first tier, and the billing
+ * differences behind the gap. Nothing when fewer than two providers have a cost.
+ */
+function CostSpread({ track }: { track: Track }) {
+  const costs = headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.flatMap((r) => (isExtraTier(r.provider) ? [] : [r.cost.usdPerCompleted]));
+  if (costs.length < 2) return null;
+  return (
+    <p className="text-s text-pretty text-neutral-8">
+      Fix and test runs {perThousand(Math.min(...costs))} to {perThousand(Math.max(...costs))}{" "}
+      because list rates and billing models both differ widely: from $0.004/vCPU-hr on Instabox to $0.128/active vCPU-hr plus memory and data transfer on Vercel, alongside whole-machine billing, flat per-size rates, and regional multipliers (Modal&apos;s US-East rate is 1.75x its base).
+    </p>
+  );
+}
+
 export function TaskCostHeadline({ track }: { track: Track }) {
   const run = runTrackOf[track.id];
   // One above the other: side by side, fourteen price labels per half collide.
   return (
     <div className="flex flex-col gap-xl">
+      <CostSpread track={track} />
       {profileIds.map((profile) => {
         const { costed, uncosted } = headlineRows(realistic, run, profile);
         const p = taskPick(costed);
@@ -603,7 +620,7 @@ export function IdleChart() {
           ...(groups.some((g) => g.provider === "vercel") ? [{ lead: "Vercel", text: vercelHeldOpenLine.replace(/^Vercel's /, "Its ") }] : []),
           ...scopeNotes(realistic),
           ...runNotes,
-          { lead: "Pilot", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
+          { lead: "Billing status", text: `Most costs come from provider meters or estimates, not settled bills. ${laterLine}` },
         ]}
       />
     </>
