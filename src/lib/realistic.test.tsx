@@ -431,22 +431,22 @@ describe("statuses and billing", () => {
   });
 
   test("tags use the cost charts' words: kind, then statuses, then qualifiers", () => {
-    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" as const }, eligible, flags, estimatedPart: null });
+    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ provider: "upstash" as const, cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" as const }, eligible, flags, estimatedPart: null });
     assert.equal(statusTag({ ...row("billed", true, []), estimatedPart: { usd: 0.1, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
     assert.equal(statusTag(row("billed", true, [])), "billed, verified");
     assert.equal(statusTag(row("metered", false, ["unsettled (5 attempts)", meter])), "metered, unsettled, unreconciled");
     assert.equal(statusTag(row("estimate", false, ["unverified estimate: x"])), "estimate");
     assert.equal(statusTag(row("metered", false, [meter, "wrong machine size: 15.6 GiB memory"])), "metered, unreconciled, wrong size");
-    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), r.estimatedPart ? /^compute (verified \((billed|metered), (settled|reconciled)\)|billed|metered).*; disk estimated/ : /^(billed|metered|estimate)\b/);
+    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), r.estimatedPart ? /^compute (verified \((billed|metered|usage cost), (settled|reconciled)\)|billed|metered|usage cost).*; disk estimated/ : /^(billed|metered|estimate|usage cost)\b/);
   });
 
   test("held-open statuses read into the same words", () => {
     assert.deepEqual(holdStatuses("settled"), []);
     assert.deepEqual(holdStatuses("unsettled; metered, unreconciled (provisional)"), ["unsettled", "unreconciled"]);
-    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: null }), "billed, verified");
-    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
-    assert.equal(holdTag({ costKind: "billed", statuses: ["unsettled"], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute billed, unsettled; disk estimated");
-    assert.equal(holdTag({ costKind: "metered", statuses: ["unreconciled"], estimatedPart: null }), "metered, unreconciled");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: [], estimatedPart: null }), "billed, verified");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: ["unsettled"], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute billed, unsettled; disk estimated");
+    assert.equal(holdTag({ provider: "upstash", costKind: "metered", statuses: ["unreconciled"], estimatedPart: null }), "metered, unreconciled");
     assert.equal(holdStatuses("refunded"), null);
   });
 

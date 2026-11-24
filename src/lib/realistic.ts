@@ -1,4 +1,4 @@
-import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
+import { billingBases, billingLabel, costLabel, costStatuses, formatPerThousand, isUsageCost, kindStatusText } from "@/lib/cost";
 import type { CostStatusKind } from "@/lib/cost";
 import { isExtraTier, isPreemptible, isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -549,20 +549,23 @@ const partWords = (p: EstimatedPart) => [...new Set(p.labels.map((l) => l.replac
  * reads "compute verified (billed, settled); disk estimated" and an unverified
  * one "compute billed, unsettled; disk estimated". The estimated part is only
  * added where the billing source leaves storage out, so that charge is compute.
+ * A provider-reported usage cost (Archil's) says "usage cost" where others say
+ * "billed", as on the quick-task cost chart (lib/cost.ts, isUsageCost).
  */
-export function kindStatusWithPart(kind: CostKind, statuses: readonly CostStatusKind[], part: EstimatedPart | null) {
-  if (!part || kind === "estimate") return kindStatusText(kind, statuses);
+export function kindStatusWithPart({ id, kind, statuses, part }: { id: ProviderId; kind: CostKind; statuses: readonly CostStatusKind[]; part: EstimatedPart | null }) {
+  if (!part || kind === "estimate") return kindStatusText({ id, kind, statuses });
   const verified = statuses.length === 1 && statuses[0] === "verified";
-  const compute = verified ? `compute verified (${kind === "billed" ? "billed, settled" : "metered, reconciled"})` : `compute ${kindStatusText(kind, statuses)}`;
+  const settled = kind === "billed" ? `${costLabel(id, { kind }).toLowerCase()}, settled` : "metered, reconciled";
+  const compute = verified ? `compute verified (${settled})` : `compute ${kindStatusText({ id, kind, statuses })}`;
   return `${compute}; ${partWords(part)} estimated`;
 }
 
-export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+export function statusTag(row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">): string {
   if (!row.cost) return "n/a";
   const flags = flagsOf(row);
   const statuses = row.eligible ? (["verified"] as const) : flags.flatMap((f) => (f.status ? [f.status] : []));
   const qualifiers = [...new Set(flags.flatMap((f) => (f.status ? [] : [f.short])))];
-  const base = kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+  const base = kindStatusWithPart({ id: row.provider, kind: row.cost.kind, statuses, part: row.estimatedPart });
   const rest = qualifiers.length || statuses.length || row.eligible ? qualifiers : ["not eligible"];
   return [base, ...rest].join(", ");
 }
@@ -572,10 +575,10 @@ export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" 
  * statusTag without the run qualifiers (wrong size, too many failures), which
  * notCountedWhy says apart. "n/a" without a cost.
  */
-export function billingTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+export function billingTag(row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">): string {
   if (!row.cost) return "n/a";
   const statuses = row.eligible ? (["verified"] as const) : flagsOf(row).flatMap((f) => (f.status ? [f.status] : []));
-  return kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+  return kindStatusWithPart({ id: row.provider, kind: row.cost.kind, statuses, part: row.estimatedPart });
 }
 
 /** Why a row has no cost: never run, or run without a completed task. */
@@ -752,17 +755,24 @@ export const resumeFailed = (p: Pick<IdlePoint, "completed" | "runs">) => p.runs
 export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.costKind !== null && p.costKind !== "estimate" && p.statuses.length === 0;
 
 /** "billed, verified" or "metered, unsettled, unreconciled", in the cost charts' words. */
-export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind" | "estimatedPart">) =>
-  p.costKind === null ? "n/a" : kindStatusWithPart(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], p.estimatedPart);
+export const holdTag = (p: Pick<HeldOpen, "provider" | "statuses" | "costKind" | "estimatedPart">) =>
+  p.costKind === null
+    ? "n/a"
+    : kindStatusWithPart({ id: p.provider, kind: p.costKind, statuses: isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], part: p.estimatedPart });
 
 /** "0.30%": the estimated part's share of the figure it sits in, said beside that figure, never as one range for every cost. */
 export const shareText = (part: number, total: number) => `${((part / total) * 100).toFixed(2)}%`;
 
-/** "$0.036 per 1,000 of it (0.30%) is disk added at list price, an estimate; the rest is billed compute.", or null. */
-export function estimatedPartText(kind: CostKind, part: EstimatedPart | null, total: number | null, unit: string) {
+/**
+ * "$0.036 per 1,000 of it (0.30%) is disk added at list price, an estimate; the
+ * rest is billed compute.", or null. For a usage cost (Archil's) the rest is
+ * "compute at the usage cost its usage API reports".
+ */
+export function estimatedPartText({ id, kind, part, total, unit }: { id: ProviderId; kind: CostKind; part: EstimatedPart | null; total: number | null; unit: string }) {
   if (!part || kind === "estimate") return null;
   const share = total ? ` (${shareText(part.usd, total)})` : "";
-  return `${perThousand(part.usd)} ${unit} of it${share} is ${partWords(part)} added at list price, an estimate; the rest is ${kind} compute.`;
+  const rest = isUsageCost(id, { kind }) ? "compute at the usage cost its usage API reports" : `${kind} compute`;
+  return `${perThousand(part.usd)} ${unit} of it${share} is ${partWords(part)} added at list price, an estimate; the rest is ${rest}.`;
 }
 
 export const idleLabel = (p: Pick<IdlePoint, "minutes">) => (p.minutes === 0 ? "No wait" : p.minutes === 60 ? "1 hour" : `${p.minutes} min`);

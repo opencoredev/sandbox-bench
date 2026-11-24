@@ -19,6 +19,7 @@ import {
   pricedTasks,
   regionNote,
   unpricedTasks,
+  usageCostTag,
   wholeMachine,
   wholeMachineLabel,
 } from "@/lib/cost";
@@ -39,22 +40,35 @@ export function costColumns(track: Track) {
   const machine = allocationNotes(track);
   let next = 0;
   const marks = new Map(pricedTasks(track).flatMap(({ id }) => (machine[id] ? [[id, ++next] as const] : [])));
-  const columns: Column[] = pricedTasks(track).map(({ id, cost }) => ({
-    provider: id,
-    label: perThousandText(cost, "tight"),
-    mark: marks.get(id),
-    segments: [{ value: cost.usd, color: providerColor(id), fill: "solid" }],
-    detail: [["Per 1,000 tasks", perThousandText(cost)], costSource(id, cost), sentence(billingLabel(billingBases[id]).replace(/^\w/, (c) => c.toUpperCase()))],
-  }));
+  const columns: Column[] = pricedTasks(track).map(({ id, cost, status }) => {
+    // Only a provider-reported usage cost (Archil's) carries a tag; every other bar draws as before.
+    const tag = usageCostTag(id, cost, status);
+    return {
+      provider: id,
+      label: perThousandText(cost, "tight"),
+      mark: marks.get(id),
+      ...(tag === null ? {} : { tag }),
+      segments: [{ value: cost.usd, color: providerColor(id), fill: "solid" }],
+      detail: [["Per 1,000 tasks", perThousandText(cost)], costSource(id, cost), sentence(billingLabel(billingBases[id]).replace(/^\w/, (c) => c.toUpperCase()))],
+    };
+  });
   return { columns, marks };
 }
 
 /** Whether a track shows a lower-bound cost, so the notes explain one only when it does. */
 const showsLowerBound = (track: Track) => pricedTasks(track).some((t) => isLowerBound(t.cost));
 
+/** "usage cost, unsettled" beside a usage cost's amount, in the bar tag's style; nothing for any other provider. */
+const UsageTag = ({ t, block = false }: { t: PricedTask; block?: boolean }) => {
+  const tag = usageCostTag(t.id, t.cost, t.status);
+  if (tag === null) return null;
+  return block ? <span className="block font-sans text-xxs leading-tight whitespace-normal text-neutral-7">{tag}</span> : <span className="text-xs text-neutral-7"> ({tag})</span>;
+};
+
 const Amount = ({ t }: { t: PricedTask }) => (
   <>
     <Who id={t.id} /> <span className="font-mono tabular-nums text-neutral-10">{perThousandText(t.cost)}</span>
+    <UsageTag t={t} />
   </>
 );
 
@@ -127,7 +141,10 @@ export function CostTable({ track }: { track: Track }) {
           <li key={t.id} className="py-s text-s" {...tierAttrs(t.id)}>
             <p className="flex items-baseline justify-between gap-s">
               <Who id={t.id} />
-              <span className="font-mono text-xs tabular-nums">{perThousandText(t.cost, "tight")}</span>
+              <span className="font-mono text-xs tabular-nums">
+                {perThousandText(t.cost, "tight")}
+                <UsageTag t={t} block />
+              </span>
             </p>
             <p className="mt-xxs text-xs text-neutral-7">{sentence(billing.replace(/^\w/, (c) => c.toUpperCase()))}</p>
             <p className="mt-xxs text-xs text-neutral-7">
@@ -160,7 +177,10 @@ export function CostTable({ track }: { track: Track }) {
               <th scope="row" className="py-s pr-5 font-medium">
                 <Who id={t.id} />
               </th>
-              <td className="py-s pr-5 font-mono text-xs whitespace-nowrap tabular-nums">{perThousandText(t.cost, "tight")}</td>
+              <td className="py-s pr-5 font-mono text-xs whitespace-nowrap tabular-nums">
+                {perThousandText(t.cost, "tight")}
+                <UsageTag t={t} block />
+              </td>
               <td className="py-s pr-5 text-xs text-neutral-8">{billing}</td>
               <td className="py-s pr-5">
                 <WholeMachineCell w={w} />

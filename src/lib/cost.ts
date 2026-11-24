@@ -135,7 +135,27 @@ const usageCostSources: Partial<Record<ProviderId, string>> = {
   archil: "Archil's per-sandbox usage API",
 };
 
-const isUsageCost = (id: ProviderId, c: Pick<Priced, "kind">) => c.kind === "billed" && usageCostSources[id] !== undefined;
+export const isUsageCost = (id: ProviderId, c: Pick<Priced, "kind">) => c.kind === "billed" && usageCostSources[id] !== undefined;
+
+/**
+ * The value of `origin` on a usage cost in results.json: the amount comes from
+ * the provider's per-sandbox usage API, not its bill. `kind` stays "billed"
+ * there so existing readers keep working; `origin` is what tells them apart.
+ */
+export const usageCostOrigin = "usage-api";
+
+/** `{ origin: "usage-api" }` for a usage cost, nothing for any other cost, so other providers' exports are unchanged. */
+export const usageCostField = (id: ProviderId, c: Pick<Priced, "kind">) => (isUsageCost(id, c) ? { origin: usageCostOrigin } : {});
+
+/**
+ * What `origin: "usage-api"` means, for the exports' reading notes, naming the
+ * providers it applies to; null when none of `ids` has a usage cost.
+ */
+export function usageCostNote(ids: readonly ProviderId[]) {
+  const names = [...new Set(ids)].filter((id) => usageCostSources[id] !== undefined).map(providerName);
+  if (names.length === 0) return null;
+  return `\`origin: "${usageCostOrigin}"\` marks a usage cost (${names.join(", ")}): the amount the provider's per-sandbox usage API reports, not a charge from its bill. Its \`kind\` stays \`billed\` so existing readers keep working; read it as a usage cost, and as unsettled while its status says so.`;
+}
 
 /** "Billed", or "Usage cost" where a billed figure is the provider's reported usage cost. */
 export const costLabel = (id: ProviderId, c: Pick<Priced, "kind">) => (isUsageCost(id, c) ? "Usage cost" : costKinds[c.kind].label);
@@ -170,13 +190,14 @@ export const isEligible = (s: CostStatus) => costStatuses[s.kind].eligible;
 
 /**
  * "metered, unreconciled" or "billed, unsettled, provisional": a cost's kind
- * and every status it carries, in the eligibility table's words. An estimate
+ * and every status it carries, in the eligibility table's words. A
+ * provider-reported usage cost (Archil's) says "usage cost" for its kind. An estimate
  * is both a kind and a status, so it is said once. Shared by every chart and
  * export that labels a cost.
  */
-export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKind[]) {
+export function kindStatusText({ id, kind, statuses }: { id: ProviderId; kind: PricedKind; statuses: readonly CostStatusKind[] }) {
   const rest = [...new Set(statuses)].filter((k) => !(kind === "estimate" && k === "estimate"));
-  return [costKinds[kind].label, ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
+  return [costLabel(id, { kind }), ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
 }
 
 /**
@@ -189,7 +210,7 @@ export function costTag(id: ProviderId, c: Priced, s: CostStatus) {
     case "estimate":
       return estimateSources[id]?.tag ?? "estimate";
     case "lowerBound":
-      return kindStatusText(c.kind, [s.kind]);
+      return kindStatusText({ id, kind: c.kind, statuses: [s.kind] });
     case "unsettled":
       // A provider-reported usage cost (Archil's) says beside the amount that it isn't settled, so
       // it can't be read as a bill. Other providers' labels are unchanged.
@@ -200,6 +221,9 @@ export function costTag(id: ProviderId, c: Priced, s: CostStatus) {
       return costLabel(id, c).toLowerCase();
   }
 }
+
+/** "usage cost, unsettled" beside a usage cost's amount on the cost charts and tables; null for every other provider, whose cells show the amount alone. */
+export const usageCostTag = (id: ProviderId, c: Priced, s: CostStatus) => (isUsageCost(id, c) ? costTag(id, c, s) : null);
 
 /** A provider's cost per task on a track, as every chart, page and export reads it. */
 export function taskCostOf(track: Pick<Track, "costs">, id: ProviderId): TaskCost | undefined {
