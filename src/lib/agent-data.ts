@@ -34,10 +34,26 @@ import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import { failureNote, noteSentence } from "@/lib/failure-notes";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
-import { chipBasisLabel, fingerprintDate, hardware, probeDate, ranInOf, ranInText } from "@/lib/hardware";
+import {
+  chipBasisLabel,
+  fingerprintDate,
+  hardware,
+  probeDate,
+  ranInOf,
+  ranInText,
+} from "@/lib/hardware";
 import type { RanIn } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
-import { absentNote, allocationNotes, autoStandby, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
+import {
+  absentNote,
+  allocationNotes,
+  autoStandby,
+  destroyNotes,
+  measuredText,
+  noRealPause,
+  requestedText,
+  snapshotNotes,
+} from "@/lib/notes";
 import { pauseOf } from "@/lib/pause";
 import { isExtraTier, isProviderId, providerBrand, providerName, tierOf } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -90,16 +106,36 @@ import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
 import { ownBatchProviders, providerBatchesText, regional, sharedBatchText } from "@/lib/regions";
-import { sdkSetup, sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
+import {
+  sdkSetup,
+  sdkSetupCommits,
+  sdkSetupRunProviders,
+  sdkSetupRunText,
+  sdkSetupRuns,
+} from "@/lib/sdk-setup";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
   { title: "Start-up", ids: ["cold"] },
-  { title: "Tool calls and agent steps", ids: ["tool-replay", "npm-install", "pip-install", "git-clone", "dev-server", "preview-first-byte", "edit-loop"] },
+  {
+    title: "Tool calls and agent steps",
+    ids: [
+      "tool-replay",
+      "npm-install",
+      "pip-install",
+      "git-clone",
+      "dev-server",
+      "preview-first-byte",
+      "edit-loop",
+    ],
+  },
   { title: "Everyday calls", ids: ["command", "files-1kb", "files-10mb", "reconnect", "destroy"] },
   { title: "Pause and snapshots", ids: ["pause-resume", "snapshot", "create-from-snapshot"] },
   { title: "Bursts", ids: ["burst-10", "burst-25"] },
-  { title: "Machine speed", ids: ["cpu-single", "cpu-all", "memory", "disk-write", "disk-read", "iops-write", "iops-read"] },
+  {
+    title: "Machine speed",
+    ids: ["cpu-single", "cpu-all", "memory", "disk-write", "disk-read", "iops-write", "iops-read"],
+  },
 ] as const;
 
 const round = (v: number | null) => (v === null ? null : Math.round(v * 1000) / 1000);
@@ -108,25 +144,44 @@ const roundCost = (v: number | null) => (v === null ? null : Number(v.toPrecisio
 // Tests with no published result for a provider, with the reason, per track. Shown only where the
 // data has no result; the page's footnotes use the same map. Results from runs we stopped early are
 // left out rather than shown partly, and none of their failures count against the provider.
-const superserveJoins = "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
-const modalNoPause = "unsupported: Modal sandboxes can't stop and run again, so Modal has no pause and resume";
-const beamNoPause = "unsupported: Beam sandboxes have no pause and resume (Beam's persistent VMs do; they are a different product and weren't tested)";
-const beamNoSnapshotDelete = "not-run: Beam sandboxes take memory snapshots, but Beam has no way to delete one, and our runs delete everything they make";
-const beamBurstQuota = (n: number) => `not-run: our Beam account's quota is 30 vCPU, and ${n} sandboxes at 4 vCPU need ${n * 4}`;
-const beamNoPage = "not-run: blocked on every run: on Beam's default 1 CPU and 128 MiB the dev server ran out of memory or its preview never answered, so there was no page to edit";
-const archilNoSnapshot = "not-run: our Archil adapter has no snapshots, so the snapshot tests didn't run";
+const superserveJoins =
+  "not-run: Superserve joins the 4 vCPU track in this release; its results here come in the next update";
+const modalNoPause =
+  "unsupported: Modal sandboxes can't stop and run again, so Modal has no pause and resume";
+const beamNoPause =
+  "unsupported: Beam sandboxes have no pause and resume (Beam's persistent VMs do; they are a different product and weren't tested)";
+const beamNoSnapshotDelete =
+  "not-run: Beam sandboxes take memory snapshots, but Beam has no way to delete one, and our runs delete everything they make";
+const beamBurstQuota = (n: number) =>
+  `not-run: our Beam account's quota is 30 vCPU, and ${n} sandboxes at 4 vCPU need ${n * 4}`;
+const beamNoPage =
+  "not-run: blocked on every run: on Beam's default 1 CPU and 128 MiB the dev server ran out of memory or its preview never answered, so there was no page to edit";
+const archilNoSnapshot =
+  "not-run: our Archil adapter has no snapshots, so the snapshot tests didn't run";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
+    "pause-resume": {
+      "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume",
+      modal: modalNoPause,
+      beam: beamNoPause,
+    },
     snapshot: { beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
     "create-from-snapshot": { beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
     "edit-loop": { beam: beamNoPage },
   },
   "same-spec": {
-    "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
+    "pause-resume": {
+      "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume",
+      modal: modalNoPause,
+      beam: beamNoPause,
+    },
     snapshot: { superserve: superserveJoins, beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
-    "create-from-snapshot": { superserve: superserveJoins, beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
+    "create-from-snapshot": {
+      superserve: superserveJoins,
+      beam: beamNoSnapshotDelete,
+      archil: archilNoSnapshot,
+    },
     "burst-10": {
       superserve: superserveJoins,
       beam: beamBurstQuota(10),
@@ -166,9 +221,14 @@ function withData(id: TrackId): NotRun[TrackId] {
   const fromData = tracks[id].missing;
   const policy = unavailable(id);
   const out: NotRun[TrackId] = {};
-  for (const m of new Set([...Object.keys(handNotRun[id]), ...Object.keys(policy), ...Object.keys(fromData)])) {
+  for (const m of new Set([
+    ...Object.keys(handNotRun[id]),
+    ...Object.keys(policy),
+    ...Object.keys(fromData),
+  ])) {
     const row: Partial<Record<ProviderId, string>> = { ...handNotRun[id][m], ...policy[m] };
-    for (const [pid, why] of Object.entries(fromData[m] ?? {})) if (isProviderId(pid)) row[pid] = why;
+    for (const [pid, why] of Object.entries(fromData[m] ?? {}))
+      if (isProviderId(pid)) row[pid] = why;
     out[m] = row;
   }
   return out;
@@ -176,14 +236,21 @@ function withData(id: TrackId): NotRun[TrackId] {
 export const notRun: NotRun = { default: withData("default"), "same-spec": withData("same-spec") };
 
 /** A notRun reason as chart text: "not run: …", or the reason alone for a stopped run. */
-export const notRunText = (why: string) => why.replace(/^not-run: /, "not run: ").replace(/^not-available: /, "not available yet: ").replace(/^stopped-early: /, "");
+export const notRunText = (why: string) =>
+  why
+    .replace(/^not-run: /, "not run: ")
+    .replace(/^not-available: /, "not available yet: ")
+    .replace(/^stopped-early: /, "");
 
 /**
  * Results we measured but leave out of rankings, with the reason, keyed by
  * the harness run they apply to so a rerun that fixed the cause is never
  * excluded by mistake. The page uses the same map.
  */
-const exclusionsByRun: Record<string, Partial<Record<string, Partial<Record<ProviderId, string>>>>> = {
+const exclusionsByRun: Record<
+  string,
+  Partial<Record<string, Partial<Record<ProviderId, string>>>>
+> = {
   "publication-final-v3": {
     "files-10mb": {
       boxd: "boxd's download cut large files short, so our SDK read them in 1 MB pieces and the time measures that workaround",
@@ -194,17 +261,25 @@ const exclusionsByRun: Record<string, Partial<Record<string, Partial<Record<Prov
 export const excludedFor = (track: Track) => exclusionsByRun[track.generatedFrom] ?? {};
 
 /** Why a result is blank, so an agent never has to guess. */
-function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["values"][number] | undefined) {
+function statusOf(
+  track: Track,
+  id: string,
+  provider: ProviderId,
+  v: Metric["values"][number] | undefined,
+) {
   const skipped = notRun[track.id][id]?.[provider];
   if (skipped && (!v || v.n === 0)) return skipped;
-  if (track.metric(id).values.length === 0) return "coming-next-update: not collected in this release";
+  if (track.metric(id).values.length === 0)
+    return "coming-next-update: not collected in this release";
   const left = excludedFor(track)[id]?.[provider];
   if (left) return `excluded: ${left}`;
-  if (id === "pause-resume" && noRealPause[provider]) return `unsupported: ${noRealPause[provider]}`;
+  if (id === "pause-resume" && noRealPause[provider])
+    return `unsupported: ${noRealPause[provider]}`;
   if (id === "pause-resume" && autoStandby[provider]) return standbyStatus(track, provider);
   if (!v) return "unsupported";
   if (v.n > 0) return "measured";
-  if (v.ourFailures > 0 && v.failures === 0) return "not-measured: our harness could not run this test on this provider";
+  if (v.ourFailures > 0 && v.failures === 0)
+    return "not-measured: our harness could not run this test on this provider";
   if (v.failures > 0 && v.limitFailures === v.failures) return "not-run: our account or plan limit";
   if (v.failures > 0) return "all-failed";
   return "unsupported";
@@ -218,7 +293,10 @@ function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["val
 function standbyStatus(track: Track, id: ProviderId) {
   const p = track.providers.find((x) => x.id === id);
   const r = p ? pauseOf(track, p) : null;
-  const resume = r?.kind === "standby" ? ` Only its resume is timed, so it isn't ranked as a pause + resume total: the first command after standby took ${formatValue(r.resume, "s")} (median of ${r.n}, after ${formatValue(r.idleS, "s")} with no requests).` : " No resume after standby was measured in this track.";
+  const resume =
+    r?.kind === "standby"
+      ? ` Only its resume is timed, so it isn't ranked as a pause + resume total: the first command after standby took ${formatValue(r.resume, "s")} (median of ${r.n}, after ${formatValue(r.idleS, "s")} with no requests).`
+      : " No resume after standby was measured in this track.";
   return `standby: ${autoStandby[id] ?? ""}${resume}`;
 }
 
@@ -230,9 +308,20 @@ function pauseData(track: Track, p: Provider) {
   if (restart) return { supported: false, note: restart };
   const r = pauseOf(track, p);
   const note = (s: string) => capitalise(s.replace(/^standby: /, ""));
-  if (r.kind === "standby") return { supported: true, note: note(standbyStatus(track, p.id)), standby: { resumeAfterStandby: round(r.resume), idleSeconds: r.idleS, n: r.n } };
-  if (autoStandby[p.id]) return { supported: true, note: note(standbyStatus(track, p.id)), standby: null };
-  return { supported: p.pauseSplit !== null || track.metric("pause-resume").values.some((v) => v.provider === p.id && v.p50 !== null), split: p.pauseSplit };
+  if (r.kind === "standby")
+    return {
+      supported: true,
+      note: note(standbyStatus(track, p.id)),
+      standby: { resumeAfterStandby: round(r.resume), idleSeconds: r.idleS, n: r.n },
+    };
+  if (autoStandby[p.id])
+    return { supported: true, note: note(standbyStatus(track, p.id)), standby: null };
+  return {
+    supported:
+      p.pauseSplit !== null ||
+      track.metric("pause-resume").values.some((v) => v.provider === p.id && v.p50 !== null),
+    split: p.pauseSplit,
+  };
 }
 
 const results = (track: Track, m: Metric) =>
@@ -245,7 +334,10 @@ const results = (track: Track, m: Metric) =>
         provider: p.id,
         median: shown ? round(v?.p50 ?? null) : null,
         p95: shown ? round(v?.p95 ?? null) : null,
-        ci95: shown && v && v.ciLow !== null && v.ciHigh !== null ? [round(v.ciLow), round(v.ciHigh)] : null,
+        ci95:
+          shown && v && v.ciLow !== null && v.ciHigh !== null
+            ? [round(v.ciLow), round(v.ciHigh)]
+            : null,
         attempts: v ? v.n + v.failures : 0,
         failed: v?.failures ?? 0,
         status,
@@ -257,7 +349,9 @@ const results = (track: Track, m: Metric) =>
       const ra = a.status === "measured" && a.median !== null;
       const rb = b.status === "measured" && b.median !== null;
       if (ra !== rb) return ra ? -1 : 1;
-      return a.median === null || b.median === null ? 0 : (m.better === "lower" ? 1 : -1) * (a.median - b.median);
+      return a.median === null || b.median === null
+        ? 0
+        : (m.better === "lower" ? 1 : -1) * (a.median - b.median);
     });
 
 /** One row of quick picks. `note` carries what a pick needs said beside it, such as the eligible set for cost. */
@@ -269,7 +363,8 @@ export interface QuickPick {
 }
 
 /** "boxd $0.000128 per task, $0.13 per 1,000 (metered, provisional)"; a lower bound reads "at least …". */
-const costCell = (t: PricedTask) => `${providerName(t.id)} ${perTaskText(t.cost)} per task, ${perThousandText(t.cost)} per 1,000 (${costTag(t.id, t.cost, t.status)})`;
+const costCell = (t: PricedTask) =>
+  `${providerName(t.id)} ${perTaskText(t.cost)} per task, ${perThousandText(t.cost)} per 1,000 (${costTag(t.id, t.cost, t.status)})`;
 
 /** Whether any track shows a lower bound. Lower-bound fields and notes appear only then, so data without one publishes as before. */
 const anyLowerBound = () => hasLowerBounds(trackIds.map((id) => tracks[id]));
@@ -288,12 +383,24 @@ function costPickRow(track: Track): QuickPick {
         need: `Quick task: ${pickLabel.toLowerCase()}`,
         pick: costCell(c.pick),
         runnerUp: c.runnerUp ? costCell(c.runnerUp) : "n/a",
-        note: c.lower.length ? `Not counted, a different machine: ${c.lower.map(costCell).join("; ")}.` : null,
+        note: c.lower.length
+          ? `Not counted, a different machine: ${c.lower.map(costCell).join("; ")}.`
+          : null,
       };
     case "none":
-      return { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: noPickWhy(c).replace(/^\w/, (ch) => ch.toUpperCase()), runnerUp: "n/a", note: null };
+      return {
+        need: `Quick task: ${noPickLabel.toLowerCase()}`,
+        pick: noPickWhy(c).replace(/^\w/, (ch) => ch.toUpperCase()),
+        runnerUp: "n/a",
+        note: null,
+      };
     case "empty":
-      return { need: `Quick task: ${pickLabel.toLowerCase()}`, pick: "n/a", runnerUp: "n/a", note: null };
+      return {
+        need: `Quick task: ${pickLabel.toLowerCase()}`,
+        pick: "n/a",
+        runnerUp: "n/a",
+        note: null,
+      };
     default: {
       const _exhaustive: never = c;
       return _exhaustive;
@@ -303,13 +410,30 @@ function costPickRow(track: Track): QuickPick {
 
 /** The cost pick as data for agents: the cheapest exact cost, the runner-up, and any cheaper cost on a different machine. */
 function costPickData(track: Track) {
-  const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), ...lowerBoundField(isLowerBound(t.cost)), kind: t.cost.kind });
+  const row = (t: PricedTask) => ({
+    provider: t.id,
+    perTaskUsd: roundCost(t.cost.usd),
+    per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE),
+    ...lowerBoundField(isLowerBound(t.cost)),
+    kind: t.cost.kind,
+  });
   const c = costPick(track);
   switch (c.kind) {
     case "picked":
-      return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, lowerDifferentMachine: c.lower.map(row) };
+      return {
+        label: pickLabel,
+        pick: row(c.pick),
+        runnerUp: c.runnerUp ? row(c.runnerUp) : null,
+        lowerDifferentMachine: c.lower.map(row),
+      };
     case "none":
-      return { label: noPickLabel, why: noPickWhy(c), pick: null, runnerUp: null, lowerDifferentMachine: c.lower.map(row) };
+      return {
+        label: noPickLabel,
+        why: noPickWhy(c),
+        pick: null,
+        runnerUp: null,
+        lowerDifferentMachine: c.lower.map(row),
+      };
     case "empty":
       return { label: noPickLabel, pick: null, runnerUp: null, lowerDifferentMachine: [] };
     default: {
@@ -326,14 +450,22 @@ export function quickPicks(track: Track): QuickPick[] {
   const timed = (id: string, label: string): QuickPick => {
     const m = track.metric(id);
     // Providers are ranked on their first CPU tier.
-    const ranked = new Set(results(track, m).filter((r) => r.status === "measured" && r.median !== null && !isExtraTier(r.provider)).map((r) => r.provider));
+    const ranked = new Set(
+      results(track, m)
+        .filter((r) => r.status === "measured" && r.median !== null && !isExtraTier(r.provider))
+        .map((r) => r.provider),
+    );
     const [a, b] = m.values
       .filter((v) => ranked.has(v.provider) && v.p50 !== null)
       .sort((x, y) => (m.better === "lower" ? 1 : -1) * ((x.p50 ?? 0) - (y.p50 ?? 0)));
-    const cell = (v: typeof a) => (v ? `${name(v.provider)} ${formatValue(v.p50 ?? 0, m.unit)}` : "n/a");
+    const cell = (v: typeof a) =>
+      v ? `${name(v.provider)} ${formatValue(v.p50 ?? 0, m.unit)}` : "n/a";
     return { need: label, pick: cell(a), runnerUp: cell(b), note: null };
   };
-  const reliable = track.providers.filter((p) => !isExtraTier(p.id)).map((p) => ({ p, rate: successRate(track, p).rate ?? 0 })).sort((a, b) => b.rate - a.rate);
+  const reliable = track.providers
+    .filter((p) => !isExtraTier(p.id))
+    .map((p) => ({ p, rate: successRate(track, p).rate ?? 0 }))
+    .sort((a, b) => b.rate - a.rate);
   const top = reliable.filter((x) => x.rate === reliable[0]?.rate);
   const rest = reliable.slice(top.length);
   const picks = [
@@ -345,7 +477,9 @@ export function quickPicks(track: Track): QuickPick[] {
     {
       need: "Most reliable",
       // Several providers can share the top rate; name every one of them.
-      pick: top.length ? `${top.map((x) => name(x.p.id)).join(", ")} ${formatPercent(top[0]?.rate ?? 0, 2)}${top.length > 1 ? " (tied)" : ""}` : "n/a",
+      pick: top.length
+        ? `${top.map((x) => name(x.p.id)).join(", ")} ${formatPercent(top[0]?.rate ?? 0, 2)}${top.length > 1 ? " (tied)" : ""}`
+        : "n/a",
       runnerUp: rest[0] ? `${name(rest[0].p.id)} ${formatPercent(rest[0].rate, 2)}` : "n/a",
       note: null,
     },
@@ -366,8 +500,14 @@ const realisticHowToRead =
 /** The realistic reading notes, plus what `origin: "usage-api"` means once a realistic cost is a usage cost. */
 function realisticHowToReadText() {
   const ids = [
-    ...realistic.rows.flatMap((r) => (r.cost && isUsageCost(r.provider, r.cost) ? [r.provider] : [])),
-    ...idleGroups(realistic).flatMap((g) => (g.points.some((p) => p.costKind !== null && isUsageCost(g.provider, { kind: p.costKind })) ? [g.provider] : [])),
+    ...realistic.rows.flatMap((r) =>
+      r.cost && isUsageCost(r.provider, r.cost) ? [r.provider] : [],
+    ),
+    ...idleGroups(realistic).flatMap((g) =>
+      g.points.some((p) => p.costKind !== null && isUsageCost(g.provider, { kind: p.costKind }))
+        ? [g.provider]
+        : [],
+    ),
   ];
   const usage = usageCostNote(ids);
   return usage === null ? realisticHowToRead : `${realisticHowToRead} ${usage}`;
@@ -398,13 +538,23 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     // Billing evidence only; the pick doesn't read it.
     billingStatus: row.cost ? billingTag(row) : null,
     noCost: row.cost ? null : noCostReason(row),
-    wholeMachinePer1000Usd: usd6(row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null ? null : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE),
+    wholeMachinePer1000Usd: usd6(
+      row.cost?.wholeMachineUsdPerCompleted === null || row.cost === null
+        ? null
+        : row.cost.wholeMachineUsdPerCompleted * TASKS_PER_PRICE,
+    ),
     // "lower": the whole-machine figure is a lower bound (Modal's default track prices only its request); read it as at least that.
     wholeMachineBound: row.cost?.wholeMachineBound ?? null,
     wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
-    ...estimatedPartData({ id: row.provider, kind: row.cost?.kind ?? null, part: row.estimatedPart, total: row.cost?.usdPerCompleted ?? null, key: "per1000CompletedUsd" }),
+    ...estimatedPartData({
+      id: row.provider,
+      kind: row.cost?.kind ?? null,
+      part: row.estimatedPart,
+      total: row.cost?.usdPerCompleted ?? null,
+      key: "per1000CompletedUsd",
+    }),
     ...regionData(row.provider, track),
   };
 }
@@ -430,11 +580,21 @@ function estimatedPartData({
   key: "per1000CompletedUsd" | "medianPer1000Usd";
 }) {
   const note = kind ? estimatedPartText({ id, kind, part, total, unit: "per 1,000" }) : null;
-  return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null, what: part.labels, note } } : {};
+  return part && note
+    ? {
+        estimatedPart: {
+          [key]: usd6(part.usd * TASKS_PER_PRICE),
+          shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null,
+          what: part.labels,
+          note,
+        },
+      }
+    : {};
 }
 
 /** A provider's pricing note without its monthly-minimum clause ("$20 monthly minimum/packs excluded; "): per-task costs are usage, and the site says nothing about plans. */
-const withoutPlanMinimum = (note: string | null) => note
+const withoutPlanMinimum = (note: string | null) =>
+  note
     ?.replace(/\s*\$\d+(?:\.\d+)? monthly minimum[^;.]*[;.]/g, "")
     .replace(/\.\s+([a-z])/g, (_, c: string) => `. ${c.toUpperCase()}`)
     .trim() ?? null;
@@ -449,14 +609,35 @@ const pickRow = (r: Costed) => ({
 
 function realisticPickData(costed: readonly Costed[]) {
   const p = taskPick(costed);
-  const uncertified = { certified: false, certification: `${pickLabels.uncertified}: ${uncertifiedWhy(realistic)}.` };
+  const uncertified = {
+    certified: false,
+    certification: `${pickLabels.uncertified}: ${uncertifiedWhy(realistic)}.`,
+  };
   switch (p.kind) {
     case "picked":
-      return { label: p.label, ...uncertified, pick: pickRow(p.pick), counted: p.counted, lowerNotCounted: p.lower.map(pickRow) };
+      return {
+        label: p.label,
+        ...uncertified,
+        pick: pickRow(p.pick),
+        counted: p.counted,
+        lowerNotCounted: p.lower.map(pickRow),
+      };
     case "none":
-      return { label: p.label, ...uncertified, pick: null, counted: [], lowerNotCounted: p.lower.map(pickRow) };
+      return {
+        label: p.label,
+        ...uncertified,
+        pick: null,
+        counted: [],
+        lowerNotCounted: p.lower.map(pickRow),
+      };
     case "empty":
-      return { label: pickLabels.none, ...uncertified, pick: null, counted: [], lowerNotCounted: [] };
+      return {
+        label: pickLabels.none,
+        ...uncertified,
+        pick: null,
+        counted: [],
+        lowerNotCounted: [],
+      };
     default: {
       const _exhaustive: never = p;
       return _exhaustive;
@@ -489,15 +670,45 @@ export function realisticData() {
     about: realisticAbout,
     costScope: scopeLine(realistic),
     howToRead: realisticHowToReadText(),
-    source: { generatedAt: realistic.generatedAt, runs: realistic.sources.map((s) => ({ name: s.name, generatedAt: s.generatedAt, providers: s.providers })), eurToUsd: realistic.fx },
+    source: {
+      generatedAt: realistic.generatedAt,
+      runs: realistic.sources.map((s) => ({
+        name: s.name,
+        generatedAt: s.generatedAt,
+        providers: s.providers,
+      })),
+      eurToUsd: realistic.fx,
+    },
     workloads: profileIds.map((profile) => {
       const w = realistic.workloads?.[profile] ?? null;
-      return { id: profile, label: profileInfo[profile].label, what: profileWhat(profile, w), footprint: profileFootprint(profile, w), repo: w?.repo ?? null, commit: w?.commit ?? null };
+      return {
+        id: profile,
+        label: profileInfo[profile].label,
+        what: profileWhat(profile, w),
+        footprint: profileFootprint(profile, w),
+        repo: w?.repo ?? null,
+        commit: w?.commit ?? null,
+      };
     }),
-    tracks: Object.fromEntries(trackIds.map((id) => [id, { label: trackInfo[id].label, workloads: Object.fromEntries(profileIds.map((profile) => [profile, realisticProfile(id, profile)])) }])),
+    tracks: Object.fromEntries(
+      trackIds.map((id) => [
+        id,
+        {
+          label: trackInfo[id].label,
+          workloads: Object.fromEntries(
+            profileIds.map((profile) => [profile, realisticProfile(id, profile)]),
+          ),
+        },
+      ]),
+    ),
     idle: {
       what: `Fix and test, then the sandbox left open for 0, 10 or 60 minutes on each provider's default settings, then a resume step (git status and the tests). Same-machine track only, ${realistic.coverage.idle.attempts} runs per provider and wait. medianCostUsd is the median total cost of one run, fix, wait and resume, failed runs included. vsNoWait: ${multipleNote} Providers are listed with those whose sandbox stopped or couldn't resume last.`,
-      notTested: realistic.coverage.idle.notTested.map((n) => ({ provider: n.provider, name: providerName(n.provider), reason: n.reason, short: n.short })),
+      notTested: realistic.coverage.idle.notTested.map((n) => ({
+        provider: n.provider,
+        name: providerName(n.provider),
+        reason: n.reason,
+        short: n.short,
+      })),
       providers: idleGroups(realistic).map((g) => ({
         provider: g.provider,
         name: providerName(g.provider),
@@ -514,12 +725,23 @@ export function realisticData() {
           status: holdTag(p),
           changeVsNoWait: changeText(p),
           vsNoWait: multipleText(p),
-          ...(resumeFailed(p) ? { resumeFailed: true, note: "No run resumed, so this figure is what the failed runs cost, not a price for leaving work open." } : {}),
+          ...(resumeFailed(p)
+            ? {
+                resumeFailed: true,
+                note: "No run resumed, so this figure is what the failed runs cost, not a price for leaving work open.",
+              }
+            : {}),
           ...refusalField(p),
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
-          ...estimatedPartData({ id: g.provider, kind: p.costKind, part: p.estimatedPart, total: p.medianCostUsd, key: "medianPer1000Usd" }),
+          ...estimatedPartData({
+            id: g.provider,
+            kind: p.costKind,
+            part: p.estimatedPart,
+            total: p.medianCostUsd,
+            key: "medianPer1000Usd",
+          }),
         })),
       })),
     },
@@ -528,14 +750,33 @@ export function realisticData() {
 
 const pickLine = (track: TrackId, profile: ProfileId) => {
   const p = realisticProfile(track, profile).pick;
-  const lower = p.lowerNotCounted.map((r) => `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.whyNotCounted.join("; ")})`).join("; ");
-  const head = p.pick ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000.` : `${p.label}: no provider meets the pick rule.`;
+  const lower = p.lowerNotCounted
+    .map(
+      (r) =>
+        `${providerName(r.provider)} ${perThousand(r.per1000CompletedUsd === null ? 0 : r.per1000CompletedUsd / TASKS_PER_PRICE)} (${r.whyNotCounted.join("; ")})`,
+    )
+    .join("; ");
+  const head = p.pick
+    ? `${p.label}: ${providerName(p.pick.provider)} ${perThousand((p.pick.per1000CompletedUsd ?? 0) / TASKS_PER_PRICE)} per 1,000.`
+    : `${p.label}: no provider meets the pick rule.`;
   return `${head} ${p.certification}${lower ? ` Not counted: ${lower}.` : ""}`;
 };
 
 function realisticMarkdown() {
   const d = realisticData();
-  const lines = ["# What a task costs (realistic workloads)", "", d.pilot, d.comingLater, "", d.about, "", d.costScope, "", d.howToRead, ""];
+  const lines = [
+    "# What a task costs (realistic workloads)",
+    "",
+    d.pilot,
+    d.comingLater,
+    "",
+    d.about,
+    "",
+    d.costScope,
+    "",
+    d.howToRead,
+    "",
+  ];
   for (const id of trackIds) {
     for (const profile of profileIds) {
       const w = d.workloads.find((x) => x.id === profile);
@@ -555,31 +796,69 @@ function realisticMarkdown() {
         ),
         "",
         ...t.providers.flatMap((r) => [
-          ...("estimatedPart" in r && r.estimatedPart ? [`${r.name}: ${r.estimatedPart.note}`] : []),
+          ...("estimatedPart" in r && r.estimatedPart
+            ? [`${r.name}: ${r.estimatedPart.note}`]
+            : []),
           ...("regionNote" in r && r.regionNote ? [`${r.name} is ${r.regionNote}.`] : []),
-          ...(r.wholeMachineBound === "lower" ? [`${r.name}'s whole machine at list price is a lower bound (≥): it prices only the resources requested, and ${r.name} also bills use above them.`] : []),
+          ...(r.wholeMachineBound === "lower"
+            ? [
+                `${r.name}'s whole machine at list price is a lower bound (≥): it prices only the resources requested, and ${r.name} also bills use above them.`,
+              ]
+            : []),
         ]),
         "",
       );
     }
   }
-  lines.push("## Leaving the sandbox open (same machine, fix and test)", "", d.idle.what, "", "| Provider | Wait | Completed | Median cost, per 1,000 | Kind and status | vs no wait | Median wake | State change while idle |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
+  lines.push(
+    "## Leaving the sandbox open (same machine, fix and test)",
+    "",
+    d.idle.what,
+    "",
+    "| Provider | Wait | Completed | Median cost, per 1,000 | Kind and status | vs no wait | Median wake | State change while idle |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- |",
+  );
   for (const g of d.idle.providers)
     for (const p of g.waits)
-      lines.push(`| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.vsNoWait ?? "n/a"}${"resumeFailed" in p ? " (resume failed)" : ""} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`);
+      lines.push(
+        `| ${g.name} | ${idleLabel(p)} | ${p.completed} of ${p.runs} | ${p.per1000Usd === null ? "n/a" : perThousand(p.per1000Usd / TASKS_PER_PRICE)} | ${p.status} | ${p.vsNoWait ?? "n/a"}${"resumeFailed" in p ? " (resume failed)" : ""} | ${p.medianWakeMs === null ? "n/a" : `${p.medianWakeMs} ms`} | ${p.stateChanges.length ? p.stateChanges.join(", ") : "none seen"} |`,
+      );
   lines.push(
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
-    ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("estimatedPart" in w && w.estimatedPart ? [`${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`, ""] : []))),
-    ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("incompleteWhy" in w && w.incompleteWhy ? [`${g.name}, ${idleLabel(w)}: ${w.incompleteWhy}`, ""] : []))),
-    ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
+    ...d.idle.providers.flatMap((g) =>
+      g.waits.flatMap((w) =>
+        "estimatedPart" in w && w.estimatedPart
+          ? [
+              `${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`,
+              "",
+            ]
+          : [],
+      ),
+    ),
+    ...d.idle.providers.flatMap((g) =>
+      g.waits.flatMap((w) =>
+        "incompleteWhy" in w && w.incompleteWhy
+          ? [`${g.name}, ${idleLabel(w)}: ${w.incompleteWhy}`, ""]
+          : [],
+      ),
+    ),
+    ...d.idle.notTested.flatMap((n) => [
+      `Not in the idle test: ${n.name}, because ${n.reason}.`,
+      "",
+    ]),
   );
   return lines;
 }
 
 function realisticLlms() {
   const d = realisticData();
-  const picks = trackIds.flatMap((id) => profileIds.map((profile) => `- ${profileInfo[profile].label}, ${trackInfo[id].tab}: ${pickLine(id, profile)}`));
+  const picks = trackIds.flatMap((id) =>
+    profileIds.map(
+      (profile) =>
+        `- ${profileInfo[profile].label}, ${trackInfo[id].tab}: ${pickLine(id, profile)}`,
+    ),
+  );
   const idle = d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}`] : []));
   return `## What a task costs (realistic workloads)
 
@@ -607,7 +886,11 @@ type BurstRanAny = Extract<BurstProvider, { status: "ran" }>;
 const burstChange = (p: BurstRanAny) =>
   p.slowdown === null
     ? { status: "withheld" as const, why: p.changeNote }
-    : { status: "measured" as const, atOnceOverAlone: round(p.slowdown), withoutUpload: round(p.slowdownWithoutUpload) };
+    : {
+        status: "measured" as const,
+        atOnceOverAlone: round(p.slowdown),
+        withoutUpload: round(p.slowdownWithoutUpload),
+      };
 
 /** One provider's Five at once result as plain data, with the run it came from. */
 function burstProviderData(p: BurstRanAny) {
@@ -649,12 +932,22 @@ function realTasksAtOnceData() {
     run: d.run,
     providers: [
       ...timed.map(burstProviderData),
-      ...untimed.map((p) => (p.status === "ran" ? burstProviderData(p) : { provider: p.provider, name: providerName(p.provider), status: p.status, reason: p.reason })),
+      ...untimed.map((p) =>
+        p.status === "ran"
+          ? burstProviderData(p)
+          : {
+              provider: p.provider,
+              name: providerName(p.provider),
+              status: p.status,
+              reason: p.reason,
+            },
+      ),
     ],
   };
 }
 
-const runCell = (r: ReturnType<typeof runOf>) => `${r.id}${r.own ? " (own run)" : ""}, ${r.startedAt.slice(0, 10)}, SDK ${r.sdkCommit.slice(0, 7)}`;
+const runCell = (r: ReturnType<typeof runOf>) =>
+  `${r.id}${r.own ? " (own run)" : ""}, ${r.startedAt.slice(0, 10)}, SDK ${r.sdkCommit.slice(0, 7)}`;
 
 /** The same result as one Markdown table, for results.md. */
 function realTasksAtOnceMarkdown() {
@@ -677,8 +970,12 @@ function realTasksAtOnceMarkdown() {
     lines.push(
       `| ${p.name} | ${p.medianS === null ? "n/a" : wallText(p.medianS)} | ${p.completed} of ${p.attempts} | ${p.aloneMedianS === null ? "n/a" : wallText(p.aloneMedianS)} | ${measured?.atOnceOverAlone == null ? "withheld" : `${measured.atOnceOverAlone.toFixed(2)}×`} | ${measured?.withoutUpload == null ? "n/a" : `${measured.withoutUpload.toFixed(2)}×`} | ${runCell(p.run)} |`,
     );
-    if (p.change.status === "withheld" && p.change.why) notes.push(`${p.name}: ratio withheld. ${capitalise(p.change.why)}.`);
-    if (p.failures.length) notes.push(`${p.name}: ${p.failures.map((f) => `${f.count} failed (${f.reason})`).join("; ")}; the median is of the rest.`);
+    if (p.change.status === "withheld" && p.change.why)
+      notes.push(`${p.name}: ratio withheld. ${capitalise(p.change.why)}.`);
+    if (p.failures.length)
+      notes.push(
+        `${p.name}: ${p.failures.map((f) => `${f.count} failed (${f.reason})`).join("; ")}; the median is of the rest.`,
+      );
   }
   lines.push("", ...notes.flatMap((n) => [n, ""]));
   return lines;
@@ -687,7 +984,11 @@ function realTasksAtOnceMarkdown() {
 const allocationOf = (p: Track["providers"][number]) => ({
   requested: { ...p.requestedAllocation, text: requestedText(p) },
   // A shared file system reports the host's disk, not the sandbox's: no size, and why.
-  measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB) })),
+  measured: p.measuredAllocations.map((a) => ({
+    cpu: a.cpu,
+    memoryGiB: round(a.memoryGiB),
+    diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB),
+  })),
   ...(sharedDisk[p.id] ? { diskNote: sharedDisk[p.id] } : {}),
   measuredText: measuredText(p),
   equalSpec: p.equalSpec,
@@ -704,12 +1005,18 @@ function hardwareOf(id: ProviderId) {
     chip: h.chip,
     family: h.family,
     chipBasis: chipBasisLabel[h.chipBasis],
-    memory: h.memory.kind === "known" ? { type: h.memory.type, basis: h.memory.basis, detail: h.memory.detail } : { type: null, note: h.memory.why },
+    memory:
+      h.memory.kind === "known"
+        ? { type: h.memory.type, basis: h.memory.basis, detail: h.memory.detail }
+        : { type: null, note: h.memory.why },
     cloud: h.cloud,
     region: h.region,
     runsAs: `${h.runsAs}, ${h.runsAsDetail}`,
     hidden: h.hidden,
-    probed: fingerprintDate(id) === null ? probeDate : `${fingerprintDate(id)}, from the benchmark's fingerprints`,
+    probed:
+      fingerprintDate(id) === null
+        ? probeDate
+        : `${fingerprintDate(id)}, from the benchmark's fingerprints`,
   };
 }
 
@@ -759,14 +1066,30 @@ function billingOf(p: Provider) {
 function wholeMachineOf(p: Provider) {
   const w = wholeMachine(p);
   return w.kind === "none"
-    ? { perHourUsd: null, perTaskUsd: null, counterfactual: billingBases[p.id].kind === "usage", text: w.why, note: perTaskLifetimeNote }
-    : { perHourUsd: round(w.usdPerHour), ...lowerBoundField(isLowerBound(w)), perTaskUsd: null, allocation: { cpu: w.cpu, memoryGiB: round(w.memoryGiB) }, counterfactual: w.counterfactual, text: wholeMachineText(w), note: perTaskLifetimeNote };
+    ? {
+        perHourUsd: null,
+        perTaskUsd: null,
+        counterfactual: billingBases[p.id].kind === "usage",
+        text: w.why,
+        note: perTaskLifetimeNote,
+      }
+    : {
+        perHourUsd: round(w.usdPerHour),
+        ...lowerBoundField(isLowerBound(w)),
+        perTaskUsd: null,
+        allocation: { cpu: w.cpu, memoryGiB: round(w.memoryGiB) },
+        counterfactual: w.counterfactual,
+        text: wholeMachineText(w),
+        note: perTaskLifetimeNote,
+      };
 }
 
 /** Where a provider's prices carry a region multiplier: the region, the multiplier and the note. Nothing otherwise. */
 function regionOf(p: Provider) {
   const note = regionNote(p);
-  return note ? { region: p.pricingRegion, regionMultiplier: p.regionMultiplier, regionNote: note } : {};
+  return note
+    ? { region: p.pricingRegion, regionMultiplier: p.regionMultiplier, regionNote: note }
+    : {};
 }
 
 const stressAbout =
@@ -782,10 +1105,18 @@ function stressData(s: StressData) {
     cpuSustained: [...s.cpuSustained.rows]
       .sort((a, b) => (b.single.p50 ?? -1) - (a.single.p50 ?? -1))
       .map((r) => ({ name: providerName(r.provider), ...r })),
-    cpuBurst: s.cpuBurst.map((g) => ({ k: g.k, providers: [...g.rows].sort((a, b) => (burstValue(b) ?? -1) - (burstValue(a) ?? -1)).map((r) => ({ name: providerName(r.provider), ...r })) })),
+    cpuBurst: s.cpuBurst.map((g) => ({
+      k: g.k,
+      providers: [...g.rows]
+        .sort((a, b) => (burstValue(b) ?? -1) - (burstValue(a) ?? -1))
+        .map((r) => ({ name: providerName(r.provider), ...r })),
+    })),
     burstSurvival: s.burstSurvival.map((g) => ({
       k: g.k,
-      providers: [...survivalRanked(g.rows).map((x) => x.row), ...g.rows.filter((r) => r.survivalRate === null)].map((r) => ({ name: providerName(r.provider), ...r })),
+      providers: [
+        ...survivalRanked(g.rows).map((x) => x.row),
+        ...g.rows.filter((r) => r.survivalRate === null),
+      ].map((r) => ({ name: providerName(r.provider), ...r })),
     })),
   };
 }
@@ -809,7 +1140,14 @@ function expandedData(e: Expanded) {
     runsPerProvider: e.runs,
     // A run's `reason` is written only where it has one (Archil's stdout streaming rerun).
     ...(hasProviderRuns(e)
-      ? { providerRuns: Object.fromEntries(Object.entries(e.providerRuns).map(([id, runs]) => [id, runs?.map(({ reason, ...r }) => (reason === null ? r : { ...r, reason }))])) }
+      ? {
+          providerRuns: Object.fromEntries(
+            Object.entries(e.providerRuns).map(([id, runs]) => [
+              id,
+              runs?.map(({ reason, ...r }) => (reason === null ? r : { ...r, reason })),
+            ]),
+          ),
+        }
       : {}),
     categories: e.groups.map((g) => ({
       id: g.category,
@@ -818,7 +1156,13 @@ function expandedData(e: Expanded) {
         ...m,
         values: bestFirst(m.values, m.better).map((v) => {
           const run = ownRun(e, v.provider, m.id);
-          return { name: providerName(v.provider), ...v, ...(run ? { run: { id: run.id, startedAt: run.startedAt, sdkCommit: run.sdkCommit } } : {}) };
+          return {
+            name: providerName(v.provider),
+            ...v,
+            ...(run
+              ? { run: { id: run.id, startedAt: run.startedAt, sdkCommit: run.sdkCommit } }
+              : {}),
+          };
         }),
       })),
     })),
@@ -829,7 +1173,14 @@ function expandedData(e: Expanded) {
 function tierFacts(id: ProviderId) {
   const t = tierOf(id);
   if (!t) return null;
-  return { name: t.name, cpu: t.cpu, preemptible: t.preemptible, ratesUsd: t.rates, firstTier: !isExtraTier(id), promise: t.promise };
+  return {
+    name: t.name,
+    cpu: t.cpu,
+    preemptible: t.preemptible,
+    ratesUsd: t.rates,
+    firstTier: !isExtraTier(id),
+    promise: t.promise,
+  };
 }
 
 /**
@@ -837,7 +1188,9 @@ function tierFacts(id: ProviderId) {
  * provider placed only by its outbound IPs and API region (Archil),
  * `ranIn: null` with those, so no export names where its sandbox runs.
  */
-type PlaceFields = { ranIn: string | null } | { ranIn: null; outboundIpLocation: string; outboundIpOwner: string; apiRegion: string };
+type PlaceFields =
+  | { ranIn: string | null }
+  | { ranIn: null; outboundIpLocation: string; outboundIpOwner: string; apiRegion: string };
 
 function placeFields(id: ProviderId, place: string | null): PlaceFields {
   const r = ranInOf({ id, place });
@@ -846,7 +1199,12 @@ function placeFields(id: ProviderId, place: string | null): PlaceFields {
     case "ran-in":
       return { ranIn: r.place };
     case "outbound":
-      return { ranIn: null, outboundIpLocation: r.place, outboundIpOwner: r.owner, apiRegion: r.api };
+      return {
+        ranIn: null,
+        outboundIpLocation: r.place,
+        outboundIpOwner: r.owner,
+        apiRegion: r.api,
+      };
     default: {
       const _exhaustive: never = r;
       return _exhaustive;
@@ -856,7 +1214,13 @@ function placeFields(id: ProviderId, place: string | null): PlaceFields {
 
 /** The placement back from a track's exported fields, for the provider and compare pages. */
 export function placeOf(f: PlaceFields): RanIn | null {
-  if ("outboundIpLocation" in f) return { kind: "outbound", place: f.outboundIpLocation, owner: f.outboundIpOwner, api: f.apiRegion };
+  if ("outboundIpLocation" in f)
+    return {
+      kind: "outbound",
+      place: f.outboundIpLocation,
+      owner: f.outboundIpOwner,
+      api: f.apiRegion,
+    };
   return f.ranIn === null ? null : { kind: "ran-in", place: f.ranIn };
 }
 
@@ -869,7 +1233,15 @@ function placeCell(f: PlaceFields) {
 
 /** Providers placed only by their outbound IPs and API region, in the order the tracks list them. */
 const outboundOnlyProviders = () => [
-  ...new Set(trackIds.flatMap((id) => tracks[id].providers.flatMap((p) => (ranInOf({ id: p.id, place: p.hardware?.location[0]?.value ?? null })?.kind === "outbound" ? [p.id] : [])))),
+  ...new Set(
+    trackIds.flatMap((id) =>
+      tracks[id].providers.flatMap((p) =>
+        ranInOf({ id: p.id, place: p.hardware?.location[0]?.value ?? null })?.kind === "outbound"
+          ? [p.id]
+          : [],
+      ),
+    ),
+  ),
 ];
 
 /**
@@ -886,12 +1258,39 @@ function runProvenance() {
       return [
         id,
         {
-          ...(own ? { byLocation: { commit: own.commit, batches: Object.fromEntries(own.batches.map((b) => [b.region, b.runs])) } } : {}),
-          ...(setup ? { sdkSetup: { runId: setup.runId, sdkCommit: setup.sdkCommit, date: setup.date } } : {}),
+          ...(own
+            ? {
+                byLocation: {
+                  commit: own.commit,
+                  batches: Object.fromEntries(own.batches.map((b) => [b.region, b.runs])),
+                },
+              }
+            : {}),
+          ...(setup
+            ? { sdkSetup: { runId: setup.runId, sdkCommit: setup.sdkCommit, date: setup.date } }
+            : {}),
         },
       ];
     }),
   );
+}
+
+/**
+ * "the run at commit 1185278, apart from Baseten's (commit 9e2a752, Nov 13, 2026), …": where every SDK
+ * setup figure without its own named run comes from, including the providers that have only their own
+ * commit and date.
+ */
+function sharedSetupText() {
+  const others = sdkSetupCommits.map(
+    (c) => `${providerName(c.id)}'s (commit ${c.sdkCommit}, ${c.date})`,
+  );
+  const tail =
+    others.length === 0
+      ? ""
+      : others.length === 1
+        ? `, apart from ${others[0]}`
+        : `, apart from ${others.slice(0, -1).join(", ")} and ${others.at(-1)}`;
+  return `the run at commit ${sdkSetup.commit}${tail}`;
 }
 
 /** results.md's lines for runProvenance, one per provider; empty when no provider has its own runs. */
@@ -901,12 +1300,15 @@ function runProvenanceMarkdown() {
   return [
     "## Own runs for By location and SDK setup",
     "",
-    `By location rows come from ${sharedBatchText(regional)} and SDK setup from the run at commit ${sdkSetup.commit}, except:`,
+    `By location rows come from ${sharedBatchText(regional)} and SDK setup from ${sharedSetupText()}, except:`,
     "",
     ...ids.map((id) => {
       const batches = providerBatchesText(regional, id);
       const setup = sdkSetupRuns[id];
-      const parts = [...(batches ? [`By location from its own batches, ${batches}.`] : []), ...(setup ? [`SDK setup from ${sdkSetupRunText(setup)}.`] : [])];
+      const parts = [
+        ...(batches ? [`By location from its own batches, ${batches}.`] : []),
+        ...(setup ? [`SDK setup from ${sdkSetupRunText(setup)}.`] : []),
+      ];
       return `- ${providerName(id)}: ${parts.join(" ")}`;
     }),
     "",
@@ -921,7 +1323,13 @@ function trackData(track: Track) {
     label: trackInfo[track.id].label,
     description: trackInfo[track.id].description,
     published: hasResults(track),
-    run: { source: track.generatedFrom, start: track.window.start, end: track.window.end, runs: track.runs.map((r) => r.id), observations: track.timedOperations },
+    run: {
+      source: track.generatedFrom,
+      start: track.window.start,
+      end: track.window.end,
+      runs: track.runs.map((r) => r.id),
+      observations: track.timedOperations,
+    },
     absent: track.absent.map((id) => ({ provider: id, reason: absentNote(track, id) })),
     // Per provider, the harness's record of main-suite runs left out or rerun: samples removed by reason,
     // superseded iterations with the rerun that replaced them and why, and scenarios not run.
@@ -936,7 +1344,8 @@ function trackData(track: Track) {
         cpuTier: tierFacts(p.id),
         allocation: allocationOf(p),
         allocationNote: notes[p.id] ?? (track.id === "default" ? advertised[p.id].note : null),
-        advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
+        advertisedDefault:
+          track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
         ...placeFields(p.id, p.hardware?.location[0]?.value ?? null),
         cpu: p.hardware?.cpuModels[0]?.value ?? null,
         hardware: hardwareOf(p.id),
@@ -952,11 +1361,18 @@ function trackData(track: Track) {
           commonSizeUsd: round(commonPrice(p)?.usd ?? null),
           ...regionOf(p),
           note: withoutPlanMinimum(p.pricingNotes),
-          usdNote: p.currency === "EUR" ? `Converted at the ECB rate of ${eurUsd.rate} USD per EUR on ${eurUsd.date}.` : null,
+          usdNote:
+            p.currency === "EUR"
+              ? `Converted at the ECB rate of ${eurUsd.rate} USD per EUR on ${eurUsd.date}.`
+              : null,
           source: p.pricingSource,
         },
         pause: pauseData(track, p),
-        reliability: { attempts: rel.attempts, succeeded: rel.succeeded, successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5 },
+        reliability: {
+          attempts: rel.attempts,
+          succeeded: rel.succeeded,
+          successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5,
+        },
         // A note only on Archil's unconfirmed failure, so every other provider's failures export as before.
         failures: p.failureReasons.map((f) => {
           const note = failureNote({ provider: p.id, reason: f.reason });
@@ -970,7 +1386,14 @@ function trackData(track: Track) {
     metrics: groups.flatMap((g) =>
       g.ids.map((id) => {
         const m = track.metric(id);
-        return { id, group: g.title, label: m.label, unit: m.unit, better: m.better, results: results(track, m) };
+        return {
+          id,
+          group: g.title,
+          label: m.label,
+          unit: m.unit,
+          better: m.better,
+          results: results(track, m),
+        };
       }),
     ),
     // Only once the track's export has stress results, so older exports read exactly as before.
@@ -987,7 +1410,7 @@ const howToRead =
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
   const lower = anyLowerBound()
-    ? " `bound: \"lower\"` on a cost or price marks a lower bound (status `lowerBound`): it counts only the resources requested and the provider also bills use above them, so the charge can be higher. Read it as at least that amount; it is never eligible and never compared with exact costs."
+    ? ' `bound: "lower"` on a cost or price marks a lower bound (status `lowerBound`): it counts only the resources requested and the provider also bills use above them, so the charge can be higher. Read it as at least that amount; it is never eligible and never compared with exact costs.'
     : "";
   const region = trackIds.some((id) => tracks[id].providers.some((p) => regionNote(p) !== null))
     ? " `price.regionMultiplier` is the pinned region's price multiplier, already included in every price and cost for that provider."
@@ -1008,7 +1431,7 @@ function howToReadQualifiers() {
   const own = Object.keys(runProvenance()).filter(isProviderId);
   const provenance =
     own.length > 0
-      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows (every other row comes from ${sharedBatchText(regional)}), and \`sdkSetup\` the run id, commit and date behind its SDK setup figure (every other figure comes from the run at commit ${sdkSetup.commit}).`
+      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows (every other row comes from ${sharedBatchText(regional)}), and \`sdkSetup\` the run id, commit and date behind its SDK setup figure (every other figure comes from ${sharedSetupText()}).`
       : "";
   return `${lower}${region}${usage === null ? "" : ` ${usage}`}${place}${provenance}`;
 }
@@ -1024,14 +1447,19 @@ export function agentData() {
     whatATaskCosts: realisticData(),
     realTasksAtOnce: realTasksAtOnceData(),
     commonSize: commonSize.label,
-    comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
+    comingNextUpdate: [
+      "Snapshot and restore",
+      "Bursts of 10 and 25",
+      "The same-machine (4 vCPU, 8 GB) track",
+    ],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
     ...(Object.keys(runProvenance()).length > 0 ? { runProvenance: runProvenance() } : {}),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
   };
 }
 
-const cell = (v: number | null, m: Pick<Metric, "unit">) => (v === null ? "n/a" : formatValue(v, m.unit));
+const cell = (v: number | null, m: Pick<Metric, "unit">) =>
+  v === null ? "n/a" : formatValue(v, m.unit);
 
 /** results.md's "Cost kind" cell: billed, metered or estimate, "usage cost" for a provider-reported usage cost (Archil's), "none" without a cost. */
 function costKindCell(track: Track, id: ProviderId) {
@@ -1073,12 +1501,22 @@ function trackMarkdown(id: TrackId) {
         `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${placeCell(p)} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${costKindCell(track, p.id)} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
-    ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),
-    ...d.providers.flatMap((p) => (p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [])),
+    ...d.providers.flatMap((p) =>
+      "regionNote" in p.price && p.price.regionNote
+        ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""]
+        : [],
+    ),
+    ...d.providers.flatMap((p) =>
+      p.allocationNote ? [`Machine note on ${p.name}: ${p.allocationNote}`, ""] : [],
+    ),
     ...d.providers.flatMap((p) =>
       "basis" in p.costPerTask
-        ? [`Cost on ${p.name}: ${p.costPerTask.basis}. ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`]
-        : [`Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}). ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`],
+        ? [
+            `Cost on ${p.name}: ${p.costPerTask.basis}. ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`,
+          ]
+        : [
+            `Cost on ${p.name}: none (${"note" in p.costPerTask ? p.costPerTask.note : ""}). ${p.billing.label.replace(/^\w/, (ch) => ch.toUpperCase())}.`,
+          ],
     ),
     "",
   );
@@ -1103,54 +1541,82 @@ function trackMarkdown(id: TrackId) {
   }
   lines.push("## What failed", "");
   for (const p of d.providers) {
-    const counted = p.failures.length === 0 ? "no failures counted against the provider." : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")}${noteOf(p.id, f)})`).join("; ")}.`;
-    const aside = p.setAside.map((f) => ` Set aside, not counted: ${f.reason} (${f.runs} runs, ${f.count} failed tests).`).join("");
+    const counted =
+      p.failures.length === 0
+        ? "no failures counted against the provider."
+        : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")}${noteOf(p.id, f)})`).join("; ")}.`;
+    const aside = p.setAside
+      .map((f) => ` Set aside, not counted: ${f.reason} (${f.runs} runs, ${f.count} failed tests).`)
+      .join("");
     lines.push(`- ${p.name}: ${counted}${aside}`);
   }
   lines.push("");
-  const rerun = d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`));
+  const rerun = d.providers.flatMap((p) =>
+    setAsideLines(p.id)
+      .filter((l) => l.startsWith(`${trackInfo[id].label}:`))
+      .map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`),
+  );
   if (rerun.length) lines.push("## Runs set aside and rerun", "", ...rerun, "");
   if (track.stress) lines.push(...stressMarkdown(track.stress));
   return lines;
 }
 
 const ops = (v: number | null) => (v === null ? "n/a" : formatValue(v, "ops/s"));
-const ratioCell = (r: { p50: number | null } | null) => (r === null || r.p50 === null ? "n/a" : r.p50.toFixed(2));
+const ratioCell = (r: { p50: number | null } | null) =>
+  r === null || r.p50 === null ? "n/a" : r.p50.toFixed(2);
 
 /** A track's stress suites as Markdown tables, best first. */
 function stressMarkdown(s: StressData) {
   const lines = ["## Stress", "", stressAbout, ""];
-  const sustained = [...highestFirst(s.cpuSustained.rows, sustainedValue("single")).map((x) => x.row), ...s.cpuSustained.rows.filter((r) => r.single.p50 === null)];
+  const sustained = [
+    ...highestFirst(s.cpuSustained.rows, sustainedValue("single")).map((x) => x.row),
+    ...s.cpuSustained.rows.filter((r) => r.single.p50 === null),
+  ];
   if (sustained.length)
     lines.push(
       "### Sustained CPU",
       "",
       "| Provider | Single core, median | All cores, median | Runs (single / all) | Min ÷ median segment (all) | Last ÷ first quarter (all) | vCPU | Failed attempts |",
       "| --- | --- | --- | --- | --- | --- | --- | --- |",
-      ...sustained.map((r) => `| ${providerName(r.provider)} | ${ops(r.single.p50)} | ${ops(r.all.p50)} | ${r.single.n} / ${r.all.n} | ${ratioCell(r.consistency.all)} | ${ratioCell(r.trend.all)} | ${r.guestVcpus.map((v) => v.value).join(", ") || "n/a"} | ${r.attempts.failures.provider} |`),
+      ...sustained.map(
+        (r) =>
+          `| ${providerName(r.provider)} | ${ops(r.single.p50)} | ${ops(r.all.p50)} | ${r.single.n} / ${r.all.n} | ${ratioCell(r.consistency.all)} | ${ratioCell(r.trend.all)} | ${r.guestVcpus.map((v) => v.value).join(", ") || "n/a"} | ${r.attempts.failures.provider} |`,
+      ),
       "",
     );
   for (const g of s.cpuBurst) {
-    const rows = [...highestFirst(g.rows, burstValue).map((x) => x.row), ...g.rows.filter((r) => burstValue(r) === null)];
+    const rows = [
+      ...highestFirst(g.rows, burstValue).map((x) => x.row),
+      ...g.rows.filter((r) => burstValue(r) === null),
+    ];
     if (!rows.length) continue;
     lines.push(
       `### CPU under burst, ${g.k} at once`,
       "",
       "| Provider | Median per sandbox (single core) | Fastest ÷ slowest | Counted cohorts | Complete cohorts | Excluded cohorts | Failed |",
       "| --- | --- | --- | --- | --- | --- | --- |",
-      ...rows.map((r) => `| ${providerName(r.provider)} | ${ops(burstValue(r))} | ${r.perSandbox.single.maxOverMin === null ? "n/a" : `${r.perSandbox.single.maxOverMin.toFixed(2)}×`} | ${r.perSandbox.cohorts} | ${r.completeCohorts} of ${r.cohorts} | ${r.excluded.lowOverlap + r.excluded.invalidEvidence} | ${r.failures.provider} |`),
+      ...rows.map(
+        (r) =>
+          `| ${providerName(r.provider)} | ${ops(burstValue(r))} | ${r.perSandbox.single.maxOverMin === null ? "n/a" : `${r.perSandbox.single.maxOverMin.toFixed(2)}×`} | ${r.perSandbox.cohorts} | ${r.completeCohorts} of ${r.cohorts} | ${r.excluded.lowOverlap + r.excluded.invalidEvidence} | ${r.failures.provider} |`,
+      ),
       "",
     );
   }
   for (const g of s.burstSurvival) {
-    const rows = [...survivalRanked(g.rows).map((x) => x.row), ...g.rows.filter((r) => r.survivalRate === null)];
+    const rows = [
+      ...survivalRanked(g.rows).map((x) => x.row),
+      ...g.rows.filter((r) => r.survivalRate === null),
+    ];
     if (!rows.length) continue;
     lines.push(
       `### Burst survival, ${g.k} at once`,
       "",
       "| Provider | Survival rate | Survived | Attempted | Window | Create failed | Died | Unresponsive | Interrupted | Invalid evidence |",
       "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-      ...rows.map((r) => `| ${providerName(r.provider)} | ${r.survivalRate === null ? "n/a" : formatPercent(r.survivalRate)} | ${r.survived} | ${r.attempted} | ${r.windowS === null ? "n/a" : `${r.windowS} s`} | ${r.createFailed.total} | ${r.died} | ${r.unresponsive} | ${r.interrupted} | ${r.invalidEvidence} |`),
+      ...rows.map(
+        (r) =>
+          `| ${providerName(r.provider)} | ${r.survivalRate === null ? "n/a" : formatPercent(r.survivalRate)} | ${r.survived} | ${r.attempted} | ${r.windowS === null ? "n/a" : `${r.windowS} s`} | ${r.createFailed.total} | ${r.died} | ${r.unresponsive} | ${r.interrupted} | ${r.invalidEvidence} |`,
+      ),
       "",
     );
   }
@@ -1177,7 +1643,10 @@ function expandedMarkdown(e: Expanded) {
       lines.push(
         "| Rank | Provider | Median | Min | Max | Verified runs |",
         "| --- | --- | --- | --- | --- | --- |",
-        ...bestFirst(m.values, m.better).map((v, i) => `| ${i + 1} | ${providerName(v.provider)} | ${formatValue(v.median, m.unit)} | ${formatValue(v.min, m.unit)} | ${formatValue(v.max, m.unit)} | ${v.n} |`),
+        ...bestFirst(m.values, m.better).map(
+          (v, i) =>
+            `| ${i + 1} | ${providerName(v.provider)} | ${formatValue(v.median, m.unit)} | ${formatValue(v.min, m.unit)} | ${formatValue(v.max, m.unit)} | ${v.n} |`,
+        ),
         "",
       );
     }
@@ -1188,7 +1657,9 @@ function expandedMarkdown(e: Expanded) {
 /** A provider's cost per task and per 1,000 for a table cell: "≥ $X" for a lower bound, "n/a" without a cost. */
 function costCells(track: Track, id: ProviderId) {
   const c = taskCostOf(track, id);
-  return c && isPriced(c) ? { perTask: perTaskText(c, "tight"), perThousand: perThousandText(c, "tight") } : { perTask: "n/a", perThousand: "n/a" };
+  return c && isPriced(c)
+    ? { perTask: perTaskText(c, "tight"), perThousand: perThousandText(c, "tight") }
+    : { perTask: "n/a", perThousand: "n/a" };
 }
 
 /** The same results as Markdown tables, one section per track, one table per metric, best first. */
@@ -1222,13 +1693,23 @@ export function agentMarkdown() {
  */
 function qualifierNotes() {
   const seen = new Map<ProviderId, string[]>();
-  const add = (id: ProviderId, s: string) => seen.set(id, [...new Set([...(seen.get(id) ?? []), s])]);
+  const add = (id: ProviderId, s: string) =>
+    seen.set(id, [...new Set([...(seen.get(id) ?? []), s])]);
   for (const id of trackIds)
     for (const p of tracks[id].providers) {
       const c = taskCostOf(tracks[id], p.id);
-      const where = id === "default" ? "on its default machine" : `on the ${trackInfo[id].short} machine`;
-      if (c && isPriced(c) && isLowerBound(c)) add(p.id, `${providerName(p.id)}'s cost per task ${where} is a lower bound: it counts only the resources requested, and ${providerName(p.id)} also bills use above them, so it is shown as at least that amount and never ranked or picked.`);
-      if (p.hourly !== null && p.pricingBound === "lower") add(p.id, `${providerName(p.id)}'s hourly price ${where} is a lower bound for the same reason.`);
+      const where =
+        id === "default" ? "on its default machine" : `on the ${trackInfo[id].short} machine`;
+      if (c && isPriced(c) && isLowerBound(c))
+        add(
+          p.id,
+          `${providerName(p.id)}'s cost per task ${where} is a lower bound: it counts only the resources requested, and ${providerName(p.id)} also bills use above them, so it is shown as at least that amount and never ranked or picked.`,
+        );
+      if (p.hourly !== null && p.pricingBound === "lower")
+        add(
+          p.id,
+          `${providerName(p.id)}'s hourly price ${where} is a lower bound for the same reason.`,
+        );
       const note = regionNote(p);
       if (note) add(p.id, `${providerName(p.id)} is ${note}.`);
       const destroy = destroyNotes[p.id];
@@ -1236,11 +1717,20 @@ function qualifierNotes() {
       const snapshot = snapshotNotes[p.id];
       if (snapshot) add(p.id, snapshot);
     }
-  return [...seen.values()].flat().map((s) => ` ${s}`).join("");
+  return [...seen.values()]
+    .flat()
+    .map((s) => ` ${s}`)
+    .join("");
 }
 
 /** " 23 Modal main-suite runs (…) were set aside as our-side failures and rerun: …", for every provider with some; "" otherwise. */
-const setAsideSummary = () => allProviders.flatMap((id) => { const s = setAsideSentence(id); return s ? [` ${s}`] : []; }).join("");
+const setAsideSummary = () =>
+  allProviders
+    .flatMap((id) => {
+      const s = setAsideSentence(id);
+      return s ? [` ${s}`] : [];
+    })
+    .join("");
 
 /**
  * "Billing model of boxd: bills active CPU and memory in use. Billing model of
@@ -1250,20 +1740,33 @@ const setAsideSummary = () => allProviders.flatMap((id) => { const s = setAsideS
  */
 function billingSummary() {
   // Pages quote these sentences by name, so each provider is listed on its first CPU tier; a tier's billing is in its own row.
-  const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))].filter((id) => !isExtraTier(id));
+  const ids = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))].filter(
+    (id) => !isExtraTier(id),
+  );
   const byLabel = new Map<string, ProviderId[]>();
   for (const id of ids) {
     const label = billingLabel(billingBases[id]);
     byLabel.set(label, [...(byLabel.get(label) ?? []), id]);
   }
-  return [...byLabel].map(([label, group]) => `Billing model of ${nameList(group)}: ${label}.`).join(" ");
+  return [...byLabel]
+    .map(([label, group]) => `Billing model of ${nameList(group)}: ${label}.`)
+    .join(" ");
 }
 
 /** The llms.txt guide: what the site is and where agents find each piece. */
 export function llmsTxt() {
   const picks = trackIds.flatMap((id) => {
     const t = tracks[id];
-    return hasResults(t) ? [`### ${trackInfo[id].label}`, "", ...quickPicks(t).map((q) => `- ${q.need}: ${q.pick} (runner-up ${q.runnerUp})${q.note ? ` ${q.note}` : ""}`), ""] : [`### ${trackInfo[id].label}`, "", "No results published yet.", ""];
+    return hasResults(t)
+      ? [
+          `### ${trackInfo[id].label}`,
+          "",
+          ...quickPicks(t).map(
+            (q) => `- ${q.need}: ${q.pick} (runner-up ${q.runnerUp})${q.note ? ` ${q.note}` : ""}`,
+          ),
+          "",
+        ]
+      : [`### ${trackInfo[id].label}`, "", "No results published yet.", ""];
   });
   const names = [...new Set(trackIds.flatMap((id) => tracks[id].providers.map((p) => p.id)))];
   return `# Sandbox bench

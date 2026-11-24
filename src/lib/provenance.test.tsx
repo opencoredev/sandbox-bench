@@ -11,7 +11,7 @@ import { headlineRows, profileIds, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { parseRegional, providerBatchesText, regional } from "@/lib/regions";
 import type { RegionId } from "@/lib/regions";
-import { parseSdkSetupRuns, sdkSetupRuns } from "@/lib/sdk-setup";
+import { parseSdkSetupCommits, parseSdkSetupRuns, sdkSetupRuns } from "@/lib/sdk-setup";
 import { providerTrack } from "@/lib/seo/provider";
 
 // Three presentation gaps on Archil: its real-task cost bars say "usage cost, unsettled", the
@@ -40,7 +40,11 @@ describe("item 1: Archil's real-task cost bars carry the usage-cost tag", () => 
             amounts.add(c.label);
           } else {
             assert.ok(!("tag" in c), `${c.provider} has no tag`);
-            assert.deepEqual(first, ["Per 1,000 completed", c.label], `${c.provider}'s detail is the bare amount`);
+            assert.deepEqual(
+              first,
+              ["Per 1,000 completed", c.label],
+              `${c.provider}'s detail is the bare amount`,
+            );
           }
         }
       });
@@ -66,7 +70,9 @@ describe("item 1: Archil's real-task cost bars carry the usage-cost tag", () => 
   test("the headline chart says the tag in its notes and its bar's accessible label", () => {
     const html = renderToStaticMarkup(<TaskCostHeadline track={tracks["same-spec"]} />);
     assert.ok(html.includes("$8.87") && html.includes(usageTag));
-    assert.ok(html.includes(`aria-label="Archil: Per 1,000 completed $8.87 (${usageTag}), Completed`));
+    assert.ok(
+      html.includes(`aria-label="Archil: Per 1,000 completed $8.87 (${usageTag}), Completed`),
+    );
     // The compact chart's names are slanted, so the tag goes in the notes under it, not under the column.
     assert.match(html, /Archil(<\/[a-z]+>)+: usage cost, unsettled\./, "the note under the chart");
     assert.ok(!html.includes(`>${usageTag}</span>`), "no tag under a compact column");
@@ -92,13 +98,23 @@ describe("item 2: the exports place Archil by outbound IPs and API region only",
     for (const id of trackIds)
       for (const p of json.tracks[id]?.providers ?? []) {
         if (p.id === "archil") continue;
-        assert.ok(!("outboundIpLocation" in p) && !("apiRegion" in p) && !("outboundIpOwner" in p), `${p.id} on ${id}`);
-        assert.equal(p.ranIn, tracks[id].providers.find((x) => x.id === p.id)?.hardware?.location[0]?.value ?? null);
+        assert.ok(
+          !("outboundIpLocation" in p) && !("apiRegion" in p) && !("outboundIpOwner" in p),
+          `${p.id} on ${id}`,
+        );
+        assert.equal(
+          p.ranIn,
+          tracks[id].providers.find((x) => x.id === p.id)?.hardware?.location[0]?.value ?? null,
+        );
       }
   });
 
   test("howToRead documents the new fields", () => {
-    assert.ok(json.howToRead.includes("`ranIn: null` with `outboundIpLocation`, `outboundIpOwner` and `apiRegion` (Archil)"));
+    assert.ok(
+      json.howToRead.includes(
+        "`ranIn: null` with `outboundIpLocation`, `outboundIpOwner` and `apiRegion` (Archil)",
+      ),
+    );
     assert.ok(json.howToRead.includes("where the sandbox itself runs is not stated"));
   });
 
@@ -106,17 +122,29 @@ describe("item 2: the exports place Archil by outbound IPs and API region only",
     const md = agentMarkdown();
     const lines = md.split("\n");
     // The Archil row of each track's machines table, the one whose header has a Ran in column.
-    const rows = lines.flatMap((l, i) => (l.includes("| Ran in |") ? [lines.slice(i).find((r) => r.startsWith("| Archil |")) ?? ""] : []));
+    const rows = lines.flatMap((l, i) =>
+      l.includes("| Ran in |")
+        ? [lines.slice(i).find((r) => r.startsWith("| Archil |")) ?? ""]
+        : [],
+    );
     assert.equal(rows.length, 2);
     for (const r of rows) {
-      assert.ok(r.includes("| not stated (Amazon outbound IPs in Ashburn, US; API in aws-us-east-1) |"), r);
+      assert.ok(
+        r.includes("| not stated (Amazon outbound IPs in Ashburn, US; API in aws-us-east-1) |"),
+        r,
+      );
       assert.ok(!r.includes("| Ashburn, US |"));
     }
   });
 
   test("the provider page still reads its place from the export", () => {
     const t = providerTrack("default", "archil");
-    assert.deepEqual(t?.ranIn, { kind: "outbound", place: "Ashburn, US", owner: "Amazon", api: "aws-us-east-1" });
+    assert.deepEqual(t?.ranIn, {
+      kind: "outbound",
+      place: "Ashburn, US",
+      owner: "Amazon",
+      api: "aws-us-east-1",
+    });
     assert.deepEqual(placeOf({ ranIn: "Boardman, US" }), { kind: "ran-in", place: "Boardman, US" });
     assert.equal(placeOf({ ranIn: null }), null);
   });
@@ -133,9 +161,23 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
       ],
     });
     assert.deepEqual(Object.keys(regional.providerBatches), ["archil"]);
-    assert.deepEqual(sdkSetupRuns, { archil: { runId: "sbx57-mwtux8wi", sdkCommit: "1f1de78", date: "Nov 23, 2026" } });
-    assert.deepEqual(parseSdkSetupRuns({ beam: { sdkCommit: "69d48ed", date: "Nov 18, 2026" } }), {});
-    assert.throws(() => parseSdkSetupRuns({ beam: { sdkCommit: "69d48ed", date: "Nov 18, 2026", runId: 7 } }));
+    assert.deepEqual(sdkSetupRuns, {
+      archil: { runId: "sbx57-mwtux8wi", sdkCommit: "1f1de78", date: "Nov 23, 2026" },
+    });
+    assert.deepEqual(
+      parseSdkSetupRuns({ beam: { sdkCommit: "69d48ed", date: "Nov 18, 2026" } }),
+      {},
+    );
+    assert.throws(() =>
+      parseSdkSetupRuns({ beam: { sdkCommit: "69d48ed", date: "Nov 18, 2026", runId: 7 } }),
+    );
+    assert.deepEqual(
+      parseSdkSetupCommits({
+        beam: { sdkCommit: "69d48ed", date: "Nov 18, 2026" },
+        archil: { sdkCommit: "1f1de78", date: "Nov 23, 2026", runId: "r" },
+      }),
+      [{ id: "beam", sdkCommit: "69d48ed", date: "Nov 18, 2026" }],
+    );
 
     const base = {
       schemaVersion: 1,
@@ -143,33 +185,81 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
       commit: "abcdef0",
       track: "default",
       window: { start: "2026-10-24T18:12:48.346Z", end: "2026-10-24T18:17:13.220Z" },
-      regions: [{ id: "eu", label: "EU-Central", city: null, country: null, network: null, host: null, runs: 2 }],
+      regions: [
+        {
+          id: "eu",
+          label: "EU-Central",
+          city: null,
+          country: null,
+          network: null,
+          host: null,
+          runs: 2,
+        },
+      ],
       plannedRegions: [],
       metrics: [],
       rows: [],
       rtt: [],
     };
     assert.deepEqual(parseRegional(base).providerBatches, {});
-    assert.throws(() => parseRegional({ ...base, providerBatches: { archil: { commit: "x", batches: { mars: ["a"] } } } }), /mars/);
-    assert.throws(() => parseRegional({ ...base, providerBatches: { archil: { commit: "x", batches: { eu: [] } } } }), /at least one batch id/);
-    assert.deepEqual(parseRegional({ ...base, providerBatches: { nobody: { commit: "x", batches: { eu: ["a"] } } } }).providerBatches, {});
+    assert.throws(
+      () =>
+        parseRegional({
+          ...base,
+          providerBatches: { archil: { commit: "x", batches: { mars: ["a"] } } },
+        }),
+      /mars/,
+    );
+    assert.throws(
+      () =>
+        parseRegional({
+          ...base,
+          providerBatches: { archil: { commit: "x", batches: { eu: [] } } },
+        }),
+      /at least one batch id/,
+    );
+    assert.deepEqual(
+      parseRegional({
+        ...base,
+        providerBatches: { nobody: { commit: "x", batches: { eu: ["a"] } } },
+      }).providerBatches,
+      {},
+    );
   });
 
   test("By location says where Archil's rows come from, on every tab", () => {
     const html = renderToStaticMarkup(<ByLocation />).replaceAll("&#x27;", "'");
-    assert.ok(html.includes(`'s rows come from its own batches (commit 1f1de78: EU-Central ${batches.eu.join(" and ")}; US-East ${batches["us-east"].join(" and ")}).`));
+    assert.ok(
+      html.includes(
+        `'s rows come from its own batches (commit 1f1de78: EU-Central ${batches.eu.join(" and ")}; US-East ${batches["us-east"].join(" and ")}).`,
+      ),
+    );
     assert.ok(html.includes("Every other row comes from batch sbx65-r1 (commit cc96da3)."));
-    assert.equal(providerBatchesText(regional, "archil", "eu" as RegionId), `commit 1f1de78: EU-Central ${batches.eu.join(" and ")}`);
+    assert.equal(
+      providerBatchesText(regional, "archil", "eu" as RegionId),
+      `commit 1f1de78: EU-Central ${batches.eu.join(" and ")}`,
+    );
     assert.equal(providerBatchesText(regional, "e2b"), null);
   });
 
   test("results.json keys the provenance by provider, Archil only", () => {
     const json = agentData();
     assert.deepEqual(json.runProvenance, {
-      archil: { byLocation: { commit: "1f1de78", batches }, sdkSetup: { runId: "sbx57-mwtux8wi", sdkCommit: "1f1de78", date: "Nov 23, 2026" } },
+      archil: {
+        byLocation: { commit: "1f1de78", batches },
+        sdkSetup: { runId: "sbx57-mwtux8wi", sdkCommit: "1f1de78", date: "Nov 23, 2026" },
+      },
     });
     assert.ok(json.howToRead.includes("`runProvenance`, keyed by provider (Archil)"));
-    assert.ok(json.howToRead.includes("every other row comes from batch sbx65-r1 (commit cc96da3)"));
+    assert.ok(
+      json.howToRead.includes("every other row comes from batch sbx65-r1 (commit cc96da3)"),
+    );
+    // Baseten, Instabox and Beam have their own SDK setup commit without a named run; the shared-run claim names them.
+    assert.ok(
+      json.howToRead.includes(
+        "every other figure comes from the run at commit 1185278, apart from Baseten's (commit 9e2a752, Nov 13, 2026), Instabox's (commit 6074f7b, Nov 18, 2026) and Beam's (commit 69d48ed, Nov 18, 2026))",
+      ),
+    );
   });
 
   test("results.md lists Archil's own runs; llms.txt carries the same howToRead", () => {
@@ -177,10 +267,20 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
     assert.ok(md.includes("## Own runs for By location and SDK setup"));
     assert.ok(
       md.includes(
+        "SDK setup from the run at commit 1185278, apart from Baseten's (commit 9e2a752, Nov 13, 2026), Instabox's (commit 6074f7b, Nov 18, 2026) and Beam's (commit 69d48ed, Nov 18, 2026), except:",
+      ),
+    );
+    assert.ok(
+      md.includes(
         `- Archil: By location from its own batches, commit 1f1de78: EU-Central ${batches.eu.join(" and ")}; US-East ${batches["us-east"].join(" and ")}. SDK setup from run sbx57-mwtux8wi (commit 1f1de78, Nov 23, 2026).`,
       ),
     );
-    assert.equal(md.split("\n").filter((l) => l.startsWith("- ") && l.includes("By location from its own batches")).length, 1);
+    assert.equal(
+      md
+        .split("\n")
+        .filter((l) => l.startsWith("- ") && l.includes("By location from its own batches")).length,
+      1,
+    );
     assert.ok(llmsTxt().includes("`runProvenance`"));
   });
 });
