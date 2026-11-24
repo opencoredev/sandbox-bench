@@ -1,5 +1,5 @@
 import { providerName } from "@/lib/providers";
-import { alternativesPages, alternativesPath, comparePages, comparePath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
+import { alternativesPages, alternativesPath, comparePages, comparePath, pricingPath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
 
 const link = "focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10";
 
@@ -8,6 +8,7 @@ type PageLink = { href: string; label: string };
 /** The homepage footer's links into the provider, comparison and alternatives pages, from the page registry. */
 const comparePageLinks: readonly PageLink[] = [
   { href: providersPath, label: "Provider pages" },
+  { href: pricingPath, label: "Sandbox pricing calculator" },
   ...comparePages.map((p) => ({ href: comparePath(p.slug), label: `${providerName(p.a)} vs ${providerName(p.b)}` })),
   ...alternativesPages.map((id) => ({ href: alternativesPath(id), label: `${providerName(id)} alternatives` })),
 ];

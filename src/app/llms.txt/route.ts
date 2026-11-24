@@ -1,6 +1,6 @@
 import { llmsTxt } from "@/lib/agent-data";
 import { providerName } from "@/lib/providers";
-import { alternativesPages, alternativesPath, comparePages, comparePath, forProvidersPath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
+import { alternativesPages, alternativesPath, comparePages, comparePath, forProvidersPath, pricingPath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
 
 export const dynamic = "force-static";
 
@@ -10,6 +10,10 @@ const pages = `
 
 - [Sandbox providers we benchmark](${providersPath}): every provider in one table, with cold start on both tracks and cost per task, and the providers not tested yet.
 ${providerPages.map((id) => `- [${providerName(id)} sandbox benchmark](${providerPath(id)}): ${providerName(id)}'s results on both tracks, its ranks, cost per task and caveats.`).join("\n")}
+
+## Pricing
+
+- [Sandbox pricing calculator](${pricingPath}): a month's bill on every provider at its published per-second prices for a size and workload you choose, each provider's billing basis, minimums and what the estimate leaves out, and the measured cost of a real fix-and-test task or build on each.
 
 ## Comparison pages
 

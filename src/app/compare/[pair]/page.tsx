@@ -12,7 +12,7 @@ import { compareResults, costKindsDiffer, costLowerBound, rowOf } from "@/lib/se
 import type { CompareRow, CompareTrack, Side } from "@/lib/seo/compare";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { alternativesPath, comparePage, comparePages, comparePath, isAlternativesPage, isProviderPage, lastModified, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPath, comparePage, comparePages, comparePath, isAlternativesPage, isProviderPage, lastModified, pricingPath, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ComparePage } from "@/lib/seo/pages";
 import { pauseText, providerNotes, taskText } from "@/lib/seo/provider";
 import type { ProviderTrack } from "@/lib/seo/provider";
@@ -369,6 +369,11 @@ export default async function ComparePageView(props: Props) {
                   </a>
                 </li>
               ))}
+              <li>
+                <a className={link} href={pricingPath}>
+                  {providerName(p.a)} and {providerName(p.b)} pricing next to every other sandbox: monthly bill calculator
+                </a>
+              </li>
               <li>
                 <a className={link} href={providersPath}>
                   Every sandbox provider we benchmark

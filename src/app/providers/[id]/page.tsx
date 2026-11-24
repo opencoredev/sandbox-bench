@@ -14,9 +14,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import type { Sections } from "@/components/section-nav";
 import { Breadcrumb, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
-import { TrackOnly } from "@/components/track-only";
 import { TrackSwitch } from "@/components/track-switch";
-import { landingTrack } from "@/lib/tracks";
 import { hasTaskCosts } from "@/lib/cost";
 import { allocationNotes } from "@/lib/notes";
 import { privateTitle } from "@/lib/private-benchmarks";
@@ -28,7 +26,7 @@ import { headlineRows, noCostReason, notCountedWhy, runTrackOf } from "@/lib/rea
 import { realistic } from "@/lib/realistic-data";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 import { caveats, disclosure } from "@/lib/seo/copy";
-import { alternativesPath, comparePath, comparisonsWith, forProvidersPath, isAlternativesPage, isProviderPage, lastModified, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
+import { alternativesPath, comparePath, comparisonsWith, forProvidersPath, isAlternativesPage, isProviderPage, lastModified, pricingPath, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
@@ -175,8 +173,7 @@ function ByTrack({ id, r, children }: { id: ProviderPageId; r: ReturnType<typeof
         return (
           <div key={tid} data-track-view={tid}>
             {t && hasResults(tracks[tid]) ? (
-              // The landing track's charts are in the HTML; the other track's are drawn when the switch shows it.
-              tid === landingTrack ? children(t) : <TrackOnly track={tid}>{children(t)}</TrackOnly>
+              children(t)
             ) : (
               <Card className="text-s text-neutral-7">
                 <span className="font-medium text-neutral-10">{trackInfo[tid].label}:</span> no results for {providerName(id)} on this track yet.
@@ -776,6 +773,11 @@ export default async function ProviderPage(props: Props) {
                   </a>
                 </li>
               ))}
+              <li>
+                <a className={link} href={pricingPath}>
+                  {name} pricing next to every other sandbox: monthly bill calculator
+                </a>
+              </li>
               <li>
                 <a className={link} href={providersPath}>
                   Every sandbox provider we benchmark

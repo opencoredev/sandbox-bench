@@ -50,8 +50,11 @@ export const updatePath = (slug: UpdateSlug): UpdatePath => `/updates/${slug}/`;
 /** The page where sandbox providers read about private benchmarks and get in touch. Outside /providers/, where every page is one provider's results. */
 export const forProvidersPath = "/for-providers/";
 
+/** The sandbox pricing calculator: a month's bill on every provider at list price, and measured cost per real task. */
+export const pricingPath = "/sandbox-pricing/";
+
 /** Every public page. Adding a provider, comparison, alternatives or update page without a content date below fails to compile. */
-export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
+export type SitePath = "/" | typeof providersPath | typeof pricingPath | typeof forProvidersPath | ProviderPath | ComparePath | AlternativesPath | typeof updatesPath | UpdatePath;
 
 /**
  * The last day each page's own words or layout changed (yyyy-mm-dd, from git).
@@ -62,6 +65,7 @@ const contentDates = {
   "/": "2026-11-23",
   "/providers/e2b/": "2026-11-20",
   "/providers/": "2026-11-23",
+  "/sandbox-pricing/": "2026-11-23",
   "/providers/daytona/": "2026-11-20",
   "/providers/superserve/": "2026-11-20",
   "/providers/upstash/": "2026-11-20",
@@ -103,6 +107,7 @@ export const lastModified = (path: SitePath) => {
 export const sitePaths: readonly SitePath[] = [
   "/",
   providersPath,
+  pricingPath,
   ...providerPages.map(providerPath),
   ...comparePages.map((p) => comparePath(p.slug)),
   ...alternativesPages.map(alternativesPath),

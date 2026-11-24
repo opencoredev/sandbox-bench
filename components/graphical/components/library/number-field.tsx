@@ -14,8 +14,10 @@ import { useRender } from '@base-ui/react/use-render';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   usePartAppearance,
+  usePartClass,
   usePartStyle,
   useThemeMotion,
+  withHoistedStyle,
 } from "./component-theme";
 
 export function NumberFieldGroup({
@@ -25,6 +27,8 @@ export function NumberFieldGroup({
 }: ComponentPropsWithRef<typeof NumberField.Group>) {
   const input = usePartAppearance('number-field', 'input');
   const variables = usePartStyle('number-field', 'input');
+  // Sandbox bench adaptation: the theme variables go in the hoisted class rules, not ~20 KB of inline style per field.
+  const rule = usePartClass('number-field', 'input');
   const integrated =
     (variables as Record<string, unknown>)['--theme-name'] === 'Atlas';
   const geometry = {
@@ -33,7 +37,8 @@ export function NumberFieldGroup({
       : undefined,
     '--number-field-radius': input ? componentRadius(input) : undefined,
   } as CSSProperties;
-  return (
+  return withHoistedStyle(
+    rule,
     <NumberField.Group
       {...props}
       data-integrated={integrated || undefined}
@@ -41,17 +46,17 @@ export function NumberFieldGroup({
         [
           'ui-number-group',
           integrated && 'ui-part',
+          rule.className,
           typeof className === 'function' ? className(state) : className,
         ]
           .filter(Boolean)
           .join(' ')
       }
       style={(state) => ({
-        ...variables,
         ...geometry,
         ...(typeof style === 'function' ? style(state) : style),
       })}
-    />
+    />,
   );
 }
 
@@ -64,7 +69,7 @@ function NumberInputDisplay({
   state: NumberField.Input.State;
   render: NumberField.Input.Props['render'];
 }) {
-  const variables = usePartStyle('number-field', 'input');
+  const rule = usePartClass('number-field', 'input');
   const { disabled, transition } = useThemeMotion();
   const [previous, setPrevious] = useState({
     value: state.value,
@@ -82,8 +87,9 @@ function NumberInputDisplay({
     state: { ...state },
     props: { ...inputProps },
   });
-  return (
-    <span className="ui-number-display" style={variables}>
+  return withHoistedStyle(
+    rule,
+    <span className={`ui-number-display ${rule.className}`}>
       {input}
       <span className="ui-number-ticker" aria-hidden="true">
         <AnimatePresence initial={false} custom={previous.direction}>
@@ -111,7 +117,7 @@ function NumberInputDisplay({
           </motion.span>
         </AnimatePresence>
       </span>
-    </span>
+    </span>,
   );
 }
 
