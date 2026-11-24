@@ -77,7 +77,7 @@ export interface RateCard {
 const perSecond = { minimumSeconds: 0, incrementSeconds: 1, perSandbox: 0, minCpu: null, billed: "per second", cpuUnit: "vCPU", max: null } as const;
 
 /** The site's billing evidence leaves open whether these rates apply to the allocation or to use (lib/cost.ts, billingBases). */
-const basisOpen = "the rates apply to the whole size (not confirmed: they may apply only to what is used)";
+export const basisOpen = "the rates apply to the whole size (not confirmed: they may apply only to what is used)";
 const secondAssumed = "one-second rounding (the price table's assumption)";
 
 /** Upstash Box's per-box-hour sizes; the bench prices Ephemeral Box at the same rates. */
@@ -95,7 +95,7 @@ const upstashCard = (id: "upstash" | "upstash-ephemeral"): RateCard => ({
   ...perSecond,
   billed: "per active box-hour",
   idle: "none",
-  assumed: ["no minimum or rounding (not in the price table)"],
+  assumed: ["one-second rounding and no minimum (not in the price table)"],
   notIncluded: ["disk at $0.10 per GB-month of allocated capacity"],
   plan: null,
   source: "https://upstash.com/pricing/box",
@@ -122,6 +122,7 @@ export const rateCards: readonly RateCard[] = [
     rates: { kind: "resource", cpuHour: 0.0504, memoryGiBHour: 0.0162 },
     sizes: null,
     ...perSecond,
+    billed: "per second (assumed)",
     idle: "full",
     assumed: [basisOpen, secondAssumed, "no minimum or creation fee (not in the price table)"],
     notIncluded: ["disk past 5 GiB at $0.000108 per GiB-hour", "snapshot storage"],
@@ -154,7 +155,7 @@ export const rateCards: readonly RateCard[] = [
     perSandbox: 0.6 / 1_000_000,
     minCpu: null,
     cpuUnit: "vCPU",
-    billed: "active CPU per second, memory in whole minutes",
+    billed: "active CPU per second, memory per minute rounded up (assumed)",
     max: null,
     idle: "memory",
     assumed: ["Pro plan prices in the iad1 region", "every vCPU busy while the sandbox works", "memory rounded up to whole minutes (Vercel's docs leave rounding after the first minute open; this is the dearer reading)"],
@@ -199,7 +200,7 @@ export const rateCards: readonly RateCard[] = [
     ...perSecond,
     billed: "per second, settled every 15 minutes",
     idle: "memory",
-    assumed: ["every vCPU busy and all memory in use while the sandbox works"],
+    assumed: ["every vCPU busy during the work, and all memory in use while the sandbox is open"],
     notIncluded: ["written disk at €0.00008 per GiB-hour"],
     plan: null,
     source: "https://boxd.sh/pricing",
@@ -211,6 +212,7 @@ export const rateCards: readonly RateCard[] = [
     rates: { kind: "resource", cpuHour: 0.04032, memoryGiBHour: 0.0129 },
     sizes: null,
     ...perSecond,
+    billed: "per second (assumed)",
     idle: "full",
     assumed: [basisOpen, secondAssumed, "no minimum or creation fee (not in the price table)"],
     notIncluded: ["allowances and subscriptions", "transfer at $0.02 per GB", "disk at $0.000086 per GiB-hour"],
@@ -224,6 +226,7 @@ export const rateCards: readonly RateCard[] = [
     rates: { kind: "resource", cpuHour: 0.0504, memoryGiBHour: 0.0162 },
     sizes: null,
     ...perSecond,
+    billed: "per second (assumed)",
     idle: "full",
     assumed: [basisOpen, secondAssumed, "no minimum charge (not in the price table)"],
     notIncluded: ["credits", "snapshot storage, disk and transfer"],
@@ -256,6 +259,7 @@ export const rateCards: readonly RateCard[] = [
       { cpu: 6, memoryGiB: 16 },
     ],
     ...perSecond,
+    billed: "per second (assumed)",
     idle: "full",
     assumed: [basisOpen, secondAssumed, "no minimum (not in the price table)"],
     notIncluded: ["volume storage at $0.16 per GB-month", "a free promotional period"],

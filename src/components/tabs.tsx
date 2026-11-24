@@ -54,11 +54,14 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
     setActive(id);
     setOpened((seen) => (seen.has(id) ? seen : new Set([...seen, id])));
   };
+  // The ids as one string, so a re-render that builds a new but equal tab list doesn't replay the hash.
+  const openableIds = openable.map((t) => t.id).join("\n");
   useEffect(() => {
     if (!section) return;
+    const ids = openableIds.split("\n");
     const open = () => {
       const request = parseTabHash(window.location.hash);
-      if (request?.section !== section || !tabs.some((t) => t.id === request.tab && isOpenable(t))) return;
+      if (request?.section !== section || !ids.includes(request.tab)) return;
       setActive(request.tab);
       setOpened((seen) => (seen.has(request.tab) ? seen : new Set([...seen, request.tab])));
       // No element has the combined id, so the browser does not scroll; do it here.
@@ -67,7 +70,7 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
     open();
     window.addEventListener("hashchange", open);
     return () => window.removeEventListener("hashchange", open);
-  }, [section, tabs]);
+  }, [section, openableIds]);
   const scroller = useScrollFade<HTMLDivElement>();
   return (
     <Tabs.Root value={active} onValueChange={(value) => openTab(String(value))} className="surface">

@@ -34,9 +34,9 @@ class LoadFailed extends Component<{ children: ReactNode }, { failed: boolean }>
     return this.state.failed ? (
       <p role="alert" className="text-s text-neutral-7">
         This chart couldn&apos;t load.{" "}
-        <a href="" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+        <button type="button" onClick={() => window.location.reload()} className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
           Reload the page
-        </a>
+        </button>
       </p>
     ) : (
       this.props.children

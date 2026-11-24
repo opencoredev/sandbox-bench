@@ -102,7 +102,7 @@ function Row({ e, card }: { e: Estimate; card: RateCard }) {
             {sizeText(e.size)}
             {e.roundedUp ? " (smallest listed size that fits)" : ""} at {formatUsd(e.hourlyUsd)} an hour, billed {card.billed}
             {card.currency === "EUR" ? ", converted from euros" : ""}
-            {e.atMost ? `. Bills ${card.idle === "none" ? "active CPU only" : "active CPU and memory"}, so this is the most its CPU and memory would charge` : ""}
+            {e.atMost ? `. Bills ${card.idle === "none" ? "active CPU only" : "active CPU and memory"}, so this is the most its CPU and memory would charge${card.perSandbox > 0 ? ", plus its fee per sandbox created" : ""}` : ""}
             {card.assumed.length > 0 ? <span className="mt-xxs block text-xs text-neutral-7">Assumes {card.assumed.join("; ")}.</span> : null}
           </span>
         </ResultRow>

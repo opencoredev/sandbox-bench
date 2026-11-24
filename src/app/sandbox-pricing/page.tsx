@@ -8,7 +8,7 @@ import { Card } from "@/components/tabs";
 import { costKinds } from "@/lib/cost";
 import { eurUsd } from "@/lib/fx";
 import { defaultInputs, estimateAll, formatUsd, sizeText, workloadOf } from "@/lib/pricing/calc";
-import { priceTableSource, rateCards } from "@/lib/pricing/rates";
+import { basisOpen, priceTableSource, rateCards } from "@/lib/pricing/rates";
 import type { RateCard } from "@/lib/pricing/rates";
 import type { ProviderId } from "@/lib/providers";
 import { isPreemptible, providerName } from "@/lib/providers";
@@ -62,7 +62,7 @@ const minimumText = (c: RateCard) => {
 /** The caveats a real-task row carries on the homepage's charts that change how it compares: size, list-price parts, spot capacity. */
 function rowNotes(r: Costed): string[] {
   const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
-  const listed = r.estimatedPart ? [`includes ${formatUsd(r.estimatedPart.usd)} per task of ${r.estimatedPart.labels.join(" and ")}`] : [];
+  const listed = r.estimatedPart ? [`includes ${formatUsd(r.estimatedPart.usd).replace(/^under /, "less than ")} per task for ${r.estimatedPart.labels.join(" and ")}`] : [];
   const spot = isPreemptible(r.provider) ? ["spot capacity, which the provider can stop before the task ends"] : [];
   return [...size, ...listed, ...spot];
 }
@@ -214,7 +214,10 @@ export default function SandboxPricingPage() {
                     </div>
                     <div>
                       <dt className="text-neutral-7">Idle sandbox</dt>
-                      <dd className="text-pretty text-neutral-8">{idleText[c.idle]}</dd>
+                      <dd className="text-pretty text-neutral-8">
+                        {idleText[c.idle]}
+                        {c.assumed.includes(basisOpen) ? " (assumed: whether it bills the whole size isn't confirmed)" : ""}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-neutral-7">Minimum charge</dt>
