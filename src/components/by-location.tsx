@@ -56,7 +56,7 @@ const sampleLine = () => {
 function WhereNote() {
   return (
     <p className="mt-s text-xs text-neutral-7">
-      <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, as far as each reports, each where its row says. For <Who id="archil" />, only its API region (aws-us-east-1) and outbound IPs (Amazon, Ashburn) are known, both US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+      <Who id="boat" /> (Northern France) runs its sandboxes in Europe; every other provider that reports where its sandboxes run has them in the US, each where its row says. Where <Who id="archil" />&apos;s sandboxes run isn&apos;t known; only its API region (aws-us-east-1) and outbound IPs (Amazon, Ashburn) are, both US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
     </p>
   );
 }

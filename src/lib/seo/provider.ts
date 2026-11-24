@@ -5,7 +5,7 @@ import type { Track, TrackId } from "@/lib/data";
 import { failureNote } from "@/lib/failure-notes";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
-import { ranInPhrase } from "@/lib/hardware";
+import { hostedText, ranInPhrase } from "@/lib/hardware";
 import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
@@ -445,12 +445,12 @@ function pauseAnswer(r: ReturnType<typeof providerResults>): string {
   return perTrack(r, (t) => (t.pause.supported && "split" in t.pause && t.pause.split ? `yes: ${pauseText(t)}` : pauseText(t)));
 }
 
-function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
+function hardwareAnswer({ id, r }: { id: ProviderId; r: ReturnType<typeof providerResults> }): string {
   const h = r.hardware;
   const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, ${ranInPhrase(t.ranIn)}` : ""}`);
   if (!h) return machines;
   const memory = h.memory.type ? `, ${h.memory.type} memory` : "";
-  return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;
+  return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. ${hostedText({ id, h })} ${machines}`;
 }
 
 function reliabilityAnswer({ id, r }: { id: ProviderId; r: ReturnType<typeof providerResults> }): string {
@@ -487,7 +487,7 @@ export function providerFaqs(id: ProviderId): Faq[] {
     { question: `How fast is ${name}'s cold start?`, answer: coldAnswer(r) },
     { question: `How much does ${name} cost for AI coding tasks?`, answer: costAnswer(id, r) },
     { question: `Does ${name} support pause and resume?`, answer: pauseAnswer(r) },
-    { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(r) },
+    { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer({ id, r }) },
     { question: `How reliable is ${name}?`, answer: reliabilityAnswer({ id, r }) },
   ].map((f) => ({ question: f.question, answer: capitalise(f.answer) }));
 }

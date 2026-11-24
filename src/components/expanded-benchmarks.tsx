@@ -14,7 +14,7 @@ export const expandedSection = "expanded";
 
 const betterText = (m: ExpandedMetric) => (m.better === "lower" ? "Lower is better" : "Higher is better");
 
-/** Hover cards give the median, range and verified runs, and for a value from the provider's own run, that run's date and commit. */
+/** Hover cards give the median, range and verified runs, and for a value from the provider's own run, that run's date and commit, and its reason when it has one. */
 export function expandedColumns(m: ExpandedMetric, data: Pick<Expanded, "providerRuns">): Column[] {
   return m.values.map((v) => {
     const run = ownRun(data, v.provider, m.id);
@@ -27,6 +27,8 @@ export function expandedColumns(m: ExpandedMetric, data: Pick<Expanded, "provide
         ["Range", v.min === v.max ? formatValue(v.min, m.unit) : `${formatValue(v.min, m.unit)}–${formatValue(v.max, m.unit)}`],
         ["Verified runs", formatCount(v.n)],
         ...(run ? [["Own run", `${runDate(run)} (UTC), commit ${run.sdkCommit}`] as const] : []),
+        // Only a run with a reason (Archil's stdout streaming rerun) adds a line; every other card is as before.
+        ...(run?.reason ? [sentence(run.reason.replace(/^\w/, (c) => c.toUpperCase()))] : []),
       ],
     };
   });

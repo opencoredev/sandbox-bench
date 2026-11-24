@@ -206,6 +206,6 @@ describe("provider runs", () => {
     const stream = tests.find((t) => t.id === "runtime-stdout-stream")?.values ?? [];
     assert.equal(stream.find((v) => v.provider === "archil")?.run?.sdkCommit, "de32eb5");
     assert.ok(stream.filter((v) => v.provider !== "archil").every((v) => v.run === undefined), "other providers carry no run field");
-    assert.match(agentMarkdown(), /Archil: from its own runs, not expanded-cloud-2026-11-21: stdout streaming from run expanded-2026-11-24T00-12-06-287Z on Nov 24 \(UTC\), commit de32eb5/);
+    assert.match(agentMarkdown(), /Archil: from its own runs, not expanded-cloud-2026-11-21: stdout streaming from run expanded-2026-11-24T00-12-06-287Z \(rerun on SDK 1\.3\.1 after we fixed a bug in our Archil adapter\) on Nov 24 \(UTC\), commit de32eb5/);
   });
 });

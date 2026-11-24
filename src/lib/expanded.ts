@@ -57,6 +57,8 @@ export interface ExpandedProviderRun {
   sdkCommit: string;
   /** Metric ids this run produced for the provider. */
   metrics: readonly string[];
+  /** Why the run was made apart from the rest, such as a rerun after a fix; null when the export gives none. */
+  reason: string | null;
 }
 
 /** Providers whose values came from their own runs, keyed by provider. A provider not listed is from `runId`. */
@@ -140,7 +142,13 @@ function parseProviderRun(v: unknown, path: string, metricIds: ReadonlySet<strin
   const metrics = arr(o.metrics, `${path}.metrics`).map((m, i) => str(m, `${path}.metrics[${i}]`));
   if (metrics.length === 0) fail(`${path}.metrics`, "must list at least one test");
   for (const m of metrics) if (!metricIds.has(m)) fail(`${path}.metrics`, `lists ${m}, which metrics does not have`);
-  return { id: str(o.id, `${path}.id`), startedAt: timestamp(o.startedAt, `${path}.startedAt`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), metrics };
+  return {
+    id: str(o.id, `${path}.id`),
+    startedAt: timestamp(o.startedAt, `${path}.startedAt`),
+    sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`),
+    metrics,
+    reason: optional(str)(o.reason, `${path}.reason`),
+  };
 }
 
 /**
@@ -211,8 +219,8 @@ export function expandedProviders(e: Expanded): ProviderId[] {
   return Object.keys(providerInfo).filter(isProviderId).filter((id) => seen.has(id));
 }
 
-/** "run A on Nov 24 (UTC), commit de32eb5". */
-const runText = (r: ExpandedProviderRun) => `run ${r.id} on ${runDate(r)} (UTC), commit ${r.sdkCommit}`;
+/** "run A on Nov 24 (UTC), commit de32eb5", with the run's reason beside its id when it has one: "run A (rerun on …) on …". */
+const runText = (r: ExpandedProviderRun) => `run ${r.id}${r.reason === null ? "" : ` (${r.reason})`} on ${runDate(r)} (UTC), commit ${r.sdkCommit}`;
 
 /**
  * Where a provider's values in these tests came from, when some came from its

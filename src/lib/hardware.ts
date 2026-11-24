@@ -48,10 +48,22 @@ export const locationLabel = (h: Pick<HardwareDetail, "regionShort" | "apiRegion
  */
 export type RanIn = { kind: "ran-in"; place: string } | { kind: "outbound"; place: string; owner: string; api: string };
 
-/** Providers placed only by their outbound IPs' owner and their API region, from their entry's `region` above. */
-const outboundOnly: Partial<Record<ProviderId, { owner: string; api: string }>> = {
-  archil: { owner: "Amazon", api: "aws-us-east-1" },
+/** Providers placed only by their outbound IPs' owner and their API region, from their entry's `region` above. `city` is where the IPs geolocate. */
+const outboundOnly: Partial<Record<ProviderId, { owner: string; api: string; city: string }>> = {
+  archil: { owner: "Amazon", api: "aws-us-east-1", city: "Ashburn, Virginia" },
 };
+
+/**
+ * Where a provider hosts its sandboxes, for its FAQ: "Hosted on AWS EC2, us-east-1, …".
+ * Where only the outbound IPs and the API region are known (Archil), it says
+ * exactly that and that where the sandbox runs isn't known.
+ */
+export function hostedText({ id, h }: { id: ProviderId; h: Pick<HardwareDetail, "cloud" | "region"> }) {
+  const o = outboundOnly[id];
+  return o
+    ? `Where its sandboxes run isn't known: outbound traffic leaves from ${o.owner} IPs in ${o.city}, and the API region is ${o.api}.`
+    : `Hosted on ${h.cloud}, ${h.region}.`;
+}
 
 export function ranInOf({ id, place }: { id: ProviderId; place: string | null }): RanIn | null {
   if (place === null) return null;

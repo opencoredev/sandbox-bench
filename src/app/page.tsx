@@ -22,7 +22,7 @@ import { expanded } from "@/lib/expanded-data";
 import { hasStress } from "@/lib/stress";
 import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { latestUpdates, updateDay } from "@/lib/updates";
-import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
+import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
 import { Reliability } from "@/components/reliability";
@@ -46,7 +46,7 @@ import { TierSwitch } from "@/components/tier-switch";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote, usageCostTag } from "@/lib/cost";
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
@@ -224,11 +224,13 @@ function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
   // A lower bound has no place on a cost axis: the charge could sit anywhere above it.
   const bounded = pricedTasks(track).filter((t) => isLowerBound(t.cost));
-  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
+  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
     if (isLowerBound(cost)) return [];
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
+    // Only a provider-reported usage cost (Archil's) carries a tag; every other dot is as before.
+    const tag = usageCostTag(id, cost, status);
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])], ...(tag === null ? {} : { tag }) }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
@@ -259,6 +261,8 @@ function CostQuadrant({ track }: { track: Track }) {
         xTitle="Median time for 100 tool calls, seconds (log scale)"
         yTitle="Cost per 1,000 tasks (USD)"
       />
+      {/* Shown under the plot, not in the notes: "Archil: usage cost, unsettled." Nothing for a plot without a usage cost. */}
+      <CompactNotes items={points.flatMap((p) => (p.tag === undefined ? [] : [{ mark: undefined, id: p.provider, note: p.tag }]))} />
       <Footnotes
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },

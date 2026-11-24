@@ -118,10 +118,10 @@ describe("item 2: By location says what is known about where Archil runs", () =>
   test("the overview and both caller tabs carry the qualified note", () => {
     const html = renderToStaticMarkup(<ByLocation />).replace(/<[^>]+>/g, "").replaceAll("&#x27;", "'");
     const note =
-      "Boat (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, as far as each reports, each where its row says. For Archil, only its API region (aws-us-east-1) and outbound IPs (Amazon, Ashburn) are known, both US-East.";
+      "Boat (Northern France) runs its sandboxes in Europe; every other provider that reports where its sandboxes run has them in the US, each where its row says. Where Archil's sandboxes run isn't known; only its API region (aws-us-east-1) and outbound IPs (Amazon, Ashburn) are, both US-East.";
     // The overview, then the EU-Central and US-East tabs.
     assert.equal(html.split(note).length - 1, 3);
-    assert.ok(!html.includes("the remaining providers run in the US, each where its row says"));
+    assert.ok(!html.includes("the remaining providers run in the US"));
   });
 });
 

@@ -794,7 +794,7 @@ const expandedAbout =
   "Expanded benchmarks: real work inside each sandbox from a fresh random seed per run, with the output checked against the seed before the result counts, so cached or hardcoded answers fail. median, min and max are over a provider's verified runs (n), in `unit`; `better` says which direction wins; values are sorted best first. Not split by track.";
 
 const providerRunsAbout =
-  " `runId` names the sweep; a value with `run` came instead from that provider's own run (id, startedAt, sdkCommit), and `providerRuns` lists each such provider's runs and the tests each produced.";
+  " `runId` names the sweep; a value with `run` came instead from that provider's own run (id, startedAt, sdkCommit), and `providerRuns` lists each such provider's runs and the tests each produced, with a `reason` where a run was made apart from the rest.";
 
 /** Whether any provider's values came from its own runs, so the field and its note appear only then. */
 const hasProviderRuns = (e: Expanded) => Object.keys(e.providerRuns).length > 0;
@@ -807,7 +807,10 @@ function expandedData(e: Expanded) {
     generatedAt: e.generatedAt,
     runId: e.runId,
     runsPerProvider: e.runs,
-    ...(hasProviderRuns(e) ? { providerRuns: e.providerRuns } : {}),
+    // A run's `reason` is written only where it has one (Archil's stdout streaming rerun).
+    ...(hasProviderRuns(e)
+      ? { providerRuns: Object.fromEntries(Object.entries(e.providerRuns).map(([id, runs]) => [id, runs?.map(({ reason, ...r }) => (reason === null ? r : { ...r, reason }))])) }
+      : {}),
     categories: e.groups.map((g) => ({
       id: g.category,
       label: g.label,

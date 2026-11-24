@@ -16,7 +16,12 @@ export interface ScatterPoint {
   y: number;
   /** Hover-card lines after the name and the two values, such as the machine it ran on. */
   detail: readonly DetailLine[];
+  /** Words said beside the cost, such as "usage cost, unsettled" on a provider-reported usage cost (Archil's). */
+  tag?: string;
 }
+
+/** "$8.87", or "$8.87 (usage cost, unsettled)" for a point whose cost has a tag. */
+const costText = (p: Pick<ScatterPoint, "y" | "tag">) => (p.tag === undefined ? formatPerThousand(p.y) : `${formatPerThousand(p.y)} (${p.tag})`);
 
 // Plot insets in px: room for tick labels on the left and bottom.
 const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
@@ -155,7 +160,7 @@ export function Scatter({
   const numbers = phoneNumbers({ points, at: (p) => ({ x: fx(p.x) * PHONE_PLOT_W, y: (1 - fy(p.y)) * PHONE_PLOT_PX }) });
   const legend = [...points].sort((a, b) => (numbers.get(a.provider)?.n ?? 0) - (numbers.get(b.provider)?.n ?? 0));
   const summary = firsts
-    .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
+    .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}${p.tag === undefined ? "" : ` (${p.tag})`}`)
     .join("; ");
 
   return (
@@ -247,13 +252,17 @@ export function Scatter({
             const color = providerColor(p.provider);
             const num = numbers.get(p.provider);
             const lines: DetailLine[] = [["Cost per 1,000 tasks", formatPerThousand(p.y)], ["100 tool calls", formatValue(p.x, "s")], ...p.detail];
+            // A tagged cost (Archil's usage cost) is said beside the amount in the accessible name, and on a line of
+            // its own in the card, where a long value would squeeze the labels. Untagged points are as before.
+            const said: DetailLine[] = p.tag === undefined ? lines : [["Cost per 1,000 tasks", costText(p)], ...lines.slice(1)];
+            const shown: DetailLine[] = p.tag === undefined ? lines : [...lines.slice(0, 2), p.tag.replace(/^\w/, (c) => c.toUpperCase()), ...lines.slice(2)];
             return (
               <div
                 key={p.provider}
                 {...(isExtraTier(p.provider) ? { "data-tier-extra": "" } : {})}
                 tabIndex={0}
                 role="img"
-                aria-label={`${providerName(p.provider)}: ${lines.map(detailText).join(", ")}`}
+                aria-label={`${providerName(p.provider)}: ${said.map(detailText).join(", ")}`}
                 className="group/pt absolute size-0 outline-none hover:z-20 focus:z-20"
                 style={{ left: along(px, "x"), top: along(py, "y") }}
               >
@@ -282,7 +291,7 @@ export function Scatter({
                 ) : null}
                 <HoverCardOnDemand
                   provider={p.provider}
-                  detail={lines}
+                  detail={shown}
                   className={`left-0 opacity-0 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none ${py > 0.5 ? "top-3" : "bottom-3"}`}
                   // Slide the card along its own width as the dot moves right, so it stays inside the plot at any width.
                   style={{ translate: `${-px * 100}% 0` }}
