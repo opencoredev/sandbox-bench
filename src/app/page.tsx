@@ -901,7 +901,7 @@ export default function Page() {
           </Section>
         ) : null}
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless we classified that attempt as ours or the test's policy excludes it, even when its cause is unconfirmed; Method summarises the ones set aside.">
+        <Section id="reliability" title="Reliability" lede="How often each provider failed in the tests the chart counts, and why. In those tests a failure counts unless we classified that attempt as ours or the test's policy excludes it, even when its cause is unconfirmed; Method summarises the ones set aside. The failure details also show failures from probes the chart leaves out, such as the TCP connect probe.">
           <PerTrack>
             {(track) => (
               <Card>
