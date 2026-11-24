@@ -117,11 +117,11 @@ const isStatus = (v: unknown): v is SustainedStatus => sustainedStatuses.some((s
 
 const mean = (xs: readonly number[]) => (xs.length === 0 ? null : xs.reduce((sum, x) => sum + x, 0) / xs.length);
 
-/** Mean opsPerS of the segments that start in the first 3 minutes, and in the last 3. */
+/** Mean opsPerS of the segments that start in the first 3 minutes (0–3 min), and in minutes 12–15 (720 s ≤ startS < 900 s). */
 export function windowMeans(segments: readonly CpuSegment[]) {
   return {
     first: mean(segments.filter((s) => s.startS < WINDOW_S).map((s) => s.opsPerS)),
-    last: mean(segments.filter((s) => s.startS >= TARGET_DURATION_S - WINDOW_S).map((s) => s.opsPerS)),
+    last: mean(segments.filter((s) => s.startS >= TARGET_DURATION_S - WINDOW_S && s.startS < TARGET_DURATION_S).map((s) => s.opsPerS)),
   };
 }
 
@@ -143,7 +143,10 @@ function parseSegment(v: unknown, path: string, index: number): CpuSegment {
   const o = obj(v, path);
   if (o.index !== index) fail(`${path}.index`, `must be ${index}`);
   if (o.checksumVerified !== true) fail(`${path}.checksumVerified`, "must be true: a segment whose checksum failed isn't published");
-  return { index, startS: nonNegative(o.startS, `${path}.startS`), durationS: positive(o.durationS, `${path}.durationS`), opsPerS: nonNegative(o.opsPerS, `${path}.opsPerS`) };
+  const durationS = positive(o.durationS, `${path}.durationS`);
+  if (durationS < SEGMENT_DURATION_S - CLOCK_SLACK_S) fail(`${path}.durationS`, `is ${durationS}, shorter than a ${SEGMENT_DURATION_S}-second segment`);
+  if (durationS > SEGMENT_DURATION_S * 4) fail(`${path}.durationS`, `is ${durationS}, too long for a ${SEGMENT_DURATION_S}-second segment`);
+  return { index, startS: nonNegative(o.startS, `${path}.startS`), durationS, opsPerS: nonNegative(o.opsPerS, `${path}.opsPerS`) };
 }
 
 function parseSegments(v: unknown, path: string): CpuSegment[] {

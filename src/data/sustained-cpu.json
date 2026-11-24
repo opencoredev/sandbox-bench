@@ -1340,8 +1340,8 @@
         }
       ],
       "first3MinOps": 41427627,
-      "last3MinOps": 39986383,
-      "retention": 0.9652
+      "last3MinOps": 40199412,
+      "retention": 0.9704
     },
     {
       "provider": "tenki",

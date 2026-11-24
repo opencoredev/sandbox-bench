@@ -143,7 +143,23 @@ describe("parse", () => {
   rejects("a stopped-early run with no segments", (f) => Object.assign(providerAt(f, "boxd"), run("boxd", "stopped-early", [], "gone")), /a run with no segment failed/);
   rejects("a duration shorter than its segments", (f) => (providerAt(f, "e2b").durationS = 600), /durationS is 600, shorter than its segments, which end at 900/);
   rejects("a fractional vCPU count", (f) => (providerAt(f, "e2b").guestVcpus = 3.5), /guestVcpus must be a whole number above 0/);
+  rejects("shortened 1-second segments", (f) => {
+    const styne = providerAt(f, "styne");
+    styne.segments = Array.from({ length: 30 }, (_, i) => ({ index: i, startS: i, durationS: 1, opsPerS: BURST, checksumVerified: true }));
+    styne.durationS = 30;
+  }, /segments\[0\]\.durationS is 1, shorter than a 30-second segment/);
   rejects("a missing field", (f) => delete (f.providers[0] as Partial<(typeof f.providers)[0]>).retention, /retention must be a finite number/);
+
+  test("excludes segments starting at or after minute 15 from the minutes 12–15 window (Freestyle)", () => {
+    const freestyle = sustainedCpu.providers.find((p) => p.provider === "freestyle");
+    assert.ok(freestyle && freestyle.status === "completed");
+    const lastSeg = freestyle.segments.at(-1);
+    assert.ok(lastSeg && lastSeg.startS >= 900, "Freestyle's 30th segment starts past 900 s");
+    const inWindow = freestyle.segments.filter((s) => s.startS >= 720 && s.startS < 900);
+    const expectedMean = inWindow.reduce((sum, s) => sum + s.opsPerS, 0) / inWindow.length;
+    assert.equal(Math.round(expectedMean), freestyle.last3MinOps);
+    assert.ok(freestyle.last3MinOps > 40_100_000 && freestyle.last3MinOps < 40_300_000);
+  });
 });
 
 describe("rules", () => {
@@ -196,7 +212,7 @@ describe("section", () => {
   test("the steady-state columns rank by minutes 12–15 with retention tags, and the hover lines say each window", () => {
     assert.match(text, /39\.7M[\s\S]*30M[\s\S]*9\.9M/);
     for (const tag of ["99%", "100%", "16%"]) assert.ok(text.includes(tag), tag);
-    for (const line of ["Minutes 12–15", "Minutes 0–3", "Retention", "Guest vCPU", "Duration"]) assert.ok(html.includes(line), line);
+    for (const line of ["Minutes 12–15", "Minutes 0–3", "Retention", "Workers", "Visible vCPU", "Duration"]) assert.ok(html.includes(line), line);
     assert.ok(html.includes("Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU."), "Styne's card states its CPU class");
   });
 
@@ -209,8 +225,9 @@ describe("section", () => {
   });
 
   test("the notes explain the workload and why it runs 15 minutes", () => {
-    assert.ok(text.includes("30 back-to-back 30-second segments of all-core 32-bit LCG arithmetic, 15 min in all, with each segment&#x27;s checksum verified"));
+    assert.ok(text.includes("30 back-to-back 30-second segments of 32-bit LCG arithmetic with 4 workers per sandbox, 15 min of work in all, with each segment&#x27;s checksum verified"));
     assert.match(text, /4 vCPU and 8 GB/);
+    assert.match(text, /boxd ran its nearest size, 4 vCPU and 16 GiB/);
     assert.match(text, /15 minutes runs past Styne&#x27;s 10-minute credit window/);
     assert.match(text, /SDK commit abc1234/);
   });

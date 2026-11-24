@@ -53,7 +53,8 @@ function steadyColumns(ranked: readonly SteadyRun[], marks: ReturnType<typeof ma
         [lastWindowLabel, opsText(p.last3MinOps)],
         [firstWindowLabel, opsText(p.first3MinOps)],
         ["Retention", retentionText(p.retention)],
-        ["Guest vCPU", p.guestVcpus === null ? "not reported" : String(p.guestVcpus)],
+        ["Workers", "4"],
+        ["Visible vCPU", p.guestVcpus === null ? "not reported" : String(p.guestVcpus)],
         ["Duration", minutesText(p.durationS)],
         ...(p.status === "completed" ? [] : [sentence(`Stopped early: ${p.stopReason}`)]),
         ...(caveat ? [sentence(caveat.detail)] : []),
@@ -69,7 +70,7 @@ function sharedNotes(data: SustainedCpuData): Note[] {
   return [
     {
       lead: "Work",
-      text: `${data.segmentsTarget} back-to-back ${data.segmentDurationS}-second segments of all-core 32-bit LCG arithmetic, ${minutesText(data.targetDurationS)} in all, with each segment's checksum verified. Same machine: every provider asked for 4 vCPU and 8 GB.`,
+      text: `${data.segmentsTarget} back-to-back ${data.segmentDurationS}-second segments of 32-bit LCG arithmetic with 4 workers per sandbox, ${minutesText(data.targetDurationS)} of work in all, with each segment's checksum verified. Same-machine track: asked for 4 vCPU and 8 GB (boxd ran its nearest size, 4 vCPU and 16 GiB; Daytona and both Upstash products expose 48–64 host CPUs inside the container while capped to 4 workers).`,
     },
     {
       lead: "Why 15 minutes",
@@ -104,7 +105,7 @@ export function SustainedCpuSection({ data }: { data: SustainedCpuData }) {
   const shared = sharedNotes(data);
   const over = (
     <>
-      <ChartHead title="Sustained CPU over 15 minutes" sub="All cores, 4 vCPU, 8 GB · Million operations per second per 30-second segment · Higher is better" />
+      <ChartHead title="Sustained CPU over 15 minutes" sub="4 workers, same-machine track (4 vCPU, 8 GB requested) · Million operations per second per 30-second segment · Higher is better" />
       <SustainedCpuLines providers={lines} />
       <NotOnChart ids={noLine.map((p) => p.provider)} />
       <Footnotes
@@ -118,7 +119,7 @@ export function SustainedCpuSection({ data }: { data: SustainedCpuData }) {
   );
   const steady = (
     <>
-      <ChartHead title="Sustained CPU, minutes 12–15" sub="All cores, 4 vCPU, 8 GB · Mean operations per second over the last 3 minutes · Tag: retention, minutes 12–15 ÷ minutes 0–3 · Higher is better" />
+      <ChartHead title="Sustained CPU, minutes 12–15" sub="4 workers, same-machine track (4 vCPU, 8 GB requested) · Mean operations per second over minutes 12–15 · Tag: retention, minutes 12–15 ÷ minutes 0–3 · Higher is better" />
       {ranked.length > 0 ? <Columns columns={steadyColumns(ranked, marks)} label="Sustained CPU, minutes 12–15: operations per second by provider" /> : <p className="text-s text-neutral-7">No provider reached minute 12.</p>}
       <NotOnChart ids={missing.map((m) => m.provider)} />
       <Footnotes
