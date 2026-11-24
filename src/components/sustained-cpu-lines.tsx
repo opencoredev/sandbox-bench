@@ -55,7 +55,7 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
   const label = providers.map((p) => `${providerName(p.provider)}: ${summary(p)}`).join("; ");
 
   return (
-    <figure aria-label={`All-core operations per second over 15 minutes. ${label}.`}>
+    <figure aria-label={`4-worker operations per second over 15 minutes. ${label}.`}>
       <div className="relative h-[260px] min-w-0 sm:h-[340px]" aria-hidden>
         {/* The two windows retention compares. */}
         {[0, TARGET_DURATION_S - WINDOW_S].map((start) => (

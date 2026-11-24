@@ -653,7 +653,7 @@ export default function Page() {
                   track.id === "same-spec" ? (
                     <SustainedCpuSection data={sustainedCpu} />
                   ) : (
-                    <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Sustained CPU over 15 minutes ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                    <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Sustained CPU over 15 minutes ran only on the same-machine track (4 vCPU, 8 GB requested; boxd ran 4 vCPU, 16 GiB). Switch to Same machine to see it.</p>
                   )
                 }
               </PerTrack>
