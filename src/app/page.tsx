@@ -540,10 +540,10 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Failures",
-    line: "A failure counts against the provider unless we classified that attempt as ours; each one set aside is listed below, and any other failure counts, even when its cause is unconfirmed.",
+    line: "A failure counts against the provider unless we classified that attempt as ours or the test's own policy excludes it; a failure whose cause is unconfirmed still counts.",
     more: (
       <>
-        Only the attempts listed here were classified as ours; a similar timeout elsewhere can still count when we couldn&apos;t trace it to our side. Attempts blocked by our own plan limits were rerun. Set aside:
+        The list below gives each provider&apos;s set-aside attempts as a summary; a single attempt inside one test can also be set aside on that test&apos;s row, and a test&apos;s policy can exclude attempts, such as the TCP connect probe where a provider blocks its target. A similar timeout elsewhere can still count when we couldn&apos;t trace it to our side. Attempts blocked by our own plan limits were rerun. Set aside, by provider:
         <SetAside />
       </>
     ),
@@ -901,7 +901,7 @@ export default function Page() {
           </Section>
         ) : null}
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless we classified that attempt as ours, even when its cause is unconfirmed; Method lists each one set aside.">
+        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless we classified that attempt as ours or the test's policy excludes it, even when its cause is unconfirmed; Method summarises the ones set aside.">
           <PerTrack>
             {(track) => (
               <Card>
