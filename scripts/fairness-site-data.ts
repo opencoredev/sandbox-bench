@@ -202,6 +202,14 @@ function securityProbe(r: Json) {
   };
 }
 
+/** Every string inside a converted result, scrubbed: CPU names, evidence, directories, reasons. */
+export function scrubDeep(value: unknown): unknown {
+  if (typeof value === "string") return scrub(value);
+  if (Array.isArray(value)) return value.map(scrubDeep);
+  if (isJson(value)) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, scrubDeep(v)]));
+  return value;
+}
+
 const convert: Record<CheckId, (r: Json) => Json> = {
   "cpu-native": cpuNative,
   "disk-real": diskReal,
@@ -222,7 +230,7 @@ export function checkFromReport(report: unknown): { check: CheckId; data: Json }
     const e = obj(p, "providers[]");
     const status = e.status;
     const machine = e.machine;
-    if (status === "completed") return { provider: e.provider, machine, status, reason: null, result: convert[check](obj(e.result, `${String(e.provider)} result`)) };
+    if (status === "completed") return { provider: e.provider, machine, status, reason: null, result: scrubDeep(convert[check](obj(e.result, `${String(e.provider)} result`))) };
     return { provider: e.provider, machine, status, reason: plainReason(String(e.reason ?? "No reason recorded")), result: null };
   });
   return { check, data: { run: { id: run.id, sdkCommit: run.sdkCommit, startedAt: run.startedAt }, entries } };

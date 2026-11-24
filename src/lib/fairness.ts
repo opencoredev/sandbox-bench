@@ -248,8 +248,9 @@ function parseCpuNative(o: Json, path: string): CpuNativeResult {
   if (!near(first3MinOps, medianOf(sustained.slice(0, 6).map((x) => x.opsPerS)))) fail(`${path}.first3MinOps`, "is not the median of the first six windows");
   if (!near(last3MinOps, medianOf(sustained.slice(-6).map((x) => x.opsPerS)))) fail(`${path}.last3MinOps`, "is not the median of the last six windows");
   sustained.forEach((s, i) => {
-    const prev = sustained[i - 1];
-    if (prev && s.minute <= prev.minute) fail(`${path}.sustained[${i}].minute`, "must be later than the segment before");
+    // Windows of about 30 s: the k-th ends near minute k / 2.
+    const gap = s.minute - (sustained[i - 1]?.minute ?? 0);
+    if (gap < 0.4 || gap > 0.6) fail(`${path}.sustained[${i}].minute`, `is ${s.minute}, not about 30 s after the window before`);
   });
   return {
     cpuModel: orNull(str)(o.cpuModel, `${path}.cpuModel`),
@@ -315,6 +316,7 @@ function parseBurst(o: Json, path: string): BurstResult {
   if (requested !== 10) fail(`${path}.requested`, "must be 10, as the chart says");
   if (bool(o.comparable, `${path}.comparable`) && (created !== requested || verified !== created)) fail(`${path}.comparable`, "needs every sandbox created and verified");
   if (bool(o.comparable, `${path}.comparable`) && num(o.guaranteedOverlapS, `${path}.guaranteedOverlapS`) < 90) fail(`${path}.comparable`, "needs at least 90 of 120 seconds provably shared");
+  if (num(o.guaranteedOverlapS, `${path}.guaranteedOverlapS`) > 120) fail(`${path}.guaranteedOverlapS`, "can't exceed the 120-second burn");
   const createErrors = arr(o.createErrors, `${path}.createErrors`).map((e, i) => {
     const x = obj(e, `${path}.createErrors[${i}]`);
     return { error: str(x.error, `${path}.createErrors[${i}].error`), count: whole(x.count, `${path}.createErrors[${i}].count`) };
@@ -574,7 +576,8 @@ export function uptimeText(r: SecurityResult): string {
   const up = r.uptimeS < 120 ? `${Number(r.uptimeS.toFixed(1))} s` : r.uptimeS < 7200 ? `${Math.round(r.uptimeS / 60)} min` : r.uptimeS < 172_800 ? `${Number((r.uptimeS / 3600).toFixed(1))} h` : `${Math.round(r.uptimeS / 86_400)} days`;
   // A container shares its host's kernel, so its uptime is the host's, not the sandbox's.
   if (r.isolation === "container") return `Shows the host's uptime (${up}): a container shares the host kernel`;
-  if (r.bootedBeforeCreateS <= 5) return `Up ${up} at first command: booted for this create`;
+  if (r.bootedBeforeCreateS <= 0) return `Up ${up} at first command: booted after the create began`;
+  if (r.bootedBeforeCreateS <= 10) return `Up ${up} at first command, at least ${Number(r.bootedBeforeCreateS.toFixed(1))} s before the create began`;
   const before = r.bootedBeforeCreateS < 120 ? `${Math.round(r.bootedBeforeCreateS)} s` : r.bootedBeforeCreateS < 7200 ? `${Math.round(r.bootedBeforeCreateS / 60)} min` : `${Number((r.bootedBeforeCreateS / 3600).toFixed(1))} h`;
   return `Up ${up} at first command, at least ${before} before the create began: likely a pool or snapshot`;
 }

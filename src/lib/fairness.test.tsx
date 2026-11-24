@@ -186,7 +186,8 @@ describe("rules", () => {
     const styne = s.find((e) => e.provider === "styne")!.result;
     const boat = s.find((e) => e.provider === "boat")!.result;
     assert.match(uptimeText(styne), /23.1 h at first command, at least 23.1 h before the create began: likely a pool or snapshot/);
-    assert.match(uptimeText(boat), /3.1 s at first command: booted for this create/);
+    assert.match(uptimeText(boat), /3.1 s at first command, at least 2.5 s before the create began/);
+    assert.match(uptimeText({ ...boat, bootedBeforeCreateS: -0.8 }), /booted after the create began/);
     assert.match(uptimeText({ ...boat, isolation: "container", uptimeS: 900_000 }), /host's uptime \(10 days\)/);
     const unreadable: SecurityResult = { ...boat, uptimeS: null };
     assert.equal(uptimeText(unreadable), "Uptime not readable");
@@ -227,6 +228,12 @@ describe("site-data script", () => {
     assert.doesNotMatch(text, /secret-sandbox-id|\/home\/leo|"raw"/);
     assert.match(text, /"directory":"~\/work"/);
     assert.match(text, /Created 0 of 1 sandboxes/);
+    const probe = checkFromReport(
+      report("security-probe", [
+        { provider: "e2b", status: "completed", reason: null, machine, result: { ...security("microvm"), isolation: { kind: "microvm", evidence: ["mounted /tmp/sbx-6f1b0698aa214acf57847da555 by user leo-secret"], insideVm: null }, cpu: { vendor: "x", family: 1, model: 1, modelName: "CPU 0f8fad5b-d9cb-469f-a165-70867728950e", mhz: 1 }, vulnerabilities: [], uptimeAtFirstCommandS: 1, bootedBeforeCreateS: 0 } },
+      ]),
+    );
+    assert.doesNotMatch(JSON.stringify(probe.data), /6f1b0698aa214acf57847da555|0f8fad5b-d9cb/);
     assert.equal(plainReason("word ".repeat(80)).length, 240);
     const scrubbed = plainReason("Create failed for /home/leo/work/x (sandbox sb-01M8604F365C5Q09VVMZWH58H2, attempt 610c6d1847fc, boot 0f8fad5b-d9cb-469f-a165-70867728950e, seed 2654435760): HTTP 400");
     assert.doesNotMatch(scrubbed, /leo|01M8604F|610c6d1847fc|0f8fad5b|2654435760/);
