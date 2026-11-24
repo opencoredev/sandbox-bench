@@ -36,12 +36,12 @@ describe("item 1: Archil's headline and ranked fix and test cost carries its sta
   test("the meta summary says usage cost, unsettled beside $8.87", () => {
     assert.equal(
       providerSummary("archil"),
-      "Archil sandbox on the same 4 vCPU, 8 GB machine: 0.67 s cold start (6th of 15), 22 s agent tool replay, fix and test task in 64 s for $8.87 per 1,000 (usage cost, unsettled). Medians, p95s and 95% intervals.",
+      "Archil sandbox on the same 4 vCPU, 8 GB machine: 0.67 s cold start (6th of 15), 22 s agent tool replay, fix and test task in 64 s for $8.87 per 1,000 (usage cost, unsettled, compute and memory only). Medians, p95s and 95% intervals.",
     );
   });
 
   test("the verdict puts the tag ahead of the cost rank on both tracks", () => {
-    for (const t of providerResults("archil").tracks) assert.match(verdict(t, "archil"), /per 1,000 \(usage cost, unsettled; \d+(st|nd|rd|th) of \d+ on cost\)/);
+    for (const t of providerResults("archil").tracks) assert.match(verdict(t, "archil"), /per 1,000 \(usage cost, unsettled, compute and memory only; \d+(st|nd|rd|th) of \d+ on cost\)/);
   });
 
   test("the scorecard's cost cell carries the tag on both tracks, and the tile renders it", () => {
@@ -56,14 +56,14 @@ describe("item 1: Archil's headline and ranked fix and test cost carries its sta
 
   test("the FAQ's cost answer and the ranked cost placing say it too", () => {
     const cost = providerFaqs("archil").find((f) => f.question.toLowerCase().includes("cost"));
-    assert.ok(cost?.answer.includes(`per 1,000 completed (${usageTag})`), cost?.answer ?? "no cost answer");
+    assert.ok(cost?.answer.includes(`per 1,000 completed (${usageTag}, compute and memory only)`), cost?.answer ?? "no cost answer");
     const placed = providerResults("archil").tracks.flatMap((t) => placings(t, "archil")).filter((p) => p.id === "fix-and-test-cost");
-    assert.ok(placed.length > 0 && placed.every((p) => p.label === `Fix and test cost, per 1,000 (${usageTag})`));
+    assert.ok(placed.length > 0 && placed.every((p) => p.label === `Fix and test cost, per 1,000 (${usageTag}, compute and memory only)`));
   });
 
   test("the update quotes $8.87 with its status", () => {
     const u = updates.find((x) => x.slug === "archil-added");
-    assert.ok(u?.body.some((p) => p.includes(`$8.87 per 1,000 (${usageTag})`)));
+    assert.ok(u?.body.some((p) => p.includes(`$8.87 per 1,000 (${usageTag}, compute and memory only)`)));
   });
 
   test("no other provider's cost cell, home score cell or page sentence gains a tag", () => {
@@ -130,7 +130,8 @@ describe("item 2: Archil's location names the outbound IPs and the API region, n
 
 describe("item 3: Archil's pause behaviour stays on Archil's own page", () => {
   test("the copy every provider page shares names no Archil behaviour", () => {
-    for (const c of caveats) assert.ok(!c.includes("Archil"), c);
+    // Its provenance may sit beside Instabox's (which runs it came from), its behaviour may not.
+    for (const c of caveats) assert.ok(!c.includes("stays asleep") && !c.includes("paused Archil"), c);
   });
 
   test("Archil's own notes carry it", () => {

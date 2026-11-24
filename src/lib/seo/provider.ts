@@ -262,11 +262,14 @@ const measuredValue = (cell: ScoreCell) => (cell.kind === "scored" || cell.kind 
 /** "usage cost, unsettled" on a provider-reported usage cost (Archil's), null on every other cell. */
 const costTagOf = (cell: ScoreCell) => (cell.kind === "valued" ? cell.tag : null);
 
-/** " (usage cost, unsettled)" after an amount, or nothing, so every other provider's sentence reads as before. */
-const tagged = (tag: string | null) => (tag === null ? "" : ` (${tag})`);
+/** A usage cost (Archil's) covers compute and memory only: its usage API reports no storage or egress. */
+const scoped = (tag: string) => (tag.startsWith("usage cost") ? `${tag}, compute and memory only` : tag);
 
-/** "usage cost, unsettled; " ahead of a rank in parentheses, or nothing. */
-const tagFirst = (tag: string | null) => (tag === null ? "" : `${tag}; `);
+/** " (usage cost, unsettled, compute and memory only)" after an amount, or nothing, so every other provider's sentence reads as before. */
+const tagged = (tag: string | null) => (tag === null ? "" : ` (${scoped(tag)})`);
+
+/** "usage cost, unsettled, compute and memory only; " ahead of a rank in parentheses, or nothing. */
+const tagFirst = (tag: string | null) => (tag === null ? "" : `${scoped(tag)}; `);
 
 export function scorecard(trackId: TrackId, id: ProviderId): ScorecardEntry[] {
   return trackScores(tracks[trackId]).map(({ category, scores }) => {
