@@ -581,6 +581,14 @@ export function billingTag(row: Pick<RealisticRow, "provider" | "cost" | "eligib
   return kindStatusWithPart({ id: row.provider, kind: row.cost.kind, statuses, part: row.estimatedPart });
 }
 
+/**
+ * "usage cost, unsettled" beside a realistic cost that is a provider-reported
+ * usage cost (Archil's), in billingTag's words, for the headline and ranked
+ * figures that quote it; null for every other provider, whose amounts show alone.
+ */
+export const rowUsageTag = (row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">) =>
+  row.cost && isUsageCost(row.provider, row.cost) ? billingTag(row) : null;
+
 /** Why a row has no cost: never run, or run without a completed task. */
 export function noCostReason(row: RealisticRow): string {
   const reasons = new Map(row.reasons.map((r) => [r.reason, r.runs]));

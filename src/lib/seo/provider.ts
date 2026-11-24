@@ -4,6 +4,7 @@ import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
+import { ranInOf, ranInPhrase } from "@/lib/hardware";
 import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
@@ -97,7 +98,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
     providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
-    ranIn: p.ranIn,
+    ranIn: ranInOf({ id, place: p.ranIn }),
     cost:
       "basis" in cost && cost.perTaskUsd !== null
         ? {
@@ -257,6 +258,15 @@ const rankAmong = ({ own, values, better }: { own: number; values: readonly numb
 
 const measuredValue = (cell: ScoreCell) => (cell.kind === "scored" || cell.kind === "valued" ? cell.value : null);
 
+/** "usage cost, unsettled" on a provider-reported usage cost (Archil's), null on every other cell. */
+const costTagOf = (cell: ScoreCell) => (cell.kind === "valued" ? cell.tag : null);
+
+/** " (usage cost, unsettled)" after an amount, or nothing, so every other provider's sentence reads as before. */
+const tagged = (tag: string | null) => (tag === null ? "" : ` (${tag})`);
+
+/** "usage cost, unsettled; " ahead of a rank in parentheses, or nothing. */
+const tagFirst = (tag: string | null) => (tag === null ? "" : `${tag}; `);
+
 export function scorecard(trackId: TrackId, id: ProviderId): ScorecardEntry[] {
   return trackScores(tracks[trackId]).map(({ category, scores }) => {
     const cell: ScoreCell = scores.find((s) => s.provider === id) ?? { kind: "not-measured", provider: id };
@@ -297,7 +307,8 @@ export function placings(t: ProviderTrack, id: ProviderId): Placed[] {
       case "real-tasks":
         return [{ id: "fix-and-test", label: "Real task: fix and test", value: e.cell.display, rank: e.rank, tied: false }];
       case "cost":
-        return [{ id: "fix-and-test-cost", label: "Fix and test cost, per 1,000", value: e.cell.display, rank: e.rank, tied: false }];
+        // A usage cost (Archil's) says so beside the amount; every other provider's label is unchanged.
+        return [{ id: "fix-and-test-cost", label: `Fix and test cost, per 1,000${tagged(costTagOf(e.cell))}`, value: e.cell.display, rank: e.rank, tied: false }];
       default:
         // Speed and Bursts are the cold start and burst rows of the results table, already listed. Reliability is
         // left out: most providers complete every run, so a rank among equals says nothing.
@@ -333,10 +344,10 @@ export function highlights(t: ProviderTrack, id: ProviderId, count = 3): { leads
 
 const entryOf = (card: readonly ScorecardEntry[], id: string) => card.find((e) => e.category.id === id);
 
-/** A scorecard entry's reading and rank, when it has both. */
-function reading(e: ScorecardEntry | undefined): { display: string; rank: Rank } | null {
+/** A scorecard entry's reading and rank, when it has both, with the words said beside it ("usage cost, unsettled") or null. */
+function reading(e: ScorecardEntry | undefined): { display: string; rank: Rank; tag: string | null } | null {
   if (!e || e.rank === null || (e.cell.kind !== "scored" && e.cell.kind !== "valued")) return null;
-  return { display: e.cell.display, rank: e.rank };
+  return { display: e.cell.display, rank: e.rank, tag: costTagOf(e.cell) };
 }
 
 /**
@@ -352,8 +363,8 @@ export function verdict(t: ProviderTrack, id: ProviderId): string {
   const cost = reading(entryOf(card, "cost"));
   const parts = [
     cold ? `starts a sandbox in ${cold.display} (${rankText(cold.rank)})` : null,
-    task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${rankText(cost.rank)} on cost)` : ""}` : null,
-    !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${rankText(cost.rank)})` : null,
+    task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${tagFirst(cost.tag)}${rankText(cost.rank)} on cost)` : ""}` : null,
+    !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${tagFirst(cost.tag)}${rankText(cost.rank)})` : null,
   ].filter((x) => x !== null);
   if (parts.length === 0) return `${name} has no ranked cold start, real task or cost result on ${machineOf(t.id)} yet.`;
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
@@ -373,7 +384,7 @@ export function providerSummary(id: ProviderId): string {
   const parts = [
     cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
     tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
-    task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000` : ""}` : null,
+    task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000${tagged(cost.tag)}` : ""}` : null,
     !task && t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 quick tasks (${t.cost.tag})` : null,
   ].filter((x) => x !== null);
   return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
@@ -416,7 +427,7 @@ function taskCostText(t: ProviderTrack, id: ProviderId): string {
   if (e?.cell.kind === "valued" && e.rank) {
     // Ranked with everyone, but a row on the wrong machine size still can't be the chart's "Cheapest" pick.
     const caveat = row.kind === "ranked" && row.notCounted.length > 0 ? `, though it can't be the cheapest pick (${row.notCounted.join("; ")})` : "";
-    return `${what} costs ${e.cell.display} per 1,000 completed, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
+    return `${what} costs ${e.cell.display} per 1,000 completed${tagged(e.cell.tag)}, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
   }
   if (row.kind === "ranked") return `${what} costs ${row.value} per 1,000 completed, not counted for the cheapest pick (${e?.cell.kind === "excluded" ? e.cell.why : row.notCounted.join("; ")})`;
   return `there is no fix and test cost (${row.why})`;
@@ -435,7 +446,7 @@ function pauseAnswer(r: ReturnType<typeof providerResults>): string {
 
 function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
   const h = r.hardware;
-  const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : ""}`);
+  const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, ${ranInPhrase(t.ranIn)}` : ""}`);
   if (!h) return machines;
   const memory = h.memory.type ? `, ${h.memory.type} memory` : "";
   return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;

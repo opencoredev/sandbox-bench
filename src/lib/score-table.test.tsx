@@ -17,8 +17,8 @@ const realIndex = columns.findIndex((c) => c.id === "real-tasks");
 
 // Vercel leads Real tasks but comes after boxd A to Z and on Cost, so each order is visible.
 const rows: ScoreRow[] = [
-  { provider: "vercel", mark: null, cells: columns.map((c) => (c.shows === "value" ? { kind: "valued", provider: "vercel", value: 43.14, display: "$43.14" } : { kind: "scored", provider: "vercel", score: 100, value: 1, best: true, display: "1.00 s" })) },
-  { provider: "boxd", mark: 1, cells: columns.map((c) => (c.shows === "value" ? { kind: "valued", provider: "boxd", value: 5.5, display: "$5.50" } : { kind: "scored", provider: "boxd", score: 50, value: 2, best: false, display: "2.00 s" })) },
+  { provider: "vercel", mark: null, cells: columns.map((c) => (c.shows === "value" ? { kind: "valued", provider: "vercel", value: 43.14, display: "$43.14", tag: null } : { kind: "scored", provider: "vercel", score: 100, value: 1, best: true, display: "1.00 s" })) },
+  { provider: "boxd", mark: 1, cells: columns.map((c) => (c.shows === "value" ? { kind: "valued", provider: "boxd", value: 5.5, display: "$5.50", tag: null } : { kind: "scored", provider: "boxd", score: 50, value: 2, best: false, display: "2.00 s" })) },
 ];
 
 const render = (initialSort?: Sort) => renderToStaticMarkup(<ScoreTable columns={columns} rows={rows} label="Scores" initialSort={initialSort} />);

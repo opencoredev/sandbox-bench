@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumb, Fact, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
 import { trackInfo } from "@/lib/data";
+import { ranInTerm, ranInText } from "@/lib/hardware";
 import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { compareResults, costKindsDiffer, costLowerBound, rowOf } from "@/lib/seo/compare";
@@ -186,7 +187,8 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
       <ul className="mt-m flex flex-col gap-xxs text-s text-pretty text-neutral-7">
         <li>Asked for: {t.machine.asked}.</li>
         {t.machine.note ? <li>Machine: {t.machine.note}</li> : null}
-        {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
+        {/* One text node before the place, so other providers' markup stays "Ran in: <place>." as before. */}
+        {t.ranIn ? <li>{`${ranInTerm(t.ranIn)}: `}{ranInText(t.ranIn)}.</li> : null}
         <li>Billing: {t.billing}.</li>
         {t.cost.kind === "priced" ? (
           <li>

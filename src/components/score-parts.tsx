@@ -15,13 +15,13 @@ export interface ScoreRow {
   cells: readonly ScoreCell[];
 }
 
-/** The cell as a screen reader says it: "64 out of 100, from 1.2 s", "$0.76", "not measured". */
+/** The cell as a screen reader says it: "64 out of 100, from 1.2 s", "$0.76", "$8.87, usage cost, unsettled", "not measured". */
 function spoken(cell: ScoreCell): string {
   switch (cell.kind) {
     case "scored":
       return `${cell.score} out of 100, from ${cell.display}`;
     case "valued":
-      return cell.display;
+      return cell.tag === null ? cell.display : `${cell.display}, ${cell.tag}`;
     case "excluded":
       return `not counted: ${cell.why}`;
     case "not-measured":
@@ -103,7 +103,8 @@ export function ScoreMeter({ cell, provider, under }: { cell: ScoreCell; provide
       return (
         <>
           <span className="text-m leading-none font-medium tabular-nums text-neutral-10">{cell.display}</span>
-          <EmptyBar under={under} />
+          {/* Only a usage cost (Archil's) has a tag; every other value keeps the bar's space under it. */}
+          {cell.tag === null ? <EmptyBar under={under} /> : <span className="block text-xxs leading-tight text-pretty text-neutral-7">{cell.tag}</span>}
         </>
       );
     case "excluded":

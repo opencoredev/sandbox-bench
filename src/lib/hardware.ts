@@ -40,6 +40,67 @@ export interface HardwareDetail {
 export const locationLabel = (h: Pick<HardwareDetail, "regionShort" | "apiRegionShort">, lead: "Sandbox in" | "Runs in") =>
   h.regionShort ? `${lead} ${h.regionShort}` : h.apiRegionShort ? `API in ${h.apiRegionShort}` : "Location not shown";
 
+/**
+ * Where a provider's runs were placed, for its page and the compare pages. The
+ * data's place is where the sandboxes' outbound IPs geolocate. Most providers'
+ * pages call it "Ran in". Where only the outbound IPs and the API's region are
+ * confirmed (Archil), the page says exactly that, never where the sandbox runs.
+ */
+export type RanIn = { kind: "ran-in"; place: string } | { kind: "outbound"; place: string; owner: string; api: string };
+
+/** Providers placed only by their outbound IPs' owner and their API region, from their entry's `region` above. */
+const outboundOnly: Partial<Record<ProviderId, { owner: string; api: string }>> = {
+  archil: { owner: "Amazon", api: "aws-us-east-1" },
+};
+
+export function ranInOf({ id, place }: { id: ProviderId; place: string | null }): RanIn | null {
+  if (place === null) return null;
+  const o = outboundOnly[id];
+  return o ? { kind: "outbound", place, owner: o.owner, api: o.api } : { kind: "ran-in", place };
+}
+
+/** The row's term: "Ran in", or "Location" where only outbound traffic and the API are placed. */
+export function ranInTerm(r: RanIn) {
+  switch (r.kind) {
+    case "ran-in":
+      return "Ran in";
+    case "outbound":
+      return "Location";
+    default: {
+      const _exhaustive: never = r;
+      return _exhaustive;
+    }
+  }
+}
+
+/** "Boardman, US", or "Amazon outbound IPs in Ashburn, US; API in aws-us-east-1". */
+export function ranInText(r: RanIn) {
+  switch (r.kind) {
+    case "ran-in":
+      return r.place;
+    case "outbound":
+      return `${r.owner} outbound IPs in ${r.place}; API in ${r.api}`;
+    default: {
+      const _exhaustive: never = r;
+      return _exhaustive;
+    }
+  }
+}
+
+/** For a sentence: "in Boardman, US", or "with Amazon outbound IPs in Ashburn, US and the API in aws-us-east-1". */
+export function ranInPhrase(r: RanIn) {
+  switch (r.kind) {
+    case "ran-in":
+      return `in ${r.place}`;
+    case "outbound":
+      return `with ${r.owner} outbound IPs in ${r.place} and the API in ${r.api}`;
+    default: {
+      const _exhaustive: never = r;
+      return _exhaustive;
+    }
+  }
+}
+
 export const probeDate = "Oct 22, 2026";
 
 /** Providers whose entry comes from the benchmark's fingerprints of their runs, and when, one group per run date. */
@@ -347,7 +408,9 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
     cloud: "AWS, from its outbound IPs",
     region: "Outbound IPs are Amazon's in Ashburn, Virginia, on every sandbox, consistent with us-east-1, the API region our runs used; that is where traffic leaves, not proof of where the sandbox runs",
-    regionShort: "Virginia",
+    // Only the API region (aws-us-east-1) is confirmed, so the badge names the API, as Daytona's and Instabox's do.
+    regionShort: null,
+    apiRegionShort: "Virginia",
     runsAs: "Firecracker microVM",
     runsAsDetail: "one per sandbox with its own kernel under KVM, per Archil's docs; inside, a hypervisor flag and Linux 6.18",
     storage: "About 1 TB root disk (ext4), fixed whatever the size; Archil bills the data on it as storage",

@@ -21,6 +21,8 @@ export interface Reading {
   value: number;
   /** How the cell prints the reading when its value alone can't say it, such as "18/20" runs completed. Never used to score. */
   display?: string;
+  /** Words said beside the reading, such as "usage cost, unsettled" on a provider-reported usage cost. Never used to score. */
+  tag?: string;
 }
 
 /** A reading the linked chart shows but doesn't count, such as a cost run on the wrong machine size, with why. */

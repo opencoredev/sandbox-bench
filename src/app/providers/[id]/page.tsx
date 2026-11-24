@@ -30,7 +30,7 @@ import { alternativesPath, comparePath, comparisonsWith, forProvidersPath, isAlt
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
-import { fingerprintDate } from "@/lib/hardware";
+import { fingerprintDate, ranInTerm, ranInText } from "@/lib/hardware";
 import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, scorecard, taskText, verdict } from "@/lib/seo/provider";
 import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
 
@@ -339,7 +339,7 @@ function MetaStrip({ r, t }: { r: ReturnType<typeof providerResults>; t: Provide
     { term: "Machine", value: t.machine.measured ?? t.machine.asked },
     ...(h ? [{ term: "Runs as", value: h.runsAs.split(",")[0] ?? h.runsAs }] : []),
     ...(h ? [{ term: "CPU", value: h.chip }] : []),
-    { term: "Region", value: t.ranIn ?? h?.region ?? "Not shown" },
+    { term: "Region", value: t.ranIn ? ranInText(t.ranIn) : (h?.region ?? "Not shown") },
     { term: "Billing", value: capital(t.billing) },
   ];
   return (
@@ -404,6 +404,8 @@ function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: Scor
         <>
           <span className="mt-m font-brand text-xxl leading-none font-medium tabular-nums text-neutral-10">{c.display}</span>
           <span className="mt-s block text-xs text-neutral-7">Per 1,000 completed tasks</span>
+          {/* Only a usage cost (Archil's) has a tag; every other tile reads as before. */}
+          {c.tag === null ? null : <span className="block text-xs text-neutral-7">{capital(c.tag)}</span>}
           <span className="mt-auto flex items-baseline justify-between gap-s pt-s">
             <span className="text-s text-neutral-8">{e.category.better === "lower" ? "Cheapest first" : "Highest first"}</span>
             {rank}
@@ -452,7 +454,7 @@ function SpecCard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           {t.machine.measured ?? "not measured"}
           {t.id === "same-spec" && !t.machine.equalSpec ? <span className="text-neutral-7"> (machine differs)</span> : ""}
         </Row>
-        {t.ranIn ? <Row term="Ran in">{t.ranIn}</Row> : null}
+        {t.ranIn ? <Row term={ranInTerm(t.ranIn)}>{ranInText(t.ranIn)}</Row> : null}
         <Row term="Billing">{capital(t.billing)}</Row>
         <Row term="Quick task cost">
           {t.cost.kind === "priced" ? (
