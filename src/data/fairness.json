@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v1",
-  "generatedAt": "2026-11-24T07:38:54.712Z",
+  "generatedAt": "2026-11-24T08:15:51.422Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -3529,6 +3529,30 @@
             "comparable": false,
             "notComparableWhy": "7 of 10 sandboxes created",
             "distinctBootIds": 7
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 3114558341,
+            "medianOps": 2997738028,
+            "relativeToSolo": 0.9625,
+            "spread": 1.0095,
+            "verified": 10,
+            "guaranteedOverlapS": 119.877,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
           }
         }
       ]
