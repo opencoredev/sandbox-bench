@@ -7,6 +7,9 @@ import { Tabs } from "@graphical";
 
 import { parseTabHash } from "@/components/jump";
 
+/** The hash each section last scrolled to, shared by the cards of both tracks. */
+const scrolledFor = new Map<string, string>();
+
 /** A tab with a panel, or one shown greyed out with why it has none, such as a location not measured yet. */
 export type Tab = { id: string; label: string; content: ReactNode } | { id: string; label: string; unavailable: string };
 
@@ -59,13 +62,16 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
   useEffect(() => {
     if (!section) return;
     const ids = openableIds.split("\n");
-    const open = () => {
+    const open = (event?: HashChangeEvent) => {
       const request = parseTabHash(window.location.hash);
       if (request?.section !== section || !ids.includes(request.tab)) return;
       setActive(request.tab);
       setOpened((seen) => (seen.has(request.tab) ? seen : new Set([...seen, request.tab])));
-      // No element has the combined id, so the browser does not scroll; do it here.
-      document.getElementById(section)?.scrollIntoView();
+      // No element has the combined id, so the browser does not scroll; do it here: on every hash change,
+      // but on mount only once per section and hash, so a card built later (the other track) opens the
+      // same tab without pulling the page back to it.
+      if (event || scrolledFor.get(section) !== window.location.hash) document.getElementById(section)?.scrollIntoView();
+      scrolledFor.set(section, window.location.hash);
     };
     open();
     window.addEventListener("hashchange", open);

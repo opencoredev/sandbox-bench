@@ -117,7 +117,7 @@ export default function SandboxPricingPage() {
     })),
     {
       q: "How does the calculator work it out?",
-      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. Idle minutes bill whatever the provider charges an idle sandbox: the whole size for most, memory only where CPU is billed on use. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Where the price table leaves something open, such as rounding or whether a rate applies to the whole size, the estimate says what it assumes beside that provider. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
+      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. Idle minutes are priced as each provider's billing rules read: the whole size for most (for several that is assumed, and the provider says so), memory only where CPU is billed on use, and nothing on Upstash. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Where the price table leaves something open, such as rounding or whether a rate applies to the whole size, the estimate says what it assumes beside that provider. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
     },
     {
       q: "Why can a real task cost more or less than the list price suggests?",
@@ -170,7 +170,7 @@ export default function SandboxPricingPage() {
         <section aria-labelledby="monthly" className="pt-xxl">
           <SectionTitle id="monthly">Monthly bill at list price</SectionTitle>
           <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
-            Busy time bills the whole size. Idle time bills what each provider charges an idle sandbox. Disk, data transfer, plan fees and credits are left out; each provider&apos;s are listed under{" "}
+            Busy time is priced at the whole size. Idle time is priced as each provider's billing rules read, and each row says what it assumes. Disk, data transfer, plan fees and credits are left out; each provider&apos;s are listed under{" "}
             <a className={link} href="#rates">
               How each provider bills
             </a>
