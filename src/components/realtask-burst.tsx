@@ -48,7 +48,9 @@ function marksFor(timed: readonly BurstRan[]) {
 }
 
 /** Why the data holds back a ratio (`changeNote`), when it has none to show; null when a ratio shows or no reason is given. */
-const withheldWhy = (p: BurstRan) => (p.slowdown === null ? p.changeNote : null);
+// Only a provider with its own run (Archil) gets the visible tag and reason; the other withheld bars keep
+// their footnote mark, as on main.
+const withheldWhy = (p: BurstRan) => (p.slowdown === null && hasOwnRun(p) ? p.changeNote : null);
 
 function columnsOf(timed: readonly BurstRan[], marks: ReturnType<typeof marksFor>, size: number): Column[] {
   return timed.map((p) => {
