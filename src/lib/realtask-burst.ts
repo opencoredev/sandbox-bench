@@ -33,8 +33,16 @@ export type BurstProvider =
       /** Uploading the toolchain from our machine, part of every task's time. */
       medianUploadS: number | null;
       soloMedianUploadS: number | null;
+      /** The provider's own run, when it ran apart from the file's main run. */
+      run: BurstRun | null;
     }
   | { provider: ProviderId; status: "not-run"; reason: string };
+
+export interface BurstRun {
+  id: string;
+  sdkCommit: string;
+  startedAt: string;
+}
 
 export interface RealtaskBurst {
   generatedAt: string;
@@ -130,7 +138,35 @@ function parseProvider(v: unknown, path: string): BurstProvider {
     changeNote: orNull(str)(o.changeNote, `${path}.changeNote`),
     medianUploadS: orNull(num)(o.medianUploadS, `${path}.medianUploadS`),
     soloMedianUploadS: orNull(num)(o.soloMedianUploadS, `${path}.soloMedianUploadS`),
+    run: orNull(parseRun)(o.run, `${path}.run`),
   };
+}
+
+const isoRe = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|([+-])(\d{2}):(\d{2}))$/;
+const isoDate = (v: unknown, path: string): string => {
+  const s = str(v, path);
+  const m = isoRe.exec(s);
+  if (!m) return fail(path, "must be a valid ISO timestamp");
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const hour = Number(m[4]);
+  const minute = Number(m[5]);
+  const second = Number(m[6]);
+  const tzHour = m[8] ? Number(m[8]) : 0;
+  const tzMin = m[9] ? Number(m[9]) : 0;
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59 || tzHour > 23 || tzMin > 59)
+    return fail(path, "must be a valid ISO timestamp");
+  const check = new Date(0);
+  check.setUTCFullYear(year, month - 1, day);
+  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day || Number.isNaN(Date.parse(s)))
+    return fail(path, "must be a valid ISO timestamp");
+  return s;
+};
+
+function parseRun(v: unknown, path: string): BurstRun {
+  const o = obj(v, path);
+  return { id: str(o.id, `${path}.id`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), startedAt: isoDate(o.startedAt, `${path}.startedAt`) };
 }
 
 /** Parses the file, so a malformed one stops the build instead of reaching the page. */
@@ -146,8 +182,8 @@ export function parseRealtaskBurst(raw: unknown): RealtaskBurst {
     seen.add(p.provider);
   }
   return {
-    generatedAt: str(o.generatedAt, "generatedAt"),
-    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: str(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
+    generatedAt: isoDate(o.generatedAt, "generatedAt"),
+    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: isoDate(run.startedAt, "run.startedAt"), endedAt: isoDate(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
     size: count(o.size, "size"),
     rounds: count(o.rounds, "rounds"),
     providers,

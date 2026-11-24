@@ -6,8 +6,11 @@
  * between Upstash, Superserve and Modal, and Instabox's pale lemon: its mark is black and white and its site's
  * green sits in the same crowded range, so it takes the one gap left, ΔE ≥ 7.9 from every other), and Beam's coral (Beam's own palette is neutral with a blue accent, every blue sits too
  * close to Daytona and Freestyle under colour-blind simulation, and the pale yellows are taken, so it takes the best
- * gap left, between E2B's orange and boxd's rose), with lightness spread so every pair stays apart under
- * protanopia and deuteranopia (OKLab ΔE ≥ 6.7; names and logos sit beside
+ * gap left, between E2B's orange and boxd's rose), and Maritime's chartreuse (Maritime's own blue sits under 5.7 from
+ * Daytona and Freestyle under colour-blind simulation, and no colour left in sRGB keeps ΔE ≥ 6.7 from every other;
+ * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
+ * left), with lightness spread so every pair stays apart under
+ * protanopia and deuteranopia (OKLab ΔE ≥ 6.0; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
@@ -26,6 +29,7 @@ export const providerInfo = {
   baseten: { name: "Baseten", color: "oklch(0.72 0.18 351)" },
   instabox: { name: "Instabox", color: "oklch(0.97 0.14 110)" },
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
+  maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.

@@ -4,6 +4,7 @@ import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
+import { hardware } from "@/lib/hardware";
 import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
@@ -98,6 +99,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
     ranIn: p.ranIn,
+    outboundIpLocation: p.outboundIpLocation,
     cost:
       "basis" in cost && cost.perTaskUsd !== null
         ? {
@@ -433,12 +435,17 @@ function pauseAnswer(r: ReturnType<typeof providerResults>): string {
   return perTrack(r, (t) => (t.pause.supported && "split" in t.pause && t.pause.split ? `yes: ${pauseText(t)}` : pauseText(t)));
 }
 
-function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
+function hardwareAnswer(id: ProviderId, r: ReturnType<typeof providerResults>): string {
   const h = r.hardware;
-  const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : ""}`);
+  const machines = perTrack(
+    r,
+    (t) =>
+      `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : t.outboundIpLocation ? ` (outbound IP in ${t.outboundIpLocation})` : ""}`,
+  );
   if (!h) return machines;
   const memory = h.memory.type ? `, ${h.memory.type} memory` : "";
-  return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;
+  const hosting = hardware[id]?.regionShort === null ? `Hosting: ${h.cloud}. ${h.region}.` : `Hosted on ${h.cloud}, ${h.region}.`;
+  return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. ${hosting} ${machines}`;
 }
 
 function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
@@ -471,7 +478,7 @@ export function providerFaqs(id: ProviderId): Faq[] {
     { question: `How fast is ${name}'s cold start?`, answer: coldAnswer(r) },
     { question: `How much does ${name} cost for AI coding tasks?`, answer: costAnswer(id, r) },
     { question: `Does ${name} support pause and resume?`, answer: pauseAnswer(r) },
-    { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(r) },
+    { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(id, r) },
     { question: `How reliable is ${name}?`, answer: reliabilityAnswer(r) },
   ].map((f) => ({ question: f.question, answer: capitalise(f.answer) }));
 }

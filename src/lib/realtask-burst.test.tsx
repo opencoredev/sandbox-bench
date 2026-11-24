@@ -57,4 +57,30 @@ describe("real tasks at once", () => {
     assert.match(text, /1 of 2 tasks failed \(tests timed out\)/);
     assert.match(text, /not run: the account allows 10 vCPU/);
   });
+
+  test("a provider from a later run carries that run, and the notes name its day and SDK commit", () => {
+    const later = structuredClone(fixture) as { providers: Record<string, unknown>[] };
+    later.providers[0] = { ...later.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "2026-11-23T20:00:00Z" } };
+    const data = parseRealtaskBurst(later);
+    const modal = data.providers.find((p) => p.provider === "modal");
+    assert.deepEqual(modal?.status === "ran" && modal.run, { id: "rtb-later", sdkCommit: "1234567890", startedAt: "2026-11-23T20:00:00Z" });
+    const e2b = data.providers.find((p) => p.provider === "e2b");
+    assert.equal(e2b?.status === "ran" && e2b.run, null);
+    const text = renderToStaticMarkup(<RealtaskBurstChart data={data} />).replace(/<[^>]+>/g, " ");
+    assert.match(text, /all on one day \(Nov 19; Modal on Nov 23\)/);
+    assert.match(text, /SDK commit abcdef1; Modal(?:'|&#x27;)s 1234567\)/);
+    const bad = structuredClone(later);
+    bad.providers[0] = { ...bad.providers[0], run: { id: "rtb-later" } };
+    assert.throws(() => parseRealtaskBurst(bad), /run\.sdkCommit/);
+    const badDate = structuredClone(later);
+    badDate.providers[0] = { ...badDate.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "wrong" } };
+    assert.throws(() => parseRealtaskBurst(badDate), /run\.startedAt.*ISO/);
+    const nonexistentDate = structuredClone(later);
+    nonexistentDate.providers[0] = { ...nonexistentDate.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "2026-02-30T04:21:00.000Z" } };
+    assert.throws(() => parseRealtaskBurst(nonexistentDate), /run\.startedAt.*ISO/);
+    const earlyYear = structuredClone(later);
+    earlyYear.providers[0] = { ...earlyYear.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "0099-12-31T04:21:00.000Z" } };
+    const earlyProvider = parseRealtaskBurst(earlyYear).providers[0];
+    assert.equal(earlyProvider?.status === "ran" && earlyProvider.run?.startedAt, "0099-12-31T04:21:00.000Z");
+  });
 });

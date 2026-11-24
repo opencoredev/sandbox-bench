@@ -26,6 +26,8 @@ export interface HardwareDetail {
   regionShort: string | null;
   /** Where the provider's API is, for a badge when the sandbox's own location isn't shown: "Oregon". */
   apiRegionShort?: string;
+  /** Where outbound traffic leaves, for a badge when the sandbox's own hosting region isn't proven: "Germany". */
+  egressRegionShort?: string;
   runsAs: string;
   runsAsDetail: string;
   storage: string;
@@ -36,9 +38,18 @@ export interface HardwareDetail {
   sameSpec: string | null;
 }
 
-/** "Sandbox in Virginia"; "API in Oregon" where only the API's region is known; else "Location not shown". */
-export const locationLabel = (h: Pick<HardwareDetail, "regionShort" | "apiRegionShort">, lead: "Sandbox in" | "Runs in") =>
-  h.regionShort ? `${lead} ${h.regionShort}` : h.apiRegionShort ? `API in ${h.apiRegionShort}` : "Location not shown";
+/** "Sandbox in Virginia"; "API in Oregon" or "Outbound IP in Germany" when hosting isn't proven; else "Location not shown". */
+export const locationLabel = (
+  h: Pick<HardwareDetail, "regionShort" | "apiRegionShort" | "egressRegionShort">,
+  lead: "Sandbox in" | "Runs in",
+) =>
+  h.regionShort
+    ? `${lead} ${h.regionShort}`
+    : h.apiRegionShort
+      ? `API in ${h.apiRegionShort}`
+      : h.egressRegionShort
+        ? `Outbound IP in ${h.egressRegionShort}`
+        : "Location not shown";
 
 export const probeDate = "Oct 22, 2026";
 
@@ -47,6 +58,7 @@ export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
+  { providers: ["maritime"], date: "Nov 23 and 24, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -61,7 +73,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten and Instabox
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam and Maritime
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -338,6 +350,26 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "No DMI, so the memory type is inferred from the chip. It runs as an ordinary user with passwordless sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
+  },
+  maritime: {
+    chip: "Intel Xeon, model not named",
+    family: "From CPU features: AVX2, FMA and AES, no AVX-512; the hypervisor reports a generic name at 3.20 GHz",
+    chipBasis: "inferred",
+    memory: { kind: "unknown", why: "DMI is empty inside the microVM, with no memory details" },
+    cloud: "Not disclosed; outbound IPs are Hetzner's (AS24940)",
+    region: "Outbound IPs are Hetzner's (AS24940) in Falkenstein, Germany for 495 of 522 sandboxes and Helsinki, Finland for 27; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: null,
+    egressRegionShort: "Germany",
+    runsAs: "KVM microVM",
+    runsAsDetail: "KVM with Linux 6.1.141 inside",
+    storage: "12 GB virtio disk (vda), ext4 on the default size; 50 GB on 4 vCPU, 8 GB",
+    kernel: "Linux 6.1.141, Ubuntu 24.04.5 LTS",
+    hidden: [
+      "The CPU names itself only as \"Intel(R) Xeon(R) Processor @ 3.20GHz\", a generic name set by the hypervisor, with no model number. It has AVX2, FMA and AES and no AVX-512, and every one of the 522 sandboxes showed the same feature set.",
+      "DMI is empty, so the memory type isn't shown. It runs as an ordinary user, user (uid 1000), with passwordless sudo.",
+      "Outbound traffic left from Hetzner in Falkenstein, Germany (495 of 522 sandboxes) and Helsinki, Finland (27); outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB machine (Maritime's medium preset) also has a 50 GB disk instead of 12 GB, on the same Intel Xeon and KVM setup, with Hetzner outbound IPs.",
   },
 };
 

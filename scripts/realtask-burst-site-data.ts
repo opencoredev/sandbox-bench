@@ -10,7 +10,12 @@
  *     --in ~/agents/realtask-burst/realtask-burst.json \
  *     --hold-change boat="Boat's two tasks alone took 168 and 203 s, about twice its usual time, and a repeat showed identical Boat machines varying up to 2x, so two tasks can't set its baseline" \
  *     --location "Florida, US" \
+ *     --add ~/agents/realtask-burst/runs/rtb-maritime-1123/realtask-burst-maritime.json \
  *     --out src/data/realtask-burst.json
+ *
+ * Maritime was added on 2026-11-24 from its own run (rtb-maritime-1123, started
+ * 04:21 UTC on Nov 24, sandbox-sdk 619307b, the same plan), with --add; every
+ * other provider's entry is the Nov 19 run's, unchanged.
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to
@@ -19,6 +24,9 @@
  *   alone: the median of so few says little.
  * - --hold-change provider="why" drops a provider's change and says why.
  * - --location replaces the harness's location, which names our own machine.
+ * - --add FILE appends the providers of a later one-provider run, each with
+ *   that run's id, SDK commit and start as its `run`, so the chart can say it
+ *   ran apart from the main run. A provider already in the main run stops it.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -27,7 +35,7 @@ import { parseRealtaskBurst } from "../src/lib/realtask-burst";
 type Json = Record<string, unknown>;
 
 function args() {
-  const out: { in?: string; out?: string; location?: string; hold: Map<string, string> } = { hold: new Map() };
+  const out: { in?: string; out?: string; location?: string; hold: Map<string, string>; add: string[] } = { hold: new Map(), add: [] };
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 2) {
     const [flag, value] = [argv[i], argv[i + 1]];
@@ -35,14 +43,15 @@ function args() {
     if (flag === "--in") out.in = value;
     else if (flag === "--out") out.out = value;
     else if (flag === "--location") out.location = value;
+    else if (flag === "--add") out.add.push(value);
     else if (flag === "--hold-change") {
       const eq = value.indexOf("=");
       if (eq < 1) throw new Error("--hold-change takes provider=why");
       out.hold.set(value.slice(0, eq), value.slice(eq + 1));
     } else throw new Error(`unknown flag ${flag}`);
   }
-  if (!out.in || !out.out || !out.location) throw new Error("usage: --in FILE --out FILE --location PLACE [--hold-change provider=why]...");
-  return { in: out.in, out: out.out, location: out.location, hold: out.hold };
+  if (!out.in || !out.out || !out.location) throw new Error("usage: --in FILE --out FILE --location PLACE [--hold-change provider=why]... [--add FILE]...");
+  return { in: out.in, out: out.out, location: out.location, hold: out.hold, add: out.add };
 }
 
 const firstSentence = (s: string) => s.split(/(?<=[.;])\s/)[0]!.replace(/[.;]$/, "");
@@ -60,9 +69,24 @@ export function plainReason(stage: string, reason: string): string {
   return `${stage}: ${firstSentence(reason)}`;
 }
 
+type Export = Json & { run: Json; providers: Json[] };
+
+/** A later run's providers, each carrying that run's id, SDK commit and start. */
+function added(main: Export, file: string): Json[] {
+  const other = JSON.parse(readFileSync(file, "utf8")) as Export;
+  for (const k of ["schema", "size", "rounds", "track", "profile"] as const)
+    if (other[k] !== main[k]) throw new Error(`${file}: ${k} is ${String(other[k])}, the main run's is ${String(main[k])}`);
+  const run = { id: other.run.id, sdkCommit: other.run.sdkCommit, startedAt: other.run.startedAt };
+  return other.providers.map((p) => {
+    if (main.providers.some((q) => q.provider === p.provider)) throw new Error(`${file}: ${String(p.provider)} is already in the main run`);
+    return { ...p, run };
+  });
+}
+
 function main() {
   const a = args();
-  const raw = JSON.parse(readFileSync(a.in, "utf8")) as Json & { providers: Json[] };
+  const base = JSON.parse(readFileSync(a.in, "utf8")) as Export;
+  const raw = { ...base, providers: [...base.providers, ...a.add.flatMap((f) => added(base, f))] };
   const unknown = [...a.hold.keys()].filter((id) => !raw.providers.some((p) => p.provider === id));
   if (unknown.length) throw new Error(`--hold-change names providers not in the run: ${unknown.join(", ")}`);
   const fix = (tasks: Json[]) =>
@@ -79,7 +103,7 @@ function main() {
     const note = held ?? (few ? `only ${String(p.completed)} of ${String(p.attempts)} tasks finished, too few to compare with alone` : undefined);
     return { ...p, tasks, solo, ...(note ? { slowdown: null, slowdownWithoutUpload: null, changeNote: note } : {}) };
   });
-  const out = { ...raw, run: { ...(raw.run as Json), location: a.location }, providers };
+  const out = { ...raw, run: { ...raw.run, location: a.location }, providers };
   parseRealtaskBurst(out);
   writeFileSync(a.out, `${JSON.stringify(out, null, 2)}\n`);
   console.log(`wrote ${a.out}: ${providers.length} providers`);

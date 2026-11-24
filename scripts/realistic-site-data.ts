@@ -24,6 +24,8 @@
  *     --parts scripts/realistic-parts/beam-tiers-shared.json \
  *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-spot/summary/summary.json \
  *     --parts scripts/realistic-parts/beam-tiers-spot.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-maritime/summary.json \
+ *     --parts scripts/realistic-parts/sbx-maritime.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -66,6 +68,15 @@
  * the same plan run the same day as its tiers, so the tier table compares
  * same-day runs; its Nov 18 run (sbx-beam) took 138 s and 186 s. Every other
  * provider's rows came out unchanged.
+ *
+ * Rebuilt on 2026-11-24 with Maritime added (sbx-maritime: headline runs that
+ * day, 02:34 to 04:20 UTC, sandbox-sdk 619307b on the maritime-provider branch).
+ * Its costs are metered from GET /v1/sandboxes/{id}/info and
+ * GET /v1/usage?sandbox={id}; it has no held-open run, as that usage leaves out
+ * the paused-disk charge. Its five incomplete runs (Build: one killed with exit
+ * 137 on the 4 GiB default, four broken command streams) failed in the
+ * workload, not in setup, so it needs no --attempts file. Every other
+ * provider's rows and held-open entries came out unchanged.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

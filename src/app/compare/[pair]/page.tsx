@@ -186,7 +186,7 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
       <ul className="mt-m flex flex-col gap-xxs text-s text-pretty text-neutral-7">
         <li>Asked for: {t.machine.asked}.</li>
         {t.machine.note ? <li>Machine: {t.machine.note}</li> : null}
-        {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : null}
+        {t.ranIn ? <li>Ran in: {t.ranIn}.</li> : t.outboundIpLocation ? <li>Outbound IP location: {t.outboundIpLocation}.</li> : null}
         <li>Billing: {t.billing}.</li>
         {t.cost.kind === "priced" ? (
           <li>
