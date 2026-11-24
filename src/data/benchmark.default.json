@@ -909,9 +909,9 @@
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-24T05:03:44.402Z"
+  "end": "2026-11-24T05:33:43.007Z"
  },
- "observations": 45447,
+ "observations": 45523,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1244,9 +1244,34 @@
    "samples": 50
   },
   {
-   "id": "sbxm-default-burst",
+   "id": "sbxm-default-b10-c1",
    "suite": "burst",
-   "samples": 350
+   "samples": 41
+  },
+  {
+   "id": "sbxm-default-b10-c2",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxm-default-b10-c3",
+   "suite": "burst",
+   "samples": 41
+  },
+  {
+   "id": "sbxm-default-b25-c1",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxm-default-b25-c2",
+   "suite": "burst",
+   "samples": 101
+  },
+  {
+   "id": "sbxm-default-b25-c3",
+   "suite": "burst",
+   "samples": 101
   }
  ],
  "excluded": [
@@ -3691,13 +3716,13 @@
    "pricingSource": "https://maritime.sh/docs/billing",
    "pricingNotes": "Published virtual machine rates: $0.0055/vCPU-hour and $0.00275/GiB-hour of memory, per second while running, no minimum, at any size from 1 to 16 vCPU and 1 to 64 GiB; disk is included while running (small 2/4 = $0.022/hour, medium 4/8 $0.044, large 8/16 $0.088, xlarge 16/32 $0.176). A paused (asleep) sandbox costs $0.08/GB-month of disk and no compute, which these estimates leave out. Plan fee and its equal monthly usage credit ($100 on Growth) excluded.",
    "reliability": {
-    "successes": 2734,
-    "failures": 51,
-    "raw": 0.9816876122082585,
-    "adjusted": 0.9816876122082585,
+    "successes": 2890,
+    "failures": 9,
+    "raw": 0.9968954812004139,
+    "adjusted": 0.9968954812004139,
     "accountLimit": 0,
     "clientNetwork": 0,
-    "provider": 51
+    "provider": 9
    },
    "hardware": {
     "fingerprints": 125,
@@ -3736,24 +3761,13 @@
    "failureReasons": [
     {
      "kind": "provider-operation",
-     "reason": "Maritime POST /sandboxes failed (HTTP 429 rate_limited). (quota, HTTP 429)",
-     "count": 37,
-     "runs": 37,
-     "tests": [
-      "25 at once",
-      "10 at once"
-     ]
-    },
-    {
-     "kind": "provider-operation",
      "reason": "Maritime POST /commands failed: the service is unreachable. (unavailable)",
-     "count": 6,
-     "runs": 6,
+     "count": 5,
+     "runs": 5,
      "tests": [
       "Cold start",
       "Start from snapshot",
-      "cold",
-      "25 at once"
+      "cold"
      ]
     },
     {
@@ -3790,42 +3804,6 @@
      "runs": 1,
      "tests": [
       "Cold start"
-     ]
-    },
-    {
-     "kind": "provider-operation",
-     "reason": "23/25 ready; 25 attempted (budgets may prevent admission)",
-     "count": 1,
-     "runs": 1,
-     "tests": [
-      "25 at once, all ready"
-     ]
-    },
-    {
-     "kind": "provider-operation",
-     "reason": "24/25 ready; 25 attempted (budgets may prevent admission)",
-     "count": 1,
-     "runs": 1,
-     "tests": [
-      "25 at once, all ready"
-     ]
-    },
-    {
-     "kind": "provider-operation",
-     "reason": "0/10 ready; 10 attempted (budgets may prevent admission)",
-     "count": 1,
-     "runs": 1,
-     "tests": [
-      "10 at once, all ready"
-     ]
-    },
-    {
-     "kind": "provider-operation",
-     "reason": "0/25 ready; 25 attempted (budgets may prevent admission)",
-     "count": 1,
-     "runs": 1,
-     "tests": [
-      "25 at once, all ready"
      ]
     }
    ],
@@ -7208,6 +7186,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 3,
+     "p50": 2.2673474000000002,
+     "p95": 2.372977109,
+     "min": 2.0651777850000004,
+     "ciLow": 2.0651777850000004,
+     "ciHigh": 2.372977109,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7385,6 +7376,19 @@
      "min": 1.9894785589999993,
      "ciLow": 1.9894785589999993,
      "ciHigh": 2.762324177999999,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 3,
+     "p50": 3.2461073559999996,
+     "p95": 3.3226264669999996,
+     "min": 3.061697163,
+     "ciLow": 3.061697163,
+     "ciHigh": 3.3226264669999996,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -10564,15 +10568,13 @@
  },
  "missing": {
   "burst-25": {
-   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
-   "maritime": "stopped-early: none of 3 bursts of 25 finished, so the size is not published; 23, 24 and 0 of 25 machines were ready, the rest refused with HTTP 429 (rate_limited) but one, whose first command found the service unreachable. Its docs allow 30 creates a minute per API key"
-  },
-  "burst-10": {
-   "maritime": "stopped-early: only 2 of 3 bursts of 10 finished, so the size is not published; in the third, Maritime refused all 10 creates with HTTP 429 (rate_limited). Its docs allow 30 creates a minute per API key"
+   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24)."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24).",
+  "burst-10": "Maritime's bursts of 10 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable.",
+  "burst-25": "Maritime's bursts of 25 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable."
  },
  "stress": {
   "observations": 1446,
