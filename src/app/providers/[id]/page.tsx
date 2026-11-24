@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Columns } from "@/components/columns";
+import type { Column } from "@/components/columns";
 import { TierTable, tieredWithData } from "@/components/cpu-tiers";
 import { NoCostResults, costColumns } from "@/components/cost";
 import { failureLine } from "@/components/failure-list";
@@ -31,7 +32,7 @@ import { alternativesPath, comparePath, comparisonsWith, forProvidersPath, isAlt
 import type { ProviderPageId } from "@/lib/seo/pages";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
-import { fingerprintDate, ranInTerm, ranInText } from "@/lib/hardware";
+import { fingerprintDate, ranInFact, ranInTerm, ranInText } from "@/lib/hardware";
 import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, scorecard, taskText, verdict } from "@/lib/seo/provider";
 import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
 
@@ -96,6 +97,16 @@ function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: str
 }
 
 /**
+ * A compact cost chart's tags as a note under its column view, as the home
+ * page's compact charts say them: "Archil: usage cost, unsettled." A tag
+ * under a slanted name would cross the next names. Nothing when no column has
+ * a tag, so every other chart draws as before.
+ */
+const TagNote = ({ columns }: { columns: readonly Column[] }) => (
+  <CompactNotes items={columns.flatMap((c) => (c.tag === undefined ? [] : [{ mark: undefined, id: c.provider, note: c.tag }]))} />
+);
+
+/**
  * Fix and test's cost per 1,000 completed tasks, every costed provider, with
  * the home page chart's notes: who can't be the cheapest pick and why (such as
  * boxd's larger machine), and why the others have no cost.
@@ -103,9 +114,10 @@ function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: str
 function TaskCostChart({ id, track }: { id: ProviderPageId; track: Track }) {
   const { costed, uncosted } = headlineRows(realistic, runTrackOf[track.id], "fix-and-test");
   if (costed.length === 0) return <ComingNext compact>No fix and test costs on this track yet.</ComingNext>;
+  const columns = taskCostColumns(costed, track.id);
   return (
     <>
-      <Columns columns={taskCostColumns(costed, track.id)} label="Fix and test: cost per 1,000 completed tasks by provider" compact linked highlight={id} />
+      <Columns columns={columns} label="Fix and test: cost per 1,000 completed tasks by provider" compact linked highlight={id} tagNote={<TagNote columns={columns} />} />
       <CompactNotes
         items={[
           ...costed.flatMap((r) => {
@@ -126,7 +138,7 @@ function QuickCostChart({ id, track }: { id: ProviderPageId; track: Track }) {
   const machine = allocationNotes(track);
   return (
     <>
-      <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked highlight={id} />
+      <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked highlight={id} tagNote={<TagNote columns={columns} />} />
       <CompactNotes items={[...marks].map(([pid, mark]) => ({ mark, id: pid, note: machine[pid] ?? "" }))} />
     </>
   );
@@ -340,7 +352,7 @@ function MetaStrip({ r, t }: { r: ReturnType<typeof providerResults>; t: Provide
     { term: "Machine", value: t.machine.measured ?? t.machine.asked },
     ...(h ? [{ term: "Runs as", value: h.runsAs.split(",")[0] ?? h.runsAs }] : []),
     ...(h ? [{ term: "CPU", value: h.chip }] : []),
-    { term: "Region", value: t.ranIn ? ranInText(t.ranIn) : (h?.region ?? "Not shown") },
+    t.ranIn ? ranInFact(t.ranIn) : { term: "Region", value: h?.region ?? "Not shown" },
     { term: "Billing", value: capital(t.billing) },
   ];
   return (

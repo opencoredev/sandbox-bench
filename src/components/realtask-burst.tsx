@@ -47,25 +47,33 @@ function marksFor(timed: readonly BurstRan[]) {
   return marks;
 }
 
+/** Why the data holds back a ratio (`changeNote`), when it has none to show; null when a ratio shows or no reason is given. */
+const withheldWhy = (p: BurstRan) => (p.slowdown === null ? p.changeNote : null);
+
 function columnsOf(timed: readonly BurstRan[], marks: ReturnType<typeof marksFor>, size: number): Column[] {
-  return timed.map((p) => ({
-    provider: p.provider,
-    label: formatShort(p.medianWallS, "s"),
-    mark: marks.get(p.provider)?.mark,
-    tag: p.slowdown === null ? undefined : `${p.slowdown.toFixed(2)}×`,
-    segments: [{ value: p.medianWallS, color: providerColor(p.provider), fill: "solid" }],
-    // Values stay short: the card's value column takes its widest value, and a long one squeezes the labels.
-    detail: [
-      [`Median, ${size} at once`, wallText(p.medianWallS)],
-      ...(p.soloMedianWallS === null ? [] : [[p.solo ? "Median alone, same day" : "Median alone", wallText(p.soloMedianWallS)] as const]),
-      ...(p.slowdown === null ? [] : [["At once ÷ alone", ratio(p.slowdown)] as const]),
-      ...(p.slowdownWithoutUpload === null ? [] : [["Without the upload", ratio(p.slowdownWithoutUpload)] as const]),
-      ["Finished", `${p.completed} of ${p.attempts}`],
-      ...(p.medianUploadS === null ? [] : [[`Upload, ${size} at once`, wallText(p.medianUploadS)] as const]),
-      ...(p.soloMedianUploadS === null ? [] : [["Upload, alone", wallText(p.soloMedianUploadS)] as const]),
-      ...(p.roundAllDoneS.length === 0 ? [] : [roundsText(p, size)]),
-    ],
-  }));
+  return timed.map((p) => {
+    const why = withheldWhy(p);
+    return {
+      provider: p.provider,
+      label: formatShort(p.medianWallS, "s"),
+      mark: marks.get(p.provider)?.mark,
+      // The ratio, or "ratio withheld" beside a bar whose ratio the data holds back with a reason; the reason is in the card.
+      tag: p.slowdown !== null ? ratio(p.slowdown) : why !== null ? "ratio withheld" : undefined,
+      segments: [{ value: p.medianWallS, color: providerColor(p.provider), fill: "solid" }],
+      // Values stay short: the card's value column takes its widest value, and a long one squeezes the labels.
+      detail: [
+        [`Median, ${size} at once`, wallText(p.medianWallS)],
+        ...(p.soloMedianWallS === null ? [] : [[p.solo ? "Median alone, same day" : "Median alone", wallText(p.soloMedianWallS)] as const]),
+        ...(p.slowdown === null ? [] : [["At once ÷ alone", ratio(p.slowdown)] as const]),
+        ...(p.slowdownWithoutUpload === null ? [] : [["Without the upload", ratio(p.slowdownWithoutUpload)] as const]),
+        ["Finished", `${p.completed} of ${p.attempts}`],
+        ...(p.medianUploadS === null ? [] : [[`Upload, ${size} at once`, wallText(p.medianUploadS)] as const]),
+        ...(p.soloMedianUploadS === null ? [] : [["Upload, alone", wallText(p.soloMedianUploadS)] as const]),
+        ...(why === null ? [] : [`Ratio withheld: ${sentence(why)}`]),
+        ...(p.roundAllDoneS.length === 0 ? [] : [roundsText(p, size)]),
+      ],
+    };
+  });
 }
 
 const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });

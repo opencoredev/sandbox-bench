@@ -99,6 +99,24 @@ export function ranInText(r: RanIn) {
   }
 }
 
+/**
+ * The provider page header's location fact. Most providers: "Region",
+ * "Boardman, US". Where only the API region and outbound IPs are placed
+ * (Archil), it names that evidence and says the sandbox's place is unknown.
+ */
+export function ranInFact(r: RanIn): { term: string; value: string } {
+  switch (r.kind) {
+    case "ran-in":
+      return { term: "Region", value: r.place };
+    case "outbound":
+      return { term: "API and outbound IPs", value: `API ${r.api}; outbound IPs ${r.owner}, ${r.place}; sandbox location unknown` };
+    default: {
+      const _exhaustive: never = r;
+      return _exhaustive;
+    }
+  }
+}
+
 /** For a sentence: "in Boardman, US", or "with Amazon outbound IPs in Ashburn, US and the API in aws-us-east-1". */
 export function ranInPhrase(r: RanIn) {
   switch (r.kind) {
