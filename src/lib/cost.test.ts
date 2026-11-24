@@ -56,10 +56,10 @@ describe("usage cost", () => {
     assert.match("why" in s ? s.why : "", /metadata record \(its status and end time\).*keeps the usage record for 90 days/);
   });
 
-  test("other providers keep their labels; an unsettled bill says so beside the amount", () => {
+  test("other providers keep their labels, an unsettled bill included", () => {
     const daytona = cost("billed", false);
-    assert.equal(costTag("daytona", daytona, costStatus("daytona", daytona)), "billed, unsettled");
-    assert.equal(costSource("daytona", daytona), "From Daytona's bill, 10 tasks, unsettled");
+    assert.equal(costTag("daytona", daytona, costStatus("daytona", daytona)), "billed");
+    assert.equal(costSource("daytona", daytona), "From Daytona's bill, 10 tasks");
     const upstash = cost("billed", true);
     assert.equal(costTag("upstash", upstash, costStatus("upstash", upstash)), "billed");
     assert.equal(costSource("upstash", upstash), "From Upstash Box's bill, 10 tasks");

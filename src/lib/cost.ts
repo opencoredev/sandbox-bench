@@ -191,8 +191,11 @@ export function costTag(id: ProviderId, c: Priced, s: CostStatus) {
     case "lowerBound":
       return kindStatusText(c.kind, [s.kind]);
     case "unsettled":
-      // Unsettled is said beside the amount, as the realistic charts do, so it can't be read as final.
-      return `${costLabel(id, c).toLowerCase()}, ${costStatuses.unsettled.label.toLowerCase()}`;
+      // A provider-reported usage cost (Archil's) says beside the amount that it isn't settled, so
+      // it can't be read as a bill. Other providers' labels are unchanged.
+      return isUsageCost(id, c)
+        ? `${costLabel(id, c).toLowerCase()}, ${costStatuses.unsettled.label.toLowerCase()}`
+        : costLabel(id, c).toLowerCase();
     default:
       return costLabel(id, c).toLowerCase();
   }
@@ -426,7 +429,7 @@ export function costSource(id: ProviderId, c: Priced) {
   const from = isUsageCost(id, c)
     ? `From the usage cost ${usageCostSources[id]} reports`
     : `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}`;
-  const unsettled = costStatus(id, c).kind === "unsettled" ? ", unsettled" : "";
+  const unsettled = isUsageCost(id, c) && costStatus(id, c).kind === "unsettled" ? ", unsettled" : "";
   return `${from}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}${unsettled}`;
 }
 
