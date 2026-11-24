@@ -276,9 +276,6 @@ export function providerBatchesText(data: Pick<RegionalData, "providerBatches" |
   return `commit ${own.commit.slice(0, 7)}: ${shown.map((b) => `${label(b.region)} ${andList(b.runs)}`).join("; ")}`;
 }
 
-/** "batch sbx65-r1 (commit cc96da3)": where every other row comes from. */
-export const sharedBatchText = (data: Pick<RegionalData, "batchId" | "commit">) => `batch ${data.batchId} (commit ${data.commit.slice(0, 7)})`;
-
 export const rowOf = (data: RegionalData, provider: ProviderId, metric: string) => data.rows.find((r) => r.provider === provider && r.metric === metric);
 
 /**

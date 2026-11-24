@@ -266,9 +266,10 @@ export function Scatter({
                 className="group/pt absolute size-0 outline-none hover:z-20 focus:z-20"
                 style={{ left: along(px, "x"), top: along(py, "y") }}
               >
+                {/* The dot and its number sit above every point's wider invisible target (z-10), so a neighbour's target can't take them. */}
                 <span
                   aria-hidden
-                  className="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-neutral-2 transition-[scale] duration-[var(--motion-duration)] group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-accent motion-reduce:transition-none"
+                  className="absolute z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-neutral-2 transition-[scale] duration-[var(--motion-duration)] group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-accent motion-reduce:transition-none"
                   style={markFill(rowFill(p.provider, "solid"), color)}
                 />
                 {/* A wider invisible target than the 12px dot. */}
@@ -283,7 +284,7 @@ export function Scatter({
                 {num ? (
                   <span
                     aria-hidden
-                    className="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-xxs leading-none text-neutral-9 tabular-nums sm:hidden"
+                    className="absolute z-10 -translate-x-1/2 -translate-y-1/2 font-mono text-xxs leading-none text-neutral-9 tabular-nums sm:hidden"
                     style={{ left: num.dx, top: num.dy }}
                   >
                     {num.n}

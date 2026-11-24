@@ -436,7 +436,7 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     family: "Zen 5, from CPU features: AVX-512 VP2INTERSECT, AVX-VNNI, MOVDIRI and MOVDIR64B, none of which Zen 4 has; the model and clock are hidden",
     chipBasis: "inferred",
     memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
-    cloud: "AWS, from its outbound IPs",
+    cloud: "Not known; outbound IPs are Amazon's",
     region: "Outbound IPs are Amazon's in Ashburn, Virginia, on every sandbox, consistent with us-east-1, the API region our runs used; that is where traffic leaves, not proof of where the sandbox runs",
     // Only the API region (aws-us-east-1) is confirmed, so the badge names the API, as Daytona's and Instabox's do.
     regionShort: null,

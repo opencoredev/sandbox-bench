@@ -9,8 +9,6 @@ import type { Column } from "@/components/columns";
 import { CompactNotes } from "@/components/metric-chart";
 import { RealtaskBurstChart } from "@/components/realtask-burst";
 import { trackIds } from "@/lib/data";
-import { sentence } from "@/lib/notes";
-import { providerName } from "@/lib/providers";
 import { ranInFact, ranInOf, ranInText } from "@/lib/hardware";
 import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { providerPages } from "@/lib/seo/pages";

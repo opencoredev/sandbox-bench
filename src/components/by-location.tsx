@@ -8,7 +8,7 @@ import { dayRange, formatCount, formatValue } from "@/lib/format";
 import { hardware, locationLabel, notProbed } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { ownBatchProviders, providerBatchesText, regional, rowOf, sampleRange, sharedBatchText, standingOf } from "@/lib/regions";
+import { ownBatchProviders, providerBatchesText, regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
 import type { RegionCell, RegionId, RegionMetric, Vantage } from "@/lib/regions";
 
 /**
@@ -75,7 +75,6 @@ function BatchNote({ only }: { only?: RegionId }) {
           &apos;s rows come from its own batches ({text}).{" "}
         </span>
       ))}
-      Every other row comes from {sharedBatchText(regional)}.
     </p>
   );
 }

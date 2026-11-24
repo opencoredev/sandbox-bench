@@ -89,8 +89,8 @@ import type { Expanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
-import { ownBatchProviders, providerBatchesText, regional, sharedBatchText } from "@/lib/regions";
-import { sdkSetup, sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
+import { ownBatchProviders, providerBatchesText, regional } from "@/lib/regions";
+import { sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -901,7 +901,7 @@ function runProvenanceMarkdown() {
   return [
     "## Own runs for By location and SDK setup",
     "",
-    `By location rows come from ${sharedBatchText(regional)} and SDK setup from the run at commit ${sdkSetup.commit}, except:`,
+    "These providers' By location rows or SDK setup figures come from their own runs, named here:",
     "",
     ...ids.map((id) => {
       const batches = providerBatchesText(regional, id);
@@ -1008,7 +1008,7 @@ function howToReadQualifiers() {
   const own = Object.keys(runProvenance()).filter(isProviderId);
   const provenance =
     own.length > 0
-      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows (every other row comes from ${sharedBatchText(regional)}), and \`sdkSetup\` the run id, commit and date behind its SDK setup figure (every other figure comes from the run at commit ${sdkSetup.commit}).`
+      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows, and \`sdkSetup\` the run id, commit and date behind its SDK setup figure. Other providers' run notes name their own runs.`
       : "";
   return `${lower}${region}${usage === null ? "" : ` ${usage}`}${place}${provenance}`;
 }

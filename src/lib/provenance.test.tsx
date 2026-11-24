@@ -158,7 +158,8 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
   test("By location says where Archil's rows come from, on every tab", () => {
     const html = renderToStaticMarkup(<ByLocation />).replaceAll("&#x27;", "'");
     assert.ok(html.includes(`'s rows come from its own batches (commit 1f1de78: EU-Central ${batches.eu.join(" and ")}; US-East ${batches["us-east"].join(" and ")}).`));
-    assert.ok(html.includes("Every other row comes from batch sbx65-r1 (commit cc96da3)."));
+    // Other providers' rows come from more than one batch (Instabox's and boxd's are later), so no shared batch is claimed for them.
+    assert.ok(!html.includes("Every other row comes from"));
     assert.equal(providerBatchesText(regional, "archil", "eu" as RegionId), `commit 1f1de78: EU-Central ${batches.eu.join(" and ")}`);
     assert.equal(providerBatchesText(regional, "e2b"), null);
   });
@@ -169,7 +170,9 @@ describe("item 3: Archil's own By location batches and SDK setup run", () => {
       archil: { byLocation: { commit: "1f1de78", batches }, sdkSetup: { runId: "sbx57-mwtux8wi", sdkCommit: "1f1de78", date: "Nov 23, 2026" } },
     });
     assert.ok(json.howToRead.includes("`runProvenance`, keyed by provider (Archil)"));
-    assert.ok(json.howToRead.includes("every other row comes from batch sbx65-r1 (commit cc96da3)"));
+    // Baseten, Instabox and Beam have their own SDK setup commits, and Instabox and boxd later By location batches: no shared-run claim.
+    assert.ok(!json.howToRead.includes("every other row comes from") && !json.howToRead.includes("every other figure comes from"));
+    assert.ok(json.howToRead.includes("Other providers' run notes name their own runs."));
   });
 
   test("results.md lists Archil's own runs; llms.txt carries the same howToRead", () => {

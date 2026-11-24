@@ -175,8 +175,9 @@ describe("item 4: realistic cost labels say usage cost for Archil", () => {
 });
 
 // Archil's realistic figures are compute and memory charges from its usage API, with no storage
-// estimate added, and one of its three 1-hour held-open runs was refused because Archil had paused
-// the idle sandbox (its attempt log; the data says only "check-failed"). Both are said for Archil only.
+// estimate added, and one of its three 1-hour held-open runs was refused with Archil reporting the
+// sandbox paused or stopped, most likely its idle pause (its attempt log; the data says only "check-failed").
+// Both are said for Archil only.
 
 const archilScope =
   "Archil's headline and held-open figures cover compute and memory only, the charges its usage API reports; disk storage and egress are not included, and no storage estimate is added.";
@@ -220,7 +221,7 @@ describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-
   // Each provider's bars, up to the line under the grid, so the last block holds no table or notes.
   const blocks = html.slice(0, html.indexOf("Not in this test:")).split('<div class="flex min-w-0 flex-col gap-xs">').slice(1);
   const archilBlock = blocks.find((b) => b.includes(">Archil<")) ?? "";
-  const refusal = "1 refused, sandbox paused";
+  const refusal = "1 refused, paused or stopped";
 
   test("each Archil bar has its amount and the tag under it, and the 1-hour bar the refusal beside 2 of 3 done", () => {
     const bars = archilBlock.split('role="listitem"').slice(1);
@@ -230,7 +231,7 @@ describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-
       assert.ok(bar.includes(`col-span-full -mt-0.5 text-right text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
       assert.ok(bar.includes(`${amount} per 1,000, ${usageTag}`), `${amount} aria-label`);
     }
-    assert.match(bars[2] ?? "", /2 of 3 done<\/span><span class="text-neutral-7"> \(1 refused, sandbox paused\)<\/span>/);
+    assert.match(bars[2] ?? "", /2 of 3 done<\/span><span class="text-neutral-7"> \(1 refused, paused or stopped\)<\/span>/);
     for (const bar of bars.slice(0, 2)) assert.ok(!bar.includes("refused"));
   });
 
@@ -240,7 +241,7 @@ describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-
     for (const [row, amount] of rows.map((r, i) => [r, ["$12.67", "$76.00", "$393"][i]] as const))
       assert.ok(row.includes(`${amount}<span class="block font-sans text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
     assert.ok(rows[2]?.includes(`2 of 3<span class="block font-sans text-xxs leading-tight text-neutral-7">${refusal}</span>`));
-    assert.ok(html.includes("Archil, 1 hour: </span>One of its three 1-hour runs was refused at the resume step because Archil had paused the idle sandbox"));
+    assert.ok(html.includes("Archil, 1 hour: </span>One of its three 1-hour runs was refused at the resume step: Archil reported the sandbox paused or stopped, most likely its own idle pause"));
   });
 
   test("no other provider's bar or table row gains a tag or a refusal", () => {

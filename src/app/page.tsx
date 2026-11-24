@@ -543,7 +543,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
     line: "A failure counts against the provider unless we traced it to our own harness or SDK; one whose cause is unconfirmed still counts.",
     more: (
       <>
-        Ones traced to our SDK include it timing out or wrapping the error while waiting, where the error can&apos;t show whose side failed. Attempts blocked by our own plan limits were rerun. Set aside:
+        Our SDK timing out or wrapping the error while waiting is set aside as ours, even when the error can&apos;t show whose side failed; any other failure whose cause is unconfirmed counts. Attempts blocked by our own plan limits were rerun. Set aside:
         <SetAside />
       </>
     ),
