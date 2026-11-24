@@ -29,6 +29,7 @@ import {
   multipleNote,
   multipleText,
   resumeFailed,
+  rowUsageTag,
   noCostReason,
   perThousand,
   profileFootprintNote,
@@ -107,18 +108,23 @@ const priceNote = (id: ProviderId, track: TrackId | undefined) => (track ? regio
 
 /** The chart's columns, one per costed provider. The phone rows draw their bars from the same columns. */
 export function columnsOf(costed: readonly Costed[], track?: TrackId): Column[] {
-  return costed.map((row) => ({
-    provider: row.provider,
-    label: perThousand(row.cost.usdPerCompleted),
-    note: priceNote(row.provider, track),
-    segments: [{ value: row.cost.usdPerCompleted, color: providerColor(row.provider), fill: "solid" }],
-    detail: [
-      ["Per 1,000 completed", perThousand(row.cost.usdPerCompleted)],
-      ["Completed", completedText(row)],
-      ...(row.medianWallS === null ? [] : [["Median time", wallText(row.medianWallS)] as const]),
-      sentence(cap(billingText(row.provider))),
-    ],
-  }));
+  return costed.map((row) => {
+    // Only a usage cost (Archil's) carries a tag, as on the quick-task and held-open charts; every other bar draws as before.
+    const tag = rowUsageTag(row);
+    return {
+      provider: row.provider,
+      label: perThousand(row.cost.usdPerCompleted),
+      ...(tag === null ? {} : { tag }),
+      note: priceNote(row.provider, track),
+      segments: [{ value: row.cost.usdPerCompleted, color: providerColor(row.provider), fill: "solid" }],
+      detail: [
+        ["Per 1,000 completed", `${perThousand(row.cost.usdPerCompleted)}${tag === null ? "" : ` (${tag})`}`],
+        ["Completed", completedText(row)],
+        ...(row.medianWallS === null ? [] : [["Median time", wallText(row.medianWallS)] as const]),
+        sentence(cap(billingText(row.provider))),
+      ],
+    };
+  });
 }
 
 const notRun = (row: RealisticRow) => row.notRun === row.attempts;
@@ -217,7 +223,10 @@ function OneBar({ row, bar }: { row: RealisticRow; bar: Bar | undefined }) {
  * the chart isn't drawn a second time above the list.
  */
 function ProviderRow({ row, bars, track }: { row: RealisticRow; bars: RowBars; track: TrackId | undefined }) {
-  const note = row.cost ? priceNote(row.provider, track) : shortReason(row);
+  // A usage cost (Archil's) adds its tag beside the price, as the chart's bar does; every other row's note is as before.
+  const usage = rowUsageTag(row);
+  const price = row.cost ? priceNote(row.provider, track) : undefined;
+  const note = !row.cost ? shortReason(row) : usage === null ? price : [price, usage].filter(Boolean).join(" · ");
   return (
     <li className="border-t border-neutral-3" {...(isExtraTier(row.provider) ? { "data-tier-extra": "" } : {})}>
       <Disclosure
@@ -435,10 +444,17 @@ export function TaskCostHeadline({ track }: { track: Track }) {
             <p className="mb-s text-s text-pretty text-neutral-7">
               <span className="font-medium text-neutral-10">{profileInfo[profile].label}</span> · <CheapestShort costed={costed} />
             </p>
-            {/* No track, so no region note under a column, where a compact chart's slanted names would cross it; it goes in the notes. */}
-            {costed.length > 0 ? <Columns columns={columnsOf(costed)} label={`${profileInfo[profile].label}: cost per 1,000 completed tasks by provider`} compact linked /> : null}
+            {/* No track, so no region note under a column, where a compact chart's slanted names would cross it; it goes in the notes.
+                A usage cost's tag (Archil's) moves there too, and stays in the bar's accessible label. */}
+            {costed.length > 0 ? (
+              <Columns columns={columnsOf(costed).map((c) => ({ ...c, tag: undefined }))} label={`${profileInfo[profile].label}: cost per 1,000 completed tasks by provider`} compact linked />
+            ) : null}
             <CompactNotes
               items={[
+                ...costed.flatMap((r) => {
+                  const tag = rowUsageTag(r);
+                  return tag === null ? [] : [{ mark: undefined, id: r.provider, note: tag }];
+                }),
                 ...costed.flatMap((r) => {
                   const note = priceNote(r.provider, track.id);
                   return note ? [{ mark: undefined, id: r.provider, note: `priced at its ${note}` }] : [];

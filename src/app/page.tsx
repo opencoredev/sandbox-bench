@@ -57,6 +57,7 @@ import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNo
 import { isExtraTier, isProviderId, providerBrand, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
+import { sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
 import { advertised } from "@/lib/sizes";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
@@ -76,6 +77,15 @@ import { advertised } from "@/lib/sizes";
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 // Speed first, in the order an agent meets it, then cost, then what explains the numbers.
 // Scores sit right under the title, so they have no item: one more would push the bar past 1440 px.
+/** " Archil's comes from its own run, sbx57-mwtux8wi (commit 1f1de78, Nov 23, 2026).", for each provider whose SDK setup figure has its own run; empty otherwise. */
+const ownSetupRuns = () =>
+  sdkSetupRunProviders
+    .flatMap((id) => {
+      const r = sdkSetupRuns[id];
+      return r ? [` ${providerName(id)}'s comes from its own ${sdkSetupRunText(r)}.`] : [];
+    })
+    .join("");
+
 const sections = [
   ["startup", "Start-up", "cold"],
   ["real-tasks", "Real tasks", "fix-and-test"],
@@ -512,7 +522,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cold start",
     line: "Timed from create() until a first command runs: the provider's own time.",
-    more: "The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. On the faster SDK it takes about 0.2 ms; the waterfall shows it beside each provider's time, from a separate run of 20 creates per provider.",
+    more: `The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. On the faster SDK it takes about 0.2 ms; the waterfall shows it beside each provider's time, from a separate run of 20 creates per provider.${ownSetupRuns()}`,
   },
   {
     term: "Runs",

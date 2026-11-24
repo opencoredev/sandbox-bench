@@ -33,7 +33,8 @@ import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/dat
 import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
-import { chipBasisLabel, fingerprintDate, hardware, probeDate } from "@/lib/hardware";
+import { chipBasisLabel, fingerprintDate, hardware, probeDate, ranInOf, ranInText } from "@/lib/hardware";
+import type { RanIn } from "@/lib/hardware";
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, autoStandby, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { pauseOf } from "@/lib/pause";
@@ -84,6 +85,8 @@ import type { Expanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
+import { ownBatchProviders, providerBatchesText, regional, sharedBatchText } from "@/lib/regions";
+import { sdkSetup, sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -736,6 +739,87 @@ function tierFacts(id: ProviderId) {
   return { name: t.name, cpu: t.cpu, preemptible: t.preemptible, ratesUsd: t.rates, firstTier: !isExtraTier(id), promise: t.promise };
 }
 
+/**
+ * Where a provider ran, as the provider page says it: `ranIn`, or, for a
+ * provider placed only by its outbound IPs and API region (Archil),
+ * `ranIn: null` with those, so no export names where its sandbox runs.
+ */
+type PlaceFields = { ranIn: string | null } | { ranIn: null; outboundIpLocation: string; outboundIpOwner: string; apiRegion: string };
+
+function placeFields(id: ProviderId, place: string | null): PlaceFields {
+  const r = ranInOf({ id, place });
+  if (r === null) return { ranIn: null };
+  switch (r.kind) {
+    case "ran-in":
+      return { ranIn: r.place };
+    case "outbound":
+      return { ranIn: null, outboundIpLocation: r.place, outboundIpOwner: r.owner, apiRegion: r.api };
+    default: {
+      const _exhaustive: never = r;
+      return _exhaustive;
+    }
+  }
+}
+
+/** The placement back from a track's exported fields, for the provider and compare pages. */
+export function placeOf(f: PlaceFields): RanIn | null {
+  if ("outboundIpLocation" in f) return { kind: "outbound", place: f.outboundIpLocation, owner: f.outboundIpOwner, api: f.apiRegion };
+  return f.ranIn === null ? null : { kind: "ran-in", place: f.ranIn };
+}
+
+/** results.md's "Ran in" cell: the place, or for a provider placed only by outbound IPs and API, "not stated" and the page's words. */
+function placeCell(f: PlaceFields) {
+  const r = placeOf(f);
+  if (r === null) return "not reported";
+  return r.kind === "outbound" ? `not stated (${ranInText(r)})` : r.place;
+}
+
+/** Providers placed only by their outbound IPs and API region, in the order the tracks list them. */
+const outboundOnlyProviders = () => [
+  ...new Set(trackIds.flatMap((id) => tracks[id].providers.flatMap((p) => (ranInOf({ id: p.id, place: p.hardware?.location[0]?.value ?? null })?.kind === "outbound" ? [p.id] : [])))),
+];
+
+/**
+ * Per provider, its own runs behind its By location rows and its SDK setup
+ * figure, where they are not the shared batch and run. Only providers with
+ * one of them appear; empty when none has.
+ */
+function runProvenance() {
+  const ids = [...new Set([...ownBatchProviders(regional), ...sdkSetupRunProviders])];
+  return Object.fromEntries(
+    ids.map((id) => {
+      const own = regional.providerBatches[id];
+      const setup = sdkSetupRuns[id];
+      return [
+        id,
+        {
+          ...(own ? { byLocation: { commit: own.commit, batches: Object.fromEntries(own.batches.map((b) => [b.region, b.runs])) } } : {}),
+          ...(setup ? { sdkSetup: { runId: setup.runId, sdkCommit: setup.sdkCommit, date: setup.date } } : {}),
+        },
+      ];
+    }),
+  );
+}
+
+/** results.md's lines for runProvenance, one per provider; empty when no provider has its own runs. */
+function runProvenanceMarkdown() {
+  const ids = Object.keys(runProvenance()).filter(isProviderId);
+  if (ids.length === 0) return [];
+  return [
+    "## Own runs for By location and SDK setup",
+    "",
+    `By location rows come from ${sharedBatchText(regional)} and SDK setup from the run at commit ${sdkSetup.commit}, except:`,
+    "",
+    ...ids.map((id) => {
+      const batches = providerBatchesText(regional, id);
+      const setup = sdkSetupRuns[id];
+      const parts = [...(batches ? [`By location from its own batches, ${batches}.`] : []), ...(setup ? [`SDK setup from ${sdkSetupRunText(setup)}.`] : [])];
+      return `- ${providerName(id)}: ${parts.join(" ")}`;
+    }),
+    "",
+  ];
+}
+
 /** One track as plain data. */
 function trackData(track: Track) {
   const notes = allocationNotes(track);
@@ -760,7 +844,7 @@ function trackData(track: Track) {
         allocation: allocationOf(p),
         allocationNote: notes[p.id] ?? (track.id === "default" ? advertised[p.id].note : null),
         advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
-        ranIn: p.hardware?.location[0]?.value ?? null,
+        ...placeFields(p.id, p.hardware?.location[0]?.value ?? null),
         cpu: p.hardware?.cpuModels[0]?.value ?? null,
         hardware: hardwareOf(p.id),
         costPerTask: costOf(track, p.id),
@@ -819,7 +903,17 @@ function howToReadQualifiers() {
       }),
     ),
   );
-  return `${lower}${region}${usage === null ? "" : ` ${usage}`}`;
+  const outbound = outboundOnlyProviders();
+  const place =
+    outbound.length > 0
+      ? ` \`ranIn: null\` with \`outboundIpLocation\`, \`outboundIpOwner\` and \`apiRegion\` (${outbound.map(providerName).join(", ")}): only where the sandboxes' outbound IPs geolocate, who owns those IPs and the API's region are known, so where the sandbox itself runs is not stated.`
+      : "";
+  const own = Object.keys(runProvenance()).filter(isProviderId);
+  const provenance =
+    own.length > 0
+      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows (every other row comes from ${sharedBatchText(regional)}), and \`sdkSetup\` the run id, commit and date behind its SDK setup figure (every other figure comes from the run at commit ${sdkSetup.commit}).`
+      : "";
+  return `${lower}${region}${usage === null ? "" : ` ${usage}`}${place}${provenance}`;
 }
 
 const howToReadText = () => `${howToRead}${howToReadQualifiers()}`;
@@ -834,6 +928,7 @@ export function agentData() {
     commonSize: commonSize.label,
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
+    ...(Object.keys(runProvenance()).length > 0 ? { runProvenance: runProvenance() } : {}),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
   };
 }
@@ -871,7 +966,7 @@ function trackMarkdown(id: TrackId) {
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${costKindCell(track, p.id)} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${placeCell(p)} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${costKindCell(track, p.id)} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
     ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),
@@ -1008,6 +1103,7 @@ export function agentMarkdown() {
     "",
     "The quick task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
+    ...runProvenanceMarkdown(),
     ...trackIds.flatMap(trackMarkdown),
     ...(hasExpanded(expanded) ? expandedMarkdown(expanded) : []),
   ];

@@ -1,10 +1,10 @@
-import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
+import { agentData, groups, llmsTxt, notRunText, placeOf } from "@/lib/agent-data";
 import { costLabel, costSourceText, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
-import { ranInOf, ranInPhrase } from "@/lib/hardware";
+import { ranInPhrase } from "@/lib/hardware";
 import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
@@ -98,7 +98,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
     providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
-    ranIn: ranInOf({ id, place: p.ranIn }),
+    ranIn: placeOf(p),
     cost:
       "basis" in cost && cost.perTaskUsd !== null
         ? {

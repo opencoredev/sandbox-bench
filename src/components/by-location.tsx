@@ -8,7 +8,7 @@ import { dayRange, formatCount, formatValue } from "@/lib/format";
 import { hardware, locationLabel, notProbed } from "@/lib/hardware";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { regional, rowOf, sampleRange, standingOf } from "@/lib/regions";
+import { ownBatchProviders, providerBatchesText, regional, rowOf, sampleRange, sharedBatchText, standingOf } from "@/lib/regions";
 import type { RegionCell, RegionId, RegionMetric, Vantage } from "@/lib/regions";
 
 /**
@@ -42,6 +42,30 @@ const sampleLine = () => {
   const runs = !range ? null : range.min === range.max ? `${range.min} runs per test` : `${range.min}–${range.max} runs per test`;
   return [dayRange(regional.window), runs].filter(Boolean).join(" · ");
 };
+
+/**
+ * Which batches the rows come from, said only when a provider has its own
+ * (Archil): its batches, at one location or all, and the shared batch for
+ * every other row. Nothing otherwise, so the section reads as before.
+ */
+function BatchNote({ only }: { only?: RegionId }) {
+  const own = ownBatchProviders(regional).flatMap((id) => {
+    const text = providerBatchesText(regional, id, only);
+    return text === null ? [] : [{ id, text }];
+  });
+  if (own.length === 0) return null;
+  return (
+    <p className="mt-xs text-xs text-pretty [overflow-wrap:anywhere] text-neutral-7">
+      {own.map(({ id, text }) => (
+        <span key={id}>
+          <Who id={id} />
+          &apos;s rows come from its own batches ({text}).{" "}
+        </span>
+      ))}
+      Every other row comes from {sharedBatchText(regional)}.
+    </p>
+  );
+}
 
 /** Compact horizontal bar pair comparing EU-Central vs US-East for one provider and metric, plus a single winner chip. */
 function ProviderLocationRow({
@@ -221,6 +245,7 @@ function OverviewPanel() {
       <p className="mt-s text-xs text-neutral-7">
         <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, each where its row says. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
+      <BatchNote />
     </>
   );
 }
@@ -329,6 +354,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
       <p className="mt-s text-xs text-neutral-7">
         <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, each where its row says. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
       </p>
+      <BatchNote only={region.id} />
     </>
   );
 }

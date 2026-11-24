@@ -5978,5 +5978,20 @@
       "best": "eu",
       "spread": 1.0116969638720776
     }
-  ]
+  ],
+  "providerBatches": {
+    "archil": {
+      "commit": "1f1de78",
+      "batches": {
+        "eu": [
+          "sbxar-r1-eu-default-main-b1-archil",
+          "sbxar-r1-eu-default-main-b2-archil"
+        ],
+        "us-east": [
+          "sbxar-r1-us-east-default-main-b1-archil",
+          "sbxar-r1-us-east-default-main-b2-archil"
+        ]
+      }
+    }
+  }
 }
