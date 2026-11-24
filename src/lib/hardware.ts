@@ -26,6 +26,8 @@ export interface HardwareDetail {
   regionShort: string | null;
   /** Where the provider's API is, for a badge when the sandbox's own location isn't shown: "Oregon". */
   apiRegionShort?: string;
+  /** Where outbound traffic leaves, for a badge when the sandbox's own hosting region isn't proven: "Germany". */
+  egressRegionShort?: string;
   runsAs: string;
   runsAsDetail: string;
   storage: string;
@@ -36,9 +38,18 @@ export interface HardwareDetail {
   sameSpec: string | null;
 }
 
-/** "Sandbox in Virginia"; "API in Oregon" where only the API's region is known; else "Location not shown". */
-export const locationLabel = (h: Pick<HardwareDetail, "regionShort" | "apiRegionShort">, lead: "Sandbox in" | "Runs in") =>
-  h.regionShort ? `${lead} ${h.regionShort}` : h.apiRegionShort ? `API in ${h.apiRegionShort}` : "Location not shown";
+/** "Sandbox in Virginia"; "API in Oregon" or "Outbound IP in Germany" when hosting isn't proven; else "Location not shown". */
+export const locationLabel = (
+  h: Pick<HardwareDetail, "regionShort" | "apiRegionShort" | "egressRegionShort">,
+  lead: "Sandbox in" | "Runs in",
+) =>
+  h.regionShort
+    ? `${lead} ${h.regionShort}`
+    : h.apiRegionShort
+      ? `API in ${h.apiRegionShort}`
+      : h.egressRegionShort
+        ? `Outbound IP in ${h.egressRegionShort}`
+        : "Location not shown";
 
 export const probeDate = "Oct 22, 2026";
 
@@ -347,7 +358,8 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     memory: { kind: "unknown", why: "DMI is empty inside the microVM, with no memory details" },
     cloud: "Hetzner, from its outbound IPs",
     region: "Outbound IPs are Hetzner's (AS24940) in Falkenstein, Germany for 495 of 522 sandboxes and Helsinki, Finland for 27; that is where traffic leaves, not proof of where the sandbox runs",
-    regionShort: "Germany",
+    regionShort: null,
+    egressRegionShort: "Germany",
     runsAs: "KVM microVM",
     runsAsDetail: "KVM with Linux 6.1.141 inside",
     storage: "12 GB virtio disk (vda), ext4 on the default size; 50 GB on 4 vCPU, 8 GB",
@@ -355,7 +367,7 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     hidden: [
       "The CPU names itself only as \"Intel(R) Xeon(R) Processor @ 3.20GHz\", a generic name set by the hypervisor, with no model number. It has AVX2, FMA and AES and no AVX-512, and every one of the 522 sandboxes showed the same feature set.",
       "DMI is empty, so the memory type isn't shown. It runs as an ordinary user, user (uid 1000), with passwordless sudo.",
-      "Traffic leaves from Hetzner in Germany or Finland, so every call from our server in Florida crosses the Atlantic and back.",
+      "Outbound traffic left from Hetzner in Falkenstein, Germany (495 of 522 sandboxes) and Helsinki, Finland (27); outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
     ],
     sameSpec: "The 4 vCPU, 8 GB machine (Maritime's medium preset) also has a 50 GB disk instead of 12 GB, on the same Intel Xeon, KVM and Hetzner setup.",
   },

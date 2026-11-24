@@ -3,6 +3,7 @@ import { describe, test } from "node:test";
 
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
+import { hardware, locationLabel } from "@/lib/hardware";
 import { providerPageOf } from "@/lib/provider-pages";
 import { isExtraTier, providerName } from "@/lib/providers";
 import { headlineRows, runTrackOf } from "@/lib/realistic";
@@ -276,5 +277,16 @@ describe("provider page links", () => {
   test("the light module agrees with the SEO page list", () => {
     for (const id of providerPages) assert.equal(providerPageOf(id), providerPath(id));
     assert.equal(providerPageOf("vercel"), null);
+  });
+
+  test("egress-only providers report outbound IP location rather than proven hosting location", () => {
+    const m = providerResults("maritime");
+    for (const t of m.tracks) {
+      assert.equal(t.ranIn, null);
+      assert.equal(t.outboundIpLocation, "Falkenstein, DE");
+    }
+    assert.ok(hardware.maritime);
+    assert.equal(locationLabel(hardware.maritime, "Runs in"), "Outbound IP in Germany");
+    assert.equal(locationLabel(hardware.maritime, "Sandbox in"), "Outbound IP in Germany");
   });
 });

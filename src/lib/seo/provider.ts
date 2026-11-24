@@ -98,6 +98,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
     ranIn: p.ranIn,
+    outboundIpLocation: p.outboundIpLocation,
     cost:
       "basis" in cost && cost.perTaskUsd !== null
         ? {
@@ -435,7 +436,11 @@ function pauseAnswer(r: ReturnType<typeof providerResults>): string {
 
 function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
   const h = r.hardware;
-  const machines = perTrack(r, (t) => `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : ""}`);
+  const machines = perTrack(
+    r,
+    (t) =>
+      `it asked for ${t.machine.asked} and measured ${t.machine.measured ?? "nothing it could read"} inside${t.ranIn ? `, in ${t.ranIn}` : t.outboundIpLocation ? ` (outbound IP in ${t.outboundIpLocation})` : ""}`,
+  );
   if (!h) return machines;
   const memory = h.memory.type ? `, ${h.memory.type} memory` : "";
   return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;

@@ -339,7 +339,11 @@ function MetaStrip({ r, t }: { r: ReturnType<typeof providerResults>; t: Provide
     { term: "Machine", value: t.machine.measured ?? t.machine.asked },
     ...(h ? [{ term: "Runs as", value: h.runsAs.split(",")[0] ?? h.runsAs }] : []),
     ...(h ? [{ term: "CPU", value: h.chip }] : []),
-    { term: "Region", value: t.ranIn ?? h?.region ?? "Not shown" },
+    t.ranIn
+      ? { term: "Region", value: t.ranIn }
+      : t.outboundIpLocation
+        ? { term: "Outbound IP location", value: t.outboundIpLocation }
+        : { term: "Region", value: h?.region ?? "Not shown" },
     { term: "Billing", value: capital(t.billing) },
   ];
   return (
@@ -452,7 +456,7 @@ function SpecCard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           {t.machine.measured ?? "not measured"}
           {t.id === "same-spec" && !t.machine.equalSpec ? <span className="text-neutral-7"> (machine differs)</span> : ""}
         </Row>
-        {t.ranIn ? <Row term="Ran in">{t.ranIn}</Row> : null}
+        {t.ranIn ? <Row term="Ran in">{t.ranIn}</Row> : t.outboundIpLocation ? <Row term="Outbound IP location">{t.outboundIpLocation}</Row> : null}
         <Row term="Billing">{capital(t.billing)}</Row>
         <Row term="Quick task cost">
           {t.cost.kind === "priced" ? (

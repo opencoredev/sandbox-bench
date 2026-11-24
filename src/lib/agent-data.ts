@@ -697,6 +697,9 @@ function trackData(track: Track) {
     exclusions: track.exclusions,
     providers: track.providers.map((p) => {
       const rel = successRate(track, p);
+      const hw = hardware[p.id];
+      const detectedLocation = p.hardware?.location[0]?.value ?? null;
+      const egressOnly = hw?.regionShort === null;
       return {
         id: p.id,
         name: providerName(p.id),
@@ -706,7 +709,8 @@ function trackData(track: Track) {
         allocation: allocationOf(p),
         allocationNote: notes[p.id] ?? (track.id === "default" ? advertised[p.id].note : null),
         advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
-        ranIn: p.hardware?.location[0]?.value ?? null,
+        ranIn: egressOnly ? null : detectedLocation,
+        outboundIpLocation: egressOnly ? detectedLocation : null,
         cpu: p.hardware?.cpuModels[0]?.value ?? null,
         hardware: hardwareOf(p.id),
         costPerTask: costOf(track, p.id),
@@ -803,7 +807,7 @@ function trackMarkdown(id: TrackId) {
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? "not reported"} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? (p.outboundIpLocation ? `${p.outboundIpLocation} (outbound IP)` : "not reported")} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
     ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),

@@ -142,9 +142,16 @@ function parseProvider(v: unknown, path: string): BurstProvider {
   };
 }
 
+const isoDate = (v: unknown, path: string): string => {
+  const s = str(v, path);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(s) || Number.isNaN(Date.parse(s)))
+    fail(path, "must be a valid ISO timestamp");
+  return s;
+};
+
 function parseRun(v: unknown, path: string): BurstRun {
   const o = obj(v, path);
-  return { id: str(o.id, `${path}.id`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), startedAt: str(o.startedAt, `${path}.startedAt`) };
+  return { id: str(o.id, `${path}.id`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), startedAt: isoDate(o.startedAt, `${path}.startedAt`) };
 }
 
 /** Parses the file, so a malformed one stops the build instead of reaching the page. */
@@ -160,8 +167,8 @@ export function parseRealtaskBurst(raw: unknown): RealtaskBurst {
     seen.add(p.provider);
   }
   return {
-    generatedAt: str(o.generatedAt, "generatedAt"),
-    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: str(run.startedAt, "run.startedAt"), endedAt: str(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
+    generatedAt: isoDate(o.generatedAt, "generatedAt"),
+    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: isoDate(run.startedAt, "run.startedAt"), endedAt: isoDate(run.endedAt, "run.endedAt"), location: str(run.location, "run.location"), mode: orNull(str)(run.mode, "run.mode") },
     size: count(o.size, "size"),
     rounds: count(o.rounds, "rounds"),
     providers,
