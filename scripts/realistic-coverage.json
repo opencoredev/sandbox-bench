@@ -17,7 +17,8 @@
       "instabox",
       "beam",
       "beam-shared",
-      "beam-spot"
+      "beam-spot",
+      "archil"
     ],
     "profiles": [
       "fix-and-test",
@@ -41,7 +42,8 @@
       "upstash-ephemeral",
       "vercel",
       "modal",
-      "instabox"
+      "instabox",
+      "archil"
     ],
     "notTested": [
       {

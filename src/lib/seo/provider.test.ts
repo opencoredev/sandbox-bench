@@ -218,15 +218,15 @@ describe("FAQ", () => {
     assert.ok(reliability?.answer.includes(t.reliability.succeeded.toLocaleString("en-US")));
   });
 
-  test("boxd's cost on Same machine: ranked with all 14 like the home page's Cost column, with why it can't be the cheapest pick", () => {
+  test("boxd's cost on Same machine: ranked with all 15 like the home page's Cost column, with why it can't be the cheapest pick", () => {
     const e = scorecard("same-spec", "boxd").find((x) => x.category.id === "cost");
     assert.ok(e?.cell.kind === "valued" && e.rank, `boxd's cost is ${e?.cell.kind ?? "missing"}`);
     assert.equal(e.cell.display, "$5.50");
     assert.deepEqual(e.rank, { rank: 3, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
     const cost = providerFaqs("boxd")[1];
-    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 3rd cheapest of 14, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
+    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 3rd cheapest of 15, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
     const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
-    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 3 && chart.of === 14);
+    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 3 && chart.of === 15);
   });
 
   test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {

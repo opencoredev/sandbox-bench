@@ -657,7 +657,7 @@ describe("exports", () => {
         assert.ok(w.pick.lowerNotCounted.every((r) => r.whyNotCounted.length > 0));
       }
     assert.ok(d.idle.providers.length > 0);
-    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute)\b.*, /);
+    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute|usage cost)\b.*, /);
   });
 
   // The code review's finding: a share rounded to 3 decimals read 0.40% in the export against 0.42% on the page.

@@ -1,0 +1,95 @@
+{
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "90ec621581d68f528a29b0e39cf13121531a1b9642f9d8c6a440c42d85106c64",
+  "harness": {
+    "commit": "1f1de78"
+  },
+  "rows": [
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.0050666,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": null,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.013933599999999999,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.008866599999999999,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "totalPerCompletedUSD": 0.012667,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "totalPerCompletedUSD": 0.4940005,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "totalPerCompletedUSD": 0.076,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    }
+  ],
+  "heldOpen": [
+    {
+      "provider": "archil",
+      "idle": "zero-wait",
+      "medianTotalUSD": 0.012667,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-60",
+      "medianTotalUSD": 0.392667,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-10",
+      "medianTotalUSD": 0.076,
+      "medianEstimatedUSD": 0,
+      "estimatedLabels": []
+    }
+  ]
+}

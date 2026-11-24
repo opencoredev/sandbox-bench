@@ -24,6 +24,8 @@
  *     --parts scripts/realistic-parts/beam-tiers-shared.json \
  *     --summary ~/projects/sandbox-sdk/bench/results/beam-tiers/bt-rw-spot/summary/summary.json \
  *     --parts scripts/realistic-parts/beam-tiers-spot.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-archil/summary.json \
+ *     --parts scripts/realistic-parts/sbx-archil.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *

@@ -89,8 +89,10 @@ describe("item 2: results.json and results.md tell Archil's usage cost apart", (
         assert.ok(!("origin" in c), `${o} has no origin`);
         assert.deepEqual(Object.keys(c), ["kind", "perTaskUsd", "per1000TasksUsd", "confidence", "tasks", "source", "basis", "settled", "billingStatus", "billingVerified", "statusNote", "tag"]);
       }
-      assert.equal(providerOf(id, "daytona").costPerTask.tag, "billed");
-      assert.equal(providerOf(id, "upstash").costPerTask.tag, "billed");
+      for (const o of ["daytona", "upstash"] as const) {
+        const c = providerOf(id, o).costPerTask;
+        assert.ok("tag" in c && c.tag === "billed", `${o}'s tag`);
+      }
     });
   }
 

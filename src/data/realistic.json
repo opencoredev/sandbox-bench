@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-20T19:23:29.309Z",
+  "generatedAt": "2026-11-24T01:46:45.330Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -20,7 +20,8 @@
         "instabox",
         "beam",
         "beam-shared",
-        "beam-spot"
+        "beam-spot",
+        "archil"
       ],
       "profiles": [
         "fix-and-test",
@@ -44,7 +45,8 @@
         "upstash-ephemeral",
         "vercel",
         "modal",
-        "instabox"
+        "instabox",
+        "archil"
       ],
       "notTested": [
         {
@@ -158,6 +160,13 @@
       "providers": [
         "beam-spot"
       ]
+    },
+    {
+      "name": "provider-runs/sbx-archil",
+      "generatedAt": "2026-11-24T01:46:45.227Z",
+      "providers": [
+        "archil"
+      ]
     }
   ],
   "fx": {
@@ -193,6 +202,34 @@
     }
   },
   "rows": [
+    {
+      "provider": "archil",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "unsettled (5 attempts)"
+      ]
+    },
     {
       "provider": "baseten",
       "profile": "build",
@@ -614,6 +651,32 @@
       ]
     },
     {
+      "provider": "archil",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 106.198,
+      "medianCpuS": 200.993,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0139336,
+        "wholeMachineUsdPerCompleted": 0.0113578,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
       "provider": "baseten",
       "profile": "build",
       "track": "same-machine",
@@ -1031,6 +1094,32 @@
       ]
     },
     {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 155.937,
+      "medianCpuS": 143.834,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0050666,
+        "wholeMachineUsdPerCompleted": 0.00413778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
       "provider": "baseten",
       "profile": "fix-and-test",
       "track": "default",
@@ -1435,6 +1524,32 @@
       "eligible": false,
       "flags": [
         "provisional: meter settled charges differ by 15.7%"
+      ]
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 63.83,
+      "medianCpuS": 147.69,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0088666,
+        "wholeMachineUsdPerCompleted": 0.00679778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
       ]
     },
     {
@@ -1865,6 +1980,30 @@
       ]
     },
     {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 681.92,
+      "medianCpuS": 210.928,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.076,
+        "wholeMachineUsdPerCompleted": 0.0722352,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "boat",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -2101,6 +2240,35 @@
       "flags": []
     },
     {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 2,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 3682.81,
+      "medianCpuS": 209.977,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.494001,
+        "wholeMachineUsdPerCompleted": 0.582297,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "boat",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -2319,6 +2487,30 @@
         "kind": "metered",
         "usdPerCompleted": 0.192051,
         "wholeMachineUsdPerCompleted": 0.705835,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 81.004,
+      "medianCpuS": 203.739,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.012667,
+        "wholeMachineUsdPerCompleted": 0.00886667,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -2554,6 +2746,54 @@
     }
   ],
   "heldOpen": [
+    {
+      "provider": "archil",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.012667,
+      "changeVsZeroWait": null,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 181,
+      "transitions": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.076,
+      "changeVsZeroWait": 4.99984,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 190,
+      "transitions": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 2,
+      "costKind": "billed",
+      "medianCostUsd": 0.392667,
+      "changeVsZeroWait": 29.9992,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 187,
+      "transitions": []
+    },
     {
       "provider": "boat",
       "idle": "zero-wait",
