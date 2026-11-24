@@ -24,6 +24,10 @@ const INSET = { left: 56, right: 18, top: 14, bottom: 30 };
 const QUADRANT = "var(--success)";
 /** Plot height in px between the insets on a phone (h-[340px]). */
 const PHONE_PLOT_PX = 340 - INSET.top - INSET.bottom;
+/** Plot width in px between the insets on a 360 px phone, the narrowest the phone numbers are placed for; wider phones only spread the dots. */
+const PHONE_PLOT_W = 202;
+/** Half a dot plus its ring, in px. */
+const DOT_HALF = 8;
 
 /** The x axis starts here instead of at the first tick when no point sits below it. */
 const X_FLOOR = 2.5;
@@ -33,6 +37,66 @@ const median = (xs: readonly number[]) => {
   const m = Math.floor(s.length / 2);
   return s.length % 2 ? (s[m] ?? 0) : ((s[m - 1] ?? 0) + (s[m] ?? 0)) / 2;
 };
+
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/** Overlap area in px² of two boxes given by their centres and sizes. */
+const overlap = (a: Box, b: Box) =>
+  Math.max(0, Math.min(a.x + a.w / 2, b.x + b.w / 2) - Math.max(a.x - a.w / 2, b.x - b.w / 2)) *
+  Math.max(0, Math.min(a.y + a.h / 2, b.y + b.h / 2) - Math.max(a.y - a.h / 2, b.y - b.h / 2));
+
+/**
+ * Below the sm breakpoint the names don't fit beside the dots, so each dot
+ * gets a number and a legend under the plot names it. Numbers run left to
+ * right over each provider's first CPU tier, then over the other tiers, so
+ * the default view has no gaps. Each number takes the first spot beside its
+ * dot (right, left, above, below, then the corners) that clears every dot
+ * and every number already placed, on a 360 px phone's plot; where none
+ * does, the spot with the least overlap. Offsets are px from the dot.
+ */
+export function phoneNumbers({ points, at }: { points: readonly ScatterPoint[]; at: (p: ScatterPoint) => { x: number; y: number } }) {
+  const order = [...points].sort((a, b) => Number(isExtraTier(a.provider)) - Number(isExtraTier(b.provider)) || a.x - b.x);
+  const dots: Box[] = points.map((p) => ({ ...at(p), w: DOT_HALF * 2, h: DOT_HALF * 2 }));
+  const placed: Box[] = [];
+  return new Map(
+    order.map((p, i) => {
+      const n = i + 1;
+      // Geist Mono at text-xxs is about 6 px a digit and 10 px tall.
+      const w = String(n).length * 6 + 2;
+      const h = 11;
+      const gap = 3;
+      const side = DOT_HALF + gap + w / 2;
+      const up = DOT_HALF + gap + h / 2;
+      const corner = { x: DOT_HALF - 2 + w / 2, y: DOT_HALF - 2 + h / 2 };
+      const spots = [
+        { x: side, y: 0 },
+        { x: -side, y: 0 },
+        { x: 0, y: -up },
+        { x: 0, y: up },
+        { x: corner.x, y: -corner.y },
+        { x: -corner.x, y: -corner.y },
+        { x: corner.x, y: corner.y },
+        { x: -corner.x, y: corner.y },
+      ];
+      const centre = at(p);
+      // A number may sit in the right inset but not over the axis labels.
+      const inside = (b: Box) => b.x - b.w / 2 >= 0 && b.x + b.w / 2 <= PHONE_PLOT_W + INSET.right && b.y - b.h / 2 >= -INSET.top && b.y + b.h / 2 <= PHONE_PLOT_PX;
+      const scored = spots.map((o) => {
+        const b = { x: centre.x + o.x, y: centre.y + o.y, w, h };
+        const cost = [...dots, ...placed].reduce((sum, d) => sum + overlap(b, d), 0) + (inside(b) ? 0 : 1e6);
+        return { o, b, cost };
+      });
+      const best = scored.find((c) => c.cost === 0) ?? scored.reduce((a, c) => (c.cost < a.cost ? c : a));
+      placed.push(best.b);
+      return [p.provider, { n, dx: best.o.x, dy: best.o.y }] as const;
+    }),
+  );
+}
 
 /** CSS position of a 0 to 1 fraction along the plot area. */
 const along = (f: number, axis: "x" | "y") =>
@@ -86,6 +150,8 @@ export function Scatter({
     const own = points.filter((p) => providerBrand(p.provider) === brand && order.includes(p.provider)).sort((a, b) => order.indexOf(a.provider) - order.indexOf(b.provider));
     return own.length > 1 ? [{ brand, own }] : [];
   });
+  const numbers = phoneNumbers({ points, at: (p) => ({ x: fx(p.x) * PHONE_PLOT_W, y: (1 - fy(p.y)) * PHONE_PLOT_PX }) });
+  const legend = [...points].sort((a, b) => (numbers.get(a.provider)?.n ?? 0) - (numbers.get(b.provider)?.n ?? 0));
   const summary = firsts
     .map((p) => `${providerName(p.provider)}: ${formatValue(p.x, "s")}, ${formatPerThousand(p.y)} ${perPriceLabel}`)
     .join("; ");
@@ -177,6 +243,7 @@ export function Scatter({
             const moved = twin ? (above ? -15 : 15) : 0;
             const nudge = moved !== 0 && runsOver({ p, flip, nudge: moved }) && !runsOver({ p, flip, nudge: 0 }) ? 0 : moved;
             const color = providerColor(p.provider);
+            const num = numbers.get(p.provider);
             const lines: DetailLine[] = [["Cost per 1,000 tasks", formatPerThousand(p.y)], ["100 tool calls", formatValue(p.x, "s")], ...p.detail];
             return (
               <div
@@ -197,11 +264,20 @@ export function Scatter({
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
                   aria-hidden
-                  className={`absolute -translate-y-1/2 text-xs leading-none whitespace-nowrap text-neutral-8 ${flip ? "right-3" : "left-3"}`}
+                  className={`absolute -translate-y-1/2 text-xs leading-none whitespace-nowrap text-neutral-8 max-sm:hidden ${flip ? "right-3" : "left-3"}`}
                   style={{ top: nudge }}
                 >
                   <ProviderName id={p.provider} layout="stacked" />
                 </span>
+                {num ? (
+                  <span
+                    aria-hidden
+                    className="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-xxs leading-none text-neutral-9 tabular-nums sm:hidden"
+                    style={{ left: num.dx, top: num.dy }}
+                  >
+                    {num.n}
+                  </span>
+                ) : null}
                 <HoverCardOnDemand
                   provider={p.provider}
                   detail={lines}
@@ -215,6 +291,18 @@ export function Scatter({
         </div>
       </div>
       <p className="mt-s pl-5 text-center text-xs text-neutral-7">{xTitle}</p>
+      {/* Phones only: the names the numbers on the dots stand for. */}
+      <ol aria-hidden className="mt-m grid grid-cols-2 gap-x-m gap-y-xxs pl-5 text-xs text-neutral-8 sm:hidden">
+        {legend.map((p) => (
+          <li key={p.provider} {...(isExtraTier(p.provider) ? { "data-tier-extra": "" } : {})} className="flex min-w-0 items-center gap-xs">
+            <span className="w-4 shrink-0 text-right font-mono text-xxs tabular-nums text-neutral-9">{numbers.get(p.provider)?.n}</span>
+            <span className="size-2 shrink-0 rounded-full" style={markFill(rowFill(p.provider, "solid"), providerColor(p.provider))} />
+            <span className="min-w-0">
+              <ProviderName id={p.provider} />
+            </span>
+          </li>
+        ))}
+      </ol>
     </figure>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { failureLine } from "@/components/failure-list";
 import { ProviderLogo } from "@/components/provider-logo";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumb, Fact, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
@@ -197,7 +198,7 @@ function SideFacts({ id, t }: { id: ProviderId; t: ProviderTrack }) {
         ) : null}
         <li>
           Failures counted against {providerName(id)}:{" "}
-          {t.failures.length === 0 ? "none." : t.failures.map((f) => `${f.reason} (${f.count} ${f.count === 1 ? "test" : "tests"})`).join("; ")}
+          {failureLine({ provider: id, failures: t.failures, unit: { one: "test", many: "tests" }, none: "none." })}
         </li>
       </ul>
     </div>

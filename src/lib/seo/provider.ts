@@ -2,6 +2,7 @@ import { agentData, groups, llmsTxt, notRunText, placeOf } from "@/lib/agent-dat
 import { costLabel, costSourceText, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
+import { failureNote } from "@/lib/failure-notes";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { ranInPhrase } from "@/lib/hardware";
@@ -452,12 +453,16 @@ function hardwareAnswer(r: ReturnType<typeof providerResults>): string {
   return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. Hosted on ${h.cloud}, ${h.region}. ${machines}`;
 }
 
-function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
+function reliabilityAnswer({ id, r }: { id: ProviderId; r: ReturnType<typeof providerResults> }): string {
   return perTrack(r, (t) => {
     const rel = t.reliability;
     if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
     const list = t.failures
-      .map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`)
+      .map((f) => {
+        // Archil's unconfirmed failure says so inside its parentheses; every other failure reads as before.
+        const note = failureNote({ provider: id, reason: f.reason });
+        return `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"}${note ? `; ${note}` : ""})`;
+      })
       .join("; ");
     const detail =
       t.failures.length === 0
@@ -483,7 +488,7 @@ export function providerFaqs(id: ProviderId): Faq[] {
     { question: `How much does ${name} cost for AI coding tasks?`, answer: costAnswer(id, r) },
     { question: `Does ${name} support pause and resume?`, answer: pauseAnswer(r) },
     { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(r) },
-    { question: `How reliable is ${name}?`, answer: reliabilityAnswer(r) },
+    { question: `How reliable is ${name}?`, answer: reliabilityAnswer({ id, r }) },
   ].map((f) => ({ question: f.question, answer: capitalise(f.answer) }));
 }
 

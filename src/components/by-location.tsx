@@ -48,6 +48,19 @@ const sampleLine = () => {
  * (Archil): its batches, at one location or all, and the shared batch for
  * every other row. Nothing otherwise, so the section reads as before.
  */
+/**
+ * Where the providers run, under the overview and each caller tab. Archil
+ * reports only its API region and outbound IPs, not where its sandboxes run,
+ * so it is named apart from the providers that say.
+ */
+function WhereNote() {
+  return (
+    <p className="mt-s text-xs text-neutral-7">
+      <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, as far as each reports, each where its row says. For <Who id="archil" />, only its API region (aws-us-east-1) and outbound IPs (Amazon, Ashburn) are known, both US-East. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
+    </p>
+  );
+}
+
 function BatchNote({ only }: { only?: RegionId }) {
   const own = ownBatchProviders(regional).flatMap((id) => {
     const text = providerBatchesText(regional, id, only);
@@ -242,9 +255,7 @@ function OverviewPanel() {
 
       <DetailsExpander metrics={vantageMetrics} />
 
-      <p className="mt-s text-xs text-neutral-7">
-        <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, each where its row says. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
-      </p>
+      <WhereNote />
       <BatchNote />
     </>
   );
@@ -351,9 +362,7 @@ function SingleLocationPanel({ region }: { region: Vantage }) {
 
       <DetailsExpander metrics={vantageMetrics} onlyRegion={region} />
 
-      <p className="mt-s text-xs text-neutral-7">
-        <Who id="boat" /> (Northern France) runs its sandboxes in Europe; the remaining providers run in the US, each where its row says. In-sandbox CPU, memory, disk, and package install speed do not change with caller location and are omitted here.
-      </p>
+      <WhereNote />
       <BatchNote only={region.id} />
     </>
   );
