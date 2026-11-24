@@ -122,7 +122,28 @@ const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>>
  */
 const unsettledWhy: Partial<Record<ProviderId, string>> = {
   archil:
-    "Archil drops a deleted sandbox's record within about half an hour, so we can't read back a charge's end time to confirm it is final; the figures are from Archil's own per-sandbox usage API",
+    "Archil drops a deleted sandbox's metadata record (its status and end time) within about half an hour, so we can't read the end time back to confirm the charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run",
+};
+
+/**
+ * Billed figures that are the provider's own reported usage cost, read per
+ * sandbox, not a charge from its bill. Wherever the figure is labelled it says
+ * so instead of "bill". Applies only to a billed export, so a cost read from a
+ * real bill later is labelled as billed again.
+ */
+const usageCostSources: Partial<Record<ProviderId, string>> = {
+  archil: "Archil's per-sandbox usage API",
+};
+
+const isUsageCost = (id: ProviderId, c: Pick<Priced, "kind">) => c.kind === "billed" && usageCostSources[id] !== undefined;
+
+/** "Billed", or "Usage cost" where a billed figure is the provider's reported usage cost. */
+export const costLabel = (id: ProviderId, c: Pick<Priced, "kind">) => (isUsageCost(id, c) ? "Usage cost" : costKinds[c.kind].label);
+
+/** Where a cost came from, in a phrase: "from its bill", or "from the usage cost Archil's per-sandbox usage API reports". */
+export const costSourceText = (id: ProviderId, c: Pick<Priced, "kind">) => {
+  const api = usageCostSources[id];
+  return api !== undefined && c.kind === "billed" ? `from the usage cost ${api} reports` : costKinds[c.kind].source;
 };
 
 /** Where a cost sits in the table above. A lower bound is checked first: no other status makes it comparable. */
@@ -158,9 +179,24 @@ export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKi
   return [costKinds[kind].label, ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
 }
 
-/** "metered" or "estimate, lower bound": how a cost was priced, for labels beside a number. Whether it was checked against a bill isn't said. */
-export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
-  s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : s.kind === "lowerBound" ? kindStatusText(c.kind, [s.kind]) : costKinds[c.kind].label.toLowerCase();
+/**
+ * "metered", "estimate, lower bound" or "usage cost, unsettled": how a cost
+ * was priced, for labels beside a number. Whether it was checked against a
+ * bill isn't said, except that an unsettled amount says so.
+ */
+export function costTag(id: ProviderId, c: Priced, s: CostStatus) {
+  switch (s.kind) {
+    case "estimate":
+      return estimateSources[id]?.tag ?? "estimate";
+    case "lowerBound":
+      return kindStatusText(c.kind, [s.kind]);
+    case "unsettled":
+      // Unsettled is said beside the amount, as the realistic charts do, so it can't be read as final.
+      return `${costLabel(id, c).toLowerCase()}, ${costStatuses.unsettled.label.toLowerCase()}`;
+    default:
+      return costLabel(id, c).toLowerCase();
+  }
+}
 
 /** A provider's cost per task on a track, as every chart, page and export reads it. */
 export function taskCostOf(track: Pick<Track, "costs">, id: ProviderId): TaskCost | undefined {
@@ -382,12 +418,17 @@ export const unpricedTasks = (track: Track) =>
   });
 
 /** One line on where a cost came from, for hover cards and agent files. */
-export const costBasis = (c: Priced) =>
-  `${costKinds[c.kind].label} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}${isLowerBound(c) ? ", a lower bound" : ""}`;
+export const costBasis = (id: ProviderId, c: Priced) =>
+  `${costLabel(id, c)} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}${isLowerBound(c) ? ", a lower bound" : ""}`;
 
 /** The second line of a hover card: what the amount is, without jargon. */
-export const costSource = (id: ProviderId, c: Priced) =>
-  `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}`;
+export function costSource(id: ProviderId, c: Priced) {
+  const from = isUsageCost(id, c)
+    ? `From the usage cost ${usageCostSources[id]} reports`
+    : `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}`;
+  const unsettled = costStatus(id, c).kind === "unsettled" ? ", unsettled" : "";
+  return `${from}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}${unsettled}`;
+}
 
 /**
  * Why a provider's cost comes from a rerun of the cost suite, keyed by the
@@ -397,7 +438,7 @@ export const costSource = (id: ProviderId, c: Priced) =>
 const costReruns: Partial<Record<ProviderId, { run: string; why: string }>> = {
   archil: {
     run: "sbxar-default-cost-r2",
-    why: "its cost comes from a second cost run on Nov 23. In the first, one tool replay timed out after 180 s, and cost per task needs all 10 tasks to finish; that timed-out attempt still counts in Archil's main results",
+    why: "its cost comes from a second cost run on Nov 23, because one task in the first timed out after 180 s and cost per task needs all 10 tasks. The first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included",
   },
 };
 

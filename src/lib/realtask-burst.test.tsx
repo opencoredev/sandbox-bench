@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { RealtaskBurstChart } from "@/components/realtask-burst";
 import { burstTimes, parseRealtaskBurst } from "@/lib/realtask-burst";
+import { checkMergeSettings } from "../../scripts/realtask-burst-site-data";
 
 const task = (round: number, wallS: number | null, completed = true) => ({ round, wallS, completed, ...(completed ? {} : { failure: { stage: "work", reason: "tests timed out" } }) });
 
@@ -86,5 +87,25 @@ describe("real tasks at once", () => {
     const earlyYear = structuredClone(rerun);
     (earlyYear.providers[3] as unknown as { run: { startedAt: string } }).run.startedAt = "0001-01-01T15:00:00Z";
     assert.equal(parseRealtaskBurst(earlyYear).providers[3]?.status, "ran");
+  });
+});
+
+describe("--merge settings", () => {
+  const base = { size: 5, rounds: 2, track: "same-machine", profile: "fix-and-test", run: { id: "base", mode: "one-provider-at-a-time", location: "here" } };
+  const merge = (extra: Record<string, unknown>) => () => checkMergeSettings({ base, extra, file: "rerun.json" });
+
+  test("a rerun with the base run's settings merges, whatever its location", () => {
+    assert.doesNotThrow(merge({ ...base, run: { ...base.run, id: "rerun", location: "elsewhere" } }));
+  });
+
+  test("a rerun with another burst size, round count, track, profile or mode stops the merge, naming each difference", () => {
+    assert.throws(merge({ ...base, size: 10 }), /--merge rerun.json doesn't match the --in run's settings: size is 10, the base run's is 5$/);
+    assert.throws(merge({ ...base, rounds: 3 }), /rounds is 3, the base run's is 2/);
+    assert.throws(merge({ ...base, track: "default" }), /track is "default", the base run's is "same-machine"/);
+    assert.throws(merge({ ...base, profile: "build", size: 10 }), /size is 10, the base run's is 5; profile is "build", the base run's is "fix-and-test"/);
+    assert.throws(merge({ ...base, run: { ...base.run, mode: "all-at-once" } }), /run.mode is "all-at-once", the base run's is "one-provider-at-a-time"/);
+    assert.throws(merge({ ...base, run: { id: "rerun" } }), /run.mode is nothing/);
+    const { profile: _profile, ...noProfile } = base;
+    assert.throws(merge(noProfile), /profile is nothing, the base run's is "fix-and-test"/);
   });
 });

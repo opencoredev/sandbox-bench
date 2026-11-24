@@ -1,5 +1,5 @@
 import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
-import { costKinds, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
+import { costLabel, costSourceText, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
@@ -105,10 +105,10 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
             perTask: qualify({ amount: formatTaskCost(cost.perTaskUsd), bound: costBound }),
             perThousand: qualify({ amount: formatPerThousand(cost.perTaskUsd), bound: costBound }),
             lowerBound: costBound === "lower",
-            label: costKinds[cost.kind].label,
+            label: costLabel(id, cost),
             tag: cost.tag,
             statusNote: cost.statusNote,
-            source: costKinds[cost.kind].source,
+            source: costSourceText(id, cost),
             basis: cost.basis,
           }
         : { kind: "none" as const, note: "note" in cost ? cost.note : "no cost data" },

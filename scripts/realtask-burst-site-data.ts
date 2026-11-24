@@ -21,7 +21,11 @@
  *   alone: the median of so few says little.
  * - --merge FILE replaces providers present in FILE and attaches that file's
  *   run metadata (`run.id`, `sdkCommit`, `startedAt`) so the chart attributes
- *   the rerun accurately. --rename old=new maps a setup name to its site ID.
+ *   the rerun accurately. FILE must have the --in run's settings (burst size,
+ *   rounds, track, profile, and run mode where either says one), or the merge
+ *   stops: the output is labelled with the --in run's settings. Location isn't
+ *   compared, since --location replaces it. --rename old=new maps a setup name
+ *   to its site ID.
  * - --hold-change provider="why" drops a provider's change and says why.
  * - --location replaces the harness's location, which names our own machine.
  */
@@ -70,6 +74,25 @@ export function plainReason(stage: string, reason: string): string {
   return `${stage}: ${firstSentence(reason)}`;
 }
 
+/** The top-level settings a merged run must share with the base run, since the output carries the base's. */
+const mergedSettings = ["size", "rounds", "track", "profile"] as const;
+
+const settingText = (v: unknown) => (v === undefined ? "nothing" : JSON.stringify(v));
+
+/**
+ * Throws, naming each difference, when a run to merge differs from the base
+ * run in burst size, rounds, track, profile, or run mode (when either gives
+ * one). Location is not compared: --location replaces it.
+ */
+export function checkMergeSettings({ base, extra, file }: { base: Json; extra: Json; file: string }): void {
+  const modeOf = (o: Json) => (typeof o.run === "object" && o.run !== null ? (o.run as Json).mode : undefined);
+  const diffs = mergedSettings.flatMap((k) => (base[k] === extra[k] ? [] : [`${k} is ${settingText(extra[k])}, the base run's is ${settingText(base[k])}`]));
+  const [baseMode, extraMode] = [modeOf(base), modeOf(extra)];
+  if ((baseMode !== undefined || extraMode !== undefined) && baseMode !== extraMode)
+    diffs.push(`run.mode is ${settingText(extraMode)}, the base run's is ${settingText(baseMode)}`);
+  if (diffs.length > 0) throw new Error(`--merge ${file} doesn't match the --in run's settings: ${diffs.join("; ")}`);
+}
+
 function main() {
   const a = args();
   const raw = JSON.parse(readFileSync(a.in, "utf8")) as Json & { run: Json; providers: Json[] };
@@ -82,6 +105,7 @@ function main() {
   for (const mergePath of a.merges) {
     const extra = JSON.parse(readFileSync(mergePath, "utf8")) as Json & { run?: Json; providers: Json[] };
     if (!extra.run || typeof extra.run !== "object") throw new Error(`missing required run object in ${mergePath}`);
+    checkMergeSettings({ base: raw, extra, file: mergePath });
     const extraRun = {
       id: reqStr(extra.run.id, "run.id", mergePath),
       sdkCommit: reqStr(extra.run.sdkCommit, "run.sdkCommit", mergePath),

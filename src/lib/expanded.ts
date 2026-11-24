@@ -50,6 +50,18 @@ export interface ExpandedGroup {
   metrics: readonly ExpandedMetric[];
 }
 
+/** A run of a provider's own, outside the sweep `runId` names, and the tests whose values came from it. */
+export interface ExpandedProviderRun {
+  id: string;
+  startedAt: string;
+  sdkCommit: string;
+  /** Metric ids this run produced for the provider. */
+  metrics: readonly string[];
+}
+
+/** Providers whose values came from their own runs, keyed by provider. A provider not listed is from `runId`. */
+export type ExpandedProviderRuns = Partial<Record<ProviderId, readonly ExpandedProviderRun[]>>;
+
 export interface Expanded {
   scenarioCount: number;
   /** When the sweep's export was written, if it says. */
@@ -57,6 +69,7 @@ export interface Expanded {
   runId: string | null;
   /** Runs per provider the sweep asked for, if it says. */
   runs: number | null;
+  providerRuns: ExpandedProviderRuns;
   /** Every category the export lists, in the harness's order. */
   groups: readonly ExpandedGroup[];
 }
@@ -122,6 +135,49 @@ function parseMetric(v: unknown, path: string): ExpandedMetric {
   };
 }
 
+function parseProviderRun(v: unknown, path: string, metricIds: ReadonlySet<string>): ExpandedProviderRun {
+  const o = obj(v, path);
+  const metrics = arr(o.metrics, `${path}.metrics`).map((m, i) => str(m, `${path}.metrics[${i}]`));
+  if (metrics.length === 0) fail(`${path}.metrics`, "must list at least one test");
+  for (const m of metrics) if (!metricIds.has(m)) fail(`${path}.metrics`, `lists ${m}, which metrics does not have`);
+  return { id: str(o.id, `${path}.id`), startedAt: timestamp(o.startedAt, `${path}.startedAt`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), metrics };
+}
+
+/**
+ * Each provider's own runs. Every test a provider has a value in must come
+ * from exactly one of its runs, so no value is left attributed to the sweep
+ * by mistake; providers the site doesn't list are dropped.
+ */
+function parseProviderRuns(v: unknown, metrics: readonly ExpandedMetric[]): ExpandedProviderRuns {
+  if (v === undefined || v === null) return {};
+  const o = obj(v, "providerRuns");
+  const metricIds = new Set(metrics.map((m) => m.id));
+  const out: ExpandedProviderRuns = {};
+  for (const [id, list] of Object.entries(o)) {
+    if (!isProviderId(id)) continue;
+    const path = `providerRuns.${id}`;
+    const runs = arr(list, path).map((r, i) => parseProviderRun(r, `${path}[${i}]`, metricIds));
+    if (runs.length === 0) fail(path, "must list at least one run");
+    const covered = new Set<string>();
+    for (const m of runs.flatMap((r) => r.metrics)) {
+      if (covered.has(m)) fail(path, `lists ${m} in more than one run`);
+      covered.add(m);
+    }
+    for (const m of metrics)
+      if (m.values.some((x) => x.provider === id) && !covered.has(m.id)) fail(path, `has a value in ${m.id} but no run lists it`);
+    out[id] = runs;
+  }
+  return out;
+}
+
+/** The provider's own run behind its value in a test, or null when the value is from the sweep `runId` names. */
+export const ownRun = (e: Pick<Expanded, "providerRuns">, provider: ProviderId, metricId: string): ExpandedProviderRun | null =>
+  e.providerRuns[provider]?.find((r) => r.metrics.includes(metricId)) ?? null;
+
+/** "Nov 24": a run's start date, in UTC. */
+export const runDate = (r: Pick<ExpandedProviderRun, "startedAt">) =>
+  new Date(r.startedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+
 export function parseExpanded(raw: unknown): Expanded {
   const o = obj(raw, "root");
   if (o.version !== 1) fail("version", "must be 1");
@@ -138,6 +194,7 @@ export function parseExpanded(raw: unknown): Expanded {
     generatedAt: optional(timestamp)(o.generatedAt, "generatedAt"),
     runId: optional(str)(o.runId, "runId"),
     runs: optional(count)(o.runs, "runs"),
+    providerRuns: parseProviderRuns(o.providerRuns, metrics),
     groups: [...new Set(categories)].map((c) => ({ category: c, label: categoryLabels[c], metrics: metrics.filter((m) => m.category === c) })),
   };
 }
@@ -153,3 +210,34 @@ export function expandedProviders(e: Expanded): ProviderId[] {
   const seen = new Set(e.groups.flatMap((g) => g.metrics.flatMap((m) => m.values.map((v) => v.provider))));
   return Object.keys(providerInfo).filter(isProviderId).filter((id) => seen.has(id));
 }
+
+/** "run A on Nov 24 (UTC), commit de32eb5". */
+const runText = (r: ExpandedProviderRun) => `run ${r.id} on ${runDate(r)} (UTC), commit ${r.sdkCommit}`;
+
+/**
+ * Where a provider's values in these tests came from, when some came from its
+ * own runs: "from its own run …", or with several runs, the tests each smaller
+ * run produced and "the rest" from the largest. Null for a provider whose
+ * values in these tests are all from the sweep.
+ */
+export function ownRunsText(e: Pick<Expanded, "providerRuns" | "runId">, metrics: readonly ExpandedMetric[], provider: ProviderId): string | null {
+  const valued = metrics.filter((m) => m.values.some((v) => v.provider === provider));
+  const byRun = new Map<ExpandedProviderRun, ExpandedMetric[]>();
+  for (const m of valued) {
+    const r = ownRun(e, provider, m.id);
+    if (r) byRun.set(r, [...(byRun.get(r) ?? []), m]);
+  }
+  if (byRun.size === 0) return null;
+  const notSweep = e.runId === null ? "" : `, not ${e.runId}`;
+  const [largest, ...rest] = [...byRun].sort((a, b) => b[1].length - a[1].length);
+  if (!largest) return null;
+  if (rest.length === 0) return `from its own ${runText(largest[0])}${notSweep}`;
+  const parts = rest.map(([r, ms]) => `${ms.map((m) => m.label).join(", ")} from ${runText(r)}`);
+  return `from its own runs${notSweep}: ${parts.join("; ")}; the rest from ${runText(largest[0])}`;
+}
+
+/** Providers with a value in these tests from their own runs, in the site's provider order. */
+export const ownRunProviders = (e: Pick<Expanded, "providerRuns">, metrics: readonly ExpandedMetric[]): ProviderId[] =>
+  Object.keys(providerInfo)
+    .filter(isProviderId)
+    .filter((id) => metrics.some((m) => m.values.some((v) => v.provider === id) && ownRun(e, id, m.id) !== null));

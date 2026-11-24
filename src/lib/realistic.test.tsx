@@ -780,7 +780,7 @@ describe("final review", () => {
   test("the trace panel's cost carries its kind and status", () => {
     const priced = providersOf(tracks["same-spec"]).filter((p) => p.costText !== null);
     assert.ok(priced.length > 0);
-    for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate)/);
+    for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate|usage cost)/);
   });
 });
 

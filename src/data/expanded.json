@@ -2395,5 +2395,47 @@
   ],
   "generatedAt": "2026-11-21T05:10:00Z",
   "runId": "expanded-cloud-2026-11-21",
-  "runs": 1
+  "runs": 1,
+  "providerRuns": {
+    "archil": [
+      {
+        "id": "expanded-2026-11-23T22-57-38-230Z",
+        "startedAt": "2026-11-23T22:57:38.230Z",
+        "sdkCommit": "a9954ea",
+        "metrics": [
+          "agent-debug-log-triage",
+          "agent-fix-bug-node",
+          "agent-fix-bug-python",
+          "agent-refactor-codemod",
+          "build-git-workflow",
+          "build-http-server-load",
+          "build-python-bytecode",
+          "build-ts-strip-bundle",
+          "cpu-gzip-compress",
+          "cpu-json-parse",
+          "cpu-prime-sieve",
+          "cpu-sha256-hash",
+          "fs-sdk-transfer-batch",
+          "fs-small-files-500",
+          "fs-sqlite-oltp",
+          "fs-tar-extract-pack",
+          "loop-grep-find-repo",
+          "loop-parallel-exec-16",
+          "loop-patch-test-cycle",
+          "loop-rapid-exec-50",
+          "runtime-env-isolation",
+          "runtime-fork-spawn-100",
+          "runtime-mem-alloc-128m"
+        ]
+      },
+      {
+        "id": "expanded-2026-11-24T00-12-06-287Z",
+        "startedAt": "2026-11-24T00:12:06.287Z",
+        "sdkCommit": "de32eb5",
+        "metrics": [
+          "runtime-stdout-stream"
+        ]
+      }
+    ]
+  }
 }
