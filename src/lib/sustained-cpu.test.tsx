@@ -62,11 +62,19 @@ const providerAt = (f: ReturnType<typeof fixture>, id: ProviderId) => {
 };
 
 describe("parse", () => {
-  test("the published placeholder parses, holds no providers and draws nothing", () => {
-    assert.deepEqual(sustainedCpu.providers, []);
-    assert.equal(hasSustainedCpu(sustainedCpu), false);
-    assert.equal(renderToStaticMarkup(<SustainedCpuSection data={sustainedCpu} />), "");
-    assert.equal(parseSustainedCpu(raw).run.id, "pending");
+  test("the published data parses with all 15 providers and an empty file draws nothing", () => {
+    assert.equal(sustainedCpu.providers.length, 15);
+    assert.equal(hasSustainedCpu(sustainedCpu), true);
+    assert.equal(parseSustainedCpu(raw).run.id, "sustained15m-20261123");
+    const { ranked, missing } = sustainedRanked(sustainedCpu);
+    assert.equal(ranked.length, 13);
+    assert.equal(ranked[0]?.provider, "instabox");
+    assert.equal(ranked.at(-1)?.provider, "styne");
+    assert.equal(Math.round((ranked.at(-1)?.retention ?? 0) * 100), 17);
+    assert.deepEqual(missing.map((m) => m.provider).sort(), ["baseten", "superserve"]);
+    const empty = parseSustainedCpu({ ...fixture(), providers: [] });
+    assert.equal(hasSustainedCpu(empty), false);
+    assert.equal(renderToStaticMarkup(<SustainedCpuSection data={empty} />), "");
   });
 
   test("a realistic file parses, with each status's fields", () => {
@@ -209,10 +217,10 @@ describe("section", () => {
 });
 
 describe("exports", () => {
-  test("nothing while the file is empty", () => {
-    assert.equal("sustainedCpu" in agentData(), false);
-    assert.doesNotMatch(agentMarkdown(), /Sustained CPU over 15 minutes/);
-    assert.doesNotMatch(llmsTxt(), /Sustained CPU over 15 minutes/);
+  test("published results.json, results.md and llms.txt include the 15-minute sustained CPU data", () => {
+    assert.equal("sustainedCpu" in agentData(), true);
+    assert.match(agentMarkdown(), /Sustained CPU over 15 minutes/);
+    assert.match(llmsTxt(), /Sustained CPU over 15 minutes/);
   });
 
   test("results.json, results.md and llms.txt agree with the chart once it has data", () => {

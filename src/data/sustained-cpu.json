@@ -1,10 +1,2923 @@
 {
   "schema": "sustained-cpu.v1",
-  "generatedAt": "2026-11-24T00:00:00.000Z",
+  "generatedAt": "2026-11-24T03:05:15.169Z",
   "track": "same-machine",
   "targetDurationS": 900,
   "segmentDurationS": 30,
   "segmentsTarget": 30,
-  "run": { "id": "pending", "sdkCommit": "pending", "startedAt": "2026-11-24T00:00:00.000Z" },
-  "providers": []
+  "run": {
+    "id": "sustained15m-20261123",
+    "sdkCommit": "2885180a900f01d5a642cecfc7cbec926e5ca4f8",
+    "startedAt": "2026-11-24T02:49:17.091Z"
+  },
+  "providers": [
+    {
+      "provider": "e2b",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 906.641,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.465,
+          "durationS": 30.024,
+          "opsPerS": 59706195,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.655,
+          "durationS": 30.028,
+          "opsPerS": 61984611,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.847,
+          "durationS": 30.021,
+          "opsPerS": 61543149,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 91.026,
+          "durationS": 30.022,
+          "opsPerS": 60300657,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.245,
+          "durationS": 30.029,
+          "opsPerS": 60097717,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.443,
+          "durationS": 30.017,
+          "opsPerS": 62103091,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.642,
+          "durationS": 30.01,
+          "opsPerS": 59465069,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.824,
+          "durationS": 30.026,
+          "opsPerS": 60477153,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.026,
+          "durationS": 30.03,
+          "opsPerS": 57907738,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.227,
+          "durationS": 30.02,
+          "opsPerS": 56186393,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.424,
+          "durationS": 30.02,
+          "opsPerS": 58514401,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.613,
+          "durationS": 30.004,
+          "opsPerS": 59336643,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.789,
+          "durationS": 30.021,
+          "opsPerS": 60157021,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 392.98,
+          "durationS": 30.022,
+          "opsPerS": 61158265,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 423.166,
+          "durationS": 30.026,
+          "opsPerS": 58919548,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.37,
+          "durationS": 30.019,
+          "opsPerS": 59715819,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.557,
+          "durationS": 30.02,
+          "opsPerS": 60950903,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 513.743,
+          "durationS": 30.028,
+          "opsPerS": 61036261,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 543.947,
+          "durationS": 30.02,
+          "opsPerS": 62583493,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 574.131,
+          "durationS": 30.026,
+          "opsPerS": 61265686,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 604.329,
+          "durationS": 30.032,
+          "opsPerS": 59654483,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 634.776,
+          "durationS": 30.01,
+          "opsPerS": 60750461,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 665.2,
+          "durationS": 30.031,
+          "opsPerS": 60154923,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 695.414,
+          "durationS": 30.021,
+          "opsPerS": 61608834,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 725.622,
+          "durationS": 30.012,
+          "opsPerS": 58585499,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 755.822,
+          "durationS": 30.025,
+          "opsPerS": 58502102,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 786.027,
+          "durationS": 30.016,
+          "opsPerS": 59214124,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 816.214,
+          "durationS": 30.023,
+          "opsPerS": 60596324,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 846.417,
+          "durationS": 30.025,
+          "opsPerS": 62522950,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 876.605,
+          "durationS": 30.036,
+          "opsPerS": 60653304,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 60955903,
+      "last3MinOps": 60012384,
+      "retention": 0.9845
+    },
+    {
+      "provider": "daytona",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 48,
+      "durationS": 906.769,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.175,
+          "durationS": 30.05,
+          "opsPerS": 37040939,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.404,
+          "durationS": 30.037,
+          "opsPerS": 38150370,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.62,
+          "durationS": 30.055,
+          "opsPerS": 38391009,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.858,
+          "durationS": 30.045,
+          "opsPerS": 37600248,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.129,
+          "durationS": 30.052,
+          "opsPerS": 37496029,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.361,
+          "durationS": 30.031,
+          "opsPerS": 37405151,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.574,
+          "durationS": 30.045,
+          "opsPerS": 38388678,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.801,
+          "durationS": 30.054,
+          "opsPerS": 38845720,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.05,
+          "durationS": 30.047,
+          "opsPerS": 36478734,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.284,
+          "durationS": 30.037,
+          "opsPerS": 38771680,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.497,
+          "durationS": 30.042,
+          "opsPerS": 37960161,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.716,
+          "durationS": 30.043,
+          "opsPerS": 37483985,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.964,
+          "durationS": 30.03,
+          "opsPerS": 40113707,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 393.174,
+          "durationS": 30.045,
+          "opsPerS": 39980947,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 423.393,
+          "durationS": 30.041,
+          "opsPerS": 37549328,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.61,
+          "durationS": 30.045,
+          "opsPerS": 35669343,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.851,
+          "durationS": 30.036,
+          "opsPerS": 38265892,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 514.061,
+          "durationS": 30.034,
+          "opsPerS": 38695559,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 544.274,
+          "durationS": 30.047,
+          "opsPerS": 35869552,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 574.492,
+          "durationS": 30.039,
+          "opsPerS": 40319306,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 604.732,
+          "durationS": 30.043,
+          "opsPerS": 38754393,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 634.953,
+          "durationS": 30.046,
+          "opsPerS": 39587535,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 665.18,
+          "durationS": 30.032,
+          "opsPerS": 39801592,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 695.389,
+          "durationS": 30.038,
+          "opsPerS": 39829074,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 725.634,
+          "durationS": 30.027,
+          "opsPerS": 39693993,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 755.836,
+          "durationS": 30.053,
+          "opsPerS": 36120338,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 786.067,
+          "durationS": 30.04,
+          "opsPerS": 37577819,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 816.278,
+          "durationS": 30.019,
+          "opsPerS": 39689897,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 846.495,
+          "durationS": 30.045,
+          "opsPerS": 39078640,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 876.721,
+          "durationS": 30.048,
+          "opsPerS": 38693120,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 37680624,
+      "last3MinOps": 38475634,
+      "retention": 1.0211
+    },
+    {
+      "provider": "upstash",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 64,
+      "durationS": 905.654,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.198,
+          "durationS": 30.025,
+          "opsPerS": 60061555,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.375,
+          "durationS": 30.023,
+          "opsPerS": 59598583,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.566,
+          "durationS": 30.031,
+          "opsPerS": 59552564,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.753,
+          "durationS": 30.033,
+          "opsPerS": 59847130,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 120.947,
+          "durationS": 30.027,
+          "opsPerS": 60111481,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.148,
+          "durationS": 30.029,
+          "opsPerS": 59671273,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.332,
+          "durationS": 30.028,
+          "opsPerS": 59527039,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.532,
+          "durationS": 30.03,
+          "opsPerS": 59570416,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 241.724,
+          "durationS": 30.025,
+          "opsPerS": 59628847,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 271.911,
+          "durationS": 30.027,
+          "opsPerS": 59913317,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.095,
+          "durationS": 30.022,
+          "opsPerS": 59561039,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.28,
+          "durationS": 30.033,
+          "opsPerS": 59648904,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.494,
+          "durationS": 30.03,
+          "opsPerS": 58356777,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 392.677,
+          "durationS": 30.029,
+          "opsPerS": 59581768,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 422.857,
+          "durationS": 30.032,
+          "opsPerS": 59890541,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.041,
+          "durationS": 30.026,
+          "opsPerS": 59965223,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.221,
+          "durationS": 30.019,
+          "opsPerS": 59381028,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 513.409,
+          "durationS": 30.031,
+          "opsPerS": 59562838,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 543.595,
+          "durationS": 30.028,
+          "opsPerS": 59100424,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 573.782,
+          "durationS": 30.029,
+          "opsPerS": 60116590,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 603.968,
+          "durationS": 30.027,
+          "opsPerS": 59542538,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 634.153,
+          "durationS": 30.026,
+          "opsPerS": 59650845,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 664.342,
+          "durationS": 30.016,
+          "opsPerS": 59392010,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 694.509,
+          "durationS": 30.03,
+          "opsPerS": 59599103,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 724.699,
+          "durationS": 30.033,
+          "opsPerS": 59588065,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 754.892,
+          "durationS": 30.03,
+          "opsPerS": 59400293,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 785.072,
+          "durationS": 30.026,
+          "opsPerS": 59835669,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 815.273,
+          "durationS": 30.033,
+          "opsPerS": 59531791,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 845.461,
+          "durationS": 30.024,
+          "opsPerS": 59449217,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 875.635,
+          "durationS": 30.019,
+          "opsPerS": 59579045,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 59807098,
+      "last3MinOps": 59564013,
+      "retention": 0.9959
+    },
+    {
+      "provider": "upstash-ephemeral",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 48,
+      "durationS": 904.962,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.128,
+          "durationS": 30.034,
+          "opsPerS": 59763675,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.298,
+          "durationS": 30.027,
+          "opsPerS": 59745178,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.46,
+          "durationS": 30.021,
+          "opsPerS": 59734310,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.613,
+          "durationS": 30.033,
+          "opsPerS": 59999864,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 120.783,
+          "durationS": 30.03,
+          "opsPerS": 59723562,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 150.941,
+          "durationS": 30.017,
+          "opsPerS": 59694763,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.099,
+          "durationS": 30.032,
+          "opsPerS": 60237211,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.282,
+          "durationS": 30.021,
+          "opsPerS": 59886915,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 241.436,
+          "durationS": 30.019,
+          "opsPerS": 59743930,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 271.599,
+          "durationS": 30.032,
+          "opsPerS": 59715008,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 301.776,
+          "durationS": 30.028,
+          "opsPerS": 59785620,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 331.94,
+          "durationS": 30.031,
+          "opsPerS": 59797475,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.131,
+          "durationS": 30.021,
+          "opsPerS": 60226507,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 392.286,
+          "durationS": 30.03,
+          "opsPerS": 60031883,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 422.47,
+          "durationS": 30.024,
+          "opsPerS": 59728312,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 452.626,
+          "durationS": 30.026,
+          "opsPerS": 59721137,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 482.785,
+          "durationS": 30.021,
+          "opsPerS": 59755450,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 512.934,
+          "durationS": 30.026,
+          "opsPerS": 59753252,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 543.095,
+          "durationS": 30.022,
+          "opsPerS": 59741009,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 573.245,
+          "durationS": 30.018,
+          "opsPerS": 59705030,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 603.423,
+          "durationS": 30.031,
+          "opsPerS": 59809990,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 633.591,
+          "durationS": 30.015,
+          "opsPerS": 60200100,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 663.757,
+          "durationS": 30.028,
+          "opsPerS": 59724192,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 693.918,
+          "durationS": 30.035,
+          "opsPerS": 59691234,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 724.095,
+          "durationS": 30.032,
+          "opsPerS": 59462862,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 754.253,
+          "durationS": 30.019,
+          "opsPerS": 59766406,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 784.402,
+          "durationS": 30.027,
+          "opsPerS": 60035365,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 814.559,
+          "durationS": 30.033,
+          "opsPerS": 60244136,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 844.731,
+          "durationS": 30.032,
+          "opsPerS": 59781155,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 874.928,
+          "durationS": 30.034,
+          "opsPerS": 59769034,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 59776892,
+      "last3MinOps": 59843160,
+      "retention": 1.0011
+    },
+    {
+      "provider": "boxd",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 909.096,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.293,
+          "durationS": 30.017,
+          "opsPerS": 42334101,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.58,
+          "durationS": 30.038,
+          "opsPerS": 41861205,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.873,
+          "durationS": 30.05,
+          "opsPerS": 37435797,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 91.181,
+          "durationS": 30.06,
+          "opsPerS": 38748313,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.482,
+          "durationS": 30.042,
+          "opsPerS": 41534502,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.768,
+          "durationS": 30.047,
+          "opsPerS": 38965335,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 182.087,
+          "durationS": 30.05,
+          "opsPerS": 37181465,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 212.414,
+          "durationS": 30.034,
+          "opsPerS": 37258837,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.719,
+          "durationS": 30.049,
+          "opsPerS": 37640293,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 273.04,
+          "durationS": 30.051,
+          "opsPerS": 43078245,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 303.366,
+          "durationS": 30.037,
+          "opsPerS": 42429974,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 333.647,
+          "durationS": 30.043,
+          "opsPerS": 41471697,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 363.937,
+          "durationS": 30.049,
+          "opsPerS": 42310949,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 394.24,
+          "durationS": 30.033,
+          "opsPerS": 38726635,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 424.523,
+          "durationS": 30.024,
+          "opsPerS": 42668339,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 454.787,
+          "durationS": 30.038,
+          "opsPerS": 38132339,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 485.072,
+          "durationS": 30.031,
+          "opsPerS": 40395520,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 515.349,
+          "durationS": 30.033,
+          "opsPerS": 40744501,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 545.623,
+          "durationS": 30.038,
+          "opsPerS": 38322779,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 575.922,
+          "durationS": 30.033,
+          "opsPerS": 41394634,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 606.214,
+          "durationS": 30.045,
+          "opsPerS": 40578434,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 636.492,
+          "durationS": 30.04,
+          "opsPerS": 39350346,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 666.813,
+          "durationS": 30.064,
+          "opsPerS": 39625291,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 697.143,
+          "durationS": 30.039,
+          "opsPerS": 38153825,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 727.48,
+          "durationS": 30.024,
+          "opsPerS": 39231414,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 757.772,
+          "durationS": 30.052,
+          "opsPerS": 37861904,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 788.097,
+          "durationS": 30.059,
+          "opsPerS": 38550500,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 818.429,
+          "durationS": 30.044,
+          "opsPerS": 39040770,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 848.742,
+          "durationS": 30.024,
+          "opsPerS": 40327749,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 879.061,
+          "durationS": 30.035,
+          "opsPerS": 38738000,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 40146542,
+      "last3MinOps": 38958390,
+      "retention": 0.9704
+    },
+    {
+      "provider": "freestyle",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 956.162,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 1.942,
+          "durationS": 30.028,
+          "opsPerS": 42205474,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 34.009,
+          "durationS": 30.024,
+          "opsPerS": 39851060,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 66.206,
+          "durationS": 30.05,
+          "opsPerS": 42249687,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 98.223,
+          "durationS": 30.047,
+          "opsPerS": 42447089,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 130.283,
+          "durationS": 30.049,
+          "opsPerS": 40697260,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 162.494,
+          "durationS": 30.031,
+          "opsPerS": 41115192,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 194.515,
+          "durationS": 30.042,
+          "opsPerS": 42346321,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 224.867,
+          "durationS": 30.04,
+          "opsPerS": 41447793,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 255.178,
+          "durationS": 30.03,
+          "opsPerS": 41885733,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 285.522,
+          "durationS": 30.016,
+          "opsPerS": 38856681,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 317.772,
+          "durationS": 30.036,
+          "opsPerS": 40360150,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 350.003,
+          "durationS": 30.031,
+          "opsPerS": 41276421,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 382.147,
+          "durationS": 30.045,
+          "opsPerS": 42818601,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 414.188,
+          "durationS": 30.04,
+          "opsPerS": 42526519,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 446.24,
+          "durationS": 30.036,
+          "opsPerS": 42250332,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 478.296,
+          "durationS": 30.054,
+          "opsPerS": 42374830,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 510.329,
+          "durationS": 30.043,
+          "opsPerS": 42672341,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 542.353,
+          "durationS": 30.03,
+          "opsPerS": 42697964,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 574.562,
+          "durationS": 30.038,
+          "opsPerS": 42059275,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 606.644,
+          "durationS": 30.048,
+          "opsPerS": 40692791,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 636.982,
+          "durationS": 30.043,
+          "opsPerS": 40607600,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 669.396,
+          "durationS": 30.024,
+          "opsPerS": 42003241,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 701.46,
+          "durationS": 30.042,
+          "opsPerS": 39317273,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 733.719,
+          "durationS": 30.044,
+          "opsPerS": 40290641,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 765.713,
+          "durationS": 30.048,
+          "opsPerS": 37979766,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 797.776,
+          "durationS": 30.031,
+          "opsPerS": 37261258,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 829.786,
+          "durationS": 30.047,
+          "opsPerS": 42377337,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 861.835,
+          "durationS": 30.045,
+          "opsPerS": 42496099,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 893.869,
+          "durationS": 30.033,
+          "opsPerS": 40791369,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 926.136,
+          "durationS": 30.026,
+          "opsPerS": 38708208,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 41427627,
+      "last3MinOps": 39986383,
+      "retention": 0.9652
+    },
+    {
+      "provider": "tenki",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 906.054,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.211,
+          "durationS": 30.022,
+          "opsPerS": 83442756,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.413,
+          "durationS": 30.026,
+          "opsPerS": 86024293,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.606,
+          "durationS": 30.031,
+          "opsPerS": 87931400,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.796,
+          "durationS": 30.024,
+          "opsPerS": 85725560,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 120.982,
+          "durationS": 30.022,
+          "opsPerS": 87809497,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.199,
+          "durationS": 30.022,
+          "opsPerS": 90252316,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.39,
+          "durationS": 30.019,
+          "opsPerS": 88429858,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.611,
+          "durationS": 30.006,
+          "opsPerS": 88121385,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 241.812,
+          "durationS": 30.018,
+          "opsPerS": 87916225,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.013,
+          "durationS": 30.018,
+          "opsPerS": 90462086,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.196,
+          "durationS": 30.009,
+          "opsPerS": 85319449,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.379,
+          "durationS": 30.015,
+          "opsPerS": 88080836,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.584,
+          "durationS": 30.014,
+          "opsPerS": 88076953,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 392.783,
+          "durationS": 30.019,
+          "opsPerS": 87382524,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 422.973,
+          "durationS": 30.015,
+          "opsPerS": 88283343,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.181,
+          "durationS": 30.021,
+          "opsPerS": 86989710,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.418,
+          "durationS": 30.019,
+          "opsPerS": 89359421,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 513.628,
+          "durationS": 30.022,
+          "opsPerS": 86869948,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 543.837,
+          "durationS": 30.02,
+          "opsPerS": 86277065,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 574.06,
+          "durationS": 30.021,
+          "opsPerS": 86695610,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 604.269,
+          "durationS": 30.017,
+          "opsPerS": 84341351,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 634.481,
+          "durationS": 30.004,
+          "opsPerS": 86869238,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 664.689,
+          "durationS": 30.017,
+          "opsPerS": 85964100,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 694.864,
+          "durationS": 30.02,
+          "opsPerS": 86206131,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 725.081,
+          "durationS": 30.013,
+          "opsPerS": 85128758,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 755.273,
+          "durationS": 30.016,
+          "opsPerS": 88123001,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 785.481,
+          "durationS": 30.017,
+          "opsPerS": 85512947,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 815.663,
+          "durationS": 30.015,
+          "opsPerS": 84838872,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 845.856,
+          "durationS": 30.013,
+          "opsPerS": 82502189,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 876.032,
+          "durationS": 30.022,
+          "opsPerS": 86368763,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 86864304,
+      "last3MinOps": 85412422,
+      "retention": 0.9833
+    },
+    {
+      "provider": "superserve",
+      "status": "failed",
+      "stopReason": "account billing ineligible (HTTP 402)",
+      "guestVcpus": null,
+      "durationS": 0,
+      "segments": [],
+      "first3MinOps": null,
+      "last3MinOps": null,
+      "retention": null
+    },
+    {
+      "provider": "vercel",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 905.588,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.184,
+          "durationS": 30.04,
+          "opsPerS": 49957044,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.386,
+          "durationS": 30.035,
+          "opsPerS": 49891839,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.688,
+          "durationS": 30.033,
+          "opsPerS": 51028709,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.895,
+          "durationS": 30.027,
+          "opsPerS": 48024836,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.109,
+          "durationS": 30.035,
+          "opsPerS": 49921282,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.293,
+          "durationS": 30.04,
+          "opsPerS": 50018845,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.462,
+          "durationS": 30.019,
+          "opsPerS": 49526061,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.612,
+          "durationS": 30.031,
+          "opsPerS": 50133160,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 241.774,
+          "durationS": 30.036,
+          "opsPerS": 50619540,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 271.978,
+          "durationS": 30.047,
+          "opsPerS": 49337454,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.212,
+          "durationS": 30.028,
+          "opsPerS": 41409230,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.379,
+          "durationS": 30.074,
+          "opsPerS": 43509990,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.648,
+          "durationS": 30.033,
+          "opsPerS": 46356241,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 392.83,
+          "durationS": 30.02,
+          "opsPerS": 49682863,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 422.992,
+          "durationS": 30.016,
+          "opsPerS": 47664485,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.167,
+          "durationS": 30.027,
+          "opsPerS": 47293270,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.319,
+          "durationS": 30.042,
+          "opsPerS": 47196392,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 513.499,
+          "durationS": 30.011,
+          "opsPerS": 47916135,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 543.634,
+          "durationS": 30.017,
+          "opsPerS": 50783519,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 573.796,
+          "durationS": 30.049,
+          "opsPerS": 49494657,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 603.977,
+          "durationS": 30.015,
+          "opsPerS": 45521956,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 634.145,
+          "durationS": 30.043,
+          "opsPerS": 46828649,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 664.341,
+          "durationS": 30.026,
+          "opsPerS": 43961010,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 694.509,
+          "durationS": 30.035,
+          "opsPerS": 46278557,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 724.695,
+          "durationS": 30.028,
+          "opsPerS": 49324660,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 754.873,
+          "durationS": 30.034,
+          "opsPerS": 49172342,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 785.077,
+          "durationS": 30.031,
+          "opsPerS": 44252672,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 815.242,
+          "durationS": 30.023,
+          "opsPerS": 50731644,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 845.396,
+          "durationS": 30.037,
+          "opsPerS": 50520873,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 875.563,
+          "durationS": 30.025,
+          "opsPerS": 50763105,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 49807092,
+      "last3MinOps": 49127549,
+      "retention": 0.9864
+    },
+    {
+      "provider": "boat",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 929.624,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.551,
+          "durationS": 30.03,
+          "opsPerS": 53837971,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 31.762,
+          "durationS": 30.021,
+          "opsPerS": 58107919,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 62.018,
+          "durationS": 30.029,
+          "opsPerS": 63755723,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 93.231,
+          "durationS": 30.028,
+          "opsPerS": 65870099,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 124.451,
+          "durationS": 30.02,
+          "opsPerS": 64656829,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 155.647,
+          "durationS": 30.035,
+          "opsPerS": 66360539,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 186.862,
+          "durationS": 30.023,
+          "opsPerS": 66077456,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 217.303,
+          "durationS": 30.037,
+          "opsPerS": 57251771,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 248.573,
+          "durationS": 30.029,
+          "opsPerS": 59908391,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 279.839,
+          "durationS": 30.035,
+          "opsPerS": 54602422,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 311.651,
+          "durationS": 30.018,
+          "opsPerS": 49010622,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 342.196,
+          "durationS": 30.036,
+          "opsPerS": 48868978,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 372.598,
+          "durationS": 30.023,
+          "opsPerS": 48843183,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 403.835,
+          "durationS": 30.037,
+          "opsPerS": 53468442,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 434.131,
+          "durationS": 30.013,
+          "opsPerS": 59382401,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 465.36,
+          "durationS": 30.037,
+          "opsPerS": 59279754,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 495.699,
+          "durationS": 30.026,
+          "opsPerS": 54804992,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 526.916,
+          "durationS": 30.025,
+          "opsPerS": 56677592,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 558.14,
+          "durationS": 30.033,
+          "opsPerS": 55851337,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 589.443,
+          "durationS": 30.008,
+          "opsPerS": 61755170,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 619.935,
+          "durationS": 30.031,
+          "opsPerS": 58466424,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 651.179,
+          "durationS": 30.033,
+          "opsPerS": 62575243,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 682.401,
+          "durationS": 30.043,
+          "opsPerS": 61542531,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 712.935,
+          "durationS": 30.03,
+          "opsPerS": 61595636,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 744.161,
+          "durationS": 30.031,
+          "opsPerS": 61614765,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 775.439,
+          "durationS": 30.033,
+          "opsPerS": 60331728,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 807.674,
+          "durationS": 30.028,
+          "opsPerS": 63792441,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 837.942,
+          "durationS": 30.025,
+          "opsPerS": 74603642,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 869.136,
+          "durationS": 30.014,
+          "opsPerS": 84659706,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 899.604,
+          "durationS": 30.02,
+          "opsPerS": 79188894,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 62098180,
+      "last3MinOps": 70698529,
+      "retention": 1.1385
+    },
+    {
+      "provider": "modal",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 908.203,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.257,
+          "durationS": 30.036,
+          "opsPerS": 49200255,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.473,
+          "durationS": 30.042,
+          "opsPerS": 49237811,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.696,
+          "durationS": 30.041,
+          "opsPerS": 49169175,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.903,
+          "durationS": 30.027,
+          "opsPerS": 49183457,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.091,
+          "durationS": 30.038,
+          "opsPerS": 49885584,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.295,
+          "durationS": 30.037,
+          "opsPerS": 49241802,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.5,
+          "durationS": 30.041,
+          "opsPerS": 49201278,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.713,
+          "durationS": 30.04,
+          "opsPerS": 49759457,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.03,
+          "durationS": 30.041,
+          "opsPerS": 49906835,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.253,
+          "durationS": 30.049,
+          "opsPerS": 49259014,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.574,
+          "durationS": 30.029,
+          "opsPerS": 49220548,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.867,
+          "durationS": 30.041,
+          "opsPerS": 49016824,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 363.235,
+          "durationS": 30.041,
+          "opsPerS": 49494632,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 393.531,
+          "durationS": 30.04,
+          "opsPerS": 49357284,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 423.735,
+          "durationS": 30.039,
+          "opsPerS": 49130263,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.977,
+          "durationS": 30.023,
+          "opsPerS": 49210246,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 484.264,
+          "durationS": 30.043,
+          "opsPerS": 48913049,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 514.559,
+          "durationS": 30.043,
+          "opsPerS": 49111033,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 544.875,
+          "durationS": 30.026,
+          "opsPerS": 49716006,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 575.147,
+          "durationS": 30.028,
+          "opsPerS": 49156763,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 605.415,
+          "durationS": 30.041,
+          "opsPerS": 49146651,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 635.719,
+          "durationS": 30.04,
+          "opsPerS": 49416803,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 666.305,
+          "durationS": 30.041,
+          "opsPerS": 49055015,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 696.799,
+          "durationS": 30.04,
+          "opsPerS": 49150272,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 727.125,
+          "durationS": 30.024,
+          "opsPerS": 49408865,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 757.393,
+          "durationS": 30.042,
+          "opsPerS": 49227143,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 787.6,
+          "durationS": 30.011,
+          "opsPerS": 49291212,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 817.782,
+          "durationS": 30.034,
+          "opsPerS": 49950475,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 847.965,
+          "durationS": 30.028,
+          "opsPerS": 49526286,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 878.168,
+          "durationS": 30.035,
+          "opsPerS": 49721341,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 49319681,
+      "last3MinOps": 49520887,
+      "retention": 1.0041
+    },
+    {
+      "provider": "instabox",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 907.572,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.322,
+          "durationS": 30.026,
+          "opsPerS": 75697293,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.601,
+          "durationS": 30.026,
+          "opsPerS": 76185987,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.877,
+          "durationS": 30.013,
+          "opsPerS": 76154232,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 91.132,
+          "durationS": 30.028,
+          "opsPerS": 75614987,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.397,
+          "durationS": 30.02,
+          "opsPerS": 76858669,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.655,
+          "durationS": 30.018,
+          "opsPerS": 78777429,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.887,
+          "durationS": 30.021,
+          "opsPerS": 79144360,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 212.117,
+          "durationS": 30.018,
+          "opsPerS": 79102653,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.356,
+          "durationS": 30.016,
+          "opsPerS": 79015126,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.591,
+          "durationS": 30.019,
+          "opsPerS": 80773062,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.828,
+          "durationS": 30.022,
+          "opsPerS": 78728712,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 333.088,
+          "durationS": 30.016,
+          "opsPerS": 76742318,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 363.331,
+          "durationS": 30.01,
+          "opsPerS": 77197707,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 393.565,
+          "durationS": 30.019,
+          "opsPerS": 81017062,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 423.813,
+          "durationS": 30.019,
+          "opsPerS": 81219392,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 454.045,
+          "durationS": 30.019,
+          "opsPerS": 79106907,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 484.305,
+          "durationS": 30.024,
+          "opsPerS": 79146820,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 514.614,
+          "durationS": 30.022,
+          "opsPerS": 73759213,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 544.885,
+          "durationS": 30.022,
+          "opsPerS": 77147409,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 575.136,
+          "durationS": 30.024,
+          "opsPerS": 79223131,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 605.387,
+          "durationS": 30.013,
+          "opsPerS": 77888287,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 635.615,
+          "durationS": 30.019,
+          "opsPerS": 79441424,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 665.883,
+          "durationS": 30.022,
+          "opsPerS": 79666091,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 696.142,
+          "durationS": 30.016,
+          "opsPerS": 79048650,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 726.364,
+          "durationS": 30.019,
+          "opsPerS": 83705313,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 756.594,
+          "durationS": 30.026,
+          "opsPerS": 84544476,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 786.833,
+          "durationS": 30.009,
+          "opsPerS": 84121348,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 817.085,
+          "durationS": 30.016,
+          "opsPerS": 87932449,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 847.326,
+          "durationS": 30.017,
+          "opsPerS": 88831242,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 877.549,
+          "durationS": 30.023,
+          "opsPerS": 86276710,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 76548100,
+      "last3MinOps": 85901923,
+      "retention": 1.1222
+    },
+    {
+      "provider": "baseten",
+      "status": "failed",
+      "stopReason": "account credentials missing or rejected",
+      "guestVcpus": null,
+      "durationS": 0,
+      "segments": [],
+      "first3MinOps": null,
+      "last3MinOps": null,
+      "retention": null
+    },
+    {
+      "provider": "beam",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 906.984,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.257,
+          "durationS": 30.021,
+          "opsPerS": 87473725,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.436,
+          "durationS": 30.024,
+          "opsPerS": 78896836,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.632,
+          "durationS": 30.03,
+          "opsPerS": 82024003,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.905,
+          "durationS": 30.023,
+          "opsPerS": 81693170,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.094,
+          "durationS": 30.02,
+          "opsPerS": 80358894,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.337,
+          "durationS": 30.016,
+          "opsPerS": 83149852,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 181.583,
+          "durationS": 30.016,
+          "opsPerS": 83028876,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 211.812,
+          "durationS": 30.021,
+          "opsPerS": 83147232,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.007,
+          "durationS": 30.02,
+          "opsPerS": 83482509,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 272.262,
+          "durationS": 30.026,
+          "opsPerS": 83251975,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 302.492,
+          "durationS": 30.018,
+          "opsPerS": 82248272,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 332.737,
+          "durationS": 30.019,
+          "opsPerS": 83885999,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 362.937,
+          "durationS": 30.023,
+          "opsPerS": 63021595,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 393.208,
+          "durationS": 30.022,
+          "opsPerS": 81061829,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 423.467,
+          "durationS": 30.026,
+          "opsPerS": 70946756,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 453.727,
+          "durationS": 30.028,
+          "opsPerS": 81834381,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 483.99,
+          "durationS": 30.024,
+          "opsPerS": 82467833,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 514.18,
+          "durationS": 30.028,
+          "opsPerS": 81164992,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 544.388,
+          "durationS": 30.027,
+          "opsPerS": 85154609,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 574.599,
+          "durationS": 30.024,
+          "opsPerS": 84076040,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 604.813,
+          "durationS": 30.014,
+          "opsPerS": 85276493,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 635.079,
+          "durationS": 30.025,
+          "opsPerS": 79218038,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 665.285,
+          "durationS": 30.018,
+          "opsPerS": 83426249,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 695.505,
+          "durationS": 30.017,
+          "opsPerS": 86092857,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 725.759,
+          "durationS": 30.021,
+          "opsPerS": 83463096,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 755.955,
+          "durationS": 30.025,
+          "opsPerS": 82246230,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 786.177,
+          "durationS": 30.019,
+          "opsPerS": 84684841,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 816.446,
+          "durationS": 30.025,
+          "opsPerS": 82211454,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 846.685,
+          "durationS": 30.022,
+          "opsPerS": 82675350,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 876.958,
+          "durationS": 30.026,
+          "opsPerS": 85024300,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 82266080,
+      "last3MinOps": 83384212,
+      "retention": 1.0136
+    },
+    {
+      "provider": "styne",
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 903.933,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.087,
+          "durationS": 30.016,
+          "opsPerS": 106259452,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.235,
+          "durationS": 30.017,
+          "opsPerS": 104214410,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.336,
+          "durationS": 30.01,
+          "opsPerS": 102178876,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 90.471,
+          "durationS": 30.01,
+          "opsPerS": 102704583,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 120.562,
+          "durationS": 30.016,
+          "opsPerS": 104990215,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 150.653,
+          "durationS": 30.018,
+          "opsPerS": 105320303,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 180.776,
+          "durationS": 30.018,
+          "opsPerS": 102867455,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 210.872,
+          "durationS": 30.016,
+          "opsPerS": 104976006,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 241.001,
+          "durationS": 30.022,
+          "opsPerS": 104111483,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 271.098,
+          "durationS": 30.013,
+          "opsPerS": 101858281,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 301.228,
+          "durationS": 30.018,
+          "opsPerS": 103460810,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 331.345,
+          "durationS": 30.014,
+          "opsPerS": 105805689,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 361.439,
+          "durationS": 30.017,
+          "opsPerS": 104214664,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 391.528,
+          "durationS": 30.017,
+          "opsPerS": 102142427,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 421.621,
+          "durationS": 30.015,
+          "opsPerS": 106386790,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 451.746,
+          "durationS": 30.017,
+          "opsPerS": 107908898,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 481.863,
+          "durationS": 30.014,
+          "opsPerS": 104442144,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 511.951,
+          "durationS": 30.008,
+          "opsPerS": 105982838,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 542.038,
+          "durationS": 30.019,
+          "opsPerS": 107237268,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 572.153,
+          "durationS": 30.02,
+          "opsPerS": 103655324,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 602.25,
+          "durationS": 30.076,
+          "opsPerS": 76720835,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 632.416,
+          "durationS": 30.1,
+          "opsPerS": 17279302,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 662.598,
+          "durationS": 30.031,
+          "opsPerS": 16883810,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 692.743,
+          "durationS": 30.082,
+          "opsPerS": 16934546,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 722.993,
+          "durationS": 30.017,
+          "opsPerS": 17210428,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 753.184,
+          "durationS": 30.029,
+          "opsPerS": 17469447,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 783.321,
+          "durationS": 30.098,
+          "opsPerS": 16716873,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 813.521,
+          "durationS": 30.013,
+          "opsPerS": 16961420,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 843.635,
+          "durationS": 30.095,
+          "opsPerS": 17448159,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 873.833,
+          "durationS": 30.1,
+          "opsPerS": 17407523,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 104277973,
+      "last3MinOps": 17202308,
+      "retention": 0.165
+    }
+  ]
 }

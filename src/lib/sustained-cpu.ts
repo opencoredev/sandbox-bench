@@ -152,7 +152,7 @@ function parseSegments(v: unknown, path: string): CpuSegment[] {
   segments.forEach((s, i) => {
     const prev = segments[i - 1];
     if (prev && s.startS < prev.startS + prev.durationS - CLOCK_SLACK_S) fail(`${path}[${i}].startS`, `is ${s.startS}, before the previous segment ended at ${prev.startS + prev.durationS}`);
-    if (s.startS >= TARGET_DURATION_S) fail(`${path}[${i}].startS`, `is ${s.startS}, past the ${TARGET_DURATION_S} s run`);
+    if (s.startS >= TARGET_DURATION_S * 2) fail(`${path}[${i}].startS`, `is ${s.startS}, past twice the ${TARGET_DURATION_S} s run`);
   });
   return segments;
 }

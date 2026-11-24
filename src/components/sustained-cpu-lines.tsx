@@ -47,6 +47,7 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
   const active = hovered ?? selected;
   const activeRun = providers.find((p) => p.provider === active);
   const peak = Math.max(...providers.flatMap((p) => p.segments.map((s) => s.opsPerS / 1e6)), Number.EPSILON);
+  const xMax = Math.max(TARGET_DURATION_S, ...providers.flatMap((p) => p.segments.map((s) => s.startS + s.durationS)));
   const yTicks = linearTicks(peak);
   const yMax = yTicks.at(-1) ?? peak;
   // The highlighted line draws last, on top of the rest.
@@ -61,7 +62,7 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
           <div
             key={start}
             className="absolute bg-neutral-3 opacity-40"
-            style={{ left: along(start / TARGET_DURATION_S, "x"), width: `calc((100% - ${INSET.left + INSET.right}px) * ${WINDOW_S / TARGET_DURATION_S})`, top: INSET.top, bottom: INSET.bottom }}
+            style={{ left: along(start / xMax, "x"), width: `calc((100% - ${INSET.left + INSET.right}px) * ${WINDOW_S / xMax})`, top: INSET.top, bottom: INSET.bottom }}
           />
         ))}
         {yTicks.map((t) => (
@@ -70,11 +71,11 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
           </div>
         ))}
         {X_TICKS_MIN.map((m) => (
-          <span key={`x${m}`} className="absolute -translate-x-1/2 font-mono text-xxs whitespace-nowrap text-neutral-7 tabular-nums" style={{ left: along((m * 60) / TARGET_DURATION_S, "x"), bottom: 4 }}>
+          <span key={`x${m}`} className="absolute -translate-x-1/2 font-mono text-xxs whitespace-nowrap text-neutral-7 tabular-nums" style={{ left: along((m * 60) / xMax, "x"), bottom: 4 }}>
             {m === 15 ? "15 min" : m}
           </span>
         ))}
-        <div className="absolute border-l border-dashed border-neutral-6" style={{ left: along(MARKER_S / TARGET_DURATION_S, "x"), top: INSET.top - 4, bottom: INSET.bottom }}>
+        <div className="absolute border-l border-dashed border-neutral-6" style={{ left: along(MARKER_S / xMax, "x"), top: INSET.top - 4, bottom: INSET.bottom }}>
           <span className="absolute -top-3.5 -translate-x-1/2 font-mono text-xxs whitespace-nowrap text-neutral-7">10 min</span>
         </div>
         <div className="absolute border-t border-neutral-5" style={{ left: INSET.left, right: INSET.right, bottom: INSET.bottom }} />
@@ -88,7 +89,7 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
             <polyline
               key={p.provider}
               {...tierAttrs(p.provider)}
-              points={p.segments.map((s) => `${(s.startS + s.durationS / 2) / TARGET_DURATION_S},${1 - s.opsPerS / 1e6 / yMax}`).join(" ")}
+              points={p.segments.map((s) => `${(s.startS + s.durationS / 2) / xMax},${1 - s.opsPerS / 1e6 / yMax}`).join(" ")}
               fill="none"
               stroke={providerColor(p.provider)}
               strokeOpacity={active === null || active === p.provider ? 1 : 0.18}
