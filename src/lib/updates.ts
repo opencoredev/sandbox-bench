@@ -37,6 +37,22 @@ export interface Update {
 
 export const updates = [
   {
+    slug: "maritime-added",
+    date: "2026-11-24",
+    title: "Maritime added",
+    text: "Maritime on both machines, with snapshots, both real tasks and costs metered from its own usage API. Its traffic leaves from Hetzner in Germany and Finland; it was among the slowest at cold start and the slowest on both real tasks, at the third-lowest Fix and test cost.",
+    body: [
+      "Maritime joined on both tracks from its own runs on Nov 23 and 24 (UTC, sandbox-sdk 619307b): pause and resume, snapshots, bursts and both real tasks included. Its default is its small preset, 2 vCPU, 4 GB and a 12 GB disk; on 4 vCPU and 8 GB it ran its medium preset, which has a 50 GB disk. Outbound traffic left from Hetzner in Falkenstein, Germany for 374 of 391 sandboxes and Helsinki, Finland for 17, so every call from our server in Florida crosses the Atlantic.",
+      "On the default machine it started in 2.14 s (96 of 100), 14th of 15, with 6 creates taking 80 to 167 s. A command took 145 ms and 100 tool calls 18.3 s. Pause and resume took 6.33 s, a snapshot 4.32 s and starting from one 2.71 s (27 of 29).",
+      "On 4 vCPU and 8 GB, the run began two seconds after our bursts on the default machine, and Maritime refused its first 27 creates in 4 seconds with HTTP 429 (rate_limited); its docs allow 30 creates a minute per API key. Of the 73 after that, 70 started, so cold start is 70 of 100 at 3.33 s, last of 15, and each agent test has only 3 runs. Snapshots took 11.2 s, starting from one 2.93 s and pause and resume 13.1 s (69 of 70). Those 429s count as Maritime failures.",
+      "Bursts aren't published. On each track only 2 of 3 bursts of 10 finished; in the third, all 10 creates got the same 429. No burst of 25 had every machine ready: 23, 24 and 0 of 25 on the default machine, 13, 13 and 0 on 4 vCPU.",
+      "Costs come from Maritime's own per-sandbox usage records at $0.0055 per vCPU-hour and $0.00275 per GB-hour: $0.14 per 1,000 quick tasks on the default machine and $0.29 on 4 vCPU. Fix and test took 281 s and 158 s, the slowest on both machines, at $1.65 and $2.13 per 1,000, third cheapest on both. Build finished 4 of 5 on 4 vCPU (300 s, $5.51 per 1,000) but only 1 of 5 on the default machine: one was killed with exit 137 with 4 GB of memory, and three lost their command stream before the build finished, as did the one failure on 4 vCPU. There is no held-open run, because its usage API leaves out the $0.08 per GB-month it charges for a paused sandbox's disk.",
+      "Five Fix and test tasks at once, run on Nov 24, finished 7 of 10, with a median of 359 s against 187 s for one alone; the other 3 failed a Vue test step. With fewer than 8 of 10 finished, the chart doesn't tag a change from alone.",
+    ],
+    charts: { kind: "provider", provider: "maritime" },
+    home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
+  },
+  {
     slug: "beam-cpu-tiers",
     date: "2026-11-20",
     title: "Beam's CPU tiers, side by side",

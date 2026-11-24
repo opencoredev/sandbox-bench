@@ -47,6 +47,7 @@ export const fromFingerprints = [
   { providers: ["vercel", "modal"], date: "Nov 9, 2026" },
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
+  { providers: ["maritime"], date: "Nov 23 and 24, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -61,7 +62,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten and Instabox
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam and Maritime
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -338,6 +339,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "No DMI, so the memory type is inferred from the chip. It runs as an ordinary user with passwordless sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
+  },
+  maritime: {
+    chip: "Intel Xeon, model not named",
+    family: "From CPU features: AVX2, FMA and AES, no AVX-512; the hypervisor reports a generic name at 3.20 GHz",
+    chipBasis: "inferred",
+    memory: { kind: "unknown", why: "DMI is empty inside the microVM, with no memory details" },
+    cloud: "Hetzner, from its outbound IPs",
+    region: "Outbound IPs are Hetzner's (AS24940) in Falkenstein, Germany for 374 of 391 sandboxes with egress data and Helsinki, Finland for 17; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: "Germany",
+    runsAs: "KVM microVM",
+    runsAsDetail: "KVM with Linux 6.1.141 inside",
+    storage: "12 GB virtio disk (vda), ext4 on the default size; 50 GB on 4 vCPU, 8 GB",
+    kernel: "Linux 6.1.141, Ubuntu 24.04.5 LTS",
+    hidden: [
+      "The CPU names itself only as \"Intel(R) Xeon(R) Processor @ 3.20GHz\", a generic name set by the hypervisor, with no model number. It has AVX2, FMA and AES and no AVX-512, and every one of the 395 sandboxes showed the same feature set.",
+      "DMI is empty, so the memory type isn't shown. It runs as an ordinary user, user (uid 1000), with passwordless sudo.",
+      "Traffic leaves from Hetzner in Germany or Finland, so every call from our server in Florida crosses the Atlantic and back.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB machine (Maritime's medium preset) also has a 50 GB disk instead of 12 GB, on the same Intel Xeon, KVM and Hetzner setup.",
   },
 };
 

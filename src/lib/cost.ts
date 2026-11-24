@@ -230,6 +230,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "beam.cloud/pricing (checked Nov 20, 2026): the Spot tier bills $0.0063 per vCPU-hour and $0.00135 per GiB of RAM per hour, per millisecond while running, on spare capacity Beam can take back with 30 seconds' notice; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
   },
+  maritime: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, not while it is paused, when only its disk is billed",
+    evidence:
+      "maritime.sh/docs/billing (checked Nov 23, 2026): a sandbox's vCPUs and memory times the seconds it runs, at $0.0055 per vCPU-hour and $0.00275 per GiB-hour, with its disk included while it runs; a paused sandbox pays $0.08 per GB-month for its disk. Its per-sandbox running intervals come from GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}, which leave out the paused-disk charge.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",

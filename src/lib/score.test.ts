@@ -257,9 +257,9 @@ describe("cost shows dollars, not a score", () => {
   };
   const shown = (cells: ReturnType<typeof costOn>) => cells.map((s) => [s.provider, s.kind === "valued" ? s.display : s.kind]);
 
-  test("Same machine: cheapest first in dollars per 1,000 tasks, every provider priced, boxd at $5.50 in third", () => {
+  test("Same machine: cheapest first in dollars per 1,000 tasks, every provider priced, boxd at $5.50 in fourth", () => {
     const cells = costOn("same-spec");
-    assert.deepEqual(shown(cells).slice(0, 3), [["instabox", "$0.76"], ["boat", "$0.95"], ["boxd", "$5.50"]]);
+    assert.deepEqual(shown(cells).slice(0, 4), [["instabox", "$0.76"], ["boat", "$0.95"], ["maritime", "$2.13"], ["boxd", "$5.50"]]);
     assert.deepEqual(shown(cells).find(([p]) => p === "e2b"), ["e2b", "$10.07"]);
     assert.deepEqual(shown(cells).at(-1), ["vercel", "$43.14"]);
     assert.equal(cells.length, firsts(tracks["same-spec"]).length);

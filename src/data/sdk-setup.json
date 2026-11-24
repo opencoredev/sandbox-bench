@@ -16,7 +16,8 @@
     "modal": 0.2,
     "baseten": 0.2,
     "instabox": 0.3,
-    "beam": 0.2
+    "beam": 0.2,
+    "maritime": 0.3
   },
   "runs": {
     "baseten": {
@@ -30,6 +31,10 @@
     "beam": {
       "sdkCommit": "69d48ed",
       "date": "Nov 18, 2026"
+    },
+    "maritime": {
+      "sdkCommit": "619307b",
+      "date": "Nov 24, 2026"
     }
   }
 }

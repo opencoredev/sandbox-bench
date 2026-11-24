@@ -875,14 +875,43 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "maritime",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 12
+    }
+   },
+   "measured": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.8476219177246094,
+     "diskGiB": 11.729698181152344
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-19T19:18:29.681Z"
+  "end": "2026-11-24T05:03:44.402Z"
  },
- "observations": 42617,
+ "observations": 45447,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1198,6 +1227,26 @@
    "id": "sbxbm-default-cost",
    "suite": "cost",
    "samples": 50
+  },
+  {
+   "id": "sbxm-default-main",
+   "suite": "main",
+   "samples": 2113
+  },
+  {
+   "id": "sbxm-default-snapshot",
+   "suite": "snapshot",
+   "samples": 317
+  },
+  {
+   "id": "sbxm-default-cost-3",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxm-default-burst",
+   "suite": "burst",
+   "samples": 350
   }
  ],
  "excluded": [
@@ -1332,6 +1381,12 @@
      "reason": "Not run: blocked on all 30 runs. On Beam's default 1 CPU / 128 MiB the dev server was killed for memory or its preview never answered, so there was no page to edit; those failures are counted"
     }
    ],
+   "replacements": []
+  },
+  "maritime": {
+   "removed": {},
+   "superseded": [],
+   "notRun": [],
    "replacements": []
   }
  },
@@ -3559,6 +3614,228 @@
    "ourFailures": [],
    "pauseSplit": null,
    "standbyResume": null
+  },
+  {
+   "id": "maritime",
+   "costPerTask": {
+    "usd": 0.000142,
+    "kind": "metered",
+    "source": "https://api.maritime.sh/v1/sandboxes/{id}/info and https://api.maritime.sh/v1/usage?sandbox={id}",
+    "confidence": "medium",
+    "n": 10,
+    "settled": true,
+    "bound": null
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 12
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.8476219177246094,
+     "diskGiB": 11.729698181152344
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.022,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.044,
+   "perVcpuHour": 0.011,
+   "pricingAllocation": {
+    "cpu": 2,
+    "memoryGiB": 4
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": 0.0055,
+    "memoryGiBHour": 0.00275,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16
+     },
+     {
+      "cpu": 16,
+      "memoryGiB": 32
+     }
+    ]
+   },
+   "pricingSource": "https://maritime.sh/docs/billing",
+   "pricingNotes": "Published virtual machine rates: $0.0055/vCPU-hour and $0.00275/GiB-hour of memory, per second while running, no minimum, at any size from 1 to 16 vCPU and 1 to 64 GiB; disk is included while running (small 2/4 = $0.022/hour, medium 4/8 $0.044, large 8/16 $0.088, xlarge 16/32 $0.176). A paused (asleep) sandbox costs $0.08/GB-month of disk and no compute, which these estimates leave out. Plan fee and its equal monthly usage credit ($100 on Growth) excluded.",
+   "reliability": {
+    "successes": 2734,
+    "failures": 51,
+    "raw": 0.9816876122082585,
+    "adjusted": 0.9816876122082585,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 51
+   },
+   "hardware": {
+    "fingerprints": 125,
+    "vcpu": 2,
+    "visibleCpus": [
+     2
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 3.8476219177246094,
+    "diskGiB": 11.729698181152344,
+    "cpuModels": [
+     {
+      "value": "Intel Xeon Processor @ 3.20GHz",
+      "count": 125
+     }
+    ],
+    "vendor": "Intel",
+    "arch": "x86_64",
+    "isolation": "kvm",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.1.141",
+    "location": [
+     {
+      "value": "Falkenstein, DE",
+      "count": 125
+     }
+    ],
+    "network": [
+     {
+      "value": "AS24940 Hetzner Online GmbH",
+      "count": 125
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime POST /sandboxes failed (HTTP 429 rate_limited). (quota, HTTP 429)",
+     "count": 37,
+     "runs": 37,
+     "tests": [
+      "25 at once",
+      "10 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime POST /commands failed: the service is unreachable. (unavailable)",
+     "count": 6,
+     "runs": 6,
+     "tests": [
+      "Cold start",
+      "Start from snapshot",
+      "cold",
+      "25 at once"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime POST /sandboxes failed (HTTP 500 internal_error). (outcome_unknown, HTTP 500)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Cold start"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime GET /sandboxes/{id} failed (HTTP 502). (unavailable, HTTP 502)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Reconnect"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime POST /commands failed (HTTP 500 internal). (outcome_unknown, HTTP 500)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Pause + resume"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Maritime POST /sandboxes failed (HTTP 503 out_of_capacity). (unavailable, HTTP 503)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Cold start"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "23/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "24/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "0/10 ready; 10 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "10 at once, all ready"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "0/25 ready; 25 attempted (budgets may prevent admission)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "25 at once, all ready"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 5.972289191000163,
+    "resume": 0.35166204599989576,
+    "n": 95
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -3753,6 +4030,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 2.135741522999946,
+     "p95": 82.30236158000002,
+     "min": 1.4474003770001,
+     "ciLow": 1.8578315440001898,
+     "ciHigh": 2.484315327999648,
+     "successes": 96,
+     "failures": 4,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3944,6 +4234,19 @@
      "ciLow": 0.06624042800068855,
      "ciHigh": 0.08407088000001386,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 95,
+     "p50": 0.14496112600015476,
+     "p95": 0.1804108380000107,
+     "min": 0.13843915500026197,
+     "ciLow": 0.14291859399992973,
+     "ciHigh": 0.14742475300002844,
+     "successes": 95,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4141,6 +4444,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 0.280815152999945,
+     "p95": 0.380106332000345,
+     "min": 0.2679556479998864,
+     "ciLow": 0.27946327199973164,
+     "ciHigh": 0.2847729230001569,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4332,6 +4648,19 @@
      "ciLow": 2.099610709999688,
      "ciHigh": 2.148714916999452,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 2.9461253410000356,
+     "p95": 3.257843267999997,
+     "min": 2.7314791580000892,
+     "ciLow": 2.8980264869999375,
+     "ciHigh": 2.957691734000109,
+     "successes": 96,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -4529,6 +4858,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 94,
+     "p50": 0.3989626649999991,
+     "p95": 0.687526594999712,
+     "min": 0.355525646999944,
+     "ciLow": 0.3882573359999806,
+     "ciHigh": 0.41103481300035494,
+     "successes": 94,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4669,6 +5011,19 @@
      "ciHigh": 2.9397039530002513,
      "successes": 100,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 95,
+     "p50": 6.330149226000067,
+     "p95": 12.945650165,
+     "min": 3.6896076599999796,
+     "ciLow": 5.884523149000016,
+     "ciHigh": 6.553084151000017,
+     "successes": 95,
+     "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -4874,6 +5229,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 0.8304334299997427,
+     "p95": 1.381038487000391,
+     "min": 0.6567348529999144,
+     "ciLow": 0.8112260250002146,
+     "ciHigh": 0.8634941969998181,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5026,6 +5394,19 @@
      "ciLow": 40.78547628099984,
      "ciHigh": 145.77795682299976,
      "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 29,
+     "p50": 4.3184571320000105,
+     "p95": 9.381854586000031,
+     "min": 3.3277903400000652,
+     "ciLow": 4.022958915000083,
+     "ciHigh": 4.8713108439999635,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -5182,6 +5563,19 @@
      "ciHigh": 6.455512623000017,
      "successes": 30,
      "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 27,
+     "p50": 2.7071387529997155,
+     "p95": 144.85461582499988,
+     "min": 1.4060505300000077,
+     "ciLow": 2.345849357999861,
+     "ciHigh": 3.3145768269998954,
+     "successes": 27,
+     "failures": 2,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -5374,6 +5768,19 @@
      "min": 0.5516581689999439,
      "ciLow": 0.6132842200000305,
      "ciHigh": 0.8487179680000991,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 1.2240055749999592,
+     "p95": 1.768449364,
+     "min": 1.1402518580000034,
+     "ciLow": 1.1859522080000025,
+     "ciHigh": 1.3449003039998935,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5572,6 +5979,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 1.530923053000006,
+     "p95": 5.819913123999955,
+     "min": 1.3024853609999991,
+     "ciLow": 1.4464783240000252,
+     "ciHigh": 1.6160346309999005,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5764,6 +6184,19 @@
      "ciHigh": 5.225807892000303,
      "successes": 14,
      "failures": 16,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 4.589805072000018,
+     "p95": 19.892728879999837,
+     "min": 4.2866634309999645,
+     "ciLow": 4.513297097000061,
+     "ciHigh": 4.686386481000111,
+     "successes": 30,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -5960,6 +6393,19 @@
      "failures": 20,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 1.0834991889998782,
+     "p95": 2.350938423000043,
+     "min": 1.036730974999955,
+     "ciLow": 1.0556410730000352,
+     "ciHigh": 1.1328103780000238,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6154,6 +6600,19 @@
      "failures": 30,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 0.46817571700003463,
+     "p95": 0.5643549620001577,
+     "min": 0.44215661600005113,
+     "ciLow": 0.45710142399999315,
+     "ciHigh": 0.4961745729999384,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6331,6 +6790,19 @@
      "min": 0.4894567559999414,
      "ciLow": 0.538008048000047,
      "ciHigh": 0.5907337379999809,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 0.5856183759999695,
+     "p95": 0.738680514000007,
+     "min": 0.5224725210000761,
+     "ciLow": 0.5462901830000337,
+     "ciHigh": 0.6139482199999621,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6525,6 +6997,19 @@
      "min": 11.663722590999678,
      "ciLow": 12.404415875000064,
      "ciHigh": 12.582602823999999,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 30,
+     "p50": 18.344490304999987,
+     "p95": 28.104852270999924,
+     "min": 17.770121314999997,
+     "ciLow": 18.071874796999968,
+     "ciHigh": 19.92081195799995,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -7098,6 +7583,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 9813583.233744325,
+     "p95": 10157267.305868248,
+     "min": 1326826.6743918476,
+     "ciLow": 9736328.444758518,
+     "ciHigh": 9905530.460719572,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7289,6 +7787,19 @@
      "ciLow": 13289606.452624897,
      "ciHigh": 13680530.981901754,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 16132296.966613442,
+     "p95": 17634877.117221713,
+     "min": 1855391.820907226,
+     "ciLow": 15672735.6017889,
+     "ciHigh": 16299021.323634813,
+     "successes": 96,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -7486,6 +7997,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 17041.516067982564,
+     "p95": 19326.960958539385,
+     "min": 1127.2946614514121,
+     "ciLow": 16758.939590800943,
+     "ciHigh": 17288.473159463476,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7677,6 +8201,19 @@
      "ciLow": 2000.105684619502,
      "ciHigh": 2049.194195933954,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 633.7495189310249,
+     "p95": 729.2296773445835,
+     "min": 76.8768634026789,
+     "ciLow": 622.263897990833,
+     "ciHigh": 641.4664199262045,
+     "successes": 96,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -7874,6 +8411,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 9769.903877425873,
+     "p95": 11126.561264021939,
+     "min": 896.3241047429907,
+     "ciLow": 9613.628175355081,
+     "ciHigh": 9863.41837093206,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8065,6 +8615,19 @@
      "ciLow": 86117.63534428242,
      "ciHigh": 105234.68568125756,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 17826.95789787916,
+     "p95": 20986.48617851328,
+     "min": 927.8975269406876,
+     "ciLow": 16937.982041901578,
+     "ciHigh": 18581.532279607585,
+     "successes": 96,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -8262,6 +8825,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 340249.97740507737,
+     "p95": 374883.9470592978,
+     "min": 145362.28995582016,
+     "ciLow": 332589.33791340055,
+     "ciHigh": 346843.5207326811,
+     "successes": 96,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8439,6 +9015,19 @@
      "ciHigh": 3.6142464000000096,
      "successes": 93,
      "failures": 7,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "maritime",
+     "n": 96,
+     "p50": 6.239166200000135,
+     "p95": 8.405190999999945,
+     "min": 6.056449000000441,
+     "ciLow": 6.21666840000028,
+     "ciHigh": 6.319842799999975,
+     "successes": 96,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -9873,15 +10462,117 @@
    0.53,
    0.584,
    0.745
+  ],
+  "maritime": [
+   1.447,
+   1.452,
+   1.477,
+   1.48,
+   1.499,
+   1.511,
+   1.52,
+   1.529,
+   1.53,
+   1.533,
+   1.534,
+   1.536,
+   1.536,
+   1.61,
+   1.623,
+   1.625,
+   1.639,
+   1.645,
+   1.655,
+   1.66,
+   1.664,
+   1.669,
+   1.67,
+   1.684,
+   1.706,
+   1.707,
+   1.715,
+   1.717,
+   1.733,
+   1.735,
+   1.746,
+   1.77,
+   1.782,
+   1.788,
+   1.8,
+   1.832,
+   1.843,
+   1.858,
+   1.897,
+   2,
+   2.007,
+   2.017,
+   2.019,
+   2.057,
+   2.062,
+   2.076,
+   2.115,
+   2.136,
+   2.144,
+   2.194,
+   2.213,
+   2.223,
+   2.251,
+   2.351,
+   2.378,
+   2.467,
+   2.483,
+   2.484,
+   2.559,
+   2.671,
+   2.73,
+   2.741,
+   2.837,
+   2.874,
+   2.957,
+   2.984,
+   3.033,
+   3.069,
+   3.148,
+   3.261,
+   3.287,
+   4.503,
+   4.692,
+   4.818,
+   6.464,
+   6.474,
+   6.599,
+   6.822,
+   6.883,
+   7.004,
+   7.017,
+   7.377,
+   7.391,
+   9.076,
+   11.335,
+   11.487,
+   11.718,
+   11.956,
+   12.823,
+   17.301,
+   80.341,
+   82.302,
+   101.015,
+   103.235,
+   122.917,
+   167.225
   ]
  },
  "missing": {
   "burst-25": {
-   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update"
+   "daytona": "stopped-early: in one of its three bursts of 25, one create timed out on Daytona's side (24 of 25 ready), so only 2 of 3 bursts finished and the size is not published; coming in the next update",
+   "maritime": "stopped-early: none of 3 bursts of 25 finished, so the size is not published; 23, 24 and 0 of 25 machines were ready, the rest refused with HTTP 429 (rate_limited) but one, whose first command found the service unreachable. Its docs allow 30 creates a minute per API key"
+  },
+  "burst-10": {
+   "maritime": "stopped-early: only 2 of 3 bursts of 10 finished, so the size is not published; in the third, Maritime refused all 10 creates with HTTP 429 (rate_limited). Its docs allow 30 creates a minute per API key"
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18)."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24)."
  },
  "stress": {
   "observations": 1446,

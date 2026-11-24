@@ -17,7 +17,8 @@
       "instabox",
       "beam",
       "beam-shared",
-      "beam-spot"
+      "beam-spot",
+      "maritime"
     ],
     "profiles": [
       "fix-and-test",
@@ -78,6 +79,11 @@
         "provider": "beam-spot",
         "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
         "short": "no billing data we can read"
+      },
+      {
+        "provider": "maritime",
+        "reason": "its usage API reports running time only and leaves out the $0.08 per GB-month it charges for a paused sandbox's disk, so an idle run's cost couldn't be read from it",
+        "short": "paused disk not in its usage API"
       }
     ]
   }

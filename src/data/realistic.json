@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-20T19:23:29.309Z",
+  "generatedAt": "2026-11-24T05:18:01.654Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -20,7 +20,8 @@
         "instabox",
         "beam",
         "beam-shared",
-        "beam-spot"
+        "beam-spot",
+        "maritime"
       ],
       "profiles": [
         "fix-and-test",
@@ -81,6 +82,11 @@
           "provider": "beam-spot",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
+        },
+        {
+          "provider": "maritime",
+          "reason": "its usage API reports running time only and leaves out the $0.08 per GB-month it charges for a paused sandbox's disk, so an idle run's cost couldn't be read from it",
+          "short": "paused disk not in its usage API"
         }
       ]
     }
@@ -157,6 +163,13 @@
       "generatedAt": "2026-11-20T18:55:02.381Z",
       "providers": [
         "beam-spot"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-maritime",
+      "generatedAt": "2026-11-24T05:07:26.234Z",
+      "providers": [
+        "maritime"
       ]
     }
   ],
@@ -439,6 +452,38 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "maritime",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 1,
+      "incomplete": 4,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 4
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 369.62,
+      "medianCpuS": 478.665,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.014189,
+        "wholeMachineUsdPerCompleted": 0.0142572,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "4 incomplete runs (at most 1)",
         "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
     },
@@ -871,6 +916,37 @@
       ]
     },
     {
+      "provider": "maritime",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 299.615,
+      "medianCpuS": 543.366,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00550625,
+        "wholeMachineUsdPerCompleted": 0.00553972,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
       "provider": "modal",
       "profile": "build",
       "track": "same-machine",
@@ -1270,6 +1346,32 @@
         "kind": "metered",
         "usdPerCompleted": 0.00080922,
         "wholeMachineUsdPerCompleted": 0.000842444,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "maritime",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 280.932,
+      "medianCpuS": 412.483,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0016542,
+        "wholeMachineUsdPerCompleted": 0.00166467,
         "wholeMachineBound": "exact"
       },
       "costNote": null,
@@ -1690,6 +1792,32 @@
         "kind": "metered",
         "usdPerCompleted": 0.000758366,
         "wholeMachineUsdPerCompleted": 0.000793333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "maritime",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 157.529,
+      "medianCpuS": 383.049,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0021296,
+        "wholeMachineUsdPerCompleted": 0.00215356,
         "wholeMachineBound": "exact"
       },
       "costNote": null,

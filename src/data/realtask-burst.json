@@ -1323,6 +1323,137 @@
       "slowdownWithoutUpload": null,
       "status": "not-run",
       "reason": "Daytona's account allows 10 vCPU in total; 5 tasks x 4 vCPU = 20 vCPU does not fit"
+    },
+    {
+      "provider": "maritime",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 290.252,
+          "uploadS": 6.016,
+          "completed": false,
+          "failure": {
+            "stage": "workload",
+            "reason": "a test step failed (test-a)"
+          }
+        },
+        {
+          "round": 1,
+          "wallS": 503.709,
+          "uploadS": 8.205,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 185.079,
+          "uploadS": 11.888,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 202.633,
+          "uploadS": 22.305,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 376.388,
+          "uploadS": 5.825,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 574.187,
+          "uploadS": 9.971,
+          "completed": false,
+          "failure": {
+            "stage": "workload",
+            "reason": "a test step failed (test-a)"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 958.282,
+          "uploadS": 9.646,
+          "completed": false,
+          "failure": {
+            "stage": "workload",
+            "reason": "a test step failed (test-a)"
+          }
+        },
+        {
+          "round": 2,
+          "wallS": 491.542,
+          "uploadS": 14.093,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 178.878,
+          "uploadS": 6.18,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 359.224,
+          "uploadS": 5.982,
+          "completed": true
+        }
+      ],
+      "medianWallS": 359.224,
+      "medianUploadS": 8.205,
+      "completed": 7,
+      "attempts": 10,
+      "roundAllDoneS": [
+        503.709,
+        958.282
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 503.709
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 958.282
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 151.398,
+            "uploadS": 7.284,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 222.196,
+            "uploadS": 7.989,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 186.797,
+      "soloMedianUploadS": 7.637,
+      "slowdown": null,
+      "slowdownWithoutUpload": null,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-maritime-1123",
+        "sdkCommit": "619307b1a5ab239b945a14c2612aa67c27aa875a",
+        "startedAt": "2026-11-24T04:21:28.335Z"
+      },
+      "changeNote": "only 7 of 10 tasks finished, too few to compare with alone"
     }
   ]
 }
