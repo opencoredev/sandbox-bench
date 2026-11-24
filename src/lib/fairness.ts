@@ -251,6 +251,8 @@ function parseCpuNative(o: Json, path: string): CpuNativeResult {
     // Windows of about 30 s: the k-th ends near minute k / 2.
     const gap = s.minute - (sustained[i - 1]?.minute ?? 0);
     if (gap < 0.4 || gap > 0.6) fail(`${path}.sustained[${i}].minute`, `is ${s.minute}, not about 30 s after the window before`);
+    // Deadlines are absolute, so window k ends near minute k / 2: no drift past the 15 minutes.
+    if (Math.abs(s.minute - (i + 1) / 2) > 0.05) fail(`${path}.sustained[${i}].minute`, `is ${s.minute}, not near its scheduled minute ${(i + 1) / 2}`);
   });
   return {
     cpuModel: orNull(str)(o.cpuModel, `${path}.cpuModel`),
@@ -576,9 +578,14 @@ export function uptimeText(r: SecurityResult): string {
   const up = r.uptimeS < 120 ? `${Number(r.uptimeS.toFixed(1))} s` : r.uptimeS < 7200 ? `${Math.round(r.uptimeS / 60)} min` : r.uptimeS < 172_800 ? `${Number((r.uptimeS / 3600).toFixed(1))} h` : `${Math.round(r.uptimeS / 86_400)} days`;
   // A container shares its host's kernel, so its uptime is the host's, not the sandbox's.
   if (r.isolation === "container") return `Shows the host's uptime (${up}): a container shares the host kernel`;
-  if (r.bootedBeforeCreateS <= 0) return `Up ${up} at first command: booted after the create began`;
-  if (r.bootedBeforeCreateS <= 10) return `Up ${up} at first command, at least ${Number(r.bootedBeforeCreateS.toFixed(1))} s before the create began`;
-  const before = r.bootedBeforeCreateS < 120 ? `${Math.round(r.bootedBeforeCreateS)} s` : r.bootedBeforeCreateS < 7200 ? `${Math.round(r.bootedBeforeCreateS / 60)} min` : `${Number((r.bootedBeforeCreateS / 3600).toFixed(1))} h`;
+  // Uptime shorter than the create call itself: the kernel started after the create began.
+  if (r.uptimeS < r.createS) return `Up ${up} at first command: booted during the create`;
+  // The bound subtracts the whole wait for the first reply, so zero or less settles nothing.
+  if (r.bootedBeforeCreateS <= 0) return `Up ${up} at first command: boot timing undetermined`;
+  const b = r.bootedBeforeCreateS;
+  const floor = (v: number, places: number) => Math.floor(v * 10 ** places) / 10 ** places;
+  if (b <= 10) return `Up ${up} at first command, at least ${floor(b, 1)} s before the create began`;
+  const before = b < 120 ? `${Math.floor(b)} s` : b < 7200 ? `${Math.floor(b / 60)} min` : `${floor(b / 3600, 1)} h`;
   return `Up ${up} at first command, at least ${before} before the create began: likely a pool or snapshot`;
 }
 

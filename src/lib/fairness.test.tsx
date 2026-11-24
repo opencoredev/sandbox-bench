@@ -145,6 +145,12 @@ describe("parse", () => {
     assert.throws(broken((f) => (f.checks["cpu-native"].entries[0]!.result!.retention = 0.5)), /retention/);
     assert.throws(
       broken((f) => {
+        f.checks["cpu-native"].entries[0]!.result!.sustained = f.checks["cpu-native"].entries[0]!.result!.sustained.map((x, i) => ({ ...x, minute: ((i + 1) * 33) / 60 }));
+      }),
+      /scheduled minute/,
+    );
+    assert.throws(
+      broken((f) => {
         const r = f.checks["cpu-native"].entries[0]!.result!;
         r.last3MinOps = r.first3MinOps / 2;
         r.retention = 0.5;
@@ -185,9 +191,11 @@ describe("rules", () => {
     const s = completed(parsed().securityProbe!);
     const styne = s.find((e) => e.provider === "styne")!.result;
     const boat = s.find((e) => e.provider === "boat")!.result;
-    assert.match(uptimeText(styne), /23.1 h at first command, at least 23.1 h before the create began: likely a pool or snapshot/);
+    assert.match(uptimeText(styne), /23.1 h at first command, at least 23 h before the create began: likely a pool or snapshot/);
     assert.match(uptimeText(boat), /3.1 s at first command, at least 2.5 s before the create began/);
-    assert.match(uptimeText({ ...boat, bootedBeforeCreateS: -0.8 }), /booted after the create began/);
+    assert.match(uptimeText({ ...boat, bootedBeforeCreateS: -0.8 }), /boot timing undetermined/);
+    assert.match(uptimeText({ ...boat, uptimeS: 0.2, createS: 0.4, bootedBeforeCreateS: -0.5 }), /booted during the create/);
+    assert.match(uptimeText({ ...boat, uptimeS: 60, bootedBeforeCreateS: 59.9 }), /at least 59 s before/);
     assert.match(uptimeText({ ...boat, isolation: "container", uptimeS: 900_000 }), /host's uptime \(10 days\)/);
     const unreadable: SecurityResult = { ...boat, uptimeS: null };
     assert.equal(uptimeText(unreadable), "Uptime not readable");

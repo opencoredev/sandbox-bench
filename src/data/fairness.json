@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v1",
-  "generatedAt": "2026-11-24T08:15:51.422Z",
+  "generatedAt": "2026-11-24T08:21:25.794Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",

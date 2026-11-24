@@ -783,7 +783,7 @@ export default function Page() {
           <Section
             id={fairnessSection}
             title="Like-for-like checks"
-            lede="The same compiled code and the same method on every provider's same-machine sandbox (4 vCPU, 8 GB requested), so the image's Python version and the guest's memory cache don't change the numbers, and burst credit and the CPUs a sandbox reports are measured in the open."
+            lede="The same compiled code and the same method on every provider's same-machine sandbox (4 vCPU, 8 GB requested; boxd 4 vCPU, 16 GiB). The image's Python version no longer changes the CPU numbers, comparable disk results are read past the guest's cache, and changes in CPU throughput and the CPUs a sandbox reports are shown as measured."
           >
             <PerTrack>
               {(track) =>
