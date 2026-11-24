@@ -18,7 +18,7 @@ export const caveats = [
   `There are two tracks. ${trackInfo["same-spec"].label}: ${trackInfo["same-spec"].description} A provider marked “machine differs” measured something else inside. ${trackInfo.default.label}: ${trackInfo.default.description}`,
   `Cost per task comes from each provider's bill or usage records where it gives one, and otherwise from our measured time at list price. Cheapest is the lowest exact cost.${lowerBoundCaveat} Prices cover compute only at list rates: disk, transfer, subscriptions and credits are excluded.`,
   "Pause and resume times come from the previous SDK run, because the newest runs skipped them; boxd's come from its Nov 19 re-run in New York, Baseten's resume from its own run on Nov 17 (Baseten has no pause call, so only its resume is timed), and Instabox's, like all its results, from its own runs on Nov 18; Archil's from its own runs on Nov 23 (commit 1f1de78). Beam's results come from its own runs on Nov 18; Beam sandboxes have no pause call. A burst size is published only when all three bursts finished.",
-  "Two kinds of failure are set aside as ours, not counted: our own scenario deadline running out, and our SDK timing out or wrapping the error while moving a 10 MB file. Every other failure counts, one whose cause is unconfirmed included.",
+  "Only the specific attempts we classified as ours are set aside, not counted; Method lists each one. Every other failure counts, one whose cause is unconfirmed included.",
   "Ranks compare medians. Medians inside each other's 95% intervals count as tied, so a close rank can be noise.",
 ] as const;
 

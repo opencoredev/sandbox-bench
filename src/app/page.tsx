@@ -540,10 +540,10 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Failures",
-    line: "A failure counts against the provider unless it is one of the two kinds we set aside as ours; any other failure counts, even when its cause is unconfirmed.",
+    line: "A failure counts against the provider unless we classified that attempt as ours; each one set aside is listed below, and any other failure counts, even when its cause is unconfirmed.",
     more: (
       <>
-        The two kinds: our own scenario deadline running out, and our SDK timing out or wrapping the error while moving a 10 MB file, where the error can&apos;t show whose side failed. Every other failure counts, timeouts our SDK reports while starting a sandbox included. Attempts blocked by our own plan limits were rerun. Set aside:
+        Only the attempts listed here were classified as ours; a similar timeout elsewhere can still count when we couldn&apos;t trace it to our side. Attempts blocked by our own plan limits were rerun. Set aside:
         <SetAside />
       </>
     ),
@@ -901,7 +901,7 @@ export default function Page() {
           </Section>
         ) : null}
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless it is one of the two kinds Method sets aside as ours, even when its cause is unconfirmed.">
+        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless we classified that attempt as ours, even when its cause is unconfirmed; Method lists each one set aside.">
           <PerTrack>
             {(track) => (
               <Card>

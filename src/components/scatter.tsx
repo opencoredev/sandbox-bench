@@ -267,7 +267,7 @@ export function Scatter({
                 style={{ left: along(px, "x"), top: along(py, "y") }}
               >
                 {/* The dot and its number sit above every point's wider invisible target (z-10), so a neighbour's target can't take
-                    them, even while that neighbour is hovered or focused: only its card rises above them (z-30), never its target. */}
+                    them, even while that neighbour is hovered or focused: only its card rises above them (z-20, under the sticky header's z-30), never its target. */}
                 <span
                   aria-hidden
                   className="absolute z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-neutral-2 transition-[scale] duration-[var(--motion-duration)] group-hover/pt:scale-125 group-focus-visible/pt:scale-125 group-focus-visible/pt:outline-2 group-focus-visible/pt:outline-offset-4 group-focus-visible/pt:outline-accent motion-reduce:transition-none"
@@ -296,7 +296,7 @@ export function Scatter({
                   detail={shown}
                   className={`left-0 opacity-0 group-hover/pt:opacity-100 group-focus/pt:opacity-100 motion-reduce:transition-none ${py > 0.5 ? "top-3" : "bottom-3"}`}
                   // Slide the card along its own width as the dot moves right, so it stays inside the plot at any width.
-                  style={{ translate: `${-px * 100}% 0`, zIndex: 30 }}
+                  style={{ translate: `${-px * 100}% 0`, zIndex: 20 }}
                 />
               </div>
             );
