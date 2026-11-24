@@ -57,6 +57,7 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
     setActive(id);
     setOpened((seen) => (seen.has(id) ? seen : new Set([...seen, id])));
   };
+  const scroller = useScrollFade<HTMLDivElement>();
   // The ids as one string, so a re-render that builds a new but equal tab list doesn't replay the hash.
   const openableIds = openable.map((t) => t.id).join("\n");
   useEffect(() => {
@@ -69,7 +70,9 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
       setOpened((seen) => (seen.has(request.tab) ? seen : new Set([...seen, request.tab])));
       // No element has the combined id, so the browser does not scroll; do it here: on every hash change,
       // but on mount only once per section and hash, so a card built later (the other track) opens the
-      // same tab without pulling the page back to it.
+      // same tab without pulling the page back to it. Only a card on screen scrolls or claims the hash: on a
+      // ?track= link the hidden track's card mounts first, and the visible one, built later, scrolls.
+      if (!scroller.current?.getClientRects().length) return;
       if (event || scrolledFor.get(section) !== window.location.hash) document.getElementById(section)?.scrollIntoView();
       scrolledFor.set(section, window.location.hash);
     };
@@ -77,7 +80,6 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
     window.addEventListener("hashchange", open);
     return () => window.removeEventListener("hashchange", open);
   }, [section, openableIds]);
-  const scroller = useScrollFade<HTMLDivElement>();
   return (
     <Tabs.Root value={active} onValueChange={(value) => openTab(String(value))} className="surface">
       <div className="px-m pt-xs sm:px-l">

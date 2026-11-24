@@ -117,7 +117,7 @@ export default function SandboxPricingPage() {
     })),
     {
       q: "How does the calculator work it out?",
-      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. Idle minutes are priced as each provider's billing rules read: the whole size for most (for several that is assumed, and the provider says so), memory only where CPU is billed on use, and nothing on Upstash. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Where the price table leaves something open, such as rounding or whether a rate applies to the whole size, the estimate says what it assumes beside that provider. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
+      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. The calculator prices idle minutes at the whole size for most providers, memory only where CPU is billed on use, and nothing on Upstash; where the whole-size basis is an assumption, that provider's row says so. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Where the price table leaves something open, such as rounding or whether a rate applies to the whole size, the estimate says what it assumes beside that provider. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
     },
     {
       q: "Why can a real task cost more or less than the list price suggests?",
