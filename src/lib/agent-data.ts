@@ -82,6 +82,9 @@ import type { StressData } from "@/lib/stress";
 import { hasSustainedCpu, retentionText, steadyText, sustainedRanked } from "@/lib/sustained-cpu";
 import type { SustainedCpuData } from "@/lib/sustained-cpu";
 import { sustainedCpu } from "@/lib/sustained-cpu-data";
+import { hasFairness } from "@/lib/fairness";
+import { fairness } from "@/lib/fairness-data";
+import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -855,6 +858,7 @@ export function agentData() {
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
     ...(hasSustainedCpu(sustainedCpu) ? { sustainedCpu: sustainedCpuData(sustainedCpu) } : {}),
+    ...(hasFairness(fairness) ? { likeForLike: fairnessData(fairness) } : {}),
   };
 }
 
@@ -1019,6 +1023,7 @@ export function agentMarkdown() {
     "",
     ...trackIds.flatMap(trackMarkdown),
     ...(hasSustainedCpu(sustainedCpu) ? sustainedCpuMarkdown(sustainedCpu) : []),
+    ...(hasFairness(fairness) ? fairnessMarkdown(fairness) : []),
     ...(hasExpanded(expanded) ? expandedMarkdown(expanded) : []),
   ];
   return `${lines.join("\n")}\n`;
@@ -1087,7 +1092,7 @@ ${trackIds.map((id) => `- \`${id}\`: ${trackInfo[id].label}. ${trackInfo[id].des
 
 The page shows one track at a time: \`/\` opens the same-machine track and \`/?track=default\` the default-machines track.
 
-${realisticLlms()}${hasSustainedCpu(sustainedCpu) ? sustainedCpuLlms(sustainedCpu) : ""}## Quick picks
+${realisticLlms()}${hasSustainedCpu(sustainedCpu) ? sustainedCpuLlms(sustainedCpu) : ""}${hasFairness(fairness) ? fairnessLlms(fairness) : ""}## Quick picks
 
 ${picks.join("\n")}
 ## Coming in the next update

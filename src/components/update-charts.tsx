@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { TierTable } from "@/components/cpu-tiers";
 import { MetricChart } from "@/components/metric-chart";
 import { RealTaskHeadline, taskTimes } from "@/components/real-tasks";
+import { FairnessSection, IsolationTable } from "@/components/fairness";
 import { RealtaskBurstChart } from "@/components/realtask-burst";
 import { ordinal, SectionTitle } from "@/components/seo/page-parts";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
@@ -14,6 +15,7 @@ import { profileIds, profileInfo } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { realtaskBurst } from "@/lib/realtask-burst-data";
+import { fairness } from "@/lib/fairness-data";
 import { providerTrack } from "@/lib/seo/provider";
 import type { UpdateCharts as Charts } from "@/lib/updates";
 
@@ -147,6 +149,15 @@ export function UpdateCharts({ charts }: { charts: Charts }) {
           <SectionTitle id="tiers">{providerName(charts.provider)} on each CPU tier</SectionTitle>
           <div className="surface mt-l p-m sm:p-l">
             <TierTable brand={charts.provider} track={tracks["same-spec"]} realistic={realistic} burst={realtaskBurst} />
+          </div>
+        </section>
+      );
+    case "like-for-like":
+      return (
+        <section className="flex flex-col gap-m pt-xxl">
+          <FairnessSection data={fairness} />
+          <div className="surface p-m sm:p-l">
+            <IsolationTable data={fairness} />
           </div>
         </section>
       );

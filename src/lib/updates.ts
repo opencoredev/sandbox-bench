@@ -17,7 +17,9 @@ export type UpdateCharts =
   /** Fix and test, several at once on each provider, on the same machine. */
   | { kind: "realtask-burst" }
   /** One provider's CPU tiers side by side, on the same machine. */
-  | { kind: "tiers"; provider: TieredProvider };
+  | { kind: "tiers"; provider: TieredProvider }
+  /** The like-for-like checks and the isolation table, on the same machine. */
+  | { kind: "like-for-like" };
 
 export interface Update {
   /** The page's address under /updates/. */

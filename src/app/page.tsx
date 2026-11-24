@@ -16,10 +16,13 @@ import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/compon
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
 import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
 import { ExpandedBenchmarks, expandedSection } from "@/components/expanded-benchmarks";
+import { FairnessSection, IsolationTable, fairnessSection } from "@/components/fairness";
 import { StressSection, stressSection } from "@/components/stress";
 import { SustainedCpuSection, sustainedCpuSection } from "@/components/sustained-cpu";
 import { hasSustainedCpu } from "@/lib/sustained-cpu";
 import { sustainedCpu } from "@/lib/sustained-cpu-data";
+import { hasFairness } from "@/lib/fairness";
+import { fairness } from "@/lib/fairness-data";
 import { hasExpanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { hasStress } from "@/lib/stress";
@@ -776,6 +779,24 @@ export default function Page() {
           </Section>
         ) : null}
 
+        {hasFairness(fairness) ? (
+          <Section
+            id={fairnessSection}
+            title="Like-for-like checks"
+            lede="The same compiled code and the same method on every provider's 4 vCPU, 8 GB sandbox, so a number reflects the machine, not the image's Python, a memory cache, burst credit or what the sandbox reports about itself."
+          >
+            <PerTrack>
+              {(track) =>
+                track.id === "same-spec" ? (
+                  <FairnessSection data={fairness} />
+                ) : (
+                  <Card className="text-s text-neutral-7">These checks ran only on the same-machine track (4 vCPU, 8 GB requested). Switch to Same machine to see them.</Card>
+                )
+              }
+            </PerTrack>
+          </Section>
+        ) : null}
+
         {hasExpanded(expanded) ? (
           <Section
             id={expandedSection}
@@ -918,6 +939,9 @@ export default function Page() {
                       </>
                     ),
                   },
+                  ...(track.id === "same-spec" && fairness.securityProbe !== null
+                    ? [{ id: "isolation", label: "Isolation and kernel", content: <IsolationTable data={fairness} /> }]
+                    : []),
                   ...metricTabs(track, [
                     { id: "cpu-single", what: "One core running a fixed Python loop", notes: probeNotes(track) },
                     { id: "cpu-all", what: "Every core at once, so bigger machines win", notes: probeNotes(track) },
