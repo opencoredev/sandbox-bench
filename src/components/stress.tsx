@@ -283,10 +283,14 @@ function SurvivalPanel({ stress, groups }: { stress: StressData; groups: readonl
  */
 export function StressSection({ stress }: { stress: StressData | null }) {
   if (!hasStress(stress)) return null;
-  const tabs: Tab[] = [
+  return <TabCard label="Stress" section={stressSection} tabs={stressTabs(stress)} />;
+}
+
+/** One tab per stress suite with a charted value. */
+export function stressTabs(stress: StressData): Tab[] {
+  return [
     ...(sustainedReady(stress) ? [{ id: "cpu-sustained", label: "Sustained CPU", content: <SustainedPanel stress={stress} data={stress.cpuSustained} /> }] : []),
     ...(burstReady(stress) ? [{ id: "cpu-burst", label: "CPU under burst", content: <BurstPanel stress={stress} groups={stress.cpuBurst} /> }] : []),
     ...(survivalReady(stress) ? [{ id: "burst-survival", label: "Burst survival", content: <SurvivalPanel stress={stress} groups={stress.burstSurvival} /> }] : []),
   ];
-  return <TabCard label="Stress" section={stressSection} tabs={tabs} />;
 }

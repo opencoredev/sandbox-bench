@@ -15,8 +15,10 @@ import { THEME_STYLE_NAMES } from "../../lib/theme-style-names";
 import { componentBoxShadow, withFocusBorder } from "../../lib/theme-model";
 import {
   usePartAppearance,
+  usePartClass,
   usePartStyle,
   useThemeMotion,
+  withHoistedStyle,
 } from "./component-theme";
 
 type Press = { pointerId: number; tab: HTMLElement; x: number; y: number };
@@ -63,18 +65,20 @@ function SlidingIndicator({
   press: Press | null;
 }) {
   const variables = usePartStyle('tabs', 'trigger');
+  // Sandbox bench adaptation: the theme variables go in the hoisted class rule, not ~20 KB of inline style per card.
+  const rule = usePartClass('tabs', 'trigger');
   const borders = useInteractionBorderStyle(variables);
   const { disabled, transition } = useThemeMotion();
   const vertical = state.orientation === 'vertical';
   const stretch = press && !disabled ? 6 : 0;
   const direction = (vertical ? press?.y : press?.x) ?? 0;
-  return (
+  return withHoistedStyle(
+    rule,
     <motion.span
       {...indicatorProps}
-      className="ui-tabs-indicator"
+      className={`ui-tabs-indicator ${rule.className}`}
       data-anticipating={stretch > 0 || undefined}
       style={{
-        ...variables,
         ...borders,
         ...indicatorProps.style,
       }}
@@ -90,7 +94,7 @@ function SlidingIndicator({
         height: (state.activeTabSize?.height ?? 0) + (vertical ? stretch : 0),
       }}
       transition={transition}
-    />
+    />,
   );
 }
 

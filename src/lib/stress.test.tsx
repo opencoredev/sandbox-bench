@@ -3,7 +3,8 @@ import { describe, test } from "node:test";
 
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { StressSection } from "@/components/stress";
+import { StressSection, stressTabs } from "@/components/stress";
+import { everyTab } from "@/lib/fixtures/every-tab";
 import { tracks } from "@/lib/data";
 import type { BurstSurvivalExport, CpuBurstExport, CpuSustainedExport, StressExport } from "@/lib/inputs";
 import { hasStress, parseStress, survivalRanked } from "@/lib/stress";
@@ -177,7 +178,7 @@ describe("section", () => {
   });
 
   test("sustained CPU: highest first, with p50, p95, runs, consistency, trend, vCPU, workers and failed attempts on hover", () => {
-    const html = renderToStaticMarkup(<StressSection stress={parseStress(fixture, "default")} />);
+    const html = everyTab(<StressSection stress={parseStress(fixture, "default")} />, stressTabs(parseStress(fixture, "default") ?? assert.fail("the fixture parses")));
     const single = html.slice(html.indexOf("Sustained CPU, single core"), html.indexOf("Sustained CPU, all cores"));
     assert.deepEqual(order(single), ["Daytona", "E2B"]);
     for (const text of ["Median 1.5M/s", "p95 1.7M/s", "Runs 5", "Min ÷ median segment 0.97 (min 0.91)", "Last ÷ first quarter 0.99", "vCPU 4", "Failed attempts 2"]) assert.ok(html.includes(text), `card has "${text}"`);
@@ -187,7 +188,7 @@ describe("section", () => {
   });
 
   test("CPU under burst: per-sandbox median, highest first, tagged with the spread, cohort details on hover", () => {
-    const html = renderToStaticMarkup(<StressSection stress={parseStress(fixture, "default")} />);
+    const html = everyTab(<StressSection stress={parseStress(fixture, "default")} />, stressTabs(parseStress(fixture, "default") ?? assert.fail("the fixture parses")));
     const burstHtml = html.slice(html.indexOf("CPU under burst, 10 at once"), html.indexOf("Burst survival, 10 at once"));
     assert.deepEqual(order(burstHtml), ["Daytona", "E2B"]);
     assert.ok(burstHtml.includes("1.12×") && burstHtml.includes("1.40×"), "tags show the fastest ÷ slowest spread");
@@ -196,7 +197,7 @@ describe("section", () => {
   });
 
   test("burst survival: highest rate first, tagged survived/attempted, on a 0 to 100% axis", () => {
-    const html = renderToStaticMarkup(<StressSection stress={parseStress(fixture, "default")} />);
+    const html = everyTab(<StressSection stress={parseStress(fixture, "default")} />, stressTabs(parseStress(fixture, "default") ?? assert.fail("the fixture parses")));
     const survivalHtml = html.slice(html.indexOf("Burst survival, 10 at once"));
     assert.deepEqual(order(survivalHtml), ["Daytona", "Modal", "E2B"]);
     for (const text of ["100%", "90.0%", "40.0%", "10/10", "9/10", "4/10", "Window 600 s", "Heartbeat every 5 s", "Create failed 1", "Died 2", "Unresponsive 3", "Interrupted 0", "Invalid evidence 0"])

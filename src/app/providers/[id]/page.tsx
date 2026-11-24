@@ -14,7 +14,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import type { Sections } from "@/components/section-nav";
 import { Breadcrumb, link, ordinal, RawData, SectionTitle, SiteFooter, SiteHeader } from "@/components/seo/page-parts";
 import { Card } from "@/components/tabs";
+import { TrackOnly } from "@/components/track-only";
 import { TrackSwitch } from "@/components/track-switch";
+import { landingTrack } from "@/lib/tracks";
 import { hasTaskCosts } from "@/lib/cost";
 import { allocationNotes } from "@/lib/notes";
 import { privateTitle } from "@/lib/private-benchmarks";
@@ -173,7 +175,8 @@ function ByTrack({ id, r, children }: { id: ProviderPageId; r: ReturnType<typeof
         return (
           <div key={tid} data-track-view={tid}>
             {t && hasResults(tracks[tid]) ? (
-              children(t)
+              // The landing track's charts are in the HTML; the other track's are drawn when the switch shows it.
+              tid === landingTrack ? children(t) : <TrackOnly track={tid}>{children(t)}</TrackOnly>
             ) : (
               <Card className="text-s text-neutral-7">
                 <span className="font-medium text-neutral-10">{trackInfo[tid].label}:</span> no results for {providerName(id)} on this track yet.

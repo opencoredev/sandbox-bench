@@ -4,7 +4,9 @@ import { ProviderName } from "@/components/provider-name";
 import { ScoreLink, ScoreMeter } from "@/components/score-parts";
 import type { ScoreColumn, ScoreRow } from "@/components/score-parts";
 import { ScoreTable } from "@/components/score-table";
+import { deferTabs } from "@/components/lazy-tabs";
 import { Card, TabCard } from "@/components/tabs";
+import type { Tab } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { allocationNotes, upstashTwinNote } from "@/lib/notes";
 import { isExtraTier } from "@/lib/providers";
@@ -77,6 +79,12 @@ function RankedList({ column, rows, index }: { column: ScoreColumn; rows: readon
   );
 }
 
+/** The phone view's tabs: one ranked list per category. */
+export function scoreTabs(track: Track): Tab[] {
+  const { columns, rows } = scoreGrid(track);
+  return columns.map((c, i) => ({ id: `score-${c.id}`, label: c.label, content: <RankedList column={c} rows={rows} index={i} /> }));
+}
+
 const label = "Scores by category: speed, real tasks, bursts and reliability 0 to 100, cost in dollars per 1,000 tasks";
 
 /**
@@ -90,7 +98,7 @@ export function Scores({ track }: { track: Track }) {
   return (
     <>
       <div className="md:hidden">
-        <TabCard label={label} tabs={columns.map((c, i) => ({ id: `score-${c.id}`, label: c.label, content: <RankedList column={c} rows={rows} index={i} /> }))} />
+        <TabCard label={label} tabs={deferTabs(scoreTabs(track), "scores", track.id)} />
       </div>
       <Card className="hidden md:block">
         <ScoreTable columns={columns} rows={rows} label={label} />

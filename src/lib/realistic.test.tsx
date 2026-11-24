@@ -10,7 +10,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { buildRealistic, flagsOf as harnessFlags, prepareFailures, sourceName, workloadsFrom } from "../../scripts/realistic-site-data";
 import { Columns, axisMax, layout, type Column } from "@/components/columns";
-import { CheapestLine, IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
+import { CheapestLine, IdleChart, ProviderRows, TaskCost, columnsOf, rowBars, taskCostTabs } from "@/components/realistic";
+import { everyTab } from "@/lib/fixtures/every-tab";
 import { providersOf } from "@/components/trace-waterfall";
 
 /** Text as React renders it in markup: apostrophes escaped. */
@@ -732,7 +733,7 @@ describe("final review", () => {
   test("Modal's pinned-region multiplier is said beside it in both charts and in whatATaskCosts", () => {
     const note = regionNote(tracks["same-spec"].providers.find((p) => p.id === "modal") ?? tracks["same-spec"].providers[0]!);
     assert.ok(note, "Modal carries a region multiplier in the site data");
-    const task = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    const task = everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"]));
     assert.match(task, /us-east rate, 1.75× base price/);
     assert.ok(task.includes(esc(sentence(note.replace(/^\w/, (c) => c.toUpperCase())))), "the long note is in Modal's row details");
     assert.match(renderToStaticMarkup(<IdleChart />), /us-east rate, 1.75× base price/);
@@ -766,7 +767,7 @@ describe("final review", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
     assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\) and Superserve \(account totals only\)\./);
-    const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
+    const task = everyTab(<TaskCost track={tracks.default} />, taskCostTabs(tracks.default)).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
 
@@ -815,7 +816,7 @@ describe("Modal's set-aside runs (item 9)", () => {
     const modal = realistic.rows.filter((r) => r.provider === "modal" && r.variant === "headline");
     assert.ok(modal.filter((r) => r.track === "default").every((r) => r.cost?.wholeMachineBound === "lower"));
     assert.ok(modal.filter((r) => r.track === "same-machine").every((r) => r.cost?.wholeMachineBound === "exact"));
-    const html = renderToStaticMarkup(<TaskCost track={tracks.default} />);
+    const html = everyTab(<TaskCost track={tracks.default} />, taskCostTabs(tracks.default));
     assert.match(html, /Whole machine at list price: at least \$[\d.]+ per 1,000, a lower bound/);
     const md = agentMarkdown();
     const fixDefault = md.slice(md.indexOf("## Fix and test, Default machines")).split("\n").find((l) => l.startsWith("| Modal |")) ?? "";
@@ -828,7 +829,7 @@ describe("Modal's set-aside runs (item 9)", () => {
 
 describe("page", () => {
   test("each workload tab shows the cheapest, and why providers are missing, with no verified wording or stripes", () => {
-    const html = renderToStaticMarkup(<TaskCost track={tracks.default} />);
+    const html = everyTab(<TaskCost track={tracks.default} />, taskCostTabs(tracks.default));
     const text = html.replace(/<[^>]+>/g, "");
     assert.match(html, /Fix and test: cost per 1,000 completed tasks/);
     assert.match(html, /Build: cost per 1,000 completed tasks/);
@@ -842,7 +843,7 @@ describe("page", () => {
   });
 
   test("the footprint is in the notes and the cost line is above the chart", () => {
-    const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    const html = everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"]));
     assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GB machine, not counting installation\./);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
@@ -850,7 +851,7 @@ describe("page", () => {
   });
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
-    const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
+    const text = everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"])).replace(/<[^>]+>/g, "");
     assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
@@ -868,7 +869,7 @@ describe("page", () => {
   });
 
   test("Boat is in both charts, with no monthly-plan wording", () => {
-    for (const html of [renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), renderToStaticMarkup(<IdleChart />)]) {
+    for (const html of [everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"])), renderToStaticMarkup(<IdleChart />)]) {
       assert.match(html, />Boat</);
       assert.doesNotMatch(html, /monthly plan|monthly minimum/);
     }
@@ -908,7 +909,7 @@ describe("page", () => {
     assert.equal(bars.get("vercel")?.broken, 0);
     assert.equal(bars.get("vercel")?.length, 1);
     const chart = renderToStaticMarkup(<Columns columns={columns} label="x" />);
-    for (const c of columns) assert.ok(chart.includes(`height:${(bars.get(c.provider)?.length ?? 0) * 100}%`), `chart bar for ${c.provider}`);
+    for (const c of columns) assert.ok(chart.includes(`height:${Math.round((bars.get(c.provider)?.length ?? 0) * 10000) / 100}%`), `chart bar for ${c.provider}`);
     const phone = renderToStaticMarkup(<ProviderRows costed={outlier} uncosted={[]} />);
     const shares = [...phone.matchAll(/data-bar-share="([\d.]+)"/g)].map((m) => Number(m[1]));
     assert.deepEqual(shares, columns.map((c) => Number((bars.get(c.provider)?.length ?? 0).toFixed(6))));
@@ -918,7 +919,7 @@ describe("page", () => {
   });
 
   test("on phones the chart is hidden and each provider row carries its bar instead", () => {
-    const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
+    const html = everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"]));
     assert.match(html, /<div class="hidden sm:block">(<div data-tier-view="one">)?<figure/);
     const costedRows = headlineRows(realistic, "same-machine", "fix-and-test").costed.length;
     const buildRows = headlineRows(realistic, "same-machine", "build").costed.length;
@@ -926,8 +927,8 @@ describe("page", () => {
   });
 
   test("on phones each task card says which machine it ran on", () => {
-    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GB<\/span>/);
-    assert.match(renderToStaticMarkup(<TaskCost track={tracks.default} />), /<span class="block sm:hidden">Default machines · sizes vary<\/span>/);
+    assert.match(everyTab(<TaskCost track={tracks["same-spec"]} />, taskCostTabs(tracks["same-spec"])), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GB<\/span>/);
+    assert.match(everyTab(<TaskCost track={tracks.default} />, taskCostTabs(tracks.default)), /<span class="block sm:hidden">Default machines · sizes vary<\/span>/);
   });
 
   test("the idle chart says its run count and scope, names who stopped, and isn't ranked", () => {

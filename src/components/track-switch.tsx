@@ -60,8 +60,11 @@ const Segment = themePart("a", "toggle-group", "control", "ui-button");
  * The one control that picks which results every chart shows. Plain links
  * underneath, so it works before scripts load and in a new tab.
  */
+/** The track on screen: the landing track on the server and until scripts read `?track=`, then whatever the switch shows. */
+export const useActiveTrack = (): TrackId => useSyncExternalStore(subscribe, current, (): TrackId => landingTrack);
+
 export function TrackSwitch({ size = "large" }: { size?: "large" | "small" }) {
-  const active = useSyncExternalStore(subscribe, current, (): TrackId => landingTrack);
+  const active = useActiveTrack();
   const large = size === "large";
   return (
     <nav aria-label="Machines compared" className={large ? "w-full sm:w-fit" : "w-fit"}>

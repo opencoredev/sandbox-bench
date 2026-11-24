@@ -1,6 +1,7 @@
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { ChartHead, Footnotes, NotOnChart } from "@/components/metric-chart";
+import { deferTabs } from "@/components/lazy-tabs";
 import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { expandedProviders, groupHasValues, hasExpanded, hasValues } from "@/lib/expanded";
@@ -86,11 +87,15 @@ const missing = (group: ExpandedGroup, everyone: readonly ProviderId[]) =>
  */
 export function ExpandedBenchmarks({ data }: { data: Expanded }) {
   if (!hasExpanded(data)) return null;
+  return <TabCard label="Expanded benchmarks" section={expandedSection} tabs={deferTabs(expandedTabs(data), "expanded")} />;
+}
+
+/** One tab per category, or a greyed-out one for a category with no results yet. */
+export function expandedTabs(data: Expanded): Tab[] {
   const everyone = expandedProviders(data);
-  const tabs: Tab[] = data.groups.map((g) =>
+  return data.groups.map((g) =>
     groupHasValues(g)
       ? { id: g.category, label: g.label, content: <GroupPanel data={data} group={g} everyone={everyone} /> }
       : { id: g.category, label: g.label, unavailable: "no results yet" },
   );
-  return <TabCard label="Expanded benchmarks" section={expandedSection} tabs={tabs} />;
 }

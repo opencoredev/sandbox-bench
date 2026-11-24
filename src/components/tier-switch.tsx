@@ -56,8 +56,11 @@ const Segment = themePart("a", "toggle-group", "control", "ui-button");
  * Shows each provider once, on the tier a new account gets, or every CPU tier
  * a provider sells as its own row. Plain links underneath, like the machine switch.
  */
+/** The tier view on screen: "one" on the server and until scripts read `?tiers=`, then whatever the switch shows. */
+export const useTierView = (): TierView => useSyncExternalStore(subscribe, current, (): TierView => "one");
+
 export function TierSwitch() {
-  const active = useSyncExternalStore(subscribe, current, (): TierView => "one");
+  const active = useTierView();
   return (
     <nav aria-label="CPU tiers shown" data-tier-switch="" className="w-full sm:w-fit">
       <ul className="surface flex w-full gap-xxs p-xxs sm:w-fit">

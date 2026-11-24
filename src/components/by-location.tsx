@@ -2,6 +2,7 @@ import { Disclosure } from "@/components/disclosure";
 import { Empty, Grid, Place } from "@/components/location-table";
 import { ChartHead, Who } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
+import { deferTabs } from "@/components/lazy-tabs";
 import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
 import { dayRange, formatCount, formatValue } from "@/lib/format";
@@ -394,13 +395,16 @@ function DetailsExpander({ metrics, onlyRegion }: { metrics: readonly RegionMetr
   );
 }
 
-export function ByLocation() {
+/** The location card's tabs: every location together, then one each. */
+export function locationTabs(): Tab[] {
   const { regions, planned } = regional;
-  const tabs: Tab[] = [
+  return [
     { id: "combined", label: "All locations", content: <OverviewPanel /> },
     ...regions.map((r): Tab => ({ id: r.id, label: r.label, content: <SingleLocationPanel region={r} /> })),
     ...planned.map((r): Tab => ({ id: r.id, label: r.label, unavailable: "soon" })),
   ];
+}
 
-  return <TabCard label="By location" section="locations" tabs={tabs} />;
+export function ByLocation() {
+  return <TabCard label="By location" section="locations" tabs={deferTabs(locationTabs(), "locations")} />;
 }

@@ -5,7 +5,9 @@ import type { Bar, Column } from "@/components/columns";
 import type { TierView } from "@/lib/tiers";
 import { Disclosure } from "@/components/disclosure";
 import { ChartHead, CompactNotes, Footnotes, Who, sentence } from "@/components/metric-chart";
+import { deferTabs } from "@/components/lazy-tabs";
 import { TabCard } from "@/components/tabs";
+import type { Tab } from "@/components/tabs";
 import type { Track } from "@/lib/data";
 import { markFill, rowFill } from "@/lib/marks";
 import { isExtraTier, providerColor } from "@/lib/providers";
@@ -367,14 +369,12 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
 
 /** One card per track, a tab per workload. */
 export function TaskCost({ track }: { track: Track }) {
-  return (
-    <TabCard
-      label="What a task costs"
-      section={taskCostSection}
-      tabs={profileIds.map((profile) => ({ id: profile, label: profileInfo[profile].label, content: <ProfileChart track={track} profile={profile} /> }))}
-    />
-  );
+  return <TabCard label="What a task costs" section={taskCostSection} tabs={deferTabs(taskCostTabs(track), "task-cost", track.id)} />;
 }
+
+/** A tab per workload, each its cost chart. */
+export const taskCostTabs = (track: Track): Tab[] =>
+  profileIds.map((profile) => ({ id: profile, label: profileInfo[profile].label, content: <ProfileChart track={track} profile={profile} /> }));
 
 /** The cheapest provider in a few words, for a headline chart's label. */
 function CheapestShort({ costed }: { costed: readonly Costed[] }) {

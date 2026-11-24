@@ -5,7 +5,8 @@ import {
   themeContainer,
   themePart,
   usePartAppearance,
-  usePartStyle,
+  usePartClass,
+  withHoistedStyle,
 } from "./component-theme";
 import { MenuItemContent } from "./menu-item-content";
 import { Accordion as BaseAccordion } from '@base-ui/react/accordion';
@@ -60,25 +61,25 @@ function AccordionItem({
   style,
   ...props
 }: ComponentProps<typeof BaseAccordion.Item>) {
-  const themeStyle = usePartStyle('accordion', 'panel');
+  // Sandbox bench adaptation: the theme variables go in the hoisted class rule, not ~20 KB of inline style per row.
+  const rule = usePartClass('accordion', 'panel');
   const panel = usePartAppearance('accordion', 'panel');
-  return (
+  return withHoistedStyle(
+    rule,
     <BaseAccordion.Item
       {...props}
       data-panel-border-authored={panel?.borderAuthored || undefined}
       className={(state) =>
         [
           'ui-accordion-item',
+          rule.className,
           typeof className === 'function' ? className(state) : className,
         ]
           .filter(Boolean)
           .join(' ')
       }
-      style={(state) => ({
-        ...themeStyle,
-        ...(typeof style === 'function' ? style(state) : style),
-      })}
-    />
+      style={style}
+    />,
   );
 }
 

@@ -4,7 +4,8 @@ import { describe, test } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import expandedFile from "@/data/expanded.json";
-import { ExpandedBenchmarks } from "@/components/expanded-benchmarks";
+import { ExpandedBenchmarks, expandedTabs } from "@/components/expanded-benchmarks";
+import { everyTab } from "@/lib/fixtures/every-tab";
 import { expandedProviders, hasExpanded, parseExpanded } from "@/lib/expanded";
 import { formatShort, formatValue, unitName } from "@/lib/format";
 
@@ -112,7 +113,7 @@ describe("section", () => {
   });
 
   test("one tab per category, those without results disabled, each test best first with its unit and direction", () => {
-    const html = renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(fixture)} />);
+    const html = everyTab(<ExpandedBenchmarks data={parseExpanded(fixture)} />, expandedTabs(parseExpanded(fixture)));
     for (const label of ["CPU", "Agent tasks", "Agent loops", "Filesystem", "Builds", "Runtime"]) assert.ok(html.includes(`>${label}`), `tab ${label}`);
     assert.equal((html.match(/title="no results yet"/g) ?? []).length, 3, "CPU, Agent tasks and Agent loops have no results");
     const build = html.slice(html.indexOf("Test npm-build"));
@@ -124,7 +125,7 @@ describe("section", () => {
   });
 
   test("hover cards give the median, range and verified runs; a provider missing from a test is named", () => {
-    const html = renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(fixture)} />);
+    const html = everyTab(<ExpandedBenchmarks data={parseExpanded(fixture)} />, expandedTabs(parseExpanded(fixture)));
     assert.ok(html.includes("Median 12.5K files/s"));
     assert.ok(html.includes("Range 11.3K files/s–15K files/s"));
     assert.ok(html.includes("Median 81K queries/s"));

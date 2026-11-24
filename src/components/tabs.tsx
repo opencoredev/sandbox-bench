@@ -41,18 +41,26 @@ export function useScrollFade<T extends HTMLElement>() {
 
 /**
  * A card with its tabs along the top, as on Artificial Analysis, built on the
- * Untitled theme's Tabs. Panels stay mounted so every chart is in the static
- * page; arrow keys, Home and End move between tabs.
+ * Untitled theme's Tabs. Every tab's panel is in the page, but a panel's
+ * chart is drawn only once its tab opens, from the page's data, so the HTML
+ * carries the first chart of each card; arrow keys, Home and End move between tabs.
  */
 export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label: string; /** The section id a `#section/tab` hash names to open one of these tabs. */ section?: string }) {
   const openable = tabs.filter(isOpenable);
   const [active, setActive] = useState(openable[0]?.id);
+  // Panels are built the first time they open and kept after, so the HTML holds the first tab's chart only.
+  const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set(active === undefined ? [] : [active]));
+  const openTab = (id: string) => {
+    setActive(id);
+    setOpened((seen) => (seen.has(id) ? seen : new Set([...seen, id])));
+  };
   useEffect(() => {
     if (!section) return;
     const open = () => {
       const request = parseTabHash(window.location.hash);
       if (request?.section !== section || !tabs.some((t) => t.id === request.tab && isOpenable(t))) return;
       setActive(request.tab);
+      setOpened((seen) => (seen.has(request.tab) ? seen : new Set([...seen, request.tab])));
       // No element has the combined id, so the browser does not scroll; do it here.
       document.getElementById(section)?.scrollIntoView();
     };
@@ -62,7 +70,7 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
   }, [section, tabs]);
   const scroller = useScrollFade<HTMLDivElement>();
   return (
-    <Tabs.Root value={active} onValueChange={(value) => setActive(String(value))} className="surface">
+    <Tabs.Root value={active} onValueChange={(value) => openTab(String(value))} className="surface">
       <div className="px-m pt-xs sm:px-l">
         <Tabs.List
           ref={scroller}
@@ -86,7 +94,7 @@ export function TabCard({ tabs, label, section }: { tabs: readonly Tab[]; label:
       </div>
       {openable.map((tab) => (
         <Tabs.Panel key={tab.id} value={tab.id} keepMounted className="mt-0 rounded-b-m p-m sm:p-l">
-          {tab.content}
+          {opened.has(tab.id) ? tab.content : null}
         </Tabs.Panel>
       ))}
     </Tabs.Root>

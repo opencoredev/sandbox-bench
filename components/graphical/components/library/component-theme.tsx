@@ -41,12 +41,13 @@ import {
 export type PartAppearances = Partial<
   Record<ComponentPartId, Partial<Record<ComponentState, ComponentStyle>>>
 >;
-const ThemeContext = createContext<{
+type ThemeValue = {
   appearances: PartAppearances;
   variables: CSSProperties;
   component?: ComponentId;
   resolveComponent?: (component: ComponentId) => PartAppearances;
-} | null>(null);
+};
+const ThemeContext = createContext<ThemeValue | null>(null);
 export const APPEARANCE_STATES: ComponentState[] = [
   'rest',
   'hover',
@@ -218,16 +219,23 @@ export function usePartAppearance(
       : theme?.appearances[part];
   return (appearances ?? defaultAppearances(component)[part])?.[state];
 }
+const partAppearances = (theme: ThemeValue | null, component: ComponentId, part: ComponentPartId) =>
+  (theme?.component && theme.component !== component && theme.resolveComponent
+    ? theme.resolveComponent(component)[part]
+    : theme?.appearances[part]) ?? defaultAppearances(component)[part];
+
+function usePartSources(component: ComponentId, part: ComponentPartId) {
+  const theme = useContext(ThemeContext);
+  const appearances = partAppearances(theme, component, part);
+  const variables = theme?.variables ?? defaultVariables;
+  return { theme, variables, appearances };
+}
+
 export function usePartStyle(
   component: ComponentId,
   part: ComponentPartId,
 ): CSSProperties {
-  const theme = useContext(ThemeContext);
-  const appearances =
-    (theme?.component && theme.component !== component && theme.resolveComponent
-      ? theme.resolveComponent(component)[part]
-      : theme?.appearances[part]) ?? defaultAppearances(component)[part];
-  const variables = theme?.variables ?? defaultVariables;
+  const { variables, appearances } = usePartSources(component, part);
   return useMemo(
     () => ({ ...variables, ...appearanceVariables(appearances ?? {}) }),
     [variables, appearances],
@@ -236,11 +244,20 @@ export function usePartStyle(
 
 /*
  * Sandbox bench adaptation: the resolved variables for a part are identical on
- * every instance, so they go in one class rule that React 19 hoists and
- * dedupes by href, instead of ~20 KB of inline style on each element. The
- * values and their cascade position (unlayered, element level) are unchanged.
+ * every instance, so they go in class rules that React 19 hoists and dedupes
+ * by href, instead of ~20 KB of inline style on each element. The values and
+ * their cascade position (unlayered, element level) are unchanged.
+ *
+ * A part's variables are the scope's theme variables plus its own appearance
+ * values, so they go in two rules: the scope's, shared by every part, and the
+ * part's, holding only what differs from the scope. The part's rule sits in a
+ * later precedence group, so where both name a variable the part's value wins,
+ * as it did when the two were merged into one rule.
  */
-const hoisted = new Map<string, { className: string; css: string }>();
+type HoistedRule = { className: string; css: string };
+/** The classes a part's element carries and the rules that define them, scope first. */
+export type PartRules = { className: string; rules: readonly [HoistedRule, ...HoistedRule[]] };
+const hoisted = new Map<string, HoistedRule>();
 const cssProperty = (key: string) => (key.startsWith('--') ? key : key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`));
 function hoistVariables(variables: CSSProperties) {
   const body = Object.entries(variables)
@@ -258,13 +275,63 @@ function hoistVariables(variables: CSSProperties) {
   }
   return entry;
 }
-function withHoistedStyle(rule: { className: string; css: string }, element: ReactNode) {
-  return createElement(
-    Fragment,
-    null,
-    createElement('style', { href: rule.className, precedence: 'graphical' }, rule.css),
-    element,
-  );
+
+/** The variables a part sets on top of its scope's: changed or added ones, and `inherit` for any the merge removed. */
+function partOnly(variables: CSSProperties, merged: CSSProperties): CSSProperties {
+  const set = (v: unknown) => v !== undefined && v !== null && v !== '';
+  const scope = variables as Record<string, unknown>;
+  const all = merged as Record<string, unknown>;
+  const own: Record<string, string> = {};
+  for (const [key, value] of Object.entries(all))
+    if (set(value) && String(value) !== String(scope[key])) own[key] = String(value);
+  for (const [key, value] of Object.entries(scope)) if (set(value) && !set(all[key])) own[key] = 'inherit';
+  return own as CSSProperties;
+}
+
+/*
+ * Every part's variables include ~550 appearance values, mostly the same from
+ * part to part. The scope's rule also carries one part's, the tab panel's, as
+ * a baseline, so each part's own rule lists only where it differs: about 4 KB
+ * a part instead of 18 KB.
+ */
+const BASELINE = { component: 'tabs', part: 'panel' } as const satisfies { component: ComponentId; part: ComponentPartId };
+const noTheme = {};
+const scopeCache = new WeakMap<object, CSSProperties>();
+function scopeVariables(theme: ThemeValue | null, variables: CSSProperties): CSSProperties {
+  const key = theme ?? noTheme;
+  let scope = scopeCache.get(key);
+  if (!scope) {
+    scope = { ...variables, ...appearanceVariables(partAppearances(theme, BASELINE.component, BASELINE.part) ?? {}) };
+    scopeCache.set(key, scope);
+  }
+  return scope;
+}
+
+const partRuleCache = new WeakMap<CSSProperties, Map<string, PartRules>>();
+function partRules(scopeVars: CSSProperties, merged: CSSProperties): PartRules {
+  const scope = hoistVariables(scopeVars);
+  const own = hoistVariables(partOnly(scopeVars, merged));
+  const key = own.className;
+  let byPart = partRuleCache.get(scopeVars);
+  if (!byPart) partRuleCache.set(scopeVars, (byPart = new Map()));
+  let entry = byPart.get(key);
+  if (!entry) byPart.set(key, (entry = { className: `${scope.className} ${own.className}`, rules: [scope, own] }));
+  return entry;
+}
+
+/** A part's variables as hoisted class rules, for parts that set their own style: add `className` and wrap with `withHoistedStyle`. */
+export function usePartClass(component: ComponentId, part: ComponentPartId): PartRules {
+  const { theme, variables } = usePartSources(component, part);
+  const style = usePartStyle(component, part);
+  return useMemo(() => partRules(scopeVariables(theme, variables), style), [theme, variables, style]);
+}
+/** The scope's rules in one precedence group and each part's in a later one, so a part's own values win. */
+export function withHoistedStyle(rule: HoistedRule | PartRules, element: ReactNode) {
+  const styles =
+    'rules' in rule
+      ? rule.rules.map((r, i) => createElement('style', { key: r.className, href: r.className, precedence: i === 0 ? 'graphical' : 'graphical-part' }, r.css))
+      : [createElement('style', { key: rule.className, href: rule.className, precedence: 'graphical' }, rule.css)];
+  return createElement(Fragment, null, ...styles, element);
 }
 
 /** Structural portal containers need theme variables without a component surface. */
@@ -306,7 +373,7 @@ export function themePart<C extends ElementType>(
   structure = '',
 ): C {
   function ThemedPart(props: ComponentProps<C>) {
-    const style = usePartStyle(component, part);
+    const rule = usePartClass(component, part);
     const {
       className,
       style: consumerStyle,
@@ -315,7 +382,6 @@ export function themePart<C extends ElementType>(
       className?: string | ((state: unknown) => string | undefined);
       style?: CSSProperties | ((state: unknown) => CSSProperties | undefined);
     };
-    const rule = useMemo(() => hoistVariables(style), [style]);
     const classes = (value?: string) =>
       ['ui-part', structure, rule.className, value].filter(Boolean).join(' ');
     // Base UI's style/className state callbacks are not DOM prop getters.

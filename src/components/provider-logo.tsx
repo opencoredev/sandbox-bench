@@ -13,6 +13,6 @@ export function ProviderLogo({ id: row, size = 14 }: { id: ProviderId; size?: nu
   const id = providerBrand(row);
   const color = providerColor(id);
   if (!withLogo.has(id)) return <span aria-hidden className="shrink-0 rounded-full" style={{ width: size * 0.6, height: size * 0.6, background: color }} />;
-  const mask = `url(/logos/${id}.svg) center / contain no-repeat`;
-  return <span aria-hidden className="shrink-0" style={{ width: size, height: size, background: color, mask, WebkitMask: mask }} />;
+  // The mask itself is one class rule (globals.css, .provider-logo); each logo sets only its file.
+  return <span aria-hidden className="provider-logo shrink-0" style={{ width: size, height: size, background: color, "--logo": `url(/logos/${id}.svg)` }} />;
 }
