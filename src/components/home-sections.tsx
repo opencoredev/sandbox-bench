@@ -445,7 +445,7 @@ function HomeTabs({ set, track, label, section }: { set: HomeTabSetId; track: Tr
  * renders the landing track's; the other track's are built in the browser
  * from this module when the switch shows them (components/home-lazy.tsx).
  */
-export const trackSections = {
+const trackSections = {
   stats: (track: Track) => <StatStrip track={track} />,
   scores: (track: Track) => <Scores track={track} />,
   headlines: (track: Track) => <Headlines track={track} />,
@@ -495,7 +495,7 @@ export const trackSections = {
 } satisfies Record<string, (track: Track) => ReactNode>;
 
 /** Parts shown even for a track with no published results: they say so themselves. */
-export const untrackedSections = {
+const untrackedSections = {
   "task-cost": (track: Track) => <TaskCost track={track} />,
   tiers: (track: Track) => {
     const brands = tieredWithData(track);

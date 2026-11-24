@@ -256,7 +256,7 @@ export function usePartStyle(
  */
 type HoistedRule = { className: string; css: string };
 /** The classes a part's element carries and the rules that define them, scope first. */
-export type PartRules = { className: string; rules: readonly [HoistedRule, ...HoistedRule[]] };
+type PartRules = { className: string; rules: readonly [HoistedRule, ...HoistedRule[]] };
 const hoisted = new Map<string, HoistedRule>();
 const cssProperty = (key: string) => (key.startsWith('--') ? key : key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`));
 function hoistVariables(variables: CSSProperties) {

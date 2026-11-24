@@ -91,4 +91,3 @@ export function Break({ color, along }: { color: string; along: "x" | "y" }) {
 export function segmentPercent(bar: { length: number; shares: readonly number[] }, i: number) {
   return bar.length > 0 ? ((bar.shares[i] ?? 0) / bar.length) * 100 : 0;
 }
-

@@ -13,7 +13,7 @@ ${providerPages.map((id) => `- [${providerName(id)} sandbox benchmark](${provide
 
 ## Pricing
 
-- [Sandbox pricing calculator](${pricingPath}): a month's bill on every provider at its published per-second prices for a size and workload you choose, each provider's billing basis, minimums and what the estimate leaves out, and the measured cost of a real fix-and-test task or build on each.
+- [Sandbox pricing calculator](${pricingPath}): a month's bill on every provider at list price for a size and workload you choose, with each provider's billing basis, minimums, what the estimate assumes (such as rounding or whether a rate applies to the whole size) and what it leaves out, and the measured cost of a real fix-and-test task or build on each.
 
 ## Comparison pages
 

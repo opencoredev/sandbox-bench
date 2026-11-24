@@ -43,8 +43,16 @@ export interface RateCard {
   id: ProviderId;
   currency: "USD" | "EUR";
   rates: Rates;
-  /** The sizes it sells, where it lists them; null where any size can be asked for. */
+  /** The sizes it sells, where it lists them; null where any size up to `max` can be asked for. */
   sizes: readonly Size[] | null;
+  /** The largest size the price table allows where it names one (Beam Shared, 8 vCPU and 16 GiB). */
+  max: Size | null;
+  /**
+   * What the estimate assumes where the price table or the site's billing
+   * evidence (lib/cost.ts, billingBases) leaves it open, such as rounding to
+   * the second, or rates read as applying to the whole size.
+   */
+  assumed: readonly string[];
   /** What its CPU price counts. Modal counts a physical core; the calculator prices one per vCPU asked for, as the benchmark does. */
   cpuUnit: "vCPU" | "CPU (a physical core)";
   /** The smallest CPU it bills, where it has one (Modal's 0.125). */
@@ -66,7 +74,11 @@ export interface RateCard {
   checked: string;
 }
 
-const perSecond = { minimumSeconds: 0, incrementSeconds: 1, perSandbox: 0, minCpu: null, billed: "per second", cpuUnit: "vCPU" } as const;
+const perSecond = { minimumSeconds: 0, incrementSeconds: 1, perSandbox: 0, minCpu: null, billed: "per second", cpuUnit: "vCPU", max: null } as const;
+
+/** The site's billing evidence leaves open whether these rates apply to the allocation or to use (lib/cost.ts, billingBases). */
+const basisOpen = "the rates apply to the whole size (not confirmed: they may apply only to what is used)";
+const secondAssumed = "one-second rounding (the price table's assumption)";
 
 /** Upstash Box's per-box-hour sizes; the bench prices Ephemeral Box at the same rates. */
 const upstashSizes = [
@@ -83,7 +95,8 @@ const upstashCard = (id: "upstash" | "upstash-ephemeral"): RateCard => ({
   ...perSecond,
   billed: "per active box-hour",
   idle: "none",
-  notIncluded: ["disk at $0.10 per GB-month of allocated capacity", "billing increment and minimum not stated"],
+  assumed: ["no minimum or rounding (not in the price table)"],
+  notIncluded: ["disk at $0.10 per GB-month of allocated capacity"],
   plan: null,
   source: "https://upstash.com/pricing/box",
   checked: "2026-10-21",
@@ -97,6 +110,7 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
+    assumed: [],
     notIncluded: ["the plan subscription", "disk beyond what the plan includes (10 GiB on Hobby, 20 GiB on Pro)"],
     plan: null,
     source: "https://e2b.dev/pricing",
@@ -109,7 +123,8 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
-    notIncluded: ["disk past 5 GiB at $0.000108 per GiB-hour", "snapshot storage", "minimum and creation fee not stated"],
+    assumed: [basisOpen, secondAssumed, "no minimum or creation fee (not in the price table)"],
+    notIncluded: ["disk past 5 GiB at $0.000108 per GiB-hour", "snapshot storage"],
     plan: null,
     source: "https://www.daytona.io/pricing",
     checked: "2026-10-21",
@@ -123,6 +138,7 @@ export const rateCards: readonly RateCard[] = [
     minCpu: 0.125,
     cpuUnit: "CPU (a physical core)",
     idle: "full",
+    assumed: ["one Modal CPU per vCPU entered, as the benchmark prices it", "use within the request (it bills the larger of the two)"],
     notIncluded: ["a pinned region, which multiplies the price by 1.15 (broad, such as us) or 1.75 (narrow, such as us-east)", "plan credits"],
     plan: null,
     source: "https://modal.com/pricing",
@@ -139,7 +155,9 @@ export const rateCards: readonly RateCard[] = [
     minCpu: null,
     cpuUnit: "vCPU",
     billed: "active CPU per second, memory in whole minutes",
+    max: null,
     idle: "memory",
+    assumed: ["Pro plan prices in the iad1 region", "every vCPU busy while the sandbox works", "memory rounded up to whole minutes (Vercel's docs leave rounding after the first minute open; this is the dearer reading)"],
     notIncluded: ["data transfer at $0.15 per GB", "snapshot storage"],
     plan: "Pro includes a $20 credit, not counted here",
     source: "https://vercel.com/docs/sandbox/pricing",
@@ -162,6 +180,7 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
+    assumed: [],
     notIncluded: [],
     plan: "$20 monthly minimum or packs, not counted here",
     source: "https://docs.boat.dev/machines",
@@ -180,6 +199,7 @@ export const rateCards: readonly RateCard[] = [
     ...perSecond,
     billed: "per second, settled every 15 minutes",
     idle: "memory",
+    assumed: ["every vCPU busy and all memory in use while the sandbox works"],
     notIncluded: ["written disk at €0.00008 per GiB-hour"],
     plan: null,
     source: "https://boxd.sh/pricing",
@@ -192,7 +212,8 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
-    notIncluded: ["allowances and subscriptions", "transfer at $0.02 per GB", "disk at $0.000086 per GiB-hour", "increment and minimum not stated"],
+    assumed: [basisOpen, secondAssumed, "no minimum or creation fee (not in the price table)"],
+    notIncluded: ["allowances and subscriptions", "transfer at $0.02 per GB", "disk at $0.000086 per GiB-hour"],
     plan: null,
     source: "https://www.freestyle.sh/pricing",
     checked: "2026-10-21",
@@ -204,7 +225,8 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
-    notIncluded: ["credits", "snapshot storage, disk and transfer", "any minimum charge"],
+    assumed: [basisOpen, secondAssumed, "no minimum charge (not in the price table)"],
+    notIncluded: ["credits", "snapshot storage, disk and transfer"],
     plan: null,
     source: "https://www.superserve.ai/pricing",
     checked: "2026-10-21",
@@ -216,6 +238,7 @@ export const rateCards: readonly RateCard[] = [
     sizes: null,
     ...perSecond,
     idle: "full",
+    assumed: [basisOpen],
     notIncluded: ["credits", "persistent storage"],
     plan: null,
     source: "https://luxor.ai/pricing",
@@ -229,10 +252,13 @@ export const rateCards: readonly RateCard[] = [
       { cpu: 1, memoryGiB: 2 },
       { cpu: 2, memoryGiB: 4 },
       { cpu: 4, memoryGiB: 8 },
+      // Memory sets CPU: 2 GiB per vCPU up to 4 vCPUs, and 16 GiB gives 6 (the price table's note).
+      { cpu: 6, memoryGiB: 16 },
     ],
     ...perSecond,
     idle: "full",
-    notIncluded: ["volume storage at $0.16 per GB-month", "a free promotional period", "increment and minimum not stated"],
+    assumed: [basisOpen, secondAssumed, "no minimum (not in the price table)"],
+    notIncluded: ["volume storage at $0.16 per GB-month", "a free promotional period"],
     plan: null,
     source: "https://www.baseten.co/pricing/",
     checked: "2026-10-21",
@@ -249,6 +275,7 @@ export const rateCards: readonly RateCard[] = [
     ],
     ...perSecond,
     idle: "full",
+    assumed: [],
     notIncluded: ["egress at $0.02 per GiB past the plan's", "disk past the plan's at $0.08 per GiB-month"],
     plan: "Plan fee and monthly credits (Pro $20, Builder $100), not counted here",
     source: "https://instabox.sh/docs/account/pricing.md",
@@ -263,6 +290,7 @@ export const rateCards: readonly RateCard[] = [
     incrementSeconds: 0.001,
     billed: "per millisecond",
     idle: "full",
+    assumed: [basisOpen],
     notIncluded: ["credits"],
     plan: null,
     source: "https://www.beam.cloud/pricing",
@@ -274,9 +302,11 @@ export const rateCards: readonly RateCard[] = [
     rates: { kind: "resource", cpuHour: 0.011, memoryGiBHour: 0.0055 },
     sizes: null,
     ...perSecond,
+    max: { cpu: 8, memoryGiB: 16 },
     incrementSeconds: 0.001,
     billed: "per millisecond",
     idle: "full",
+    assumed: [basisOpen],
     notIncluded: ["credits"],
     plan: null,
     source: "https://www.beam.cloud/pricing",
@@ -291,6 +321,7 @@ export const rateCards: readonly RateCard[] = [
     incrementSeconds: 0.001,
     billed: "per millisecond",
     idle: "full",
+    assumed: [basisOpen],
     notIncluded: ["credits"],
     plan: null,
     source: "https://www.beam.cloud/pricing",

@@ -63,7 +63,18 @@ describe("estimate", () => {
     assert.equal(boxd.roundedUp, true);
     close(boxd.hourlyUsd, (2 * 0.039 + 8 * 0.012) * eurUsd.rate, "boxd hourly, converted from euros");
     const baseten = estimate(card("baseten"), work({ cpu: 8, memoryGiB: 16 }), eurUsd.rate);
-    assert.deepEqual(baseten, { kind: "no-size", id: "baseten", largest: { cpu: 4, memoryGiB: 8 } });
+    assert.deepEqual(baseten, { kind: "no-size", id: "baseten", largest: { cpu: 6, memoryGiB: 16 } });
+  });
+
+  test("a size cap in the price table holds, and Baseten's 16 GiB size gives 6 vCPU", () => {
+    assert.deepEqual(estimate(card("beam-shared"), work({ cpu: 16, memoryGiB: 32 }), eurUsd.rate), { kind: "no-size", id: "beam-shared", largest: { cpu: 8, memoryGiB: 16 } });
+    assert.equal(estimate(card("beam-shared"), work({ cpu: 8, memoryGiB: 16 }), eurUsd.rate).kind, "priced");
+    assert.deepEqual(priced(estimate(card("baseten"), work({ cpu: 5, memoryGiB: 12 }), eurUsd.rate)).size, { cpu: 6, memoryGiB: 16 });
+  });
+
+  test("Vercel bills its memory minimum on a sandbox that does no work", () => {
+    const e = priced(estimate(card("vercel"), work({ sandboxes: 10_000, activeMinutes: 0, idleMinutes: 0, cpu: 2, memoryGiB: 4 }), eurUsd.rate));
+    close(e.monthlyUsd, 10_000 * (60 * (4 * 0.0212) / 3600 + 0.6 / 1_000_000), "10,000 empty sandboxes");
   });
 
   test("always on is sandboxes times hours a day for 30 days", () => {
@@ -75,7 +86,8 @@ describe("estimate", () => {
   test("billing increments round up without float noise", () => {
     assert.equal(billedSeconds({ minimumSeconds: 0, incrementSeconds: 0.001 }, 0.3), 0.3);
     assert.equal(billedSeconds({ minimumSeconds: 60, incrementSeconds: 60 }, 61), 120);
-    assert.equal(billedSeconds({ minimumSeconds: 60, incrementSeconds: 60 }, 0), 0);
+    assert.equal(billedSeconds({ minimumSeconds: 60, incrementSeconds: 60 }, 0), 60, "a sandbox created and deleted at once still bills the minimum");
+    assert.equal(billedSeconds({ minimumSeconds: 0, incrementSeconds: 1 }, 0), 0);
   });
 
   test("results come cheapest first, sizes that don't fit last", () => {

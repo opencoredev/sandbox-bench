@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, lazy } from "react";
+import { Component, Suspense, lazy, useState } from "react";
+import type { ReactNode } from "react";
 
 import type { HomeSectionId } from "@/components/home-sections";
 import type { TabSetId } from "@/components/tab-sets";
@@ -23,21 +24,53 @@ const Loading = ({ tall = false }: { tall?: boolean }) => (
   </p>
 );
 
+/** If the chunk that builds a chart can't load (offline, a deploy replaced it), say so instead of leaving a gap. */
+class LoadFailed extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? (
+      <p role="alert" className="text-s text-neutral-7">
+        This chart couldn&apos;t load.{" "}
+        <a href="" className="focus-ring rounded-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10">
+          Reload the page
+        </a>
+      </p>
+    ) : (
+      this.props.children
+    );
+  }
+}
+
 /** A tab's chart, built when its tab first opens. */
 export function LazyHomeTab({ set, track, tab }: { set: TabSetId; track: TrackId; tab: string }) {
   return (
-    <Suspense fallback={<Loading />}>
-      <TabContent set={set} track={track} tab={tab} />
-    </Suspense>
+    <LoadFailed>
+      <Suspense fallback={<Loading />}>
+        <TabContent set={set} track={track} tab={tab} />
+      </Suspense>
+    </LoadFailed>
   );
 }
 
-/** A part of the page for a track that isn't the landing one, built while the switch shows that track. */
+/**
+ * A part of the page for a track that isn't the landing one. It is built the
+ * first time the switch shows that track and kept after, so its tabs stay as
+ * they were left; globals.css hides it while the other track shows. Until
+ * then the HTML holds a loading line, so a `?track=` link never shows a gap.
+ */
 export function LazyTrackSection({ section, track }: { section: HomeSectionId; track: TrackId }) {
-  if (useActiveTrack() !== track) return null;
+  const active = useActiveTrack() === track;
+  const [seen, setSeen] = useState(false);
+  if (active && !seen) setSeen(true);
+  if (!seen) return <Loading tall />;
   return (
-    <Suspense fallback={<Loading tall />}>
-      <Section section={section} track={track} />
-    </Suspense>
+    <LoadFailed>
+      <Suspense fallback={<Loading tall />}>
+        <Section section={section} track={track} />
+      </Suspense>
+    </LoadFailed>
   );
 }

@@ -10,15 +10,16 @@ import { eurUsd } from "@/lib/fx";
 import { defaultInputs, estimateAll, formatUsd, sizeText, workloadOf } from "@/lib/pricing/calc";
 import { priceTableSource, rateCards } from "@/lib/pricing/rates";
 import type { RateCard } from "@/lib/pricing/rates";
-import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { headlineRows } from "@/lib/realistic";
+import { isPreemptible, providerName } from "@/lib/providers";
+import { flagsOf, headlineRows } from "@/lib/realistic";
+import type { Costed } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { comparePages, comparePath, lastModified, pricingPath, providerPages, providerPath, providersPath, site } from "@/lib/seo/pages";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
 
 const title = "Sandbox pricing calculator: E2B, Daytona, Modal, Vercel";
-const description = `Estimate a month's bill on ${rateCards.length} cloud sandboxes for AI agents from their published per-second prices, and see what a real coding task cost on each when we ran it.`;
+const description = `A month's bill on ${rateCards.length} cloud sandboxes for AI agents at list price, with each one's billing rules and what the estimate assumes, and what a real coding task cost on each when we ran it.`;
 
 export const metadata: Metadata = {
   title: { absolute: title },
@@ -58,17 +59,33 @@ const minimumText = (c: RateCard) => {
   return parts.length > 0 ? parts.join(", ") : "None listed";
 };
 
-/** Measured cost per completed real task, per machine track and task, from the real-task runs. */
+/** The caveats a real-task row carries on the homepage's charts that change how it compares: size, list-price parts, spot capacity. */
+function rowNotes(r: Costed): string[] {
+  const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
+  const listed = r.estimatedPart ? [`includes ${formatUsd(r.estimatedPart.usd)} per task of ${r.estimatedPart.labels.join(" and ")}`] : [];
+  const spot = isPreemptible(r.provider) ? ["spot capacity, which the provider can stop before the task ends"] : [];
+  return [...size, ...listed, ...spot];
+}
+
+/** Measured cost per completed real task for one machine track and task, from the real-task runs. */
+function taskScenario(track: RunTrackId, profile: TaskProfile) {
+  const { costed, uncosted } = headlineRows(realistic, track, profile);
+  return {
+    rows: costed.map((r): TaskCostRow => ({ id: r.provider, usdPerTask: r.cost.usdPerCompleted, how: costKinds[r.cost.kind].label, completed: r.completed, attempts: r.attempts, notes: rowNotes(r) })),
+    missing: uncosted.map((r): ProviderId => r.provider),
+  };
+}
+
 function taskRows() {
-  const tracks = ["same-machine", "default"] as const satisfies readonly RunTrackId[];
-  const profiles = ["fix-and-test", "build"] as const satisfies readonly TaskProfile[];
-  const build = <T,>(f: (t: RunTrackId, p: TaskProfile) => T) =>
-    Object.fromEntries(tracks.map((t) => [t, Object.fromEntries(profiles.map((p) => [p, f(t, p)]))])) as Record<RunTrackId, Record<TaskProfile, T>>;
-  const rows = build((t, p): TaskCostRow[] =>
-    headlineRows(realistic, t, p).costed.map((r) => ({ id: r.provider, usdPerTask: r.cost.usdPerCompleted, how: costKinds[r.cost.kind].label, completed: r.completed, attempts: r.attempts })),
-  );
-  const missing = build((t, p): ProviderId[] => headlineRows(realistic, t, p).uncosted.map((r) => r.provider));
-  return { rows, missing };
+  const all = {
+    "same-machine": { "fix-and-test": taskScenario("same-machine", "fix-and-test"), build: taskScenario("same-machine", "build") },
+    default: { "fix-and-test": taskScenario("default", "fix-and-test"), build: taskScenario("default", "build") },
+  } satisfies Record<RunTrackId, Record<TaskProfile, ReturnType<typeof taskScenario>>>;
+  const pick = <K extends "rows" | "missing">(k: K) => ({
+    "same-machine": { "fix-and-test": all["same-machine"]["fix-and-test"][k], build: all["same-machine"].build[k] },
+    default: { "fix-and-test": all.default["fix-and-test"][k], build: all.default.build[k] },
+  });
+  return { rows: pick("rows"), missing: pick("missing") };
 }
 
 const cardOf = (id: ProviderId) => rateCards.find((c) => c.id === id);
@@ -96,11 +113,11 @@ export default function SandboxPricingPage() {
     },
     ...named.map(({ card, e }) => ({
       q: `How much does ${providerName(card.id)} cost?`,
-      a: `${providerName(card.id)} lists ${priceText(card)}, billed ${card.billed} (${host(card.source)}, checked ${day(card.checked)}). A ${sizeText(e.size)} sandbox comes to ${formatUsd(e.hourlyUsd)} an hour${card.minimumSeconds > 0 ? `, with a ${card.minimumSeconds / 60}-minute minimum` : ""}.${card.notIncluded.length > 0 ? ` Not included here: ${card.notIncluded.join("; ")}.` : ""}${card.plan ? ` ${card.plan}.` : ""}`,
+      a: `${providerName(card.id)} lists ${priceText(card)}, billed ${card.billed} (${host(card.source)}, checked ${day(card.checked)}). A ${sizeText(e.size)} sandbox comes to ${formatUsd(e.hourlyUsd)} an hour${card.minimumSeconds > 0 ? `, with a ${card.minimumSeconds / 60}-minute minimum` : ""}.${card.assumed.length > 0 ? ` This assumes ${card.assumed.join("; ")}.` : ""}${card.notIncluded.length > 0 ? ` Not included here: ${card.notIncluded.join("; ")}.` : ""}${card.plan ? ` ${card.plan}.` : ""}`,
     })),
     {
       q: "How does the calculator work it out?",
-      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. Idle minutes bill whatever the provider charges an idle sandbox: the whole size for most, memory only where CPU is billed on use. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
+      a: "Each sandbox's busy minutes bill its whole size at the provider's list price. Idle minutes bill whatever the provider charges an idle sandbox: the whole size for most, memory only where CPU is billed on use. Minimum charges and rounding apply per sandbox. Where a provider sells fixed sizes, the smallest one that fits is priced. Where the price table leaves something open, such as rounding or whether a rate applies to the whole size, the estimate says what it assumes beside that provider. Euro prices are converted at the ECB rate. Modal counts a CPU as a physical core; it is priced one per vCPU entered, as the benchmark does. Disk, data transfer, plan fees and credits are left out.",
     },
     {
       q: "Why can a real task cost more or less than the list price suggests?",
@@ -207,6 +224,12 @@ export default function SandboxPricingPage() {
                       <dt className="text-neutral-7">Plan fee and free tier</dt>
                       <dd className="text-pretty text-neutral-8">{c.plan ?? "Not in our price data; see its pricing page"}</dd>
                     </div>
+                    {c.assumed.length > 0 ? (
+                      <div className="sm:col-span-2">
+                        <dt className="text-neutral-7">Assumed</dt>
+                        <dd className="text-pretty text-neutral-8">{c.assumed.join("; ")}</dd>
+                      </div>
+                    ) : null}
                     <div>
                       <dt className="text-neutral-7">Not in the estimate</dt>
                       <dd className="text-pretty text-neutral-8">{c.notIncluded.length > 0 ? c.notIncluded.join("; ") : "Nothing else listed"}</dd>

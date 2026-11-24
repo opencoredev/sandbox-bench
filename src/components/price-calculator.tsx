@@ -17,10 +17,17 @@ import type { ProviderId } from "@/lib/providers";
 const link = "focus-ring rounded-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10";
 
 /** One labelled number on the theme's number field, with steppers. */
-/** `wide` for a count that runs to millions; small numbers get a narrower box so two fields share a phone row. */
-function Num({ label, value, onChange, min, max, step, hint, wide = false }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; step: number; hint?: string; wide?: boolean }) {
+/**
+ * `wide` for a count that runs to millions; small numbers get a narrower box so two fields share a phone row.
+ * `count` rounds to whole numbers: there is no half a sandbox. Sizes and minutes keep their decimals.
+ */
+function Num({ label, value, onChange, min, max, step, hint, wide = false, count = false }: { label: string; value: number; onChange: (v: number) => void; min: number; max: number; step: number; hint?: string; wide?: boolean; count?: boolean }) {
+  const accept = (v: number | null) => {
+    const n = v ?? min;
+    onChange(Math.min(max, Math.max(min, count ? Math.round(n) : n)));
+  };
   return (
-    <NumberField.Root value={value} min={min} max={max} step={step} onValueChange={(v) => onChange(v ?? min)} className="w-min">
+    <NumberField.Root value={value} min={min} max={max} step={step} onValueChange={accept} format={count ? { maximumFractionDigits: 0 } : undefined} className="w-min">
       <NumberField.Label className="text-s text-neutral-8">{label}</NumberField.Label>
       <NumberField.Group>
         <NumberField.Decrement aria-label={`Less: ${label}`}>
@@ -95,7 +102,8 @@ function Row({ e, card }: { e: Estimate; card: RateCard }) {
             {sizeText(e.size)}
             {e.roundedUp ? " (smallest listed size that fits)" : ""} at {formatUsd(e.hourlyUsd)} an hour, billed {card.billed}
             {card.currency === "EUR" ? ", converted from euros" : ""}
-            {e.atMost ? `. Bills ${card.idle === "none" ? "active CPU only" : "active CPU and memory"}, so this is the most it would charge` : ""}
+            {e.atMost ? `. Bills ${card.idle === "none" ? "active CPU only" : "active CPU and memory"}, so this is the most its CPU and memory would charge` : ""}
+            {card.assumed.length > 0 ? <span className="mt-xxs block text-xs text-neutral-7">Assumes {card.assumed.join("; ")}.</span> : null}
           </span>
         </ResultRow>
       );
@@ -140,13 +148,13 @@ export function PriceCalculator({ cards, eurUsd }: { cards: readonly RateCard[];
         <div className="flex flex-wrap gap-x-m gap-y-m sm:gap-x-l">
           {inputs.mode === "tasks" ? (
             <>
-              <Num wide label="Sandboxes a month" value={inputs.sandboxes} onChange={set("sandboxes")} min={1} max={10_000_000} step={1000} />
+              <Num wide count label="Sandboxes a month" value={inputs.sandboxes} onChange={set("sandboxes")} min={1} max={10_000_000} step={1000} />
               <Num label="Busy minutes each" value={inputs.activeMinutes} onChange={set("activeMinutes")} min={0} max={1440} step={1} />
               <Num label="Idle minutes each" value={inputs.idleMinutes} onChange={set("idleMinutes")} min={0} max={1440} step={1} hint="Left open after the work, CPU idle" />
             </>
           ) : (
             <>
-              <Num wide label="Running at once" value={inputs.running} onChange={set("running")} min={1} max={10_000} step={1} />
+              <Num wide count label="Running at once" value={inputs.running} onChange={set("running")} min={1} max={10_000} step={1} />
               <Num label="Hours a day" value={inputs.hoursPerDay} onChange={set("hoursPerDay")} min={1} max={24} step={1} hint="Every day for 30 days" />
             </>
           )}
@@ -158,7 +166,7 @@ export function PriceCalculator({ cards, eurUsd }: { cards: readonly RateCard[];
         {inputs.mode === "tasks"
           ? `${w.sandboxes.toLocaleString("en-US")} sandboxes`
           : `${inputs.running.toLocaleString("en-US")} ${inputs.running === 1 ? "sandbox" : "sandboxes"} running ${inputs.hoursPerDay} ${inputs.hoursPerDay === 1 ? "hour" : "hours"} a day`}
-        , {Math.round(hours).toLocaleString("en-US")} sandbox-hours a month on {sizeText({ cpu: w.cpu, memoryGiB: w.memoryGiB })}, at list price. Cheapest first.
+        , {hours < 10 ? Number(hours.toFixed(1)) : Math.round(hours).toLocaleString("en-US")} sandbox-hours a month on {sizeText({ cpu: w.cpu, memoryGiB: w.memoryGiB })}, at list price. Cheapest first.
       </p>
       <ol className="mt-xs">
         {results.map((e) => {
@@ -178,6 +186,8 @@ export interface TaskCostRow {
   how: string;
   completed: number;
   attempts: number;
+  /** What a reader must know to compare this row: a machine other than the one asked for, a part priced at list price, capacity that can be taken back. */
+  notes: readonly string[];
 }
 
 export type RunTrackId = "same-machine" | "default";
@@ -214,10 +224,10 @@ export function RealTaskCost({ rows, missing }: { rows: Record<RunTrackId, Recor
           value={track}
           onChange={setTrack}
         />
-        <Num wide label="Tasks a month" value={tasks} onChange={setTasks} min={1} max={10_000_000} step={100} />
+        <Num wide count label="Tasks a month" value={tasks} onChange={setTasks} min={1} max={10_000_000} step={100} />
       </div>
       <p className="mt-l text-s text-pretty text-neutral-7" aria-live="polite">
-        {tasks.toLocaleString("en-US")} {profile === "build" ? "builds" : "fix-and-test runs"} a month, each in a fresh sandbox from create to confirmed delete, {track === "same-machine" ? "every provider on 4 vCPU and 8 GB" : "each provider on its default machine"}. Cheapest first.
+        {tasks.toLocaleString("en-US")} {profile === "build" ? "builds" : "fix-and-test runs"} a month, each in a fresh sandbox from create to confirmed delete, {track === "same-machine" ? "each provider asked for 4 vCPU and 8 GB" : "each provider on its default machine"}. Cheapest first.
       </p>
       <ol className="mt-xs">
         {list.map((r) => (
@@ -226,6 +236,7 @@ export function RealTaskCost({ rows, missing }: { rows: Record<RunTrackId, Recor
             <span className="text-right font-mono text-m text-neutral-10 tabular-nums sm:text-left">{formatUsd(r.usdPerTask * tasks)}</span>
             <span className="col-span-2 text-s text-pretty text-neutral-7 sm:col-span-1">
               {formatUsd(r.usdPerTask)} per completed task, {r.how.toLowerCase()}; {r.completed} of {r.attempts} runs completed
+              {r.notes.length > 0 ? <span className="mt-xxs block text-xs text-neutral-7">{r.notes.join("; ")}.</span> : null}
             </span>
           </li>
         ))}

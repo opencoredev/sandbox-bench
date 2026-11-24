@@ -335,7 +335,8 @@ html:not(:has(> head > #tiers-all)) [data-tier-extra] {
   display: contents;
 }
 html:not(:has(> head > #tiers-all)) [data-tier-view="all"],
-html:has(> head > #tiers-all) [data-tier-view="one"] {
+/* The column chart builds its every-tier view in the browser; until it has, its one-per-provider view stays. */
+html:has(> head > #tiers-all) [data-tier-view="one"]:has(+ [data-tier-view="all"]) {
   display: none !important;
 }
 /* Without scripts nothing can add tierStyle, so the switch hides (tierScript adds #tiers-js). */

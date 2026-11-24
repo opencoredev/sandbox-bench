@@ -52,7 +52,7 @@ export type Estimate =
       roundedUp: boolean;
       /** The priced size's list price per hour, in US dollars. */
       hourlyUsd: number;
-      /** True where the provider bills use rather than the allocation, so the estimate is the most it would charge. */
+      /** True where the provider bills use rather than the allocation, so the estimate is the most its CPU and memory would charge. */
       atMost: boolean;
     }
   | { kind: "no-size"; id: ProviderId; largest: Size };
@@ -81,9 +81,9 @@ function menu(card: RateCard): readonly Size[] | null {
   return listed ? [...listed].sort((a, b) => a.cpu - b.cpu || a.memoryGiB - b.memoryGiB) : null;
 }
 
-/** Billed seconds for one sandbox's wall time: at least the minimum, rounded up to the increment. */
+/** Billed seconds for one created sandbox's wall time: at least the minimum, rounded up to the increment. */
 export function billedSeconds(card: Pick<RateCard, "minimumSeconds" | "incrementSeconds">, seconds: number) {
-  if (seconds <= 0) return 0;
+  if (seconds <= 0) return card.minimumSeconds;
   // Round to a microsecond first, so 0.1 + 0.2 style float noise never bills one more increment.
   const steps = Math.ceil(Math.round((seconds / card.incrementSeconds) * 1e6) / 1e6);
   return Math.max(card.minimumSeconds, steps * card.incrementSeconds);
@@ -97,8 +97,8 @@ export function billedSeconds(card: Pick<RateCard, "minimumSeconds" | "increment
 export function estimate(card: RateCard, w: Workload, eurUsd: number): Estimate {
   const sizes = menu(card);
   const asked: Size = { cpu: Math.max(w.cpu, card.minCpu ?? 0), memoryGiB: w.memoryGiB };
-  const size = sizes ? sizes.find((s) => fits(s, asked)) : asked;
-  const largest = sizes?.at(-1);
+  const size = sizes ? sizes.find((s) => fits(s, asked)) : card.max && !fits(card.max, asked) ? undefined : asked;
+  const largest = sizes?.at(-1) ?? card.max;
   if (!size) return { kind: "no-size", id: card.id, largest: largest ?? asked };
   const parts = hourlyParts(card, size);
   if (!parts) return { kind: "no-size", id: card.id, largest: largest ?? asked };
