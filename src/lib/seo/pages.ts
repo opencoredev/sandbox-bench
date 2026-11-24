@@ -59,7 +59,7 @@ export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | Pr
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-23",
+  "/": "2026-11-24",
   "/providers/e2b/": "2026-11-20",
   "/providers/": "2026-11-23",
   "/providers/daytona/": "2026-11-20",
@@ -79,7 +79,7 @@ const contentDates = {
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
   "/alternatives/e2b/": "2026-11-18",
   "/for-providers/": "2026-11-19",
-  "/updates/": "2026-11-23",
+  "/updates/": "2026-11-24",
   "/updates/every-provider-on-real-tasks/": "2026-11-19",
   "/updates/beam-added/": "2026-11-19",
   "/updates/real-tasks-timed/": "2026-11-19",
@@ -87,6 +87,7 @@ const contentDates = {
   "/updates/real-tasks-at-once/": "2026-11-19",
   "/updates/beam-cpu-tiers/": "2026-11-20",
   "/updates/styne-added/": "2026-11-23",
+  "/updates/like-for-like-checks/": "2026-11-24",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */

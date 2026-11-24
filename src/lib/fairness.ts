@@ -238,6 +238,15 @@ function parseCpuNative(o: Json, path: string): CpuNativeResult {
     return { minute: positive(p.minute, `${path}.sustained[${i}].minute`), opsPerS: nonNegative(p.opsPerS, `${path}.sustained[${i}].opsPerS`) };
   });
   if (sustained.length !== 30) fail(`${path}.sustained`, `has ${sustained.length} segments; a completed run has 30`);
+  // The first and last 3 minutes are medians of the first and last six windows.
+  const medianOf = (xs: readonly number[]) => {
+    const sorted = [...xs].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 1 ? (sorted[mid] ?? 0) : ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2;
+  };
+  const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(1, Math.abs(b) * 1e-6);
+  if (!near(first3MinOps, medianOf(sustained.slice(0, 6).map((x) => x.opsPerS)))) fail(`${path}.first3MinOps`, "is not the median of the first six windows");
+  if (!near(last3MinOps, medianOf(sustained.slice(-6).map((x) => x.opsPerS)))) fail(`${path}.last3MinOps`, "is not the median of the last six windows");
   sustained.forEach((s, i) => {
     const prev = sustained[i - 1];
     if (prev && s.minute <= prev.minute) fail(`${path}.sustained[${i}].minute`, "must be later than the segment before");
@@ -263,8 +272,12 @@ function comparability(o: Json, path: string) {
   return { comparable, notComparableWhy };
 }
 
+/** The file size the disk chart's labels name. */
+export const DISK_SIZE_MIB = 2048;
+
 function parseDisk(o: Json, path: string): DiskResult {
   const disk = parseDiskFigures(o, path);
+  if (disk.sizeMiB !== DISK_SIZE_MIB) fail(`${path}.sizeMiB`, `is ${disk.sizeMiB}; the chart says ${DISK_SIZE_MIB} MiB`);
   if (disk.memoryBacked && disk.comparable) fail(`${path}.comparable`, "can't be true for a memory-backed filesystem");
   if (disk.comparable && !Object.values(disk.direct).every(Boolean)) fail(`${path}.comparable`, "can't be true when a phase ran without direct I/O");
   return disk;
@@ -299,7 +312,9 @@ function parseBurst(o: Json, path: string): BurstResult {
   const verified = wholeNonNegative(o.verified, `${path}.verified`);
   if (created > requested) fail(`${path}.created`, `is ${created}, more than the ${requested} requested`);
   if (verified < 2 || verified > created) fail(`${path}.verified`, `is ${verified}; a published cohort has 2 to ${created}`);
+  if (requested !== 10) fail(`${path}.requested`, "must be 10, as the chart says");
   if (bool(o.comparable, `${path}.comparable`) && (created !== requested || verified !== created)) fail(`${path}.comparable`, "needs every sandbox created and verified");
+  if (bool(o.comparable, `${path}.comparable`) && num(o.guaranteedOverlapS, `${path}.guaranteedOverlapS`) < 90) fail(`${path}.comparable`, "needs at least 90 of 120 seconds provably shared");
   const createErrors = arr(o.createErrors, `${path}.createErrors`).map((e, i) => {
     const x = obj(e, `${path}.createErrors[${i}]`);
     return { error: str(x.error, `${path}.createErrors[${i}].error`), count: whole(x.count, `${path}.createErrors[${i}].count`) };
@@ -378,8 +393,8 @@ function parseMemory(o: Json, path: string): MemoryResult {
     memTotalGiB: orNull(positive)(o.memTotalGiB, `${path}.memTotalGiB`),
     memLimitGiB: orNull(positive)(o.memLimitGiB, `${path}.memLimitGiB`),
     swapTotalGiB: nonNegative(o.swapTotalGiB, `${path}.swapTotalGiB`),
-    memoryMiB: positive(o.memoryMiB, `${path}.memoryMiB`),
-    fileMiB: nonNegative(o.fileMiB, `${path}.fileMiB`),
+    memoryMiB: o.memoryMiB === 6144 ? 6144 : fail(`${path}.memoryMiB`, "must be 6144, as the chart says"),
+    fileMiB: o.fileMiB === 2048 ? 2048 : fail(`${path}.fileMiB`, "must be 2048, as the chart says"),
     outcome: parseMemoryOutcome(o.outcome, `${path}.outcome`),
   };
 }
@@ -468,9 +483,9 @@ export function parseFairness(raw: unknown): FairnessData {
     else arch[id] = oneOf(arches, value, `arch.${id}`);
   }
   for (const key of Object.keys(checks)) if (!checkIds.some((id) => id === key)) fail("checks", `has an unknown check ${key}`);
-  return {
+  const data = {
     generatedAt: iso(o.generatedAt, "generatedAt"),
-    track: "same-machine",
+    track: "same-machine" as const,
     arch,
     cpuNative: parseCheck(checks["cpu-native"], "checks.cpu-native", parseCpuNative),
     diskReal: parseCheck(checks["disk-real"], "checks.disk-real", parseDisk),
@@ -478,6 +493,10 @@ export function parseFairness(raw: unknown): FairnessData {
     memoryHonesty: parseCheck(checks["memory-honesty"], "checks.memory-honesty", parseMemory),
     securityProbe: parseCheck(checks["security-probe"], "checks.security-probe", parseSecurity),
   };
+  // A disk under gVisor, by the security probe, can't be marked comparable.
+  const gvisor = new Set(completed(data.securityProbe).filter((e) => e.result.isolation === "gvisor").map((e) => e.provider));
+  for (const e of completed(data.diskReal)) if (gvisor.has(e.provider) && e.result.comparable) fail(`checks.disk-real ${e.provider}`, "runs under gVisor, so its disk can't be comparable");
+  return data;
 }
 
 // ---------------------------------------------------------------------------
@@ -517,6 +536,13 @@ export const isolationLabel: Record<IsolationKind, string> = {
   unknown: "Not identified",
 };
 
+/**
+ * The last 3 minutes of the 15-minute burn over the short four-core runs before it: how much of its
+ * opening speed a sandbox still had at the end. Unlike retention (last 3 ÷ first 3 minutes), it
+ * still shows a drop that happened before minute 3.
+ */
+export const heldShare = (r: CpuNativeResult) => r.last3MinOps / r.allCoreOps;
+
 /** "16%". */
 export const percentText = (r: number) => `${Math.round(r * 100)}%`;
 
@@ -548,7 +574,9 @@ export function uptimeText(r: SecurityResult): string {
   const up = r.uptimeS < 120 ? `${Number(r.uptimeS.toFixed(1))} s` : r.uptimeS < 7200 ? `${Math.round(r.uptimeS / 60)} min` : r.uptimeS < 172_800 ? `${Number((r.uptimeS / 3600).toFixed(1))} h` : `${Math.round(r.uptimeS / 86_400)} days`;
   // A container shares its host's kernel, so its uptime is the host's, not the sandbox's.
   if (r.isolation === "container") return `Shows the host's uptime (${up}): a container shares the host kernel`;
-  return r.bootedBeforeCreateS > 30 ? `Up ${up} at first command: started before the create (pool or snapshot)` : `Up ${up} at first command: booted for this create`;
+  if (r.bootedBeforeCreateS <= 5) return `Up ${up} at first command: booted for this create`;
+  const before = r.bootedBeforeCreateS < 120 ? `${Math.round(r.bootedBeforeCreateS)} s` : r.bootedBeforeCreateS < 7200 ? `${Math.round(r.bootedBeforeCreateS / 60)} min` : `${Number((r.bootedBeforeCreateS / 3600).toFixed(1))} h`;
+  return `Up ${up} at first command, at least ${before} before the create began: likely a pool or snapshot`;
 }
 
 /** The errnos a full or refusing disk returns, by name. */
@@ -556,6 +584,16 @@ const errnoNames: Record<number, string> = { 28: "no space left", 12: "out of me
 export const errnoText = (errno: number) => errnoNames[errno] ?? `errno ${errno}`;
 
 const phaseText = (phase: string) => (phase === "filled" ? "filling memory" : phase === "file" || phase === "file-failed" ? "writing the file" : phase === "start" ? "starting" : phase);
+
+/** The isolation layer in words: "Container in a VM", "microVM". */
+export const isolationText = (r: SecurityResult) => `${isolationLabel[r.isolation]}${r.isolation === "container" && r.insideVm ? " in a VM" : ""}`;
+
+/** Who commands run as: "root", "uid 1000, passwordless sudo". */
+export const runsAsText = (r: SecurityResult) => (r.uid === null ? "not readable" : r.uid === 0 ? "root" : `uid ${r.uid}${r.passwordlessSudo ? ", passwordless sudo" : ""}`);
+
+/** The kernel's vulnerability lines that start with Vulnerable, or why there are none to show. */
+export const vulnerableText = (r: SecurityResult) =>
+  r.vulnerabilityFiles === 0 ? "not listed by the kernel" : r.vulnerable.length === 0 ? `none of ${r.vulnerabilityFiles}` : r.vulnerable.map((v) => `${v.name}: ${v.status}`).join("; ");
 
 /** The memory test in a few words. */
 export function memoryOutcomeText(r: MemoryResult): string {

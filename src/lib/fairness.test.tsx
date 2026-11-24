@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import raw from "@/data/fairness.json";
 import { FairnessSection, IsolationTable } from "@/components/fairness";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
-import { completed, hasFairness, memoryOutcomeText, parseFairness, uptimeText } from "@/lib/fairness";
+import { completed, hasFairness, heldShare, memoryOutcomeText, parseFairness, uptimeText } from "@/lib/fairness";
 import type { FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
 import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 import { fairness } from "@/lib/fairness-data";
@@ -27,7 +27,7 @@ const cpu = (allCoreOps: number, retention = 1) => ({
   first3MinOps: allCoreOps,
   last3MinOps: allCoreOps * retention,
   retention,
-  sustained: Array.from({ length: 30 }, (_, i) => ({ minute: (i + 1) / 2, opsPerS: allCoreOps })),
+  sustained: Array.from({ length: 30 }, (_, i) => ({ minute: (i + 1) / 2, opsPerS: i < 24 ? allCoreOps : allCoreOps * retention })),
 });
 
 const disk = (fsType: string, comparable: boolean, why: string | null = null) => ({
@@ -143,6 +143,16 @@ describe("parse", () => {
 
   test("refuses data that contradicts itself", () => {
     assert.throws(broken((f) => (f.checks["cpu-native"].entries[0]!.result!.retention = 0.5)), /retention/);
+    assert.throws(
+      broken((f) => {
+        const r = f.checks["cpu-native"].entries[0]!.result!;
+        r.last3MinOps = r.first3MinOps / 2;
+        r.retention = 0.5;
+      }),
+      /last six windows/,
+    );
+    assert.throws(broken((f) => ((f.checks["disk-real"].entries[0]!.result as { sizeMiB: number }).sizeMiB = 1024)), /2048/);
+    assert.throws(broken((f) => ((f.checks["disk-real"].entries[1]!.result as { comparable: boolean; notComparableWhy: string | null }) = Object.assign(f.checks["disk-real"].entries[1]!.result!, { comparable: true, notComparableWhy: null }))), /gVisor/);
     assert.throws(broken((f) => (f.checks["cpu-native"].entries[0]!.result!.scaling = 0.5)), /scaling/);
     assert.throws(broken((f) => ((f.checks["disk-real"].entries[1]!.result as { comparable: boolean }).comparable = true)), /notComparableWhy/);
     assert.throws(broken((f) => ((f.checks["memory-honesty"].entries[0]!.result as { cpusOverReported: boolean }).cpusOverReported = false)), /cpusOverReported/);
@@ -164,11 +174,18 @@ describe("rules", () => {
     assert.match(memoryOutcomeText(failed), /stopped at 900 MiB \(no space left\)/);
   });
 
+  test("held compares the last 3 minutes with the four-core run, so an early drop still shows", () => {
+    const styne = completed(parsed().cpuNative!).find((e) => e.provider === "styne")!.result;
+    assert.equal(Number(heldShare(styne).toFixed(2)), 0.16);
+    const dropped = { ...styne, first3MinOps: styne.last3MinOps, retention: 1 };
+    assert.equal(Number(heldShare(dropped).toFixed(2)), 0.16);
+  });
+
   test("uptime says whether the sandbox booted for the create", () => {
     const s = completed(parsed().securityProbe!);
     const styne = s.find((e) => e.provider === "styne")!.result;
     const boat = s.find((e) => e.provider === "boat")!.result;
-    assert.match(uptimeText(styne), /23.1 h at first command: started before the create/);
+    assert.match(uptimeText(styne), /23.1 h at first command, at least 23.1 h before the create began: likely a pool or snapshot/);
     assert.match(uptimeText(boat), /3.1 s at first command: booted for this create/);
     assert.match(uptimeText({ ...boat, isolation: "container", uptimeS: 900_000 }), /host's uptime \(10 days\)/);
     const unreadable: SecurityResult = { ...boat, uptimeS: null };
@@ -210,7 +227,10 @@ describe("site-data script", () => {
     assert.doesNotMatch(text, /secret-sandbox-id|\/home\/leo|"raw"/);
     assert.match(text, /"directory":"~\/work"/);
     assert.match(text, /Created 0 of 1 sandboxes/);
-    assert.equal(plainReason("x".repeat(300)).length, 240);
+    assert.equal(plainReason("word ".repeat(80)).length, 240);
+    const scrubbed = plainReason("Create failed for /home/leo/work/x (sandbox sb-01M8604F365C5Q09VVMZWH58H2, attempt 610c6d1847fc, boot 0f8fad5b-d9cb-469f-a165-70867728950e, seed 2654435760): HTTP 400");
+    assert.doesNotMatch(scrubbed, /leo|01M8604F|610c6d1847fc|0f8fad5b|2654435760/);
+    assert.match(scrubbed, /HTTP 400/);
     assert.throws(() => checkFromReport({ ...report("disk-real", []), track: "default" }), /same-machine/);
   });
 });

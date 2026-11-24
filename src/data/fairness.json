@@ -1,1 +1,3537 @@
-{"schema":"fairness-site.v1","generatedAt":"2026-11-24T00:00:00.000Z","track":"same-machine","arch":{},"checks":{}}
+{
+  "schema": "fairness-site.v1",
+  "generatedAt": "2026-11-24T07:27:37.057Z",
+  "track": "same-machine",
+  "arch": {
+    "e2b": "x86_64",
+    "daytona": "x86_64",
+    "upstash": "aarch64",
+    "upstash-ephemeral": "aarch64",
+    "boxd": "x86_64",
+    "freestyle": "x86_64",
+    "tenki": "x86_64",
+    "vercel": "x86_64",
+    "boat": "x86_64",
+    "modal": "x86_64",
+    "instabox": "x86_64",
+    "beam": "x86_64",
+    "styne": "x86_64"
+  },
+  "checks": {
+    "security-probe": {
+      "run": {
+        "id": "fair-r4-security-probe",
+        "sdkCommit": "c6163c67cb170fbde5797702ed44706522b75b86",
+        "startedAt": "2026-11-24T05:44:35.539Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "microvm",
+            "evidence": [
+              "virtio-mmio devices on the kernel command line and no DMI table: a microVM layout, as Firecracker's and QEMU's microvm machine use"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.1.158+ x86_64",
+            "cpu": {
+              "vendor": "GenuineIntel",
+              "family": 6,
+              "model": 106,
+              "modelName": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+              "mhz": 2600.032
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 17,
+            "uid": 0,
+            "passwordlessSudo": true,
+            "createS": 0.595,
+            "uptimeS": 3.94,
+            "bootedBeforeCreateS": 2.8
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "container",
+            "evidence": [
+              "dockerenv present",
+              "systemd-detect-virt -c: docker"
+            ],
+            "insideVm": false,
+            "kernel": "Linux 6.8.0-149-generic x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 25,
+              "model": 17,
+              "modelName": "AMD EPYC 9354 32-Core Processor",
+              "mhz": 3799.136
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [
+              {
+                "name": "tsa",
+                "status": "Vulnerable: Clear CPU buffers attempted, no microcode"
+              }
+            ],
+            "vulnerabilityFiles": 17,
+            "uid": 1001,
+            "passwordlessSudo": true,
+            "createS": 0.269,
+            "uptimeS": 1531.55,
+            "bootedBeforeCreateS": 1531
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "container",
+            "evidence": [
+              "dockerenv present"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 7.0.0-1017-aws aarch64",
+            "cpu": {
+              "vendor": null,
+              "family": null,
+              "model": null,
+              "modelName": null,
+              "mhz": null
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 19,
+            "uid": 1002,
+            "passwordlessSudo": true,
+            "createS": 1.213,
+            "uptimeS": 900772.62,
+            "bootedBeforeCreateS": 900771.3
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "container",
+            "evidence": [
+              "dockerenv present"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 7.0.0-1017-aws aarch64",
+            "cpu": {
+              "vendor": null,
+              "family": null,
+              "model": null,
+              "modelName": null,
+              "mhz": null
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 19,
+            "uid": 1002,
+            "passwordlessSudo": true,
+            "createS": 0.532,
+            "uptimeS": 410258.9,
+            "bootedBeforeCreateS": 410258.3
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "container",
+            "evidence": [
+              "dockerenv present",
+              "systemd-detect-virt -c: docker",
+              "the CPU also reports a hypervisor, so the container runs in a VM"
+            ],
+            "insideVm": true,
+            "kernel": "Linux 6.18.0+ x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 25,
+              "model": 17,
+              "modelName": "AMD EPYC",
+              "mhz": 3249.996
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 19,
+            "uid": 1000,
+            "passwordlessSudo": true,
+            "createS": 1.072,
+            "uptimeS": 799035.04,
+            "bootedBeforeCreateS": 799033.8
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "vm",
+            "evidence": [
+              "CPU reports the hypervisor flag",
+              "systemd-detect-virt: kvm"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.1.102 x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 25,
+              "model": 1,
+              "modelName": "AMD EPYC 7003 (Milan)",
+              "mhz": 999.999
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 14,
+            "uid": 0,
+            "passwordlessSudo": true,
+            "createS": 0.514,
+            "uptimeS": 86918.4,
+            "bootedBeforeCreateS": 86917.6
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "container",
+            "evidence": [
+              "dockerenv present",
+              "systemd-detect-virt -c: docker",
+              "the CPU also reports a hypervisor, so the container runs in a VM"
+            ],
+            "insideVm": true,
+            "kernel": "Linux 6.18.62 x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 26,
+              "model": 2,
+              "modelName": "AMD EPYC 9575F 64-Core Processor",
+              "mhz": 3299.996
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [
+              {
+                "name": "spec_rstack_overflow",
+                "status": "Vulnerable: Safe RET, no microcode"
+              }
+            ],
+            "vulnerabilityFiles": 19,
+            "uid": 0,
+            "passwordlessSudo": true,
+            "createS": 0.798,
+            "uptimeS": 2.17,
+            "bootedBeforeCreateS": 1.2
+          }
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "microvm",
+            "evidence": [
+              "virtio-mmio devices on the kernel command line and no DMI table: a microVM layout, as Firecracker's and QEMU's microvm machine use"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.18.56 x86_64",
+            "cpu": {
+              "vendor": "GenuineIntel",
+              "family": 6,
+              "model": 85,
+              "modelName": "Intel(R) Xeon(R) Processor @ 2.50GHz",
+              "mhz": 2499.998
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 19,
+            "uid": 1000,
+            "passwordlessSudo": true,
+            "createS": 0.517,
+            "uptimeS": 26.21,
+            "bootedBeforeCreateS": 25.3
+          }
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "vm",
+            "evidence": [
+              "CPU reports the hypervisor flag",
+              "systemd-detect-virt: kvm"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.8.0-117-generic x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 26,
+              "model": 68,
+              "modelName": "AMD Ryzen 7 9700X 8-Core Processor",
+              "mhz": 3792.85
+            },
+            "weakeningFlags": [
+              "spec_rstack_overflow=off",
+              "init_on_free=0"
+            ],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 17,
+            "uid": 1000,
+            "passwordlessSudo": true,
+            "createS": 0.66,
+            "uptimeS": 149.13,
+            "bootedBeforeCreateS": 148.1
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "gvisor",
+            "evidence": [
+              "dmesg names gVisor"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 4.19.0-gvisor x86_64",
+            "cpu": {
+              "vendor": "GenuineIntel",
+              "family": 6,
+              "model": 106,
+              "modelName": "unknown",
+              "mhz": 3500
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 0,
+            "uid": 0,
+            "passwordlessSudo": false,
+            "createS": 0.64,
+            "uptimeS": 0.15,
+            "bootedBeforeCreateS": -0.9
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "microvm",
+            "evidence": [
+              "virtio-mmio devices on the kernel command line and no DMI table: a microVM layout, as Firecracker's and QEMU's microvm machine use"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.18.60-instabox x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 26,
+              "model": 2,
+              "modelName": "AMD EPYC",
+              "mhz": 2599.998
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [
+              {
+                "name": "spec_rstack_overflow",
+                "status": "Vulnerable: Microcode, no safe RET"
+              }
+            ],
+            "vulnerabilityFiles": 19,
+            "uid": 1000,
+            "passwordlessSudo": true,
+            "createS": 1.457,
+            "uptimeS": 5.74,
+            "bootedBeforeCreateS": 4.1
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.",
+          "result": null
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "gvisor",
+            "evidence": [
+              "dmesg names gVisor"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 4.19.0-gvisor x86_64",
+            "cpu": {
+              "vendor": "GenuineIntel",
+              "family": 6,
+              "model": 207,
+              "modelName": "unknown",
+              "mhz": 3600
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 0,
+            "uid": 0,
+            "passwordlessSudo": false,
+            "createS": 0.608,
+            "uptimeS": 0.24,
+            "bootedBeforeCreateS": -0.5
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "cloud-hypervisor",
+            "evidence": [
+              "DMI: Cloud Hypervisor cloud-hypervisor"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.16.9+ x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 25,
+              "model": 33,
+              "modelName": "AMD EPYC Processor",
+              "mhz": 4291.948
+            },
+            "weakeningFlags": [
+              "spec_rstack_overflow=off"
+            ],
+            "notableFlags": [
+              "cpuidle_haltpoll.force=1"
+            ],
+            "vulnerable": [
+              {
+                "name": "spec_rstack_overflow",
+                "status": "Vulnerable"
+              },
+              {
+                "name": "tsa",
+                "status": "Vulnerable: No microcode"
+              }
+            ],
+            "vulnerabilityFiles": 19,
+            "uid": 0,
+            "passwordlessSudo": true,
+            "createS": 0.304,
+            "uptimeS": 2162.85,
+            "bootedBeforeCreateS": 2162.5
+          }
+        }
+      ]
+    },
+    "memory-honesty": {
+      "run": {
+        "id": "fair-r4-memory-honesty",
+        "sdkCommit": "c6163c67cb170fbde5797702ed44706522b75b86",
+        "startedAt": "2026-11-24T05:45:07.295Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.77,
+            "memLimitGiB": 7.65,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.08,
+              "verifyGiBps": 2.85,
+              "fileMiBps": 430.8,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 64,
+            "usableCpus": 4,
+            "quotaCpus": 4,
+            "cpusOverReported": true,
+            "memTotalGiB": 755.22,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.39,
+              "verifyGiBps": 2.91,
+              "fileMiBps": 376.4,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 64,
+            "usableCpus": 4,
+            "quotaCpus": 4,
+            "cpusOverReported": true,
+            "memTotalGiB": 247.22,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 3.03,
+              "verifyGiBps": 4.99,
+              "fileMiBps": 201,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 48,
+            "usableCpus": 4,
+            "quotaCpus": 4,
+            "cpusOverReported": true,
+            "memTotalGiB": 185.33,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 2.92,
+              "verifyGiBps": 5,
+              "fileMiBps": 1028.7,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 15.64,
+            "memLimitGiB": null,
+            "swapTotalGiB": 1,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 0.57,
+              "verifyGiBps": 2.26,
+              "fileMiBps": 543.2,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.75,
+            "memLimitGiB": null,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 0.4,
+              "verifyGiBps": 1.14,
+              "fileMiBps": 225.2,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.8,
+            "memLimitGiB": null,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 0.35,
+              "verifyGiBps": 5.32,
+              "fileMiBps": 1464.5,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 8.21,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.34,
+              "verifyGiBps": 2.75,
+              "fileMiBps": 3317.2,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.76,
+            "memLimitGiB": 7.25,
+            "swapTotalGiB": 2,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.47,
+              "verifyGiBps": 5.8,
+              "fileMiBps": 669,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": 4,
+            "cpusOverReported": false,
+            "memTotalGiB": 8,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 2.34,
+              "verifyGiBps": 2.72,
+              "fileMiBps": 6347,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.78,
+            "memLimitGiB": null,
+            "swapTotalGiB": 4,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 0.89,
+              "verifyGiBps": 4.71,
+              "fileMiBps": 2195.3,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.",
+          "result": null
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": 4,
+            "cpusOverReported": false,
+            "memTotalGiB": 8,
+            "memLimitGiB": 8,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.37,
+              "verifyGiBps": 2.87,
+              "fileMiBps": 1348.3,
+              "swapUsedMiB": 0
+            }
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.77,
+            "memLimitGiB": null,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 3.04,
+              "verifyGiBps": 5.77,
+              "fileMiBps": 548.2,
+              "swapUsedMiB": 0
+            }
+          }
+        }
+      ]
+    },
+    "disk-real": {
+      "run": {
+        "id": "fair-r4-disk-real",
+        "sdkCommit": "c6163c67cb170fbde5797702ed44706522b75b86",
+        "startedAt": "2026-11-24T05:45:42.747Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/root",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 433.1,
+            "seqReadMiBps": 128.8,
+            "randWriteIops": 8636,
+            "randWriteP99Us": 179.3,
+            "randReadIops": 10370,
+            "randReadP99Us": 151.9,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "overlay",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 1366.8,
+            "seqReadMiBps": 1700.9,
+            "randWriteIops": 32457,
+            "randWriteP99Us": 48.7,
+            "randReadIops": 12423,
+            "randReadP99Us": 122.3,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "overlay",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 306,
+            "seqReadMiBps": 607.3,
+            "randWriteIops": 1136,
+            "randWriteP99Us": 1063.6,
+            "randReadIops": 1775,
+            "randReadP99Us": 1013.8,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "overlay",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 1998.1,
+            "seqReadMiBps": 3113.1,
+            "randWriteIops": 53440,
+            "randWriteP99Us": 19.4,
+            "randReadIops": 13311,
+            "randReadP99Us": 238,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 2280.4,
+            "seqReadMiBps": 1569,
+            "randWriteIops": 17108,
+            "randWriteP99Us": 78.6,
+            "randReadIops": 18563,
+            "randReadP99Us": 71.6,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/root",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 643.5,
+            "seqReadMiBps": 2413.1,
+            "randWriteIops": 9734,
+            "randWriteP99Us": 153.8,
+            "randReadIops": 23547,
+            "randReadP99Us": 60.2,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 4085.4,
+            "seqReadMiBps": 6329.9,
+            "randWriteIops": 11060,
+            "randWriteP99Us": 334.1,
+            "randReadIops": 39902,
+            "randReadP99Us": 41.6,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "xfs",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/vercel",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 4413,
+            "seqReadMiBps": 5206.4,
+            "randWriteIops": 38897,
+            "randWriteP99Us": 37,
+            "randReadIops": 43300,
+            "randReadP99Us": 29.4,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 463.3,
+            "seqReadMiBps": 560,
+            "randWriteIops": 103,
+            "randWriteP99Us": 43194.5,
+            "randReadIops": 5312,
+            "randReadP99Us": 1528.7,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "overlay",
+            "memoryBacked": false,
+            "comparable": false,
+            "notComparableWhy": "the sandbox runs under gVisor, whose own file layer handles direct I/O and sync (and may keep its root overlay in memory), so the guest can't measure the disk beneath it",
+            "directory": "/root",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 6029.2,
+            "seqReadMiBps": 1279.8,
+            "randWriteIops": 38390,
+            "randWriteP99Us": 18.8,
+            "randReadIops": 173511,
+            "randReadP99Us": 6,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/data/home",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 5888.2,
+            "seqReadMiBps": 8344.4,
+            "randWriteIops": 29961,
+            "randWriteP99Us": 68,
+            "randReadIops": 28195,
+            "randReadP99Us": 62.7,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.",
+          "result": null
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "9p",
+            "memoryBacked": false,
+            "comparable": false,
+            "notComparableWhy": "the sandbox runs under gVisor, whose own file layer handles direct I/O and sync (and may keep its root overlay in memory), so the guest can't measure the disk beneath it",
+            "directory": "/var/tmp",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 1362.6,
+            "seqReadMiBps": 3024.1,
+            "randWriteIops": 49317,
+            "randWriteP99Us": 25.2,
+            "randReadIops": 49874,
+            "randReadP99Us": 20.6,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/root",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 908.7,
+            "seqReadMiBps": 10133.4,
+            "randWriteIops": 22798,
+            "randWriteP99Us": 82.4,
+            "randReadIops": 113824,
+            "randReadP99Us": 13.2,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          }
+        }
+      ]
+    },
+    "cpu-native": {
+      "run": {
+        "id": "fair-r6-cpu-native",
+        "sdkCommit": "072122cd225358f1a1473e48b762c1bf5936f4a8",
+        "startedAt": "2026-11-24T06:24:46.366Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "Intel(R) Xeon(R) Processor @ 2.60GHz",
+            "guestVcpus": 4,
+            "singleOps": 872961514,
+            "allCoreOps": 3450255402,
+            "scaling": 0.9881,
+            "first3MinOps": 3426257243,
+            "last3MinOps": 3452122659,
+            "retention": 1.0075,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3395921158
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3428004049
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3496231436
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3424510436
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3411226852
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3510491161
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3471486367
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3498468191
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3480575314
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3462396817
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3389837091
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3530625300
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3503501930
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3456104461
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3488125304
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3439525210
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3397331145
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3436113519
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3432758640
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3490639518
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3461978692
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3460579675
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3445480774
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3462118533
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3470507485
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3479733113
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3425628080
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3523914600
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3433737833
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3395428407
+              }
+            ]
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC 9354P 32-Core Processor",
+            "guestVcpus": 64,
+            "singleOps": 943638620,
+            "allCoreOps": 3746610164,
+            "scaling": 0.9926,
+            "first3MinOps": 3749146699,
+            "last3MinOps": 3750266318,
+            "retention": 1.0003,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3751936394
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3751805141
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3748308569
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3746352473
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3744954993
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3749984828
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3750408614
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3749286869
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3744115187
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3754044101
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3751385634
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3749147678
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3752087033
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3753759868
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3753064297
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3756417260
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3753901688
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3754181914
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3751104857
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3750967293
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3753482604
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3751385575
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3754601863
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3745652938
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3752084743
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3750685805
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3746912797
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3747749464
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3749846831
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3754182656
+              }
+            ]
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": null,
+            "guestVcpus": 64,
+            "singleOps": 1387958130,
+            "allCoreOps": 5565697337,
+            "scaling": 1.0025,
+            "first3MinOps": 5571503217,
+            "last3MinOps": 5568637175,
+            "retention": 0.9995,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 5570862678
+              },
+              {
+                "minute": 1,
+                "opsPerS": 5571153186
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 5569336877
+              },
+              {
+                "minute": 2,
+                "opsPerS": 5571853248
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 5572134029
+              },
+              {
+                "minute": 3,
+                "opsPerS": 5572410494
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 5567381376
+              },
+              {
+                "minute": 4,
+                "opsPerS": 5572412120
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 5570035914
+              },
+              {
+                "minute": 5,
+                "opsPerS": 5572272535
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 5573528838
+              },
+              {
+                "minute": 6,
+                "opsPerS": 5572414370
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 5570315450
+              },
+              {
+                "minute": 7,
+                "opsPerS": 5572551977
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 5570595360
+              },
+              {
+                "minute": 8,
+                "opsPerS": 5570314885
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 5568777405
+              },
+              {
+                "minute": 9,
+                "opsPerS": 5572971789
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 5572831963
+              },
+              {
+                "minute": 10,
+                "opsPerS": 5572133061
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 5571293968
+              },
+              {
+                "minute": 11,
+                "opsPerS": 5572132857
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 5571573851
+              },
+              {
+                "minute": 12,
+                "opsPerS": 5572552282
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 5572133086
+              },
+              {
+                "minute": 13,
+                "opsPerS": 5568776877
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 5568497472
+              },
+              {
+                "minute": 14,
+                "opsPerS": 5550460642
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 5555358006
+              },
+              {
+                "minute": 15,
+                "opsPerS": 5573530093
+              }
+            ]
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": null,
+            "guestVcpus": 48,
+            "singleOps": 1394975323,
+            "allCoreOps": 5577290022,
+            "scaling": 0.9995,
+            "first3MinOps": 5577655641,
+            "last3MinOps": 5577024842,
+            "retention": 0.9999,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 5578692671
+              },
+              {
+                "minute": 1,
+                "opsPerS": 5577585568
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 5578144459
+              },
+              {
+                "minute": 2,
+                "opsPerS": 5577026478
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 5576885980
+              },
+              {
+                "minute": 3,
+                "opsPerS": 5577725714
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 5577585086
+              },
+              {
+                "minute": 4,
+                "opsPerS": 5577445970
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 5577864931
+              },
+              {
+                "minute": 5,
+                "opsPerS": 5577165806
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 5577306033
+              },
+              {
+                "minute": 6,
+                "opsPerS": 5577725194
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 5576886491
+              },
+              {
+                "minute": 7,
+                "opsPerS": 5577445295
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 5577026549
+              },
+              {
+                "minute": 8,
+                "opsPerS": 5576746412
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 5576466743
+              },
+              {
+                "minute": 9,
+                "opsPerS": 5577725432
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 5576467290
+              },
+              {
+                "minute": 10,
+                "opsPerS": 5577586305
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 5577164191
+              },
+              {
+                "minute": 11,
+                "opsPerS": 5577724996
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 5577027260
+              },
+              {
+                "minute": 12,
+                "opsPerS": 5576886413
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 5577165149
+              },
+              {
+                "minute": 13,
+                "opsPerS": 5576330004
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 5576884535
+              },
+              {
+                "minute": 14,
+                "opsPerS": 5577445569
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 5575628305
+              },
+              {
+                "minute": 15,
+                "opsPerS": 5577305418
+              }
+            ]
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC",
+            "guestVcpus": 4,
+            "singleOps": 901688823,
+            "allCoreOps": 3617173678,
+            "scaling": 1.0029,
+            "first3MinOps": 3585247480,
+            "last3MinOps": 2973272635,
+            "retention": 0.8293,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3485875462
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3529227421
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3587666498
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3591023570
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3582828461
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3602438014
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3590464487
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3564039264
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3581238007
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3482385029
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3471629220
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3535378950
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3547402887
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3492177815
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3565298162
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3565579355
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3591162759
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3616046846
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3578999816
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3502382589
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3390953309
+              },
+              {
+                "minute": 11,
+                "opsPerS": 2975858966
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 2975161334
+              },
+              {
+                "minute": 12,
+                "opsPerS": 2954885591
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 2940908868
+              },
+              {
+                "minute": 13,
+                "opsPerS": 2940763210
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3024513249
+              },
+              {
+                "minute": 14,
+                "opsPerS": 2975718460
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 2982010652
+              },
+              {
+                "minute": 15,
+                "opsPerS": 2970826809
+              }
+            ]
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC 7003 (Milan)",
+            "guestVcpus": 4,
+            "singleOps": 847050385,
+            "allCoreOps": 3392172708,
+            "scaling": 1.0012,
+            "first3MinOps": 3391375694,
+            "last3MinOps": 3401928671,
+            "retention": 1.0031,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3394719644
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3391235543
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3373743521
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3382858917
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3392913860
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3391515844
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3401856351
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3397522173
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3390541261
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3389135730
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3400314263
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3400192615
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3397665923
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3385638330
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3389691118
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3388307301
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3395008721
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3398355763
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3399631308
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3397947278
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3394300338
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3392224187
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3398504811
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3399202063
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3403260830
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3401152052
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3396554138
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3396269133
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3404790096
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3402705289
+              }
+            ]
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC 9575F 64-Core Processor",
+            "guestVcpus": 4,
+            "singleOps": 1198104260,
+            "allCoreOps": 4902137562,
+            "scaling": 1.0229,
+            "first3MinOps": 4899855126,
+            "last3MinOps": 4921450438,
+            "retention": 1.0044,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 4892366327
+              },
+              {
+                "minute": 1,
+                "opsPerS": 4901457154
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 4898253098
+              },
+              {
+                "minute": 2,
+                "opsPerS": 4909850683
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 4889156196
+              },
+              {
+                "minute": 3,
+                "opsPerS": 4904405521
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 4899494980
+              },
+              {
+                "minute": 4,
+                "opsPerS": 4925382337
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 4919919664
+              },
+              {
+                "minute": 5,
+                "opsPerS": 4920749949
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 4907622128
+              },
+              {
+                "minute": 6,
+                "opsPerS": 4914596509
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 4930223553
+              },
+              {
+                "minute": 7,
+                "opsPerS": 4931014044
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 4935991807
+              },
+              {
+                "minute": 8,
+                "opsPerS": 4916427852
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 4896569767
+              },
+              {
+                "minute": 9,
+                "opsPerS": 4930264741
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 4924528563
+              },
+              {
+                "minute": 10,
+                "opsPerS": 4929569714
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 4932501632
+              },
+              {
+                "minute": 11,
+                "opsPerS": 4924669416
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 4927190199
+              },
+              {
+                "minute": 12,
+                "opsPerS": 4913629623
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 4921589444
+              },
+              {
+                "minute": 13,
+                "opsPerS": 4935443574
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 4917540431
+              },
+              {
+                "minute": 14,
+                "opsPerS": 4920617578
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 4921311432
+              },
+              {
+                "minute": 15,
+                "opsPerS": 4923280981
+              }
+            ]
+          }
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "Intel(R) Xeon(R) Processor @ 2.90GHz",
+            "guestVcpus": 4,
+            "singleOps": 871845567,
+            "allCoreOps": 3484997770,
+            "scaling": 0.9993,
+            "first3MinOps": 3487214461,
+            "last3MinOps": 3484418291,
+            "retention": 0.9992,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3487642425
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3486918399
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3489381122
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3487144524
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3487284397
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3486025640
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3487703525
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3488402929
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3481689856
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3487705510
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3486724814
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3486724766
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3486165505
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3486585292
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3488402939
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3487982863
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3487004770
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3485606014
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3487843927
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3480573007
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3470506306
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3460581055
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3475539910
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3480713167
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3479314810
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3487563674
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3485606713
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3483369857
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3475819439
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3485466725
+              }
+            ]
+          }
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD Ryzen 7 9700X 8-Core Processor",
+            "guestVcpus": 4,
+            "singleOps": 1369980243,
+            "allCoreOps": 5375120206,
+            "scaling": 0.9809,
+            "first3MinOps": 5377446783,
+            "last3MinOps": 5268509425,
+            "retention": 0.9797,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 5320824972
+              },
+              {
+                "minute": 1,
+                "opsPerS": 5247406749
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 5392200534
+              },
+              {
+                "minute": 2,
+                "opsPerS": 5418061669
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 5385623623
+              },
+              {
+                "minute": 3,
+                "opsPerS": 5369269942
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 5380590644
+              },
+              {
+                "minute": 4,
+                "opsPerS": 5440574670
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 5347036658
+              },
+              {
+                "minute": 5,
+                "opsPerS": 5371924881
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 5320895715
+              },
+              {
+                "minute": 6,
+                "opsPerS": 5239801398
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 5193529537
+              },
+              {
+                "minute": 7,
+                "opsPerS": 5179404302
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 5089369703
+              },
+              {
+                "minute": 8,
+                "opsPerS": 5218971204
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 5194506950
+              },
+              {
+                "minute": 9,
+                "opsPerS": 5154936894
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 5074829794
+              },
+              {
+                "minute": 10,
+                "opsPerS": 5035681497
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 5110199803
+              },
+              {
+                "minute": 11,
+                "opsPerS": 5276153956
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 5227502416
+              },
+              {
+                "minute": 12,
+                "opsPerS": 5237008971
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 5236674959
+              },
+              {
+                "minute": 13,
+                "opsPerS": 5208257203
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 5214500387
+              },
+              {
+                "minute": 14,
+                "opsPerS": 5388701063
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 5300343891
+              },
+              {
+                "minute": 15,
+                "opsPerS": 5314461313
+              }
+            ]
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "unknown",
+            "guestVcpus": 4,
+            "singleOps": 916027298,
+            "allCoreOps": 3666551460,
+            "scaling": 1.0007,
+            "first3MinOps": 3668580304,
+            "last3MinOps": 3667529726,
+            "retention": 0.9997,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3669131046
+              },
+              {
+                "minute": 1,
+                "opsPerS": 3666192868
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 3668105343
+              },
+              {
+                "minute": 2,
+                "opsPerS": 3669055265
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 3669250907
+              },
+              {
+                "minute": 3,
+                "opsPerS": 3666469648
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 3666135219
+              },
+              {
+                "minute": 4,
+                "opsPerS": 3667967029
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3667255858
+              },
+              {
+                "minute": 5,
+                "opsPerS": 3668302283
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 3669887756
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3668317691
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3668190013
+              },
+              {
+                "minute": 7,
+                "opsPerS": 3669621134
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3661789974
+              },
+              {
+                "minute": 8,
+                "opsPerS": 3668353168
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 3665252626
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3667961597
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3666460425
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3667579569
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3668091644
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3667172961
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3667780414
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3669520300
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3667621031
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3667623746
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3664262776
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3665622435
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3667438420
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3668998833
+              }
+            ]
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC",
+            "guestVcpus": 4,
+            "singleOps": 1081828983,
+            "allCoreOps": 4383213295,
+            "scaling": 1.0129,
+            "first3MinOps": 4321321354,
+            "last3MinOps": 4273366779,
+            "retention": 0.9889,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 4259251324
+              },
+              {
+                "minute": 1,
+                "opsPerS": 4371086865
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 4325026655
+              },
+              {
+                "minute": 2,
+                "opsPerS": 4317616053
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 4293709138
+              },
+              {
+                "minute": 3,
+                "opsPerS": 4350891802
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 4371723104
+              },
+              {
+                "minute": 4,
+                "opsPerS": 4388499740
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 4313562388
+              },
+              {
+                "minute": 5,
+                "opsPerS": 4155996017
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 4119505542
+              },
+              {
+                "minute": 6,
+                "opsPerS": 3966132945
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 4081198328
+              },
+              {
+                "minute": 7,
+                "opsPerS": 4118247416
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 4205488864
+              },
+              {
+                "minute": 8,
+                "opsPerS": 4337329640
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 4379413336
+              },
+              {
+                "minute": 9,
+                "opsPerS": 4333973791
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 4285879951
+              },
+              {
+                "minute": 10,
+                "opsPerS": 4326424033
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 4228278131
+              },
+              {
+                "minute": 11,
+                "opsPerS": 4227578691
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 4240021852
+              },
+              {
+                "minute": 12,
+                "opsPerS": 4317757163
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 4367668271
+              },
+              {
+                "minute": 13,
+                "opsPerS": 4283363103
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 4175149559
+              },
+              {
+                "minute": 14,
+                "opsPerS": 4255400907
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 4263370454
+              },
+              {
+                "minute": 15,
+                "opsPerS": 4287278101
+              }
+            ]
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.",
+          "result": null
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "unknown",
+            "guestVcpus": 4,
+            "singleOps": 977266475,
+            "allCoreOps": 3977630919,
+            "scaling": 1.0175,
+            "first3MinOps": 4008489909,
+            "last3MinOps": 3920184574,
+            "retention": 0.978,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 3995042840
+              },
+              {
+                "minute": 1,
+                "opsPerS": 4020789492
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 4015309560
+              },
+              {
+                "minute": 2,
+                "opsPerS": 4009416855
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 4007562962
+              },
+              {
+                "minute": 3,
+                "opsPerS": 4002497018
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 4008131352
+              },
+              {
+                "minute": 4,
+                "opsPerS": 4024152504
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 3981873739
+              },
+              {
+                "minute": 5,
+                "opsPerS": 4034805355
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 4010693628
+              },
+              {
+                "minute": 6,
+                "opsPerS": 4018973821
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 3998361472
+              },
+              {
+                "minute": 7,
+                "opsPerS": 4014045543
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 3997470500
+              },
+              {
+                "minute": 8,
+                "opsPerS": 4024983882
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 4021380583
+              },
+              {
+                "minute": 9,
+                "opsPerS": 3846428671
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 3790494259
+              },
+              {
+                "minute": 10,
+                "opsPerS": 3928209758
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 3937653624
+              },
+              {
+                "minute": 11,
+                "opsPerS": 3937933102
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 3950490018
+              },
+              {
+                "minute": 12,
+                "opsPerS": 3953147092
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 3899741581
+              },
+              {
+                "minute": 13,
+                "opsPerS": 3922968956
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 3932631830
+              },
+              {
+                "minute": 14,
+                "opsPerS": 3925134695
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 3860429118
+              },
+              {
+                "minute": 15,
+                "opsPerS": 3917400192
+              }
+            ]
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC Processor",
+            "guestVcpus": 4,
+            "singleOps": 1356259644,
+            "allCoreOps": 5330620430,
+            "scaling": 0.9826,
+            "first3MinOps": 872148108,
+            "last3MinOps": 865575523,
+            "retention": 0.9925,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 5094625789
+              },
+              {
+                "minute": 1,
+                "opsPerS": 872566551
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 869630223
+              },
+              {
+                "minute": 2,
+                "opsPerS": 870599290
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 872436045
+              },
+              {
+                "minute": 3,
+                "opsPerS": 871860171
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 871175451
+              },
+              {
+                "minute": 4,
+                "opsPerS": 870748575
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 870469154
+              },
+              {
+                "minute": 5,
+                "opsPerS": 870609004
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 869070703
+              },
+              {
+                "minute": 6,
+                "opsPerS": 870609060
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 872006590
+              },
+              {
+                "minute": 7,
+                "opsPerS": 873964417
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 871587296
+              },
+              {
+                "minute": 8,
+                "opsPerS": 871588092
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 870328832
+              },
+              {
+                "minute": 9,
+                "opsPerS": 862310465
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 862269417
+              },
+              {
+                "minute": 10,
+                "opsPerS": 866415167
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 868231701
+              },
+              {
+                "minute": 11,
+                "opsPerS": 853830981
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 865575766
+              },
+              {
+                "minute": 12,
+                "opsPerS": 855229944
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 865855399
+              },
+              {
+                "minute": 13,
+                "opsPerS": 857606435
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 865295647
+              },
+              {
+                "minute": 14,
+                "opsPerS": 863618807
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 865994679
+              },
+              {
+                "minute": 15,
+                "opsPerS": 867532850
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "cpu-burst-10": {
+      "run": {
+        "id": "fair-r6-cpu-burst-10",
+        "sdkCommit": "072122cd225358f1a1473e48b762c1bf5936f4a8",
+        "startedAt": "2026-11-24T06:41:05.313Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 3259972162,
+            "medianOps": 3293472783,
+            "relativeToSolo": 1.0103,
+            "spread": 1.1717,
+            "verified": 10,
+            "guaranteedOverlapS": 119.683,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 1
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 1 of 10 sandboxes, fewer than the 2 this check needs: Daytona POST /sandbox failed (HTTP 400).",
+          "result": null
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 5571120293,
+            "medianOps": 5571429625,
+            "relativeToSolo": 1.0001,
+            "spread": 1.0009,
+            "verified": 10,
+            "guaranteedOverlapS": 119.732,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 4
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 5580501026,
+            "medianOps": 5579335576,
+            "relativeToSolo": 0.9998,
+            "spread": 1.0007,
+            "verified": 10,
+            "guaranteedOverlapS": 119.866,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 2
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 2961187243,
+            "medianOps": 2448558821,
+            "relativeToSolo": 0.8269,
+            "spread": 1.0584,
+            "verified": 10,
+            "guaranteedOverlapS": 119.635,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 1
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 3409192781,
+            "medianOps": 3191906885,
+            "relativeToSolo": 0.9363,
+            "spread": 1.0672,
+            "verified": 10,
+            "guaranteedOverlapS": 117.565,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 1
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 4895625806,
+            "medianOps": 4871981864,
+            "relativeToSolo": 0.9952,
+            "spread": 1.007,
+            "verified": 10,
+            "guaranteedOverlapS": 119.66,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 10 sandboxes, fewer than the 2 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 3484103737,
+            "medianOps": 3481620185,
+            "relativeToSolo": 0.9993,
+            "spread": 1.1352,
+            "verified": 10,
+            "guaranteedOverlapS": 119.832,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 5122903145,
+            "medianOps": 5215855774,
+            "relativeToSolo": 1.0181,
+            "spread": 1.0586,
+            "verified": 10,
+            "guaranteedOverlapS": 119.067,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 4468929189,
+            "medianOps": 3661293914,
+            "relativeToSolo": 0.8193,
+            "spread": 1.1135,
+            "verified": 10,
+            "guaranteedOverlapS": 119.514,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 4457320916,
+            "medianOps": 4282426999,
+            "relativeToSolo": 0.9608,
+            "spread": 1.1047,
+            "verified": 10,
+            "guaranteedOverlapS": 119.776,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "failed",
+          "reason": "Created 0 of 10 sandboxes, fewer than the 2 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.",
+          "result": null
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 7,
+            "createErrors": [
+              {
+                "error": "Beam request failed: the provider returned an unexpected error. Check Beam and retry.",
+                "count": 3
+              }
+            ],
+            "soloOps": 3900261975,
+            "medianOps": 3601233936,
+            "relativeToSolo": 0.9233,
+            "spread": 1.0526,
+            "verified": 7,
+            "guaranteedOverlapS": 119.531,
+            "comparable": false,
+            "notComparableWhy": "7 of 10 sandboxes created",
+            "distinctBootIds": 7
+          }
+        }
+      ]
+    }
+  }
+}

@@ -59,9 +59,24 @@ function args() {
   return { reports, out };
 }
 
-/** A reason on one line, at most 240 characters. */
+/**
+ * Report text bound for the site, with anything private taken out: paths under a home directory or
+ * /tmp, UUIDs, long hex or base64 IDs (sandbox, attempt and boot IDs), sandbox-style names, and
+ * long numbers such as seeds. Then one line, at most 240 characters.
+ */
+export function scrub(text: string): string {
+  return text
+    .replace(/\/(?:home|Users|root|tmp)\/[^\s'",;)]*/g, "<path>")
+    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>")
+    .replace(/\b(?:sb|vm|bx|m|sdk|sandbox)[-_][A-Za-z0-9_-]{6,}\b/g, "<id>")
+    .replace(/\b[0-9a-f]{12,}\b/gi, "<id>")
+    .replace(/\b[A-Za-z0-9]{20,}\b/g, "<id>")
+    .replace(/\b\d{7,}\b/g, "<n>");
+}
+
+/** A reason on one line, scrubbed, at most 240 characters. */
 export function plainReason(reason: string): string {
-  const first = reason.replace(/\s+/g, " ").trim();
+  const first = scrub(reason).replace(/\s+/g, " ").trim();
   return first.length > 240 ? `${first.slice(0, 239)}…` : first;
 }
 
@@ -99,7 +114,7 @@ function diskReal(r: Json) {
     fsType: r.fsType,
     memoryBacked: r.memoryBacked,
     comparable: r.comparable,
-    notComparableWhy: r.notComparableWhy,
+    notComparableWhy: typeof r.notComparableWhy === "string" ? plainReason(directory(r.notComparableWhy)) : null,
     directory: directory(String(r.directory)),
     sizeMiB: r.sizeMiB,
     seqWriteMiBps: r.seqWriteMiBps,
@@ -127,7 +142,7 @@ function cpuBurst(r: Json) {
     verified: r.verified,
     guaranteedOverlapS: r.guaranteedOverlapS,
     comparable: r.comparable,
-    notComparableWhy: r.notComparableWhy,
+    notComparableWhy: typeof r.notComparableWhy === "string" ? plainReason(r.notComparableWhy) : null,
     distinctBootIds: r.distinctBootIds,
   };
 }
@@ -247,7 +262,7 @@ export function markGvisorDisk(checks: Json) {
     const r = entry.result;
     const before = typeof r.notComparableWhy === "string" ? `${r.notComparableWhy}; ` : "";
     r.comparable = false;
-    r.notComparableWhy = `${before}${gvisorDiskWhy}`;
+    r.notComparableWhy = plainReason(`${before}${gvisorDiskWhy}`);
   }
 }
 
