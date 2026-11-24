@@ -288,5 +288,7 @@ describe("provider page links", () => {
     assert.ok(hardware.maritime);
     assert.equal(locationLabel(hardware.maritime, "Runs in"), "Outbound IP in Germany");
     assert.equal(locationLabel(hardware.maritime, "Sandbox in"), "Outbound IP in Germany");
+    const faqs = providerFaqs("maritime");
+    for (const q of faqs) assert.ok(!/Hosted on Hetzner/i.test(q.answer), q.answer);
   });
 });

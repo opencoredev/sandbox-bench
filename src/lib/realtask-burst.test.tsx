@@ -75,5 +75,8 @@ describe("real tasks at once", () => {
     const badDate = structuredClone(later);
     badDate.providers[0] = { ...badDate.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "wrong" } };
     assert.throws(() => parseRealtaskBurst(badDate), /run\.startedAt.*ISO/);
+    const nonexistentDate = structuredClone(later);
+    nonexistentDate.providers[0] = { ...nonexistentDate.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "2026-02-30T04:21:00.000Z" } };
+    assert.throws(() => parseRealtaskBurst(nonexistentDate), /run\.startedAt.*ISO/);
   });
 });

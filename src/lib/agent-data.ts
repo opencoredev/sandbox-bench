@@ -1024,7 +1024,7 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ${howToReadText()}
 
-Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France, and Maritime, whose traffic leaves from Hetzner in Germany and Finland) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
+Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
 
 ## Metrics
 
