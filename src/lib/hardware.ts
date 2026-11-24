@@ -341,8 +341,8 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
   },
   styne: {
-    chip: "AMD Zen 3",
-    family: "Zen 3 (CPU family 25, model 33), 4.29 GHz, 512 KB L2 per core, 32 MB L3 shown",
+    chip: "AMD Ryzen 5000 (Vermeer), Zen 3",
+    family: "Zen 3 (CPU family 25, model 33, stepping 0), 4.29 GHz, 512 KB L2 per core, 32 MB L3 shown",
     chipBasis: "inferred",
     memory: { kind: "unknown", why: "Cloud Hypervisor's DMI names only the hypervisor, with no memory details" },
     cloud: "G-Core Labs, from its outbound IPs",
@@ -353,7 +353,9 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
     storage: "51 GB virtio disk (vda), ext4",
     kernel: "Linux 6.16.9+, Debian 12",
     hidden: [
-      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by the hypervisor. Its family and model IDs (25, model 33), 512 KB of L2 per core and its instructions (VAES, no AVX-512) place it in Zen 3. 259 of 260 sandboxes shared the same feature set; one also reported rdseed.",
+      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by Cloud Hypervisor. Its family, model and stepping (25, 33, 0) at 4.29 GHz match desktop AMD Ryzen 5000 (Vermeer) silicon, not an EPYC server part; its 512 KB of L2 per core and its instructions (VAES, no AVX-512) are Zen 3's. 259 of 260 sandboxes shared the same feature set; one also reported rdseed.",
+      "In a live probe of a Styne sandbox on Nov 23, the guest kernel command line set spec_rstack_overflow=off and cpuidle_haltpoll.force=1, and lscpu reported \"Spec rstack overflow: Vulnerable\" and \"Tsa: Vulnerable: No microcode\".",
+      "A newly created sandbox starts from a pre-booted VM clone in a warm pool: in the same probe, /proc/uptime on a sandbox created moments before read about 21 hours.",
       "Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less if the account kept more than 16% of its vCPUs busy over the last hour), drops to a 16% baseline per vCPU when credit runs out, and regains full speed once credit replenishes while staying under baseline.",
       "DMI names only Cloud Hypervisor, so the memory type isn't shown. It runs as root, with sudo.",
     ],

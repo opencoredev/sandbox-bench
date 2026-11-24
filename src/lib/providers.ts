@@ -73,9 +73,34 @@ export function providerLabel(id: ProviderId): ProviderLabel {
 /**
  * How a CPU tier treats the processor it sells. `dedicated`: vCPUs no one
  * else runs on; `shared`: vCPUs shared with other customers' sandboxes;
- * `spot`: spare capacity the provider can take back mid-task.
+ * `burstable`: shared vCPUs that run at full speed on burst credit, then are
+ * held to a baseline share; `spot`: spare capacity the provider can take back mid-task.
  */
-export type CpuClass = "dedicated" | "shared" | "spot";
+export type CpuClass = "dedicated" | "shared" | "burstable" | "spot";
+
+/** A CPU class a reader should know about before reading a result: a few words for a tile, a sentence for a hover or an agent file. */
+export interface CpuCaveat {
+  cpu: Exclude<CpuClass, "dedicated">;
+  short: string;
+  detail: string;
+}
+
+/**
+ * Every row whose CPU is not dedicated, whether it is the provider's only
+ * product (Styne) or one of its CPU tiers (Beam Shared, Beam Spot). A row
+ * with an entry here says so wherever it is named as a winner. tiers.test.ts
+ * checks that each tier's class matches.
+ */
+const cpuCaveats: Partial<Record<ProviderId, CpuCaveat>> = {
+  styne: { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" },
+  "beam-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs, not preemptible" },
+  "beam-spot": { cpu: "spot", short: "Spot · preemptible", detail: "Spare capacity, can be stopped with 30 seconds' notice" },
+};
+
+/** The row's CPU caveat, or null when its CPU has none to state. */
+export function cpuCaveat(id: ProviderId): CpuCaveat | null {
+  return cpuCaveats[id] ?? null;
+}
 
 export interface CpuTier {
   /** The row its results sit under. */

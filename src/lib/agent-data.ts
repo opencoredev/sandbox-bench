@@ -24,7 +24,7 @@ import {
   wholeMachineLabel,
   wholeMachineText,
 } from "@/lib/cost";
-import type { PricedTask } from "@/lib/cost";
+import type { NotCounted, PricedTask } from "@/lib/cost";
 import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
@@ -33,7 +33,7 @@ import { chipBasisLabel, fingerprintDate, hardware, probeDate } from "@/lib/hard
 import { commonPrice, commonSize, eurUsd, usdPrice } from "@/lib/fx";
 import { absentNote, allocationNotes, autoStandby, destroyNotes, measuredText, noRealPause, requestedText, snapshotNotes } from "@/lib/notes";
 import { pauseOf } from "@/lib/pause";
-import { isExtraTier, isProviderId, providerBrand, providerName, tierOf } from "@/lib/providers";
+import { cpuCaveat, isExtraTier, isProviderId, providerBrand, providerName, tierOf } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   billingTag,
@@ -79,6 +79,9 @@ import type { Expanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
+import { hasSustainedCpu, retentionText, steadyText, sustainedRanked } from "@/lib/sustained-cpu";
+import type { SustainedCpuData } from "@/lib/sustained-cpu";
+import { sustainedCpu } from "@/lib/sustained-cpu-data";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -266,7 +269,7 @@ const lowerBoundField = (lower: boolean) => (lower ? { bound: "lower" as const }
 
 const nameList = (ids: readonly ProviderId[]) => ids.map(providerName).join(", ");
 
-/** The cost row of the quick picks: the cheapest exact cost. */
+/** The cost row of the quick picks: the cheapest billed or metered exact cost. */
 function costPickRow(track: Track): QuickPick {
   const c = costPick(track);
   switch (c.kind) {
@@ -275,10 +278,15 @@ function costPickRow(track: Track): QuickPick {
         need: `Quick task: ${pickLabel.toLowerCase()}`,
         pick: costCell(c.pick),
         runnerUp: c.runnerUp ? costCell(c.runnerUp) : "n/a",
-        note: c.lower.length ? `Not counted, a different machine: ${c.lower.map(costCell).join("; ")}.` : null,
+        note: c.lower.length ? `Not counted: ${c.lower.map((t) => `${costCell(t)} (${t.why.join("; ")})`).join("; ")}.` : null,
       };
     case "none":
-      return { need: `Quick task: ${noPickLabel.toLowerCase()}`, pick: noPickWhy(c).replace(/^\w/, (ch) => ch.toUpperCase()), runnerUp: "n/a", note: null };
+      return {
+        need: `Quick task: ${noPickLabel.toLowerCase()}`,
+        pick: noPickWhy(c).replace(/^\w/, (ch) => ch.toUpperCase()),
+        runnerUp: "n/a",
+        note: c.lower.length ? `Not counted: ${c.lower.map((t) => `${costCell(t)} (${t.why.join("; ")})`).join("; ")}.` : null,
+      };
     case "empty":
       return { need: `Quick task: ${pickLabel.toLowerCase()}`, pick: "n/a", runnerUp: "n/a", note: null };
     default: {
@@ -288,17 +296,18 @@ function costPickRow(track: Track): QuickPick {
   }
 }
 
-/** The cost pick as data for agents: the cheapest exact cost, the runner-up, and any cheaper cost on a different machine. */
+/** The cost pick as data for agents: the cheapest billed or metered exact cost, the runner-up, and any cheaper cost that can't count, with why. */
 function costPickData(track: Track) {
   const row = (t: PricedTask) => ({ provider: t.id, perTaskUsd: roundCost(t.cost.usd), per1000TasksUsd: roundCost(t.cost.usd * TASKS_PER_PRICE), ...lowerBoundField(isLowerBound(t.cost)), kind: t.cost.kind });
+  const lowerRow = (t: NotCounted) => ({ ...row(t), whyNotCounted: t.why });
   const c = costPick(track);
   switch (c.kind) {
     case "picked":
-      return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, lowerDifferentMachine: c.lower.map(row) };
+      return { label: pickLabel, pick: row(c.pick), runnerUp: c.runnerUp ? row(c.runnerUp) : null, lowerNotCounted: c.lower.map(lowerRow) };
     case "none":
-      return { label: noPickLabel, why: noPickWhy(c), pick: null, runnerUp: null, lowerDifferentMachine: c.lower.map(row) };
+      return { label: noPickLabel, why: noPickWhy(c), pick: null, runnerUp: null, lowerNotCounted: c.lower.map(lowerRow) };
     case "empty":
-      return { label: noPickLabel, pick: null, runnerUp: null, lowerDifferentMachine: [] };
+      return { label: noPickLabel, pick: null, runnerUp: null, lowerNotCounted: [] };
     default: {
       const _exhaustive: never = c;
       return _exhaustive;
@@ -348,7 +357,7 @@ const realisticAbout =
   "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; how the cost was priced doesn't affect it. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
@@ -703,6 +712,7 @@ function trackData(track: Track) {
         // The company, and for a provider that sells more than one CPU tier, which one this row ran on.
         provider: providerBrand(p.id),
         cpuTier: tierFacts(p.id),
+        cpuCaveat: cpuCaveat(p.id),
         allocation: allocationOf(p),
         allocationNote: notes[p.id] ?? (track.id === "default" ? advertised[p.id].note : null),
         advertisedDefault: track.id === "default" ? { ...sizeOf(p), source: advertised[p.id].source } : null,
@@ -747,7 +757,7 @@ const about =
   "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
@@ -762,6 +772,77 @@ function howToReadQualifiers() {
 
 const howToReadText = () => `${howToRead}${howToReadQualifiers()}`;
 
+// ---------------------------------------------------------------------------
+// Sustained CPU over 15 minutes, same machine only, in every export once the file has providers.
+
+const sustainedAbout =
+  "Each provider's 4 vCPU, 8 GB sandbox kept busy on all cores for 15 minutes: 30 back-to-back 30-second segments of 32-bit LCG arithmetic, each segment's checksum verified. A CPU that runs on burst credit, then drops to a baseline share, shows its speed after the credit is spent.";
+
+const sustainedHowToRead =
+  "`first3MinOpsPerS` and `last3MinOpsPerS` are the mean all-core operations per second of the segments that start in minutes 0–3 and 12–15; `retention` is the second divided by the first (1 held its speed). `ranked` is every provider with a minutes 12–15 figure, highest first; `noSteadyState` lists the rest with why (a failed run, or one that stopped before minute 12). `status` is completed, stopped-early or failed, with `stopReason`. `segments` has every segment's start, length and rate. `cpuCaveat` says when a row's CPU is burstable, shared or spot. One run per provider.";
+
+export function sustainedCpuData(d: SustainedCpuData) {
+  const { ranked, missing } = sustainedRanked(d);
+  return {
+    about: sustainedAbout,
+    howToRead: sustainedHowToRead,
+    track: "same-spec",
+    run: d.run,
+    generatedAt: d.generatedAt,
+    targetDurationS: d.targetDurationS,
+    segmentDurationS: d.segmentDurationS,
+    ranked: ranked.map((p) => ({
+      provider: p.provider,
+      name: providerName(p.provider),
+      first3MinOpsPerS: round(p.first3MinOps),
+      last3MinOpsPerS: round(p.last3MinOps),
+      retention: Number(p.retention.toFixed(3)),
+      status: p.status,
+      stopReason: p.stopReason,
+      cpuCaveat: cpuCaveat(p.provider),
+    })),
+    noSteadyState: missing.map((m) => ({ provider: m.provider, name: providerName(m.provider), why: m.why })),
+    providers: d.providers.map((p) => ({
+      provider: p.provider,
+      status: p.status,
+      stopReason: p.stopReason,
+      guestVcpus: p.guestVcpus,
+      durationS: round(p.durationS),
+      segments: p.segments.map((s) => ({ startS: round(s.startS), durationS: round(s.durationS), opsPerS: round(s.opsPerS) })),
+    })),
+  };
+}
+
+export function sustainedCpuMarkdown(d: SustainedCpuData) {
+  const { ranked, missing } = sustainedRanked(d);
+  return [
+    "# Sustained CPU over 15 minutes (Same machine)",
+    "",
+    sustainedAbout,
+    "",
+    "| Rank | Provider | Minutes 0–3, ops/s | Minutes 12–15, ops/s | Retention | Status |",
+    "| --- | --- | --- | --- | --- | --- |",
+    ...ranked.map(
+      (p, i) =>
+        `| ${i + 1} | ${providerName(p.provider)} | ${formatValue(p.first3MinOps, "ops/s")} | ${formatValue(p.last3MinOps, "ops/s")} | ${retentionText(p.retention)} | ${p.status === "completed" ? "completed" : `stopped early: ${p.stopReason}`} |`,
+    ),
+    "",
+    ...missing.map((m) => `${providerName(m.provider)}: no minutes 12–15 figure (${m.why}).`),
+    ...(missing.length ? [""] : []),
+  ];
+}
+
+export function sustainedCpuLlms(d: SustainedCpuData) {
+  const { ranked, missing } = sustainedRanked(d);
+  return `## Sustained CPU over 15 minutes
+
+${sustainedAbout} Same machine only. Data: \`sustainedCpu\` in results.json.
+
+${[...ranked.map((p, i) => `${i + 1}. ${providerName(p.provider)}: ${steadyText(p)}${cpuCaveat(p.provider) ? ` (${cpuCaveat(p.provider)?.short})` : ""}`), ...missing.map((m) => `- ${providerName(m.provider)}: ${m.why}`)].join("\n")}
+
+`;
+}
+
 /** Everything on the page as one JSON document, both tracks, for agents and scripts. */
 export function agentData() {
   return {
@@ -773,6 +854,7 @@ export function agentData() {
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
+    ...(hasSustainedCpu(sustainedCpu) ? { sustainedCpu: sustainedCpuData(sustainedCpu) } : {}),
   };
 }
 
@@ -936,6 +1018,7 @@ export function agentMarkdown() {
     "The quick task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
     ...trackIds.flatMap(trackMarkdown),
+    ...(hasSustainedCpu(sustainedCpu) ? sustainedCpuMarkdown(sustainedCpu) : []),
     ...(hasExpanded(expanded) ? expandedMarkdown(expanded) : []),
   ];
   return `${lines.join("\n")}\n`;
@@ -1004,7 +1087,7 @@ ${trackIds.map((id) => `- \`${id}\`: ${trackInfo[id].label}. ${trackInfo[id].des
 
 The page shows one track at a time: \`/\` opens the same-machine track and \`/?track=default\` the default-machines track.
 
-${realisticLlms()}## Quick picks
+${realisticLlms()}${hasSustainedCpu(sustainedCpu) ? sustainedCpuLlms(sustainedCpu) : ""}## Quick picks
 
 ${picks.join("\n")}
 ## Coming in the next update
@@ -1013,14 +1096,14 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ## Data
 
-- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the cheapest provider, any cheaper cost that wasn't counted (too many failures or a different machine), and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
+- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the cheapest provider, any cheaper cost that wasn't counted (a list-price estimate, too many failures or a different machine), and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
 - [results.md](/results.md): the same numbers as Markdown tables, one section per track.
 
 ## How to read it
 
 ${howToReadText()}
 
-Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
+Cheapest requires a provider bill or usage meter: list-price estimates are shown on the chart but not picked. Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
 
 ## Metrics
 

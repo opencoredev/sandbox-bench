@@ -7,7 +7,7 @@ import { realTasksSection, taskTimes } from "@/components/real-tasks";
 import { taskCostSection } from "@/components/realistic";
 import type { Track } from "@/lib/data";
 import { formatShort } from "@/lib/format";
-import { isExtraTier, providerColor } from "@/lib/providers";
+import { cpuCaveat, isExtraTier, providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { perThousand, pickFor, profileInfo, runTrackOf } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
@@ -77,13 +77,16 @@ function stats(track: Track): Stat[] {
 /**
  * The winners row under the title, one cell per headline result. Each cell
  * opens the chart it comes from; medians only, so a close second may be tied.
+ * A winner whose CPU has a caveat (burstable, shared or spot) shows it under its name.
  */
 export function StatStrip({ track }: { track: Track }) {
   const cells = stats(track);
   if (cells.length === 0) return null;
   return (
     <ul className="grid grid-cols-2 gap-s lg:grid-cols-5">
-      {cells.map((s) => (
+      {cells.map((s) => {
+        const caveat = cpuCaveat(s.provider);
+        return (
         <li key={s.label} className="last:odd:col-span-2 lg:last:odd:col-span-1">
           <JumpLink section={s.section} tab={s.tab} className="surface surface-link group focus-ring flex h-full flex-col px-m py-s">
             <span className="flex items-start justify-between gap-xs text-s text-neutral-7">
@@ -100,11 +103,24 @@ export function StatStrip({ track }: { track: Track }) {
                 <ProviderName id={s.provider} />
               </span>
             </span>
+            {/* A winner on burstable, shared or spot CPU says so on the tile, so a reader sees the result's terms with it. */}
+            {caveat ? (
+              <span className="mt-xxs font-mono text-xxs text-neutral-8" title={caveat.detail}>
+                {/* On a narrow tile it wraps only between its parts: "Burstable ·" over "16% baseline". */}
+                {caveat.short.split(" · ").map((part, i) => (
+                  <span key={part}>
+                    {i > 0 ? " · " : ""}
+                    <span className="whitespace-nowrap">{part}</span>
+                  </span>
+                ))}
+              </span>
+            ) : null}
             {/* The qualifier sits on the tile's last line, so captions line up across the row. */}
             {s.caption ? <span className="mt-auto pt-xs text-xs text-pretty text-neutral-7">{s.caption}</span> : null}
           </JumpLink>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

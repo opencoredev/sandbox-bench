@@ -37,7 +37,7 @@ export function markFill(fill: MarkFill, color: string): CSSProperties {
 /** The same hue, lighter and less saturated. */
 const lighter = (color: string) => `color-mix(in oklch, ${color} 62%, white)`;
 
-const tierFills = { dedicated: "solid", shared: "light", spot: "hatched" } as const satisfies Record<CpuClass, MarkFill>;
+const tierFills = { dedicated: "solid", shared: "light", burstable: "light", spot: "hatched" } as const satisfies Record<CpuClass, MarkFill>;
 
 /** A row's own fill: a provider's solid mark, drawn as its CPU tier's fill for a tier row. Other fills (a striped part) stay. */
 export const rowFill = (id: ProviderId, fill: MarkFill): MarkFill => {

@@ -505,7 +505,7 @@ const costed = (provider: Costed["provider"], usd: number, eligible: boolean, ov
 });
 
 describe("pick", () => {
-  test("the cheapest counted row wins, whatever its cost kind or status", () => {
+  test("the cheapest counted row wins, billed or metered, whatever its billing status", () => {
     const p = taskPick([costed("upstash", 0.012, true), costed("freestyle", 0.009, false), costed("vercel", 0.014, false)]);
     assert.ok(p.kind === "picked");
     assert.equal(p.label, pickLabels.cheapest);
@@ -520,6 +520,16 @@ describe("pick", () => {
     assert.ok(p.kind === "picked");
     assert.equal(p.pick.provider, "e2b");
     assert.deepEqual(p.lower.map((r) => r.provider), ["boxd"]);
+  });
+
+  test("a cheaper list-price estimate isn't counted, and is listed as lower with why", () => {
+    const estimate: Costed = { ...costed("styne", 0.0005, false), cost: { kind: "estimate", usdPerCompleted: 0.0005, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" } };
+    const p = taskPick([costed("instabox", 0.0008, false), estimate]);
+    assert.ok(p.kind === "picked");
+    assert.equal(p.pick.provider, "instabox");
+    assert.deepEqual(p.lower.map((r) => r.provider), ["styne"]);
+    assert.deepEqual(notCountedWhy(estimate), ["list-price estimate, not billed or metered by the provider"]);
+    assert.equal(taskPick([estimate]).kind, "none", "an estimate alone is no pick");
   });
 
   test("more than one incomplete run can't be a pick", () => {
@@ -570,10 +580,10 @@ describe("pick", () => {
       return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
     }));
     assert.deepEqual(picks.sort(), [
-      "default/build: styne []",
-      "default/fix-and-test: styne []",
-      "same-machine/build: styne []",
-      "same-machine/fix-and-test: styne []",
+      "default/build: instabox [styne]",
+      "default/fix-and-test: instabox [styne]",
+      "same-machine/build: instabox [styne]",
+      "same-machine/fix-and-test: instabox [styne]",
     ]);
   });
 
@@ -851,8 +861,10 @@ describe("page", () => {
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
     const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
-    assert.match(text, /Cheapest: Styne \$0\.55 per 1,000/);
-    // In the published data boxd's $5.50 is on the wrong size but dearer than Styne, so it isn't named.
+    // Styne's list-price estimate is the lowest bar, but Cheapest needs a bill or usage meter: Instabox's metered cost wins.
+    assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
+    assert.match(text, /Not counted: Styne \$0\.55 \(list-price estimate, not billed or metered by the provider\)\./);
+    // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
     // Without Styne, Instabox and Boat, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
     // Superserve since its Nov 18 rerun with a 20 GB disk.
@@ -962,6 +974,23 @@ describe("page", () => {
         if (pick.kind === "picked") assert.ok(html.includes(perThousand(pick.pick.cost.usdPerCompleted)), `${track.id} ${profile} cheapest`);
       }
       assert.doesNotMatch(html, /snapshot|resume|tool calls/i);
+    }
+  });
+
+  test("a winner on a burstable CPU says so on its tile, and the metered cheapest has no caveat", () => {
+    const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
+    const tiles = html.split("<li").slice(1);
+    const styne = tiles.filter((t) => t.includes(">Styne<"));
+    assert.ok(styne.length > 0, "Styne wins at least one tile");
+    for (const t of styne) {
+      assert.match(t, /title="Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU">/);
+      assert.equal(t.replace(/<[^>]+>/g, "").includes("Burstable · 16% baseline"), true);
+    }
+    const cheapest = tiles.filter((t) => t.includes("Cheapest"));
+    assert.equal(cheapest.length, 2);
+    for (const t of cheapest) {
+      assert.match(t, />Instabox</);
+      assert.doesNotMatch(t, /Burstable/);
     }
   });
 });

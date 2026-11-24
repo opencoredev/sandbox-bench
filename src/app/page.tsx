@@ -17,6 +17,9 @@ import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real
 import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
 import { ExpandedBenchmarks, expandedSection } from "@/components/expanded-benchmarks";
 import { StressSection, stressSection } from "@/components/stress";
+import { SustainedCpuSection, sustainedCpuSection } from "@/components/sustained-cpu";
+import { hasSustainedCpu } from "@/lib/sustained-cpu";
+import { sustainedCpu } from "@/lib/sustained-cpu-data";
 import { hasExpanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { hasStress } from "@/lib/stress";
@@ -472,7 +475,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd and Instabox give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam and Styne use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd and Instabox give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam and Styne use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -643,6 +646,19 @@ export default function Page() {
               }
             </PerTrack>
           </div>
+          {hasSustainedCpu(sustainedCpu) ? (
+            <div id={sustainedCpuSection} className="mt-l scroll-mt-24">
+              <PerTrack>
+                {(track) =>
+                  track.id === "same-spec" ? (
+                    <SustainedCpuSection data={sustainedCpu} />
+                  ) : (
+                    <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Sustained CPU over 15 minutes ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                  )
+                }
+              </PerTrack>
+            </div>
+          ) : null}
         </Section>
 
         <Section id="agent" title="Tool calls and agent steps" lede="The single steps a coding agent repeats: 100 tool calls in a row, package installs, a clone, a dev server and its preview.">

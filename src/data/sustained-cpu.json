@@ -1,0 +1,10 @@
+{
+  "schema": "sustained-cpu.v1",
+  "generatedAt": "2026-11-24T00:00:00.000Z",
+  "track": "same-machine",
+  "targetDurationS": 900,
+  "segmentDurationS": 30,
+  "segmentsTarget": 30,
+  "run": { "id": "pending", "sdkCommit": "pending", "startedAt": "2026-11-24T00:00:00.000Z" },
+  "providers": []
+}

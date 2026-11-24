@@ -1,4 +1,4 @@
-import { billingBases, billingLabel, costStatuses, formatPerThousand, kindStatusText } from "@/lib/cost";
+import { billingBases, billingLabel, costStatuses, estimateNotCounted, formatPerThousand, kindStatusText } from "@/lib/cost";
 import type { CostStatusKind } from "@/lib/cost";
 import { isExtraTier, isPreemptible, isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -648,12 +648,15 @@ export const pickLabels = {
 export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.coverage.headline.attempts} pilot runs there is no statistical test, so the result is descriptive`;
 
 /**
- * Why a row can't be called cheapest, in plain words, or [] when it can: more
+ * Why a row can't be called cheapest, in plain words, or [] when it can: a
+ * list-price estimate instead of the provider's own bill or usage meter, more
  * than one incomplete run, on the same-machine track the wrong machine size,
- * or capacity the provider can take back mid-task. How the cost was priced doesn't matter. Selection, the chart and the
- * exports all read this one list.
+ * or capacity the provider can take back mid-task. Billing status (settled,
+ * reconciled) doesn't matter. Selection, the chart and the exports all read
+ * this one list.
  */
-export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider">): string[] {
+export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider" | "cost">): string[] {
+  const estimate = r.cost?.kind === "estimate" ? [estimateNotCounted] : [];
   const failed = r.incomplete > 1 ? [`${r.incomplete} of its runs didn't complete, and the pick allows at most 1`] : [];
   const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
   // Spot capacity can be stopped mid-task. Any other tier past a provider's first is compared in CPU tiers, not ranked against other providers.
@@ -662,15 +665,15 @@ export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "tr
     : isExtraTier(r.provider)
       ? ["a cheaper CPU tier of its provider; providers are ranked on the tier a new account gets, and CPU tiers compares the rest"]
       : [];
-  return [...failed, ...size, ...tier];
+  return [...estimate, ...failed, ...size, ...tier];
 }
 
-export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider">) => notCountedWhy(r).length === 0;
+export const isCounted = (r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider" | "cost">) => notCountedWhy(r).length === 0;
 
 /**
  * The pick: the cheapest counted row. `counted` is every provider that could
- * be picked; `lower` is every cheaper row that couldn't (too many failures or
- * the wrong machine size), so the chart can say why its bar lost. With none
+ * be picked; `lower` is every cheaper row that couldn't (a list-price
+ * estimate, too many failures or the wrong machine size), so the chart can say why its bar lost. With none
  * counted there is no clear winner, and every cost is listed.
  */
 export type TaskPick =
@@ -811,7 +814,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     { lead: "What a cost includes", text: "Every charge from create to confirmed deletion: compute, memory, disk and standby storage, with setup and failed attempts." },
     ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
-    ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
+    ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time. Shown on the chart, not picked as Cheapest.` }] : []),
     {
       lead: "Not counted",
       text: transfer.length
@@ -846,7 +849,7 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
     "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
-    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time.` : "",
+    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time; list-price estimates are shown but not picked as cheapest.` : "",
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
       : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",
