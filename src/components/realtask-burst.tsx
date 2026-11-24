@@ -8,7 +8,7 @@ import { allocationNotes } from "@/lib/notes";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { wallText } from "@/lib/realistic";
-import { burstTimes } from "@/lib/realtask-burst";
+import { burstTimes, hasOwnRun } from "@/lib/realtask-burst";
 import type { BurstRan, RealtaskBurst } from "@/lib/realtask-burst";
 
 /** The section id, shared with the nav and the update that links here. */
@@ -75,12 +75,13 @@ export function RealtaskBurstChart({ data }: { data: RealtaskBurst }) {
   const { timed, missing } = burstTimes(data);
   const marks = marksFor(timed);
   const title = `Fix and test, ${data.size} at once`;
-  const reruns = timed.filter((p) => p.run != null);
+  const reruns = timed.filter(hasOwnRun);
+  // A provider with its own run is named with that run's ID, date and commit; the rest share the run's text.
   const runDates =
     reruns.length > 0
-      ? `each on its own run day (${dayOf(data.run.startedAt)}; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run!.startedAt)}`).join("; ")})`
+      ? `each on its own run day (${dayOf(data.run.startedAt)}; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run.startedAt)}, run ${p.run.id}`).join("; ")})`
       : `all on ${dayOf(data.run.startedAt)}`;
-  const rerunCommits = reruns.length > 0 ? `; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run!.startedAt)}, SDK ${p.run!.sdkCommit.slice(0, 7)}`).join("; ")}` : "";
+  const rerunCommits = reruns.length > 0 ? `; ${reruns.map((p) => `${providerName(p.provider)} on ${dayOf(p.run.startedAt)}, run ${p.run.id}, SDK ${p.run.sdkCommit.slice(0, 7)}`).join("; ")}` : "";
   return (
     <Card>
       <ChartHead title={title} sub={`${data.size} Fix and test tasks started together, ${data.rounds} rounds · 4 vCPU, 8 GB · Median seconds per task · Tag: time at 5 at once ÷ time alone · Lower is better`} />

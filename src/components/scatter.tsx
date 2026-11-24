@@ -51,8 +51,9 @@ const overlap = (a: Box, b: Box) =>
   Math.max(0, Math.min(a.y + a.h / 2, b.y + b.h / 2) - Math.max(a.y - a.h / 2, b.y - b.h / 2));
 
 /**
- * Below the sm breakpoint the names don't fit beside the dots, so each dot
- * gets a number and a legend under the plot names it. Numbers run left to
+ * Below 1340 px the names don't fit beside the dots (measured: Instabox's
+ * name runs into Upstash Box's up to about 1310 px), so each dot gets a
+ * number and a legend under the plot names it. Numbers run left to
  * right over each provider's first CPU tier, then over the other tiers, so
  * the default view has no gaps. Each number takes the first spot beside its
  * dot (right, left, above, below, then the corners) that clears every dot
@@ -264,7 +265,7 @@ export function Scatter({
                 <span aria-hidden className="absolute size-8 -translate-x-1/2 -translate-y-1/2" />
                 <span
                   aria-hidden
-                  className={`absolute -translate-y-1/2 text-xs leading-none whitespace-nowrap text-neutral-8 max-sm:hidden ${flip ? "right-3" : "left-3"}`}
+                  className={`absolute -translate-y-1/2 text-xs leading-none whitespace-nowrap text-neutral-8 max-[1340px]:hidden ${flip ? "right-3" : "left-3"}`}
                   style={{ top: nudge }}
                 >
                   <ProviderName id={p.provider} layout="stacked" />
@@ -272,7 +273,7 @@ export function Scatter({
                 {num ? (
                   <span
                     aria-hidden
-                    className="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-xxs leading-none text-neutral-9 tabular-nums sm:hidden"
+                    className="absolute -translate-x-1/2 -translate-y-1/2 font-mono text-xxs leading-none text-neutral-9 tabular-nums min-[1340px]:hidden"
                     style={{ left: num.dx, top: num.dy }}
                   >
                     {num.n}
@@ -291,8 +292,8 @@ export function Scatter({
         </div>
       </div>
       <p className="mt-s pl-5 text-center text-xs text-neutral-7">{xTitle}</p>
-      {/* Phones only: the names the numbers on the dots stand for. */}
-      <ol aria-hidden className="mt-m grid grid-cols-2 gap-x-m gap-y-xxs pl-5 text-xs text-neutral-8 sm:hidden">
+      {/* Below 1340 px only: the names the numbers on the dots stand for. */}
+      <ol aria-hidden className="mt-m grid grid-cols-2 gap-x-m gap-y-xxs pl-5 text-xs text-neutral-8 sm:grid-cols-3 lg:grid-cols-4 min-[1340px]:hidden">
         {legend.map((p) => (
           <li key={p.provider} {...(isExtraTier(p.provider) ? { "data-tier-extra": "" } : {})} className="flex min-w-0 items-center gap-xs">
             <span className="w-4 shrink-0 text-right font-mono text-xxs tabular-nums text-neutral-9">{numbers.get(p.provider)?.n}</span>

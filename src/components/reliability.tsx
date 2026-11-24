@@ -47,8 +47,9 @@ const Cause = ({ f, provider }: { f: Failure; provider: ProviderId }) => {
 
 /**
  * Failed attempts per 1,000, fewest first, with every cause behind one
- * disclosure so the section stays a single chart until someone asks. Only
- * failures the provider caused are here; Method lists the ones set aside.
+ * disclosure so the section stays a single chart until someone asks. Every
+ * failure is here unless we traced it to our own harness or SDK, an
+ * unconfirmed cause included; Method lists the ones set aside.
  */
 export function Reliability({ track }: { track: Track }) {
   const ranked = track.providers

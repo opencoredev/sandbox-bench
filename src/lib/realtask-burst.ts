@@ -192,6 +192,17 @@ export function parseRealtaskBurst(raw: unknown): RealtaskBurst {
 
 export type BurstRan = Extract<BurstProvider, { status: "ran" }> & { medianWallS: number };
 
+type ProviderRun = NonNullable<Extract<BurstProvider, { status: "ran" }>["run"]>;
+
+/** True for a provider whose numbers came from its own run, not the shared one. */
+export const hasOwnRun = <T extends { run?: ProviderRun | null }>(p: T): p is T & { run: ProviderRun } => p.run != null;
+
+/** The run a provider's numbers came from: its own when it has one, else the shared run. */
+export function runOf(data: RealtaskBurst, p: Extract<BurstProvider, { status: "ran" }>) {
+  const r = p.run ?? data.run;
+  return { id: r.id, sdkCommit: r.sdkCommit, startedAt: r.startedAt, own: p.run != null };
+}
+
 /** Providers with a median time under load, fastest first, and the rest with why they have none. */
 export function burstTimes(data: RealtaskBurst) {
   const timed = data.providers.filter((p): p is BurstRan => p.status === "ran" && p.medianWallS !== null).sort((a, b) => a.medianWallS - b.medianWallS);

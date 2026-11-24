@@ -536,10 +536,10 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Failures",
-    line: "Only failures the provider caused count against it; ones caused by us are set aside.",
+    line: "A failure counts against the provider unless we traced it to our own harness or SDK; one whose cause is unconfirmed still counts.",
     more: (
       <>
-        That includes failures we can&apos;t pin on either side, such as our SDK timing out while waiting. Attempts blocked by our own plan limits were rerun. Set aside:
+        Ones traced to our SDK include it timing out or wrapping the error while waiting, where the error can&apos;t show whose side failed. Attempts blocked by our own plan limits were rerun. Set aside:
         <SetAside />
       </>
     ),
@@ -897,7 +897,7 @@ export default function Page() {
           </Section>
         ) : null}
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
+        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. A failure counts unless we traced it to our own harness or SDK, even when its cause is unconfirmed; Method lists the ones we set aside.">
           <PerTrack>
             {(track) => (
               <Card>

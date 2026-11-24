@@ -105,7 +105,8 @@ describe("item 1: Archil's unconfirmed failure stays counted, with a note", () =
   test("results.md says it inside the failure's parentheses; llms.txt and Archil's page notes carry the sentence", () => {
     const md = agentMarkdown();
     assert.ok(md.includes(`${reason}: 1 runs, 1 failed tests (provider-operation; Dev server ready; ${archilUnconfirmedCause}); Archil guest operation`), "results.md");
-    assert.equal(md.split("unconfirmed").length - 1, 1);
+    // The note appears once; the failure rule also says a failure with an unconfirmed cause counts.
+    assert.equal(md.split(archilUnconfirmedCause).length - 1, 1);
     const note = `Archil's one same-machine dev server failure, "Process termination could not be confirmed.", is still counted, but its cause is unconfirmed: the same error came from that bug in our Archil adapter, fixed in SDK 1.3.1, so this failure may be ours.`;
     assert.ok(llmsTxt().includes(note));
     assert.ok(providerNotes("archil").includes(note));
@@ -124,7 +125,7 @@ describe("item 2: By location says what is known about where Archil runs", () =>
   });
 });
 
-describe("item 3: the cost scatter numbers its dots on phones", () => {
+describe("item 3: the cost scatter numbers its dots below 1340 px", () => {
   const point = (provider: ProviderId, x: number, y: number): ScatterPoint => ({ provider, x, y, detail: [] });
 
   test("numbers run left to right with no gaps, and clear every dot and every other number in a tight cluster", () => {
@@ -152,13 +153,14 @@ describe("item 3: the cost scatter numbers its dots on phones", () => {
     }
   });
 
-  test("names stay beside the dots from sm up; numbers and the legend are phone only", () => {
+  test("names stay beside the dots from 1340 px up; numbers and the legend show below it", () => {
     const pts = [point("e2b", 15, 0.002), point("daytona", 12, 0.0016), point("boat", 40, 0.0005)];
     const html = renderToStaticMarkup(<Scatter points={pts} xTicks={[10, 20, 50]} yTicks={[0, 0.002, 0.004]} xTitle="x" yTitle="y" />);
-    assert.equal(html.split("whitespace-nowrap text-neutral-8 max-sm:hidden").length - 1, pts.length);
-    assert.equal(html.split("tabular-nums sm:hidden").length - 1, pts.length);
+    assert.equal(html.split("whitespace-nowrap text-neutral-8 max-[1340px]:hidden").length - 1, pts.length);
+    assert.equal(html.split("tabular-nums min-[1340px]:hidden").length - 1, pts.length);
+    assert.ok(!html.includes("sm:hidden"));
     const legend = html.slice(html.indexOf("<ol"));
-    assert.ok(legend.includes("sm:hidden"));
+    assert.ok(legend.includes("min-[1340px]:hidden"));
     assert.equal(legend.split("<li").length - 1, pts.length);
   });
 });

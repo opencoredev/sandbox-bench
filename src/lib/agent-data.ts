@@ -78,6 +78,9 @@ import {
 } from "@/lib/realistic";
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
+import { burstTimes, runOf } from "@/lib/realtask-burst";
+import type { BurstProvider } from "@/lib/realtask-burst";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { regionFor } from "@/lib/plan-minimum";
 import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
@@ -595,6 +598,92 @@ Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.c
 `;
 }
 
+const realTasksAtOnceAbout =
+  "Real tasks at once: the published Fix and test workload started `size` times together on one provider, for `rounds` rounds, on the same 4 vCPU, 8 GB machine, one provider at a time, from our server in Florida, US. Timing only: these runs add nothing to the cost figures. medianS is the median seconds per finished task, from the create request to confirmed deletion; aloneMedianS is the median of the tasks the same provider ran alone between the bursts. `change.status` is measured, with atOnceOverAlone (median at once over median alone) and withoutUpload (the same ratio without the 152 MB toolchain upload every task makes from our machine); with only two tasks alone, a change within about 10% is not a measurable slowdown. withheld means no ratio is given, and `change.why` says why. `run` is the run a provider's numbers came from: the shared run, or its own run (own: true) with its own ID, date and SDK commit. Fastest first; providers with no time follow.";
+
+type BurstRanAny = Extract<BurstProvider, { status: "ran" }>;
+
+/** At once over alone, or why there is none: a stored ratio is measured, a missing one is withheld. */
+const burstChange = (p: BurstRanAny) =>
+  p.slowdown === null
+    ? { status: "withheld" as const, why: p.changeNote }
+    : { status: "measured" as const, atOnceOverAlone: round(p.slowdown), withoutUpload: round(p.slowdownWithoutUpload) };
+
+/** One provider's Five at once result as plain data, with the run it came from. */
+function burstProviderData(p: BurstRanAny) {
+  const failed = new Map<string, number>();
+  for (const t of p.tasks) {
+    if (t.completed) continue;
+    const why = t.failure?.reason ?? "did not complete";
+    failed.set(why, (failed.get(why) ?? 0) + 1);
+  }
+  return {
+    provider: p.provider,
+    name: providerName(p.provider),
+    status: "ran" as const,
+    medianS: round(p.medianWallS),
+    completed: p.completed,
+    attempts: p.attempts,
+    aloneMedianS: round(p.soloMedianWallS),
+    aloneCompleted: p.solo?.completed ?? null,
+    aloneAttempts: p.solo?.attempts ?? null,
+    change: burstChange(p),
+    medianUploadS: round(p.medianUploadS),
+    aloneMedianUploadS: round(p.soloMedianUploadS),
+    failures: [...failed].map(([reason, count]) => ({ reason, count })),
+    run: runOf(realtaskBurst, p),
+  };
+}
+
+/** Fix and test started several at once on each provider, for results.json. */
+function realTasksAtOnceData() {
+  const d = realtaskBurst;
+  const { timed } = burstTimes(d);
+  const untimed = d.providers.filter((p) => !timed.some((t) => t.provider === p.provider));
+  return {
+    about: realTasksAtOnceAbout,
+    track: "same-spec" as const,
+    workload: "fix-and-test" as const,
+    size: d.size,
+    rounds: d.rounds,
+    run: d.run,
+    providers: [
+      ...timed.map(burstProviderData),
+      ...untimed.map((p) => (p.status === "ran" ? burstProviderData(p) : { provider: p.provider, name: providerName(p.provider), status: p.status, reason: p.reason })),
+    ],
+  };
+}
+
+const runCell = (r: ReturnType<typeof runOf>) => `${r.id}${r.own ? " (own run)" : ""}, ${r.startedAt.slice(0, 10)}, SDK ${r.sdkCommit.slice(0, 7)}`;
+
+/** The same result as one Markdown table, for results.md. */
+function realTasksAtOnceMarkdown() {
+  const d = realTasksAtOnceData();
+  const lines = [
+    `# Real tasks at once (same machine, fix and test, ${d.size} at once)`,
+    "",
+    d.about,
+    "",
+    "| Provider | Median at once | Finished | Median alone | At once ÷ alone | Without the upload | Run |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
+  ];
+  const notes: string[] = [];
+  for (const p of d.providers) {
+    if (p.status === "not-run") {
+      notes.push(`${p.name}: not run: ${p.reason}.`);
+      continue;
+    }
+    const measured = p.change.status === "measured" ? p.change : null;
+    lines.push(
+      `| ${p.name} | ${p.medianS === null ? "n/a" : wallText(p.medianS)} | ${p.completed} of ${p.attempts} | ${p.aloneMedianS === null ? "n/a" : wallText(p.aloneMedianS)} | ${measured?.atOnceOverAlone == null ? "withheld" : `${measured.atOnceOverAlone.toFixed(2)}×`} | ${measured?.withoutUpload == null ? "n/a" : `${measured.withoutUpload.toFixed(2)}×`} | ${runCell(p.run)} |`,
+    );
+    if (p.change.status === "withheld" && p.change.why) notes.push(`${p.name}: ratio withheld. ${capitalise(p.change.why)}.`);
+    if (p.failures.length) notes.push(`${p.name}: ${p.failures.map((f) => `${f.count} failed (${f.reason})`).join("; ")}; the median is of the rest.`);
+  }
+  lines.push("", ...notes.flatMap((n) => [n, ""]));
+  return lines;
+}
+
 const allocationOf = (p: Track["providers"][number]) => ({
   requested: { ...p.requestedAllocation, text: requestedText(p) },
   // A shared file system reports the host's disk, not the sandbox's: no size, and why.
@@ -887,7 +976,7 @@ function trackData(track: Track) {
 }
 
 const about =
-  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
+  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every failure counted unless we traced it to our own harness or SDK, which are set aside, one whose cause is unconfirmed included.";
 
 const howToRead =
   "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost; in same-spec only a provider that measured 4 vCPU and 8 GB counts, and any cheaper one on a different machine is listed. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
@@ -930,6 +1019,7 @@ export function agentData() {
     howToRead: howToReadText(),
     task: "The quick task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox. It is a small synthetic task; whatATaskCosts has real workloads.",
     whatATaskCosts: realisticData(),
+    realTasksAtOnce: realTasksAtOnceData(),
     commonSize: commonSize.label,
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
@@ -1108,6 +1198,7 @@ export function agentMarkdown() {
     "JSON: /results.json. Guide: /llms.txt.",
     "",
     ...realisticMarkdown(),
+    ...realTasksAtOnceMarkdown(),
     "# The quick task and the main suite",
     "",
     howToReadText(),
@@ -1189,11 +1280,11 @@ ${realisticLlms()}## Quick picks
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Archil joined on Nov 23: its results, pause and resume, bursts, cost, By location (Frankfurt and Florida) and SDK setup included, come from its own runs that day (commit 1f1de78), through its official SDK, the disk npm package. Its stress and expanded tests ran the same day on our stress harness (sandbox-sdk branch archil-bench-10x, commit a9954ea). Its output streaming test ran again on Nov 24 (UTC) on SDK 1.3.1 (commit de32eb5): on 1.3.0 it failed because of a bug in our Archil adapter, since fixed. Archil's one same-machine dev server failure, "Process termination could not be confirmed.", is still counted, but its cause is unconfirmed: the same error came from that bug in our Archil adapter, fixed in SDK 1.3.1, so this failure may be ours. Archil's default-machine cost per task comes from a second cost run that day, because one task in the first timed out after 180 s and cost per task needs all 10 tasks; the first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included. Archil's costs are the usage cost its per-sandbox usage API reports, shown as unsettled: Archil drops a deleted sandbox's metadata record (its status and end time) within about half an hour, so we can't read the end time back to confirm a charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run. Our Archil adapter has no snapshots, so Archil's snapshot tests did not run. Archil's pause keeps memory and processes, and a paused Archil sandbox stays asleep until it is resumed: Archil pauses an idle sandbox after 30 minutes, and our SDK never wakes one by itself. A lifetime (timeoutMs) on Archil pauses the sandbox when it runs out, so it can't be combined with public previews, whose traffic wakes the sandbox. Archil's network policy needs a paid plan. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten and Beam costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Archil joined on Nov 23: its results, pause and resume, bursts, cost, By location (Frankfurt and Florida) and SDK setup included, come from its own runs that day (commit 1f1de78), through its official SDK, the disk npm package. Its stress and expanded tests ran the same day on our stress harness (sandbox-sdk branch archil-bench-10x, commit a9954ea). Its output streaming test ran again on Nov 24 (UTC) on SDK 1.3.1 (commit de32eb5): on 1.3.0 it failed because of a bug in our Archil adapter, since fixed. Archil's one same-machine dev server failure, "Process termination could not be confirmed.", is still counted, but its cause is unconfirmed: the same error came from that bug in our Archil adapter, fixed in SDK 1.3.1, so this failure may be ours. Archil's default-machine cost per task comes from a second cost run that day, because one task in the first timed out after 180 s and cost per task needs all 10 tasks; the first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included. Archil's costs are the usage cost its per-sandbox usage API reports, shown as unsettled: Archil drops a deleted sandbox's metadata record (its status and end time) within about half an hour, so we can't read the end time back to confirm a charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run. Our Archil adapter has no snapshots, so Archil's snapshot tests did not run. Archil's pause keeps memory and processes, and a paused Archil sandbox stays asleep until it is resumed: Archil pauses an idle sandbox after 30 minutes, and our SDK never wakes one by itself. A lifetime (timeoutMs) on Archil pauses the sandbox when it runs out, so it can't be combined with public previews, whose traffic wakes the sandbox. Archil's network policy needs a paid plan. Cheapest is the lowest exact cost; on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten and Beam costs use their list prices on our measured sandbox lifetime.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures we traced to our own harness or SDK are set aside, not counted; every other failure counts, one whose cause is unconfirmed included.${setAsideSummary()}
 
 ## Data
 
-- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the cheapest provider, any cheaper cost that wasn't counted (too many failures or a different machine), and every provider's cost, kind, status and completion count; plus the idle test. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
+- [results.json](/results.json): both tracks. \`whatATaskCosts\` holds the realistic workloads (pilot): per track and workload the cheapest provider, any cheaper cost that wasn't counted (too many failures or a different machine), and every provider's cost, kind, status and completion count; plus the idle test. \`realTasksAtOnce\` holds Fix and test started ${realtaskBurst.size} at once on each provider: medians at once and alone, tasks finished, the change from alone or why it is withheld, and the run each provider's numbers came from. Per provider: what we asked for and measured (allocation, equalSpec), cost per task with its kind (billed, metered, estimate), source and confidence, SDK-ready time, prices, regions and failures. Per metric: median, p95, attempts, failed and status. Start here.
 - [results.md](/results.md): the same numbers as Markdown tables, one section per track.
 
 ## How to read it
