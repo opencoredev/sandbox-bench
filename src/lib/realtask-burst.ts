@@ -157,7 +157,8 @@ const isoDate = (v: unknown, path: string): string => {
   const tzMin = m[9] ? Number(m[9]) : 0;
   if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59 || tzHour > 23 || tzMin > 59)
     return fail(path, "must be a valid ISO timestamp");
-  const check = new Date(Date.UTC(year, month - 1, day));
+  const check = new Date(0);
+  check.setUTCFullYear(year, month - 1, day);
   if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day || Number.isNaN(Date.parse(s)))
     return fail(path, "must be a valid ISO timestamp");
   return s;
