@@ -3,6 +3,7 @@ import { usdPrice } from "@/lib/fx";
 import { allocationNotes } from "@/lib/notes";
 import { isExtraTier, isPreemptible, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { gbToGiB, soldInDecimalGB } from "@/lib/sizes";
 
 export type Priced = Exclude<TaskCost, { kind: "none" }>;
 export type PricedKind = Priced["kind"];
@@ -107,12 +108,17 @@ const provisionalCosts: Partial<Record<ProviderId, { kind: PricedKind; why: stri
 /**
  * Where an estimate comes from, when it needs saying beyond "list price".
  * Boat has a per-sandbox usage API, but that run's usage wasn't pulled, so
- * its figure is its documented price on our measured lifetime.
+ * its figure is its documented price on our measured lifetime. Buddy has no
+ * usage or billing API at all, so its figure is always its list price.
  */
 const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>> = {
   boat: {
     tag: "estimate from docs",
     why: "Boat's documented price on our measured sandbox lifetime; no settled-charge source for Boat is available",
+  },
+  buddy: {
+    tag: "estimate from list price",
+    why: "Buddy's list price per started minute on our measured sandbox lifetime; Buddy has no public usage or billing API to check it against",
   },
 };
 
@@ -242,6 +248,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep and stops metering only when no user process is running inside it (a background process keeps it running and billed unless idleTimeout is set), so actual charges can sit below elapsed-time estimates when the sandbox sleeps between calls.",
   },
+  buddy: {
+    kind: "machine",
+    label: "bills the whole machine size while it exists, per started minute",
+    evidence:
+      "buddy.works/pricing (checked Nov 24, 2026): $0.00024 per CPU-minute and $0.00024 per GB-minute of the size's memory, billed in 1-minute increments; a 25-second 2x4 probe sandbox billed 2 CPU-minutes and 4 GB-minutes in Buddy's usage page. Storage, $0.00011 per GB-hour of the disk and snapshots actually stored, is left out. Buddy has no public per-sandbox usage or billing API, so every Buddy cost here is this list price on our measured lifetime.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",
@@ -278,8 +290,33 @@ export function billingLabel(b: BillingBasis) {
  * For a provider that bills usage it is a counterfactual, never its price.
  */
 export type WholeMachine =
-  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memoryGiB: number; counterfactual: boolean; bound: PriceBound | null }
+  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memory: MachineMemory; counterfactual: boolean; bound: PriceBound | null }
   | { kind: "none"; why: string };
+
+/**
+ * A priced size's memory in the unit the provider sells it in. Most sell GiB;
+ * a decimal-GB seller (lib/sizes.ts) is priced on its tier's GB, which is
+ * fewer GiB (Buddy's 8 GB tier is 7.45 GiB), so both are kept.
+ */
+export type MachineMemory = { unit: "GiB"; gib: number } | { unit: "GB"; gb: number; gib: number };
+
+/** The harness's pricing allocation memory, read in the provider's own unit: its `memoryGiB` is the tier's GB for a decimal-GB seller. */
+export const pricedMemory = (id: ProviderId, tierMemory: number): MachineMemory =>
+  soldInDecimalGB(id) ? { unit: "GB", gb: tierMemory, gib: gbToGiB(tierMemory) } : { unit: "GiB", gib: tierMemory };
+
+/** A priced allocation for the agent files: memoryGiB always in GiB, plus memoryGB where the provider sells decimal GB. */
+export const allocationExport = ({ cpu, memory, round }: { cpu: number; memory: MachineMemory; round: (v: number) => number | null }) => {
+  switch (memory.unit) {
+    case "GiB":
+      return { cpu, memoryGiB: round(memory.gib) };
+    case "GB":
+      return { cpu, memoryGB: memory.gb, memoryGiB: round(memory.gib) };
+    default: {
+      const _exhaustive: never = memory;
+      return _exhaustive;
+    }
+  }
+};
 
 export const wholeMachineLabel = "Whole machine at list price";
 export const perTaskLifetimeNote =
@@ -293,7 +330,7 @@ export function wholeMachine(p: Provider): WholeMachine {
     usdPerHour: price.usd,
     converted: price.converted,
     cpu: p.pricingAllocation.cpu,
-    memoryGiB: p.pricingAllocation.memoryGiB,
+    memory: pricedMemory(p.id, p.pricingAllocation.memoryGiB),
     counterfactual: billingBases[p.id].kind === "usage",
     bound: p.pricingBound,
   };
@@ -313,8 +350,20 @@ export function regionNote(p: Pick<Provider, "id" | "pricingRegion" | "regionMul
 export const hourlyText = (w: Extract<WholeMachine, { kind: "hourly" }>, style: BoundStyle = "prose") =>
   `${qualify({ amount: `$${w.usdPerHour.toFixed(3)}`, bound: w.bound, style })} an hour`;
 
-/** "4 vCPU, 16 GiB". */
-export const machineText = (w: Extract<WholeMachine, { kind: "hourly" }>) => `${w.cpu} vCPU, ${Number(w.memoryGiB.toFixed(1))} GiB`;
+/** "4 vCPU, 16 GiB", or "4 vCPU, 8 GB (7.45 GiB)" for a size sold in decimal GB. */
+export function machineText(w: Extract<WholeMachine, { kind: "hourly" }>) {
+  const m = w.memory;
+  switch (m.unit) {
+    case "GiB":
+      return `${w.cpu} vCPU, ${Number(m.gib.toFixed(1))} GiB`;
+    case "GB":
+      return `${w.cpu} vCPU, ${Number(m.gb.toFixed(1))} GB (${m.gib.toFixed(2)} GiB)`;
+    default: {
+      const _exhaustive: never = m;
+      return _exhaustive;
+    }
+  }
+}
 
 /** "$0.391 an hour for 4 vCPU, 16 GiB (from euros), counterfactual: …", one line for agent files. */
 export function wholeMachineText(w: WholeMachine) {

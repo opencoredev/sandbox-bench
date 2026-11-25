@@ -2,6 +2,7 @@ import type { Allocation, Provider, Track, TrackId } from "@/lib/data";
 import { formatGiB, formatValue } from "@/lib/format";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { measuredMemoryText, soldInDecimalGB } from "@/lib/sizes";
 
 export type Notes = Partial<Record<ProviderId, string>>;
 
@@ -22,14 +23,19 @@ export function measuredText(p: Provider) {
   const mem = m.map((a) => a.memoryGiB).sort((a, b) => a - b);
   const lo = mem[0] ?? 0;
   const hi = mem.at(-1) ?? lo;
-  const ram = formatGiB(lo) === formatGiB(hi) ? formatGiB(lo) : `${formatGiB(lo)}–${formatGiB(hi)}`;
+  const text = (gib: number) => measuredMemoryText(p.id, gib);
+  const ram = text(lo) === text(hi) ? text(lo) : `${text(lo)}–${text(hi)}`;
   return `${cpus.join("–")} vCPU, ${ram}`;
 }
 
 /** What we asked the provider for. */
 export function requestedText(p: Provider) {
   const r = p.requestedAllocation;
-  const size = r.compute ? formatCompute(r.compute) : null;
+  const size = r.compute
+    ? soldInDecimalGB(p.id) && r.size !== null
+      ? `${r.compute.cpu} vCPU, ${r.compute.memoryGiB} GiB`
+      : formatCompute(r.compute)
+    : null;
   const preset = typeof r.size === "string" ? `"${r.size}"` : null;
   const template = r.template ? `template ${r.template}` : null;
   const parts = [size && preset ? `${size} (${preset})` : (size ?? preset), template].filter((x) => x !== null);
@@ -39,6 +45,7 @@ export function requestedText(p: Provider) {
 /** Why a provider in the same-machine track ran something else, beyond what the numbers say. */
 const sameSpecWhy: Notes = {
   boxd: "boxd has no 8 GB size at 4 vCPU; this is its nearest.",
+  buddy: "Buddy sells memory in decimal GB: its 4x8 size is 4 vCPU and 8 GB (8,000,000,000 bytes), which is 7.45 GiB, and it has no 8 GiB size.",
 };
 
 /** Why a provider is missing from a track. */
@@ -62,7 +69,7 @@ export function allocationNotes(t: Track): Notes {
     t.providers.flatMap((p) => {
       if (p.equalSpec) return [];
       const measured = measuredText(p);
-      const ran = measured ? `ran ${measured}, not 4 vCPU, 8 GB.` : "machine size not measured, so we can't confirm it matched.";
+      const ran = measured ? `ran ${measured}, not 4 vCPU, 8 GiB.` : "machine size not measured, so we can't confirm it matched.";
       return [[p.id, [ran, sameSpecWhy[p.id]].filter(Boolean).join(" ")]];
     }),
   );

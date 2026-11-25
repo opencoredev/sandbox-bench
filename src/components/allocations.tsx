@@ -64,7 +64,7 @@ export function Allocations({ track }: { track: Track }) {
       <table className="hidden w-full border-collapse text-left text-s sm:table">
         <thead>
           <tr className="text-xs text-neutral-7">
-            {["Provider", "Asked for", "Measured inside", ...(verdicts ? ["4 vCPU, 8 GB?"] : [])].map((h) => (
+            {["Provider", "Asked for", "Measured inside", ...(verdicts ? ["4 vCPU, 8 GiB?"] : [])].map((h) => (
               <th key={h} scope="col" className="py-2.5 pr-5 font-normal">
                 {h}
               </th>

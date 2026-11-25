@@ -933,14 +933,50 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "buddy",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 50
+    }
+   },
+   "measured": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.7252883911132812,
+     "diskGiB": 45.53391647338867
+    },
+    {
+     "cpu": 2,
+     "memoryGiB": 3.7252883911132812,
+     "diskGiB": 45.721614837646484
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": false,
+    "mismatches": [
+     "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)"
+    ]
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-24T05:33:43.007Z"
+  "end": "2026-11-25T02:02:10.203Z"
  },
- "observations": 48512,
+ "observations": 51501,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1321,6 +1357,26 @@
    "id": "sbxst-default-burst",
    "suite": "burst",
    "samples": 426
+  },
+  {
+   "id": "sbxb-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxb-default-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbxb-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxb-default-burst",
+   "suite": "burst",
+   "samples": 426
   }
  ],
  "excluded": [
@@ -1464,6 +1520,12 @@
    "replacements": []
   },
   "styne": {
+   "removed": {},
+   "superseded": [],
+   "notRun": [],
+   "replacements": []
+  },
+  "buddy": {
    "removed": {},
    "superseded": [],
    "notRun": [],
@@ -4031,6 +4093,172 @@
     "n": 100
    },
    "standbyResume": null
+  },
+  {
+   "id": "buddy",
+   "costPerTask": {
+    "usd": 0.00144,
+    "kind": "estimate",
+    "source": "https://buddy.works/pricing",
+    "confidence": "low",
+    "n": 10,
+    "settled": true,
+    "bound": "exact"
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 2,
+     "memoryGiB": 4
+    },
+    "provisioned": {
+     "cpu": 2,
+     "memoryGiB": 4,
+     "diskGiB": 50
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 2,
+     "memoryGiB": 3.7252883911132812,
+     "diskGiB": 45.53391647338867
+    },
+    {
+     "cpu": 2,
+     "memoryGiB": 3.7252883911132812,
+     "diskGiB": 45.721614837646484
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": 0.0864,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.1728,
+   "perVcpuHour": 0.0432,
+   "pricingAllocation": {
+    "cpu": 2,
+    "memoryGiB": 4
+   },
+   "allocationVerification": {
+    "verified": false,
+    "mismatches": [
+     "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)"
+    ]
+   },
+   "rates": {
+    "vcpuHour": 0.0144,
+    "memoryGiBHour": 0.0144,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": [
+     {
+      "cpu": 1,
+      "memoryGiB": 2
+     },
+     {
+      "cpu": 2,
+      "memoryGiB": 4
+     },
+     {
+      "cpu": 3,
+      "memoryGiB": 6
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8
+     },
+     {
+      "cpu": 5,
+      "memoryGiB": 10
+     },
+     {
+      "cpu": 6,
+      "memoryGiB": 12
+     },
+     {
+      "cpu": 7,
+      "memoryGiB": 14
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16
+     },
+     {
+      "cpu": 9,
+      "memoryGiB": 18
+     },
+     {
+      "cpu": 10,
+      "memoryGiB": 20
+     },
+     {
+      "cpu": 11,
+      "memoryGiB": 22
+     },
+     {
+      "cpu": 12,
+      "memoryGiB": 24
+     }
+    ]
+   },
+   "pricingSource": "https://buddy.works/pricing",
+   "pricingNotes": "Published Sandboxes rates: $0.00024/CPU-minute ($0.0144/vCPU-hour) and $0.00024/GB-minute ($0.0144/GB-hour) of the tier's memory, billed per started minute with a one-minute minimum (a 25-second 2x4 probe billed 2 CPU-minutes and 4 GB-minutes on 2026-11-24). Twelve fixed tiers, 1x2 to 12x24, 2 GB per vCPU and a 50 GB disk; the default is 2x4. Priced on the tier, not the guest: Buddy's GB are decimal, so a 2x4 guest shows 3814 MiB (3.73 GiB) and a 4x8 guest 7629 MiB (7.45 GiB), about 6.9% under the binary GiB the tier name suggests; that gap stays as an allocation caveat. Storage ($0.00011/GB-hour of used disk and snapshots, about $0.08/GB-month, not the 50 GB allocation) and the $29/month Pro plan are excluded. Buddy has no usage or billing API, so every Buddy figure is this estimate.",
+   "reliability": {
+    "successes": 2989,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 2,
+    "visibleCpus": [
+     2
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 3.7252883911132812,
+    "diskGiB": 45.53391647338867,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC 9645 96-Core Processor",
+      "count": 130
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "lxc",
+    "hypervisor": true,
+    "host": "Standard PC (i440FX + PIIX, 1996)",
+    "kernel": "6.8.0-147-generic",
+    "location": [
+     {
+      "value": "New York City, US",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS29802 HIVELOCITY, Inc.",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 1.3432364890000317,
+    "resume": 4.831653703000003,
+    "n": 100
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -4247,6 +4475,19 @@
      "min": 0.1460054990000208,
      "ciLow": 0.18200492400000803,
      "ciHigh": 0.19313274099992123,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.9278934179998469,
+     "p95": 0.9762401080001146,
+     "min": 0.8784775420001243,
+     "ciLow": 0.9226195070000831,
+     "ciHigh": 0.9331206560002174,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4471,6 +4712,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.21067322100000457,
+     "p95": 0.23646139000006952,
+     "min": 0.1800655179999303,
+     "ciLow": 0.20678689400013536,
+     "ciHigh": 0.21359888399997726,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4687,6 +4941,19 @@
      "min": 0.0871435829999973,
      "ciLow": 0.10265154999995138,
      "ciHigh": 0.11284571199999846,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.21489489600004164,
+     "p95": 0.2874212650000118,
+     "min": 0.1699954240000807,
+     "ciLow": 0.2091929169999785,
+     "ciHigh": 0.218422096000053,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4911,6 +5178,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.9282057129999739,
+     "p95": 1.1323104779999704,
+     "min": 0.8741418900000862,
+     "ciLow": 0.9235639589999337,
+     "ciHigh": 0.9359361819999759,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5131,6 +5411,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.3198446329999715,
+     "p95": 0.3432106180000119,
+     "min": 0.2817762740000035,
+     "ciLow": 0.31829423299990595,
+     "ciHigh": 0.32180188099993395,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5295,6 +5588,19 @@
      "min": 0.12954077600000893,
      "ciLow": 0.1554705660000909,
      "ciHigh": 0.16787541600002442,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 6.186303609000054,
+     "p95": 7.434436231999993,
+     "min": 5.654180093000003,
+     "ciLow": 6.003245844000019,
+     "ciHigh": 6.233359821999912,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -5528,6 +5834,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 0.09492085799999768,
+     "p95": 0.14439743300003466,
+     "min": 0.07734812199999579,
+     "ciLow": 0.09151342500001192,
+     "ciHigh": 0.09865714099997422,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5709,6 +6028,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 2.286115202999994,
+     "p95": 2.302856258999993,
+     "min": 2.2676425100000053,
+     "ciLow": 2.2842689900000006,
+     "ciHigh": 2.2888539420000016,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5886,6 +6218,19 @@
      "min": 0.16327382299998136,
      "ciLow": 0.1818103899999842,
      "ciHigh": 0.1896852859999999,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 6.259652529000014,
+     "p95": 6.967950759000001,
+     "min": 5.9346422840000015,
+     "ciLow": 6.0768712490000185,
+     "ciHigh": 6.501693603999993,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6110,6 +6455,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 0.8513328830000246,
+     "p95": 0.9494848660000135,
+     "min": 0.755932952000061,
+     "ciLow": 0.8094582690000025,
+     "ciHigh": 0.8832790509999977,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6326,6 +6684,19 @@
      "min": 0.44905768300000637,
      "ciLow": 0.4780630660000024,
      "ciHigh": 0.5076350150000071,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 1.9412391100000823,
+     "p95": 2.2383146969999945,
+     "min": 1.7419039040000643,
+     "ciLow": 1.911960928000044,
+     "ciHigh": 2.003362935000099,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6550,6 +6921,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 4.016176395000075,
+     "p95": 5.396998906000052,
+     "min": 3.448160474000033,
+     "ciLow": 3.8769575220000116,
+     "ciHigh": 4.3282586280000395,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6766,6 +7150,19 @@
      "min": 0.34264327400000183,
      "ciLow": 0.36521686600000247,
      "ciHigh": 0.4060336859999807,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 1.7019999099998968,
+     "p95": 1.9556798750000017,
+     "min": 1.3902016860000148,
+     "ciLow": 1.6101113309999928,
+     "ciHigh": 1.8581826110000257,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6990,6 +7387,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 0.3045031789999921,
+     "p95": 0.4505487739999953,
+     "min": 0.23057000300008804,
+     "ciLow": 0.28673362200008706,
+     "ciHigh": 0.3792242890000052,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7193,6 +7603,19 @@
      "min": 0.12108861200000684,
      "ciLow": 0.12971186999999917,
      "ciHigh": 0.13992339000001083,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 0.2772286409999942,
+     "p95": 0.30357835299987346,
+     "min": 0.2529261730000144,
+     "ciLow": 0.27009001100005114,
+     "ciHigh": 0.2807436000000453,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -7417,6 +7840,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 30,
+     "p50": 16.437412988999974,
+     "p95": 17.262569051,
+     "min": 15.918993854,
+     "ciLow": 16.349757734,
+     "ciHigh": 16.576393630000005,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7637,6 +8073,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 3,
+     "p50": 1.029423703,
+     "p95": 1.207405508,
+     "min": 0.9251654119999985,
+     "ciLow": 0.9251654119999985,
+     "ciHigh": 1.207405508,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7840,6 +8289,19 @@
      "min": 0.24590403700000024,
      "ciLow": 0.24590403700000024,
      "ciHigh": 0.3912008259999998,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 3,
+     "p50": 5.007104796000001,
+     "p95": 5.0606141519999985,
+     "min": 4.975180674,
+     "ciLow": 4.975180674,
+     "ciHigh": 5.0606141519999985,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -8064,6 +8526,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 14309373.393931353,
+     "p95": 14878031.243549269,
+     "min": 12638234.86105813,
+     "ciLow": 14150140.585599938,
+     "ciHigh": 14492588.889140239,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8282,6 +8757,19 @@
      "ciHigh": 67434191.39081027,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 22468585.50545482,
+     "p95": 25383091.513762712,
+     "min": 12631116.683209488,
+     "ciLow": 20461831.17184718,
+     "ciHigh": 23149048.96811399,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -8504,6 +8992,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 48033.31149912431,
+     "p95": 50978.761792652345,
+     "min": 29066.49127950549,
+     "ciLow": 46927.45023329057,
+     "ciHigh": 48461.23952269478,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8722,6 +9223,19 @@
      "ciHigh": 1024.787652289451,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 472.89406387734317,
+     "p95": 505.9287319694106,
+     "min": 60.446596486466326,
+     "ciLow": 466.20783110011195,
+     "ciHigh": 480.4497242111029,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -8944,6 +9458,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 8160.299873053377,
+     "p95": 17462.532284511115,
+     "min": 4856.253469980257,
+     "ciLow": 7842.042329062901,
+     "ciHigh": 8477.889633619394,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -9162,6 +9689,19 @@
      "ciHigh": 20565.755921586067,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 648.3852859533862,
+     "p95": 660.2418362002352,
+     "min": 287.76139675085597,
+     "ciLow": 635.3370911191987,
+     "ciHigh": 650.875258355823,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -9384,6 +9924,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 554002.2410657691,
+     "p95": 594997.006255655,
+     "min": 359724.7432308993,
+     "ciLow": 542829.8478591649,
+     "ciHigh": 560820.8084384914,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -9587,6 +10140,19 @@
      "ciHigh": 1.9313429977046326,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "buddy",
+     "n": 100,
+     "p50": 5.308716930449009,
+     "p95": 6.48459168151021,
+     "min": 2.1563484333455563,
+     "ciLow": 4.545063618570566,
+     "ciHigh": 5.453808233141899,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -11221,6 +11787,108 @@
    0.281,
    0.33,
    0.376
+  ],
+  "buddy": [
+   0.878,
+   0.88,
+   0.888,
+   0.888,
+   0.89,
+   0.893,
+   0.894,
+   0.898,
+   0.902,
+   0.902,
+   0.904,
+   0.904,
+   0.906,
+   0.906,
+   0.907,
+   0.909,
+   0.909,
+   0.909,
+   0.909,
+   0.91,
+   0.911,
+   0.911,
+   0.912,
+   0.912,
+   0.913,
+   0.913,
+   0.913,
+   0.913,
+   0.915,
+   0.916,
+   0.918,
+   0.918,
+   0.919,
+   0.92,
+   0.921,
+   0.921,
+   0.921,
+   0.922,
+   0.922,
+   0.923,
+   0.923,
+   0.923,
+   0.925,
+   0.925,
+   0.926,
+   0.926,
+   0.927,
+   0.927,
+   0.927,
+   0.928,
+   0.928,
+   0.929,
+   0.929,
+   0.93,
+   0.93,
+   0.931,
+   0.932,
+   0.933,
+   0.933,
+   0.933,
+   0.934,
+   0.934,
+   0.934,
+   0.935,
+   0.935,
+   0.936,
+   0.936,
+   0.937,
+   0.939,
+   0.939,
+   0.939,
+   0.939,
+   0.94,
+   0.94,
+   0.943,
+   0.944,
+   0.946,
+   0.947,
+   0.947,
+   0.948,
+   0.949,
+   0.949,
+   0.949,
+   0.95,
+   0.95,
+   0.952,
+   0.953,
+   0.955,
+   0.957,
+   0.957,
+   0.957,
+   0.957,
+   0.963,
+   0.97,
+   0.976,
+   0.979,
+   0.983,
+   1.006,
+   1.155,
+   1.193
   ]
  },
  "missing": {
@@ -11229,9 +11897,9 @@
   }
  },
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24). Styne's is from its own runs (Nov 23).",
-  "burst-10": "Maritime's bursts of 10 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable.",
-  "burst-25": "Maritime's bursts of 25 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable."
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24). Styne's is from its own runs (Nov 23). Buddy's is from its own runs (Nov 25).",
+  "burst-10": "Maritime's bursts of 10 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable. Buddy's bursts are from a second run on Nov 25 (02:01 UTC) on the same SDK code. Buddy allows 5,000 API requests an hour per route, resetting on the UTC hour, and our SDK checks a new sandbox's status with GET /sandboxes/{id} every 200 ms. Its first burst run started at 01:32 UTC, in the hour that also held this machine's snapshot and cost tests and the end of its main tests, and Buddy answered a burst of 10 with HTTP 429; that run is replaced and its failures aren't counted.",
+  "burst-25": "Maritime's bursts of 25 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable. Buddy's bursts are from a second run on Nov 25 (02:01 UTC) on the same SDK code. Buddy allows 5,000 API requests an hour per route, resetting on the UTC hour, and our SDK checks a new sandbox's status with GET /sandboxes/{id} every 200 ms. Its first burst run started at 01:32 UTC, in the hour that also held this machine's snapshot and cost tests and the end of its main tests, and Buddy answered a burst of 10 with HTTP 429; that run is replaced and its failures aren't counted."
  },
  "stress": {
   "observations": 1446,

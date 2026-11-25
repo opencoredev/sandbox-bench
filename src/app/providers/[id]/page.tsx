@@ -31,7 +31,7 @@ import type { ProviderPageId } from "@/lib/seo/pages";
 import { hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { fingerprintDate } from "@/lib/hardware";
-import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, scorecard, taskText, verdict } from "@/lib/seo/provider";
+import { faqJsonLd, fieldText, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, rivalsText, scorecard, taskText, verdict } from "@/lib/seo/provider";
 import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
 import { ctaAttributes } from "@/lib/cta";
 
@@ -528,8 +528,8 @@ function StandsOut({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
       <h3 className="mb-xxs text-m font-medium text-neutral-10">Where {name} stands out and trails</h3>
       <p className="mb-m text-xs text-pretty text-neutral-7">Its best and worst ranks on this machine, from the tests below. Top and bottom third of the field only.</p>
       <div className="flex flex-col gap-m">
-        {block("Stands out", leads, `No result in the top third on ${machineOf(t.id)}.`)}
-        {block("Trails", trails, `No result in the bottom third on ${machineOf(t.id)}.`)}
+        {block("Stands out", leads, `No result in the top third on ${machineOf(t)}.`)}
+        {block("Trails", trails, `No result in the bottom third on ${machineOf(t)}.`)}
       </div>
       <ul className="mt-auto flex flex-wrap gap-x-l gap-y-xxs border-t border-neutral-3 pt-s text-s">
         {isAlternativesPage(id) ? (
@@ -562,7 +562,7 @@ function Results({ t }: { t: ProviderTrack }) {
   return (
     <>
       <p className="mt-xs mb-l max-w-[72ch] text-m text-pretty text-neutral-8">
-        {t.description} Runs from {t.run.start} to {t.run.end}, {t.providerCount} providers. See every provider side by side on the{" "}
+        {t.description} Runs from {t.run.start} to {t.run.end}, {fieldText(t.field)}. See every provider side by side on the{" "}
         <a className={link} href={href}>
           full results
         </a>
@@ -612,7 +612,7 @@ export default async function ProviderPage(props: Props) {
   const url = `${site}${providerPath(id)}`;
   const others = providerPages.filter((p) => p !== id);
   const h = r.hardware;
-  const rivals = Math.max(0, (r.tracks[0]?.providerCount ?? 1) - 1);
+  const rivals = rivalsText(r.tracks[0]?.field ?? { providers: 1, products: 1 });
   const faqs = providerFaqs(id);
 
   const jsonLd = {
@@ -658,7 +658,7 @@ export default async function ProviderPage(props: Props) {
             <div className="min-w-0">
               <h1 className="font-brand text-xl font-medium text-balance sm:text-xxl">{name} sandbox benchmark</h1>
               <p className="mt-xxs text-s text-neutral-7">
-                {formerly ? `Formerly ${formerly} · ` : ""}Ranked against {rivals} other sandbox providers
+                {formerly ? `Formerly ${formerly} · ` : ""}Ranked against {rivals}
               </p>
             </div>
           </div>
@@ -735,7 +735,7 @@ export default async function ProviderPage(props: Props) {
             <p className="max-w-[80ch] text-s text-pretty text-neutral-8">
               {formerly ? `${name} was called ${formerly} before its rebrand. ` : ""}
               {h ? `${fingerprintDate(id) === null ? "Our hardware probe found" : "The fingerprints of our runs show"} ${name} runs each sandbox as a ${h.runsAs.split(",")[0]}. ` : ""}
-              We timed it through one SDK against {rivals}{" "}other sandbox providers: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same {trackInfo["same-spec"].short}{" "}machine for every provider, and each provider&apos;s default machine.
+              We timed it through one SDK against {rivals}: cold start, real agent work, everyday calls, pause and snapshots, bursts, machine speed, reliability and cost per task. Each result is a median with its p95 and 95% interval, on two tracks: the same {trackInfo["same-spec"].short}{" "}machine asked of every provider, and each provider&apos;s default machine.
             </p>
             <p className="mt-s max-w-[80ch] text-s text-pretty text-neutral-7">{disclosure}</p>
             <ul className="mt-m flex max-w-[80ch] list-disc flex-col gap-xs pl-m text-s text-pretty text-neutral-8">

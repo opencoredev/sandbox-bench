@@ -24,7 +24,7 @@ import { readExclusions } from "@/lib/data";
 import { iterationRanges, setAside, setAsideSentence } from "@/lib/exclusions";
 import { StatStrip, leaders } from "@/components/stat-strip";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
-import { billingBases, billingLabel } from "@/lib/cost";
+import { billingBases, billingLabel, estimateNotCounted } from "@/lib/cost";
 import { tracks } from "@/lib/data";
 import {
   SCHEMA,
@@ -53,6 +53,7 @@ import {
   runTrackOf,
   runTracks,
   scopeLine,
+  scopeNotes,
   statusTag,
   taskPick,
   wilson,
@@ -564,6 +565,47 @@ describe("pick", () => {
     assert.match(boxd.whyNotCounted.join(), /15\.6 GiB/);
   });
 
+  test("Buddy's rows are never a pick: list-price estimates on both tracks, and on Same machine its 4x8 (8 decimal GB, 7.45 GiB) also fails the exact-size rule the harness's 10% tolerance doesn't flag", () => {
+    const size = "it ran with 7.45 GiB of memory, not the 8 GiB this track asks for";
+    for (const profile of profileIds) {
+      const rows = headlineRows(realistic, "same-machine", profile).costed.filter((r) => r.provider === "buddy");
+      assert.equal(rows.length, 1, `Buddy has one costed ${profile} row`);
+      const [buddy] = rows;
+      assert.ok(buddy);
+      assert.equal(buddy.cost.kind, "estimate");
+      assert.ok(!buddy.flags.some((f) => f.startsWith("wrong machine size")), "the harness doesn't flag the size, so the site's rule must");
+      assert.equal(tracks["same-spec"].providers.find((p) => p.id === "buddy")?.equalSpec, false);
+      const pick = taskPick([buddy]);
+      assert.equal(pick.kind, "none", `a Buddy-only ${profile} input has no pick`);
+      assert.deepEqual(notCountedWhy(buddy), [estimateNotCounted, size]);
+      // The size rule stands on its own: the same row, billed or metered, still isn't counted.
+      assert.deepEqual(notCountedWhy({ ...buddy, cost: { ...buddy.cost, kind: "metered" } }), [size]);
+      assert.deepEqual(notCountedWhy({ ...buddy, track: "default" }), [estimateNotCounted], "size only counts on Same machine");
+      const exported = agentData().whatATaskCosts.tracks["same-spec"]?.workloads[profile].providers.find((r) => r.provider === "buddy");
+      assert.equal(exported?.counted, false);
+      assert.deepEqual(exported?.whyNotCounted, [estimateNotCounted, size]);
+    }
+    // On its default machine the size rule doesn't apply, so its 5 of 5 fix and test row is left out only as an estimate.
+    const def = headlineRows(realistic, "default", "fix-and-test").costed.find((r) => r.provider === "buddy");
+    assert.ok(def && !isCounted(def));
+    assert.deepEqual(notCountedWhy(def), [estimateNotCounted]);
+  });
+
+  test("Buddy's realistic scope says its estimate leaves storage out, and never groups it with estimates that include disk", () => {
+    const line = scopeLine(realistic);
+    assert.match(line, /Buddy's list-price estimate covers CPU and RAM per started minute, for the whole size while the sandbox exists, and leaves out separately billed storage, \$0\.00011 per GB-hour of disk used/);
+    const withDisk = /(?:^|\. )([^.]*) (?:is|are) priced at the machine's list price, disk included/.exec(line)?.[1] ?? "";
+    assert.ok(withDisk.length > 0 && !withDisk.includes("Buddy"), withDisk);
+    assert.match(line, /compute, memory, disk and standby storage, except where an estimate below leaves a charge out\./);
+    const notes = scopeNotes(realistic);
+    const estimates = notes.find((n) => n.lead === "List-price estimates");
+    assert.ok(estimates !== undefined, "missing List-price estimates note");
+    assert.ok(!estimates.text.includes("Buddy"), estimates.text);
+    assert.match(notes.find((n) => n.lead === "Buddy estimate")?.text ?? "", /CPU and RAM per started minute.*leaves out separately billed storage, \$0\.00011 per GB-hour of disk used/);
+    assert.match(notes.find((n) => n.lead === "What a cost includes")?.text ?? "", /except the storage Buddy's estimate leaves out/);
+    assert.equal(agentData().whatATaskCosts.costScope, line);
+  });
+
   test("with only a wrong-size row, the chart says no provider meets the rule and why, not that runs failed", () => {
     const wrong = costed("boxd", 0.005, false, { flags: ["wrong machine size: 15.6 GiB memory, not within 10% of 8 GiB"] });
     assert.ok(taskPick([wrong]).kind === "none");
@@ -776,7 +818,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\), Superserve and Styne \(account totals only\) and Maritime \(paused disk not in its usage API\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten, Beam and Buddy \(no billing data we can read\), Superserve and Styne \(account totals only\) and Maritime \(paused disk not in its usage API\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -854,7 +896,7 @@ describe("page", () => {
 
   test("the footprint is in the notes and the cost line is above the chart", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GB machine, not counting installation\./);
+    assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GiB machine, not counting installation\./);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
     assert.ok(html.includes(costCovers));
@@ -867,12 +909,14 @@ describe("page", () => {
     assert.match(text, /Not counted: Styne \$0\.55 \(list-price estimate, not billed or metered by the provider\)\./);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Styne, Instabox, Boat and Maritime, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
-    // Superserve since its Nov 18 rerun with a 20 GB disk.
+    // Without Styne, Instabox, Boat and Maritime, boxd and Buddy are among the cheaper bars that don't count: both are named, and the pick
+    // is the next counted row, Superserve since its Nov 18 rerun with a 20 GB disk. boxd is caught by the harness's size flag, Buddy by
+    // the list-price estimate rule and the track's exact-size rule (equalSpec); Buddy's row isn't left out of the test by hand.
     const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox" && r.provider !== "maritime" && r.provider !== "styne") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
     assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
+    assert.match(line, /Not counted: Buddy \$5\.76 \(list-price estimate, not billed or metered by the provider; it ran with 7\.45 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
   test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {
@@ -939,7 +983,7 @@ describe("page", () => {
   });
 
   test("on phones each task card says which machine it ran on", () => {
-    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GB<\/span>/);
+    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GiB<\/span>/);
     assert.match(renderToStaticMarkup(<TaskCost track={tracks.default} />), /<span class="block sm:hidden">Default machines · sizes vary<\/span>/);
   });
 

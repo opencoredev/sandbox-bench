@@ -4,7 +4,7 @@ import type { Provider } from "@/lib/data";
 import { formatGiB } from "@/lib/format";
 import { providerColor } from "@/lib/providers";
 import { providerName } from "@/lib/providers";
-import { advertised, sharedDisk } from "@/lib/sizes";
+import { advertised, advertisedCapacityText, measuredDiskText, measuredMemoryText, sharedDisk } from "@/lib/sizes";
 
 type Part = "vcpu" | "memoryGiB" | "diskGiB";
 
@@ -37,12 +37,24 @@ export function MachineSizes({ providers }: { providers: readonly Provider[] }) 
           })
           .sort((a, b) => b.value - a.value)
           .map(({ p, value, inside }) => ({
+            p,
+            value,
+            inside,
+            format:
+              part.key === "memoryGiB"
+                ? (v: number) => measuredMemoryText(p.id, v)
+                : part.key === "diskGiB"
+                  ? (v: number) => measuredDiskText(p.id, v)
+                  : part.format,
+            advertisedLabel: part.key === "vcpu" ? part.format(value) : advertisedCapacityText(p.id, part.key, value),
+          }))
+          .map(({ p, value, inside, format, advertisedLabel }) => ({
             provider: p.id,
-            label: part.format(value),
+            label: format(value),
             segments: [{ value, color: providerColor(p.id), fill: "solid" }],
             detail: [
-              advertised[p.id][part.key] == null ? "Not advertised; measured" : (["Advertised", part.format(value)] as const),
-              ...(inside == null ? [] : [["Measured inside", part.format(inside)] as const]),
+              advertised[p.id][part.key] == null ? "Not advertised; measured" : (["Advertised", advertisedLabel] as const),
+              ...(inside == null ? [] : [["Measured inside", format(inside)] as const]),
             ],
           }));
         return (

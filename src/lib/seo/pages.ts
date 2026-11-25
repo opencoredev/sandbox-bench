@@ -59,9 +59,9 @@ export type SitePath = "/" | typeof providersPath | typeof forProvidersPath | Pr
  * picked up on their own: see lastModified.
  */
 const contentDates = {
-  "/": "2026-11-24",
+  "/": "2026-11-25",
   "/providers/e2b/": "2026-11-20",
-  "/providers/": "2026-11-24",
+  "/providers/": "2026-11-25",
   "/providers/daytona/": "2026-11-20",
   "/providers/superserve/": "2026-11-20",
   "/providers/upstash/": "2026-11-20",
@@ -75,12 +75,13 @@ const contentDates = {
   "/providers/modal/": "2026-11-23",
   "/providers/maritime/": "2026-11-24",
   "/providers/styne/": "2026-11-23",
+  "/providers/buddy/": "2026-11-25",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
   "/alternatives/e2b/": "2026-11-18",
   "/for-providers/": "2026-11-19",
-  "/updates/": "2026-11-24",
+  "/updates/": "2026-11-25",
   "/updates/every-provider-on-real-tasks/": "2026-11-19",
   "/updates/beam-added/": "2026-11-19",
   "/updates/real-tasks-timed/": "2026-11-19",
@@ -90,6 +91,7 @@ const contentDates = {
   "/updates/maritime-added/": "2026-11-24",
   "/updates/styne-added/": "2026-11-23",
   "/updates/like-for-like-checks/": "2026-11-24",
+  "/updates/buddy-added/": "2026-11-25",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */

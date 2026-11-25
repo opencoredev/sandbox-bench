@@ -1,5 +1,34 @@
 import type { Provider } from "@/lib/data";
+import { formatGiB } from "@/lib/format";
 import type { ProviderId } from "@/lib/providers";
+
+/**
+ * Providers whose sizes are sold in decimal GB (10^9 bytes), not GiB. Their
+ * priced tiers carry the tier's GB number in the harness's `memoryGiB` field
+ * (Buddy's 4x8 is 8 GB, 7.45 GiB), and the gap to the GiB the size name
+ * suggests is what marks Buddy's 4x8 as a different machine, so their memory
+ * is always written with its unit: GB for the tier, GiB to two decimals for
+ * what was measured. Every other provider keeps the site's rounded "8 GB".
+ */
+const decimalMemory = ["buddy"] as const satisfies readonly ProviderId[];
+export const soldInDecimalGB = (id: ProviderId) => decimalMemory.some((x) => x === id);
+
+const GIB_PER_GB = 1e9 / 2 ** 30;
+/** A tier's decimal GB in GiB: 8 GB is 7.45 GiB. */
+export const gbToGiB = (gb: number) => gb * GIB_PER_GB;
+
+/** Measured memory in GiB as a provider's labels need it: "7.45 GiB" for a decimal-GB seller, the site's rounded "7.8 GB" otherwise. */
+export const measuredMemoryText = (id: ProviderId, gib: number) => (soldInDecimalGB(id) ? `${gib.toFixed(2)} GiB` : formatGiB(gib));
+
+/** Measured disk in GiB as a provider's labels need it: "45.5 GiB" for a decimal-GB seller, the site's rounded "46 GB" otherwise. */
+export const measuredDiskText = (id: ProviderId, gib: number) => (soldInDecimalGB(id) ? `${gib.toFixed(1)} GiB` : formatGiB(gib));
+
+/** Advertised capacity in chart tooltips: shows both decimal GB and binary GiB for decimal-GB sellers. */
+export function advertisedCapacityText(id: ProviderId, key: "memoryGiB" | "diskGiB", gib: number) {
+  if (!soldInDecimalGB(id)) return formatGiB(gib);
+  const gb = Math.round(gib / GIB_PER_GB);
+  return `${gb} GB (${key === "memoryGiB" ? gib.toFixed(2) : gib.toFixed(1)} GiB)`;
+}
 
 /**
  * The size each provider advertises for the sandbox we got, from its own docs
@@ -83,6 +112,13 @@ export const advertised = {
     diskGiB: 51,
     source: "https://docs.styne.ai/guide-templates",
     note: "Styne's default base template is 4 vCPU, 8 GiB RAM and a 51 GiB root disk, so both tracks ran the same machine.",
+  },
+  buddy: {
+    vcpu: 2,
+    memoryGiB: 3.73,
+    diskGiB: 46.6,
+    source: "https://buddy.works/docs/sandboxes/configuration.md",
+    note: "Buddy's default is its 2x4 size: 2 vCPU and 4 GB of RAM, in decimal GB, so 3.73 GiB inside, and a 50 GB disk, of which 45.5 GiB is usable. On the same-machine track it ran its 4x8 size: 4 vCPU and 8 GB, 7.45 GiB inside, which is why it shows as machine differs there; Buddy has no 8 GiB size.",
   },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {

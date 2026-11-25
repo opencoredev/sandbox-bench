@@ -1,11 +1,14 @@
 import {
   TASKS_PER_PRICE,
+  allocationExport,
   billingBases,
   billingLabel,
   costBasis,
   costPick,
   costStatus,
+  costNotCountedWhy,
   costTag,
+  estimateNotCounted,
   hasLowerBounds,
   isEligible,
   isLowerBound,
@@ -16,6 +19,8 @@ import {
   perTaskText,
   perThousandText,
   pickLabel,
+  pricedMemory,
+  pricedTasks,
   qualify,
   regionNote,
   statusNote,
@@ -72,7 +77,8 @@ import {
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
-import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
+import { replacedFor, replacedRunText, replacedSentence } from "@/lib/replaced-runs";
+import { advertised, gbToGiB, sharedDisk, sizeOf, soldInDecimalGB } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 import { bestFirst, hasExpanded } from "@/lib/expanded";
 import type { Expanded } from "@/lib/expanded";
@@ -357,10 +363,10 @@ export function quickPicks(track: Track): QuickPick[] {
 // What a task costs: the realistic workloads (pilot), in every export.
 
 const realisticAbout =
-  "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
+  "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GiB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, 4 vCPU and 8 GiB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
@@ -564,16 +570,63 @@ Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.c
 `;
 }
 
+interface ProvisionedAllocation {
+  cpu: number;
+  memoryGiB: number;
+  diskGiB?: number | null;
+}
+
+function isProvisionedAllocation(v: unknown): v is ProvisionedAllocation {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as Record<string, unknown>;
+  return typeof r.cpu === "number" && typeof r.memoryGiB === "number" && (r.diskGiB === undefined || r.diskGiB === null || typeof r.diskGiB === "number");
+}
+
+const requestedAllocationExport = (p: Track["providers"][number]) => {
+  const req = p.requestedAllocation;
+  const rawProv = "provisioned" in req ? req.provisioned : null;
+  if (!soldInDecimalGB(p.id) || !isProvisionedAllocation(rawProv)) return { ...req, text: requestedText(p) };
+  const provisioned = {
+    cpu: rawProv.cpu,
+    memoryGB: rawProv.memoryGiB,
+    memoryGiB: round(gbToGiB(rawProv.memoryGiB)),
+    ...(typeof rawProv.diskGiB === "number" ? { diskGB: rawProv.diskGiB, diskGiB: round(gbToGiB(rawProv.diskGiB)) } : { diskGiB: null }),
+  };
+  const compute =
+    req.size === null && req.compute !== null
+      ? { cpu: req.compute.cpu, memoryGB: req.compute.memoryGiB, memoryGiB: round(gbToGiB(req.compute.memoryGiB)) }
+      : req.compute;
+  return { ...req, compute, provisioned, text: requestedText(p) };
+};
+
+const MEMORY_MISMATCH = "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)";
+
+export function allocationVerificationExport(p: Track["providers"][number]) {
+  const req = p.requestedAllocation;
+  const rawProv = "provisioned" in req ? req.provisioned : null;
+  if (!soldInDecimalGB(p.id) || req.size !== null || !isProvisionedAllocation(rawProv) || p.measuredAllocations.length === 0) {
+    return { verified: p.allocationVerification.verified, mismatches: p.allocationVerification.mismatches };
+  }
+  const expectedGiB = gbToGiB(rawProv.memoryGiB);
+  const tol = Math.max(expectedGiB * 0.05, 96 / 1024);
+  const kept = p.allocationVerification.mismatches.filter((m) => m !== MEMORY_MISMATCH);
+  const memOutOfRange = p.measuredAllocations.some((m) => m.memoryGiB > expectedGiB || m.memoryGiB < expectedGiB - tol);
+  const mismatches = memOutOfRange ? [...kept, MEMORY_MISMATCH] : kept;
+  return {
+    verified: p.allocationVerification.verified === null ? null : mismatches.length === 0,
+    mismatches,
+  };
+}
+
 const allocationOf = (p: Track["providers"][number]) => ({
-  requested: { ...p.requestedAllocation, text: requestedText(p) },
+  requested: requestedAllocationExport(p),
   // A shared file system reports the host's disk, not the sandbox's: no size, and why.
   measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB) })),
   ...(sharedDisk[p.id] ? { diskNote: sharedDisk[p.id] } : {}),
   measuredText: measuredText(p),
   equalSpec: p.equalSpec,
-  verified: p.allocationVerification.verified,
-  mismatches: p.allocationVerification.mismatches,
-  pricedAt: p.pricingAllocation,
+  ...allocationVerificationExport(p),
+  pricedAt: p.pricingAllocation === null ? null : allocationExport({ cpu: p.pricingAllocation.cpu, memory: pricedMemory(p.id, p.pricingAllocation.memoryGiB), round: (v) => v }),
 });
 
 /** The hardware probe's findings, with how sure each one is, or null where the probe hasn't run. */
@@ -638,7 +691,7 @@ function wholeMachineOf(p: Provider) {
   const w = wholeMachine(p);
   return w.kind === "none"
     ? { perHourUsd: null, perTaskUsd: null, counterfactual: billingBases[p.id].kind === "usage", text: w.why, note: perTaskLifetimeNote }
-    : { perHourUsd: round(w.usdPerHour), ...lowerBoundField(isLowerBound(w)), perTaskUsd: null, allocation: { cpu: w.cpu, memoryGiB: round(w.memoryGiB) }, counterfactual: w.counterfactual, text: wholeMachineText(w), note: perTaskLifetimeNote };
+    : { perHourUsd: round(w.usdPerHour), ...lowerBoundField(isLowerBound(w)), perTaskUsd: null, allocation: allocationExport({ cpu: w.cpu, memory: w.memory, round }), counterfactual: w.counterfactual, text: wholeMachineText(w), note: perTaskLifetimeNote };
 }
 
 /** Where a provider's prices carry a region multiplier: the region, the multiplier and the note. Nothing otherwise. */
@@ -745,6 +798,7 @@ function trackData(track: Track) {
         reliability: { attempts: rel.attempts, succeeded: rel.succeeded, successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5 },
         failures: p.failureReasons,
         setAside: p.ourFailures,
+        replacedRuns: replacedFor(p.id, track.id),
       };
     }),
     quickPicks: hasResults(track) ? quickPicks(track) : [],
@@ -761,10 +815,10 @@ function trackData(track: Track) {
 }
 
 const about =
-  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
+  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: a 4 vCPU, 8 GiB machine (nearest size where a provider has no exact match, marked as machine differs; the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure in the published runs kept, failures caused by our own code set aside, and replaced earlier runs disclosed beside the results.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GiB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GiB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GiB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {
@@ -861,7 +915,7 @@ export function agentData() {
     task: "The quick task is: create a sandbox, run the 100-call tool replay, delete it. Cost per task comes from a separate cost run, billed per sandbox. It is a small synthetic task; whatATaskCosts has real workloads.",
     whatATaskCosts: realisticData(),
     commonSize: commonSize.label,
-    comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GB) track"],
+    comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GiB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
     ...(hasSustainedCpu(sustainedCpu) ? { sustainedCpu: sustainedCpuData(sustainedCpu) } : {}),
@@ -892,7 +946,7 @@ function trackMarkdown(id: TrackId) {
     "",
     `${wholeMachineLabel}: ${perTaskLifetimeNote} For a provider that bills usage it is a counterfactual, not its price.`,
     "",
-    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GB? | Ran in | Cost per task | Per 1,000 tasks | Cost kind | Billing status | Billing model | Whole machine at list price, per hour | Success rate |",
+    "| Provider | Asked for | Measured inside | 4 vCPU, 8 GiB? | Ran in | Cost per task | Per 1,000 tasks | Cost kind | Billing status | Billing model | Whole machine at list price, per hour | Success rate |",
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
@@ -931,10 +985,14 @@ function trackMarkdown(id: TrackId) {
   for (const p of d.providers) {
     const counted = p.failures.length === 0 ? "no failures counted against the provider." : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")})`).join("; ")}.`;
     const aside = p.setAside.map((f) => ` Set aside, not counted: ${f.reason} (${f.runs} runs, ${f.count} failed tests).`).join("");
-    lines.push(`- ${p.name}: ${counted}${aside}`);
+    const replaced = replacedSentence(p.id, id);
+    lines.push(`- ${p.name}: ${counted}${aside}${replaced ? ` ${replaced}` : ""}`);
   }
   lines.push("");
-  const rerun = d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`));
+  const rerun = [
+    ...d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`)),
+    ...d.providers.flatMap((p) => replacedFor(p.id, id).map((r) => `- ${p.name}: ${replacedRunText(r)}.`)),
+  ];
   if (rerun.length) lines.push("## Runs set aside and rerun", "", ...rerun, "");
   if (track.stress) lines.push(...stressMarkdown(track.stress));
   return lines;
@@ -1080,6 +1138,25 @@ function billingSummary() {
   return [...byLabel].map(([label, group]) => `Billing model of ${nameList(group)}: ${label}.`).join(" ");
 }
 
+/**
+ * Why Buddy is never the quick-task cost pick, from the pick rule itself (cost.ts costNotCountedWhy):
+ * its costs are list-price estimates, which Cheapest never picks on either track, and on the
+ * same-machine track its 4x8 size (8 decimal GB, 7.45 GiB) also fails the exact-size rule.
+ */
+function buddyPickLine() {
+  const why = (id: TrackId) => {
+    const t = pricedTasks(tracks[id]).find((x) => x.id === "buddy");
+    return t ? costNotCountedWhy(tracks[id], t) : [];
+  };
+  const estimate = trackIds.every((id) => why(id).includes(estimateNotCounted));
+  const same = tracks["same-spec"].providers.find((p) => p.id === "buddy");
+  const measured = same ? Math.min(...same.measuredAllocations.map((a) => a.memoryGiB)) : null;
+  const wrongSize = same !== undefined && !same.equalSpec && why("same-spec").length > (estimate ? 1 : 0) && measured !== null && Number.isFinite(measured);
+  const onSame = wrongSize ? `on the same-machine track its 4x8 size measured ${measured.toFixed(2)} GiB, not 8 GiB, so the exact-size rule leaves it out too` : "";
+  if (!estimate) return onSame ? `${onSame[0]?.toUpperCase()}${onSame.slice(1)}.` : "";
+  return `Cheapest needs a cost billed or metered by the provider, so Buddy's list-price estimates are shown but never the quick-task cost pick${onSame ? `; ${onSame}` : ""}.`;
+}
+
 /** The llms.txt guide: what the site is and where agents find each piece. */
 export function llmsTxt() {
   const picks = trackIds.flatMap((id) => {
@@ -1104,7 +1181,7 @@ ${realisticLlms()}${hasSustainedCpu(sustainedCpu) ? sustainedCpuLlms(sustainedCp
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs (commit 619307b), its costs metered from its per-sandbox usage records (GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}) at its published rates. Its sandboxes' traffic leaves from Hetzner in Falkenstein, Germany and Helsinki, Finland. Each Maritime burst of 10 and 25 started a minute apart, to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing: the first runs sent creates faster than that rate and got HTTP 429, so they are replaced and their failures, 6 besides the 429s, aren't counted. Styne joined on Nov 23: every Styne result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact billed or metered cost; list-price estimates are shown on the chart but not picked, and on the same-machine track only a provider that measured 4 vCPU and 8 GB counts. Freestyle, Luxor, Baseten, Beam and Styne costs use their list prices on our measured sandbox lifetime; Styne has no per-sandbox billing data, as its usage API reports daily account totals.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs (commit 619307b), its costs metered from its per-sandbox usage records (GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}) at its published rates. Its sandboxes' traffic leaves from Hetzner in Falkenstein, Germany and Helsinki, Finland. Each Maritime burst of 10 and 25 started a minute apart, to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing: the first runs sent creates faster than that rate and got HTTP 429, so they are replaced and their failures, 6 besides the 429s, aren't counted. Styne joined on Nov 23: every Styne result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs, all on SDK commit a5c99d2; the benchmark harness was at commit 1e5683a for the default machine's runs and 5afd423 for the 4 vCPU runs, the real tasks and Real tasks 5 at once (5afd423 passes Buddy's size when restoring a snapshot). Buddy has no usage or billing API, so its costs are its list price ($0.00024 per CPU-minute and per GB-minute, billed per started minute, storage left out) on our measured sandbox lifetime: estimates, not verified or settled bills. ${buddyPickLine()} Its sandboxes' traffic leaves from Hivelocity in New York City. Buddy allows 5,000 API requests an hour per route, resetting on the UTC hour, and our SDK checks a new sandbox's status every 200 ms, so its 4 vCPU main tests ran as two halves of 50 in separate UTC hours and its 4 vCPU bursts of 25 one an hour. Its first default-machine burst run and first 4 vCPU main run got HTTP 429 past that limit, and its first 4 vCPU snapshot run restored at the default 2 vCPU size; all three are replaced and their failures aren't counted. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact billed or metered cost; list-price estimates are shown on the chart but not picked, and on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts. Freestyle, Luxor, Baseten, Beam, Styne and Buddy costs use their list prices on our measured sandbox lifetime; Styne has no per-sandbox billing data, as its usage API reports daily account totals.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
 
 ## Data
 
@@ -1115,7 +1192,7 @@ Any snapshot or burst a chart marks as coming. Every result, cold start, SDK set
 
 ${howToReadText()}
 
-Cheapest requires a provider bill or usage meter: list-price estimates are shown on the chart but not picked. Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
+Cheapest requires a provider bill or usage meter: list-price estimates are shown on the chart but not picked. Prices cover compute only at list rates; disk, transfer, subscriptions and credits are excluded. Every call starts in Florida, so a provider hosted in Europe (Boat, in France) pays a transatlantic round trip per call. In the same-machine track, usable memory measured inside sits a little under 8 GiB; equalSpec allows 7.6 to 8.4 GiB. Amounts are US dollars unless marked EUR.
 
 ## Metrics
 
