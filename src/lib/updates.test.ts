@@ -51,14 +51,22 @@ describe("Buddy's update", () => {
 });
 
 describe("Buddy's update ranks", () => {
-  // Every rank and denominator in the post, read back from the same standings the provider page shows.
-  const placeText = (p: { rank: number; of: number }) => `${ordinal(p.rank)} of ${p.of}`;
-  const metric = (track: TrackId, id: string) => {
-    const t = providerResults("buddy").tracks.find((x) => x.id === track);
+  // Every rank and denominator in the post, read back from the same standings the provider page shows, as the
+  // field stood on Nov 25 when the post went out: Microsandbox, added after it, is taken back out of each standing.
+  type Place = { rank: number; of: number };
+  const placeText = (p: Place) => `${ordinal(p.rank)} of ${p.of}`;
+  const withoutLater = (buddy: Place, later: Place | null): Place => (later === null ? buddy : { rank: buddy.rank - (later.rank < buddy.rank ? 1 : 0), of: buddy.of - 1 });
+  const standing = (provider: "buddy" | "microsandbox", track: TrackId, id: string) => {
+    const t = providerResults(provider).tracks.find((x) => x.id === track);
     const s = t?.groups.flatMap((g) => g.rows).find((r) => r.id === id)?.standing;
-    assert.ok(s?.kind === "ranked", `${track} ${id} is ranked`);
-    return s;
+    return s?.kind === "ranked" ? s : null;
   };
+  const metric = (track: TrackId, id: string) => {
+    const s = standing("buddy", track, id);
+    assert.ok(s, `${track} ${id} is ranked`);
+    return withoutLater(s, standing("microsandbox", track, id));
+  };
+  const placedThen = (p: Place, later: { kind: string; rank?: number; of?: number }) => withoutLater(p, later.kind === "ranked" && later.rank !== undefined && later.of !== undefined ? { rank: later.rank, of: later.of } : null);
   const slowest = (track: TrackId, id: string) => {
     const s = metric(track, id);
     assert.equal(s.rank, s.of, `${track} ${id} is the slowest`);
@@ -80,9 +88,12 @@ describe("Buddy's update ranks", () => {
     const def = realTaskTime("default", "buddy", "fix-and-test");
     const same = realTaskTime("same-spec", "buddy", "fix-and-test");
     assert.ok(def.kind === "ranked" && same.kind === "ranked");
-    assert.ok(body.includes(`in 134 s (${placeText(def)}) and 96 s (${placeText(same)})`));
-    const reliability = scorecard("default", "buddy").find((e) => e.category.id === "reliability")?.rank;
-    assert.ok(reliability && reliability.rank === reliability.of);
+    assert.ok(body.includes(`in 134 s (${placeText(placedThen(def, realTaskTime("default", "microsandbox", "fix-and-test")))}) and 96 s (${placeText(placedThen(same, realTaskTime("same-spec", "microsandbox", "fix-and-test")))})`));
+    const reliabilityOf = (provider: "buddy" | "microsandbox") => scorecard("default", provider).find((e) => e.category.id === "reliability")?.rank ?? null;
+    const live = reliabilityOf("buddy");
+    assert.ok(live);
+    const reliability = withoutLater(live, reliabilityOf("microsandbox"));
+    assert.ok(reliability.rank === reliability.of);
     assert.ok(body.includes(`That leaves Buddy last of ${reliability.of} in the default machine's Reliability column`));
     assert.ok(body.includes("never picked as Cheapest"));
   });

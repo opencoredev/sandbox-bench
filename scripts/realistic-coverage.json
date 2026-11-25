@@ -20,7 +20,9 @@
       "beam-spot",
       "maritime",
       "styne",
-      "buddy"
+      "buddy",
+      "microsandbox",
+      "microsandbox-shared"
     ],
     "profiles": [
       "fix-and-test",
@@ -96,6 +98,16 @@
         "provider": "buddy",
         "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
         "short": "no billing data we can read"
+      },
+      {
+        "provider": "microsandbox",
+        "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+        "short": "stopped disk not in its usage API"
+      },
+      {
+        "provider": "microsandbox-shared",
+        "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+        "short": "stopped disk not in its usage API"
       }
     ]
   }

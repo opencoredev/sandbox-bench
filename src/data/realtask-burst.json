@@ -1690,6 +1690,242 @@
         "sdkCommit": "5afd423cd15668d7d6a4d9587ab55d7f6ae74925",
         "startedAt": "2026-11-25T07:41:14.244Z"
       }
+    },
+    {
+      "provider": "microsandbox",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 212.186,
+          "uploadS": 92.084,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 212.644,
+          "uploadS": 90.161,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 211.517,
+          "uploadS": 93.361,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 222.789,
+          "uploadS": 99.531,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 222.613,
+          "uploadS": 98.678,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 203.256,
+          "uploadS": 73.664,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 206.723,
+          "uploadS": 71.745,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 204.363,
+          "uploadS": 73.932,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 205.236,
+          "uploadS": 72.244,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 198.975,
+          "uploadS": 74.195,
+          "completed": true
+        }
+      ],
+      "medianWallS": 209.12,
+      "medianUploadS": 82.178,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        222.789,
+        206.724
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 222.789
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 206.724
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 139.272,
+            "uploadS": 41.281,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 140.885,
+            "uploadS": 34.984,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 140.079,
+      "soloMedianUploadS": 38.133,
+      "slowdown": 1.493,
+      "slowdownWithoutUpload": 1.22,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-msb-std-1124",
+        "sdkCommit": "afdf664cd181e22239e075f72dc8ee125ba334e2",
+        "startedAt": "2026-11-25T15:07:35.189Z"
+      }
+    },
+    {
+      "provider": "microsandbox-shared",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 231.074,
+          "uploadS": 81.874,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 197.419,
+          "uploadS": 75.3,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 200.091,
+          "uploadS": 75.582,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 196.048,
+          "uploadS": 72.474,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 194.212,
+          "uploadS": 74.525,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 192.707,
+          "uploadS": 75.153,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 235.574,
+          "uploadS": 77.24,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 192.366,
+          "uploadS": 75.421,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 239.1,
+          "uploadS": 78.121,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 192.631,
+          "uploadS": 72.764,
+          "completed": true
+        }
+      ],
+      "medianWallS": 196.734,
+      "medianUploadS": 75.361,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        231.075,
+        239.101
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 231.075
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 239.101
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 135.506,
+            "uploadS": 35.743,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 136.137,
+            "uploadS": 40.896,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 135.822,
+      "soloMedianUploadS": 38.32,
+      "slowdown": 1.448,
+      "slowdownWithoutUpload": 1.26,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-msb-shr-1124",
+        "sdkCommit": "afdf664cd181e22239e075f72dc8ee125ba334e2",
+        "startedAt": "2026-11-25T19:36:11.495Z"
+      }
     }
   ]
 }

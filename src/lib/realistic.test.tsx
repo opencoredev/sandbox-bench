@@ -818,7 +818,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten, Beam and Buddy \(no billing data we can read\), Superserve and Styne \(account totals only\) and Maritime \(paused disk not in its usage API\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten, Beam and Buddy \(no billing data we can read\), Superserve and Styne \(account totals only\), Maritime \(paused disk not in its usage API\) and Microsandbox \(stopped disk not in its usage API\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });

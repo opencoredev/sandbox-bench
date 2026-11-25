@@ -221,15 +221,15 @@ describe("FAQ", () => {
     assert.ok(reliability?.answer.includes(t.reliability.succeeded.toLocaleString("en-US")));
   });
 
-  test("boxd's cost on Same machine: ranked with all 16 like the home page's Cost column, with why it can't be the cheapest pick", () => {
+  test("boxd's cost on Same machine: ranked with all 18 like the home page's Cost column, with why it can't be the cheapest pick", () => {
     const e = scorecard("same-spec", "boxd").find((x) => x.category.id === "cost");
     assert.ok(e?.cell.kind === "valued" && e.rank, `boxd's cost is ${e?.cell.kind ?? "missing"}`);
     assert.equal(e.cell.display, "$5.50");
     assert.deepEqual(e.rank, { rank: 5, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
     const cost = providerFaqs("boxd")[1];
-    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 5th cheapest of 17, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
+    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 5th cheapest of 18, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
     const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
-    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 5 && chart.of === 17);
+    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 5 && chart.of === 18);
   });
 
   test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {
@@ -279,6 +279,15 @@ describe("provider page links", () => {
   test("the light module agrees with the SEO page list", () => {
     for (const id of providerPages) assert.equal(providerPageOf(id), providerPath(id));
     assert.equal(providerPageOf("vercel"), null);
+  });
+
+  test("both Microsandbox CPU tiers export outbound IP location, never a hosting location", () => {
+    const rows = trackIds.flatMap((id) => agentData().tracks[id].providers.filter((p) => p.id === "microsandbox" || p.id === "microsandbox-shared"));
+    assert.deepEqual(rows.map((p) => p.id).sort(), ["microsandbox", "microsandbox", "microsandbox-shared"]);
+    for (const p of rows) {
+      assert.equal(p.ranIn, null, p.id);
+      assert.equal(p.outboundIpLocation, "Falkenstein, DE", p.id);
+    }
   });
 
   test("egress-only providers report outbound IP location rather than proven hosting location", () => {
@@ -364,7 +373,7 @@ describe("Buddy's provider page", () => {
       assert.equal(rivalsText(t.field), `${products - 1} other sandbox products (${products - 1} providers in all)`);
     }
     const cold = providerFaqs("buddy").find((f) => f.question === "How fast is Buddy's cold start?")?.answer ?? "";
-    assert.match(cold, /17th of 17 products\./);
+    assert.match(cold, /17th of 18 products\./);
     assert.doesNotMatch(cold, /of \d+ providers/);
   });
 

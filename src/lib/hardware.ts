@@ -61,6 +61,7 @@ export const fromFingerprints = [
   { providers: ["maritime"], date: "Nov 23 and 24, 2026" },
   { providers: ["styne"], date: "Nov 23, 2026" },
   { providers: ["buddy"], date: "Nov 25, 2026" },
+  { providers: ["microsandbox"], date: "Nov 25, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -414,6 +415,25 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "Outbound traffic left from Hivelocity in New York City for every sandbox; outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
     ],
     sameSpec: "The 4 vCPU, 8 GB machine (Buddy's 4x8 size) has the same 50 GB disk, on the same AMD EPYC 9645 and LXC in KVM setup, with Hivelocity outbound IPs in New York City. Its 8 decimal GB show as 7.45 GiB, so it is marked as a different machine.",
+  },
+  microsandbox: {
+    chip: "AMD EPYC, model not named",
+    family: "The CPU names itself only as AMD EPYC, with no model number",
+    chipBasis: "inferred",
+    memory: { kind: "unknown", why: "our fingerprints of its sandboxes don't report the memory type" },
+    cloud: "Not disclosed; outbound IPs are Hetzner's (AS24940)",
+    region: "Outbound IPs are Hetzner's (AS24940) in Falkenstein, Germany for all 260 sandboxes fingerprinted in Standard's main and snapshot runs on both machines; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: null,
+    egressRegionShort: "Germany",
+    runsAs: "Virtual machine",
+    runsAsDetail: "A hypervisor is present, with Linux 6.12.118 inside",
+    storage: "4 GiB root disk (3.87 GiB usable) on the default size; 64 GiB on 4 vCPU, 8 GiB",
+    kernel: "Linux 6.12.118",
+    hidden: [
+      "The CPU names itself only as AMD EPYC, with no model number, in every one of the 260 sandboxes fingerprinted in Standard's main and snapshot runs on both machines.",
+      "Outbound traffic left from Hetzner in Falkenstein, Germany for every sandbox fingerprinted in Standard's main and snapshot runs; outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GiB machine has a 64 GiB disk instead of 4 GiB and shows 7.76 GiB of memory inside, on the same AMD EPYC virtual machine with Hetzner outbound IPs. Its Shared CPU tier showed the same.",
   },
 };
 

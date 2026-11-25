@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-25T16:38:49.219Z",
+  "generatedAt": "2026-11-25T19:53:04.848Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -23,7 +23,9 @@
         "beam-spot",
         "maritime",
         "styne",
-        "buddy"
+        "buddy",
+        "microsandbox",
+        "microsandbox-shared"
       ],
       "profiles": [
         "fix-and-test",
@@ -99,6 +101,16 @@
           "provider": "buddy",
           "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
           "short": "no billing data we can read"
+        },
+        {
+          "provider": "microsandbox",
+          "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+          "short": "stopped disk not in its usage API"
+        },
+        {
+          "provider": "microsandbox-shared",
+          "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+          "short": "stopped disk not in its usage API"
         }
       ]
     }
@@ -196,6 +208,20 @@
       "generatedAt": "2026-11-25T07:19:53.119Z",
       "providers": [
         "buddy"
+      ]
+    },
+    {
+      "name": "sbx-microsandbox/standard",
+      "generatedAt": "2026-11-25T15:07:34.830Z",
+      "providers": [
+        "microsandbox"
+      ]
+    },
+    {
+      "name": "sbx-microsandbox/shared",
+      "generatedAt": "2026-11-25T19:36:11.034Z",
+      "providers": [
+        "microsandbox-shared"
       ]
     }
   ],
@@ -2844,6 +2870,54 @@
       ]
     },
     {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "styne",
       "profile": "build",
       "track": "same-machine",
@@ -2867,6 +2941,60 @@
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 237.489,
+      "medianCpuS": 205.987,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0141589,
+        "wholeMachineUsdPerCompleted": 0.0144833,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 237.472,
+      "medianCpuS": 211.615,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00228435,
+        "wholeMachineUsdPerCompleted": 0.00234694,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
     },
     {
@@ -2896,6 +3024,54 @@
       ]
     },
     {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
       "provider": "styne",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -2919,6 +3095,60 @@
       "eligible": false,
       "flags": [
         "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 130.4,
+      "medianCpuS": 157.41,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00774883,
+        "wholeMachineUsdPerCompleted": 0.00806667,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 141.464,
+      "medianCpuS": 151.409,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00129974,
+        "wholeMachineUsdPerCompleted": 0.00136694,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
     }
   ],

@@ -30,6 +30,10 @@
  *     --parts scripts/realistic-parts/sbx-styne.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-buddy/summary.json \
  *     --parts scripts/realistic-parts/sbx-buddy.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/standard/summary.json \
+ *     --parts scripts/realistic-parts/sbx-microsandbox-standard.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/shared/summary.json \
+ *     --parts scripts/realistic-parts/sbx-microsandbox-shared.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -103,6 +107,15 @@
  * Buddy's four rows from this command's output were placed into that file's
  * order, after boxd in each group; every other row, Styne's included, keeps
  * its place and bytes.
+ *
+ * Rebuilt on 2026-11-25 with Microsandbox's two CPU tiers added (sbx-microsandbox:
+ * Standard's headline runs 12:52 to 13:23 UTC and Shared's 19:04 to 19:36 UTC,
+ * sandbox-sdk afdf664). Costs are metered from Microsandbox's per-sandbox usage
+ * API, which counts running time only, so it has no held-open run. Its default
+ * machine (1 vCPU, 512 MiB) is too small for either workload, so those rows are
+ * not run. As for Buddy, the eight Microsandbox rows from this command's output were
+ * placed into the committed file's order, last in each profile and track group;
+ * every other row and held-open entry keeps its place and bytes.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

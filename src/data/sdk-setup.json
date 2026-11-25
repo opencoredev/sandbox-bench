@@ -19,7 +19,8 @@
     "beam": 0.2,
     "maritime": 0.3,
     "styne": 0.2,
-    "buddy": 0.3
+    "buddy": 0.3,
+    "microsandbox": 0.5
   },
   "runs": {
     "baseten": {
@@ -44,6 +45,10 @@
     },
     "buddy": {
       "sdkCommit": "5afd423",
+      "date": "Nov 25, 2026"
+    },
+    "microsandbox": {
+      "sdkCommit": "afdf664",
       "date": "Nov 25, 2026"
     }
   }

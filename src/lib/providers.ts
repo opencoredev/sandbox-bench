@@ -11,11 +11,13 @@
  * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
  * left), and Styne's violet (its mark is black and white; no colour left in
  * sRGB keeps ΔE ≥ 6.7 from every other, and this one, at 6.1 from Freestyle's periwinkle under deuteranopia, is
- * about the best gap left), and Buddy's own blue, lightened toward periwinkle to stay clear of Styne's violet
+ * about the best gap left), Buddy's own blue, lightened toward periwinkle to stay clear of Styne's violet
  * (13.0 from Styne in normal vision, 11.2 under protanopia and 7.0 under deuteranopia; its nearest is Daytona,
- * 7.5 in normal vision and 5.7 under deuteranopia, the lowest pair on the page, and no blue left in sRGB keeps a
- * wider gap from every other), with lightness spread so every pair stays apart under
- * protanopia and deuteranopia (OKLab ΔE ≥ 5.7; names and logos sit beside
+ * 7.5 in normal vision and 5.7 under deuteranopia, and no blue left in sRGB keeps a wider gap from every other),
+ * and Microsandbox's green (its purple is taken twice over, by Styne's violet and Freestyle's periwinkle, and no violet
+ * left keeps ΔE ≥ 5.5 from both under colour-blind simulation; this one is 15.9 from its nearest in normal vision and 5.6
+ * from Beam's coral under protanopia, the lowest pair on the page), with lightness spread so every pair stays apart under
+ * protanopia and deuteranopia (OKLab ΔE ≥ 5.5; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
@@ -37,11 +39,13 @@ export const providerInfo = {
   maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
   styne: { name: "Styne", color: "oklch(0.72 0.18 304)" },
   buddy: { name: "Buddy", color: "oklch(0.78 0.11 266)" },
+  microsandbox: { name: "Microsandbox", color: "oklch(0.7 0.23 142)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
+  "microsandbox-shared": { name: "Microsandbox Shared", color: "oklch(0.7 0.23 142)", short: "Microsandbox", tag: "Shared", brand: "microsandbox" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;
@@ -103,6 +107,7 @@ const cpuCaveats: Partial<Record<ProviderId, CpuCaveat>> = {
   styne: { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" },
   "beam-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs, not preemptible" },
   "beam-spot": { cpu: "spot", short: "Spot · preemptible", detail: "Spare capacity, can be stopped with 30 seconds' notice" },
+  "microsandbox-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk" },
 };
 
 /** The row's CPU caveat, or null when its CPU has none to state. */
@@ -118,8 +123,8 @@ export interface CpuTier {
   cpu: CpuClass;
   /** The provider can stop it before the task ends, so it is never picked as cheapest. */
   preemptible: boolean;
-  /** List rates in US dollars. */
-  rates: { vcpuHour: number; memoryGiBHour: number };
+  /** List rates in US dollars; disk only where the provider bills it. */
+  rates: { vcpuHour: number; memoryGiBHour: number; diskGiBHour?: number };
   /** What the provider says about it, in a few words. */
   promise: string;
 }
@@ -141,6 +146,10 @@ export const cpuTiers = {
     { id: "beam-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.011, memoryGiBHour: 0.0055 }, promise: "Shared vCPUs, not preemptible, up to 8 vCPU and 16 GiB" },
     { id: "beam-spot", name: "Spot", cpu: "spot", preemptible: true, rates: { vcpuHour: 0.0063, memoryGiBHour: 0.00135 }, promise: "Spare capacity, can be stopped with 30 seconds' notice" },
   ],
+  microsandbox: [
+    { id: "microsandbox", name: "Standard", cpu: "dedicated", preemptible: false, rates: { vcpuHour: 0.048, memoryGiBHour: 0.003, diskGiBHour: 0.0000625 }, promise: "Reserved vCPUs" },
+    { id: "microsandbox-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.007, memoryGiBHour: 0.000375, diskGiBHour: 0.0000625 }, promise: "Shared vCPUs with dedicated memory and disk" },
+  ],
 } as const satisfies Partial<Record<ProviderId, readonly [CpuTier, ...CpuTier[]]>>;
 
 export type TieredProvider = keyof typeof cpuTiers;
@@ -152,10 +161,16 @@ export const tierSources = {
     checked: "Nov 20, 2026",
     note: "Every tier's real tasks ran on Nov 20, one tier at a time, 5 runs each; Beam's own real-task results are that day's Performance run. Performance's quick tests are Beam's own row, from Nov 18: a same-day rerun on the same Intel hosts in Warrenton came within 7% on cold start, commands, 100 tool calls and every CPU, memory and disk test, and took 3.6 s for the 10 MB write and read against 2.9 s. Five Fix and test runs at once, against the same task alone that day, took 1.23 times as long on Performance, 1.40 on Shared and 1.48 on Spot. No Spot sandbox was taken back, but each lived at most 4 minutes, so this says little about long Spot work.",
   },
+  microsandbox: {
+    url: "https://microsandbox.dev/pricing",
+    checked: "Nov 24, 2026",
+    note: "Both tiers ran on Nov 25, one tier at a time, on the same 4 vCPU, 8 GiB, 64 GiB machine: Standard's quick tests from 09:02 to 11:44 UTC and Shared's from 15:19 to 18:00 UTC. Shared's cold start (6.5 s against 6.8 s) and a command (1.1 s on both) came within 5% of Standard's, and its Fix and test runs took 141 s against 130 s at about a sixth of the metered cost ($1.30 against $7.75 per 1,000, provisional usage meters). In bursts of 25 at once, 33 of Shared's 75 creates failed with no answer from the guest agent; all of Standard's succeeded. Five Fix and test runs at once, against the same task alone that day, took 1.49 times as long on Standard and 1.45 on Shared.",
+  },
 } as const satisfies Record<TieredProvider, { url: string; checked: string; note: string }>;
 
-/** A tier's list price per hour for a machine. */
-export const tierHourly = (t: Pick<CpuTier, "rates">, m: { cpu: number; memoryGiB: number }) => t.rates.vcpuHour * m.cpu + t.rates.memoryGiBHour * m.memoryGiB;
+/** A tier's list price per hour for a machine, its disk included where the tier bills disk. */
+export const tierHourly = (t: Pick<CpuTier, "rates">, m: { cpu: number; memoryGiB: number; diskGiB?: number }) =>
+  t.rates.vcpuHour * m.cpu + t.rates.memoryGiBHour * m.memoryGiB + (t.rates.diskGiBHour ?? 0) * (m.diskGiB ?? 0);
 
 const tierList: readonly CpuTier[] = Object.values(cpuTiers).flat();
 

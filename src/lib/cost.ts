@@ -1,7 +1,7 @@
 import type { PriceBound, Provider, TaskCost, Track } from "@/lib/data";
 import { usdPrice } from "@/lib/fx";
 import { allocationNotes } from "@/lib/notes";
-import { isExtraTier, isPreemptible, providerName } from "@/lib/providers";
+import { isExtraTier, isPreemptible, providerName, tierOf } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { gbToGiB, soldInDecimalGB } from "@/lib/sizes";
 
@@ -248,6 +248,18 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep and stops metering only when no user process is running inside it (a background process keeps it running and billed unless idleTimeout is set), so actual charges can sit below elapsed-time estimates when the sandbox sleeps between calls.",
   },
+  microsandbox: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, and its disk until it is deleted",
+    evidence:
+      "microsandbox.dev/pricing and GET /v1/billing (checked Nov 24, 2026): on the Standard tier, $0.048 per vCPU-hour, $0.003 per GiB of RAM per hour and $0.0000625 per GiB of root disk per hour while a sandbox runs; a stopped sandbox keeps paying for its root disk until it is deleted. Its per-sandbox usage (GET /v1/billing/usage/sandbox) meters running time only.",
+  },
+  "microsandbox-shared": {
+    kind: "machine",
+    label: "bills the whole machine while it runs, and its disk until it is deleted",
+    evidence:
+      "microsandbox.dev/pricing and GET /v1/billing (checked Nov 24, 2026): on the Shared tier, $0.007 per vCPU-hour on shared vCPUs, $0.000375 per GiB of RAM per hour and $0.0000625 per GiB of root disk per hour while a sandbox runs; a stopped sandbox keeps paying for its root disk until it is deleted. Its per-sandbox usage (GET /v1/billing/usage/sandbox) meters running time only.",
+  },
   buddy: {
     kind: "machine",
     label: "bills the whole machine size while it exists, per started minute",
@@ -290,7 +302,7 @@ export function billingLabel(b: BillingBasis) {
  * For a provider that bills usage it is a counterfactual, never its price.
  */
 export type WholeMachine =
-  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memory: MachineMemory; counterfactual: boolean; bound: PriceBound | null }
+  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memory: MachineMemory; diskGiB: number | null; counterfactual: boolean; bound: PriceBound | null }
   | { kind: "none"; why: string };
 
 /**
@@ -325,9 +337,14 @@ export const perTaskLifetimeNote =
 export function wholeMachine(p: Provider): WholeMachine {
   const price = usdPrice(p, "hourly");
   if (price === null || p.pricingAllocation === null) return { kind: "none", why: "no list price for the machine it ran" };
+  // The harness prices compute only; a tier that bills its root disk adds the disk the run asked for.
+  const diskRate = tierOf(p.id)?.rates.diskGiBHour;
+  const size = p.requestedAllocation.size;
+  const diskGiB = diskRate !== undefined && typeof size === "object" && size !== null && size.diskGb !== undefined ? size.diskGb : null;
   return {
     kind: "hourly",
-    usdPerHour: price.usd,
+    usdPerHour: price.usd + (diskGiB === null || diskRate === undefined ? 0 : diskRate * diskGiB),
+    diskGiB,
     converted: price.converted,
     cpu: p.pricingAllocation.cpu,
     memory: pricedMemory(p.id, p.pricingAllocation.memoryGiB),
@@ -368,7 +385,7 @@ export function machineText(w: Extract<WholeMachine, { kind: "hourly" }>) {
 /** "$0.391 an hour for 4 vCPU, 16 GiB (from euros), counterfactual: …", one line for agent files. */
 export function wholeMachineText(w: WholeMachine) {
   if (w.kind === "none") return w.why;
-  return `${hourlyText(w)} for ${machineText(w)}${w.converted ? " (converted from euros)" : ""}${w.counterfactual ? ", counterfactual: it bills usage, not the whole machine" : ""}${isLowerBound(w) ? ", a lower bound: it also bills use above the request" : ""}`;
+  return `${hourlyText(w)} for ${machineText(w)}${w.diskGiB === null ? "" : ` and its ${w.diskGiB} GiB disk`}${w.converted ? " (converted from euros)" : ""}${w.counterfactual ? ", counterfactual: it bills usage, not the whole machine" : ""}${isLowerBound(w) ? ", a lower bound: it also bills use above the request" : ""}`;
 }
 
 /**

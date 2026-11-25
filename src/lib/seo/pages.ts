@@ -76,6 +76,7 @@ const contentDates = {
   "/providers/maritime/": "2026-11-24",
   "/providers/styne/": "2026-11-23",
   "/providers/buddy/": "2026-11-25",
+  "/providers/microsandbox/": "2026-11-25",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
@@ -92,6 +93,7 @@ const contentDates = {
   "/updates/styne-added/": "2026-11-23",
   "/updates/like-for-like-checks/": "2026-11-24",
   "/updates/buddy-added/": "2026-11-25",
+  "/updates/microsandbox-added/": "2026-11-25",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */
