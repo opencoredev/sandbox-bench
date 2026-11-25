@@ -11,7 +11,7 @@ import { realistic } from "@/lib/realistic-data";
 import { rankScores } from "@/lib/score";
 import { trackScores } from "@/lib/score-categories";
 import { isProviderPage, providerPages, providerPath } from "@/lib/seo/pages";
-import { faqJsonLd, highlights, providerFaqs, providerNotes, providerResults, providerSummary, realTaskCost, realTaskTime, scorecard, verdict } from "@/lib/seo/provider";
+import { faqJsonLd, fieldText, highlights, providerFaqs, providerNotes, providerResults, providerSummary, realTaskCost, realTaskTime, rivalsText, scorecard, verdict } from "@/lib/seo/provider";
 
 // Provider pages quote the site's own notes, so a note must reach the right provider and no other. Run with `bun test`.
 
@@ -310,5 +310,59 @@ describe("provider page links", () => {
       assert.deepEqual(p.hardware.location, [{ value: "New York City, US", count: 130 }]);
     }
     assert.match(hardware.buddy?.region ?? "", /all 260 sandboxes fingerprinted/);
+  });
+});
+
+describe("Buddy's provider page", () => {
+  test("a provider marked machine differs never reads as the same 4 vCPU, 8 GB machine", () => {
+    for (const id of ["buddy", "boxd"] as const) {
+      const r = providerResults(id);
+      const same = r.tracks.find((t) => t.id === "same-spec");
+      assert.ok(same && !same.machine.equalSpec, `${id} is marked machine differs`);
+      const texts = [providerSummary(id), verdict(same, id), ...providerFaqs(id).map((f) => f.answer), JSON.stringify(faqJsonLd(providerFaqs(id)))];
+      for (const t of texts) assert.doesNotMatch(t, /the same 4 vCPU, 8 GB machine/, `${id}: ${t}`);
+      assert.match(verdict(same, id), /^On its nearest size to 4 vCPU, 8 GB \(4 vCPU, [\d.]+ Gi?B measured inside, so the machine differs\)/);
+    }
+    assert.match(providerSummary("buddy"), /^Buddy sandbox on its nearest size to 4 vCPU, 8 GB \(4 vCPU, 7\.45 GiB measured inside, so the machine differs\)/);
+    // An equal-size provider keeps the plain wording.
+    assert.match(providerSummary("maritime"), /^Maritime sandbox on the same 4 vCPU, 8 GB machine:/);
+    // The machine note describes the 4x8 size Buddy actually sells.
+    const note = providerResults("buddy").tracks.find((t) => t.id === "same-spec")?.machine.note ?? "";
+    assert.match(note, /^ran 4 vCPU, 7\.45 GiB, not 4 vCPU, 8 GB\. Buddy sells memory in decimal GB: its 4x8 size is 4 vCPU and 8 GB \(8,000,000,000 bytes\), which is 7\.45 GiB/);
+  });
+
+  test("the reliability answer and its JSON-LD say the counts are the published runs, and name the replaced ones", () => {
+    const faq = providerFaqs("buddy").find((f) => f.question === "How reliable is Buddy?");
+    assert.ok(faq);
+    const a = faq.answer;
+    assert.doesNotMatch(a, /1,076 of 1,076 attempts succeeded/, "the figure is qualified");
+    assert.equal((a.match(/1,076 of 1,076 attempts in the published runs succeeded \(100\.00%\)/g) ?? []).length, 2);
+    // Default machine: the first bursts, one HTTP 429 and 9 ownership-verification failures.
+    assert.match(a, /its first bursts \(Nov 25, 01:32 UTC\), where 10 creates in its bursts of 10 failed: Buddy answered one status check with HTTP 429.*9 failed with a provider request error, their sandboxes' ownership unverified; rerun at 02:01 UTC/);
+    // Same machine: the main run's 429 at create 98 plus 3 DNS failures on one preview, and the wrong-size snapshot run before 5afd423.
+    assert.match(a, /its first main run of 100 \(Nov 25\), where Buddy answered its 98th create with HTTP 429, and one preview's new hostname didn't resolve yet \(3 DNS lookup failures on its retries\)/);
+    assert.match(a, /its first snapshot run \(Nov 25\), where our harness restored 6 snapshots at Buddy's default 2x4 size instead of 4x8, since fixed in harness commit 5afd423/);
+    const ld = JSON.stringify(faqJsonLd(providerFaqs("buddy")));
+    assert.ok(ld.includes(JSON.stringify(a).slice(1, -1)), "the JSON-LD answer is the page's answer");
+    // A provider with no replaced run keeps the plain count.
+    const boxd = providerFaqs("boxd").find((f) => f.question === "How reliable is boxd?")?.answer ?? "";
+    assert.doesNotMatch(boxd, /published runs|Not in these counts/);
+    // Maritime's replaced 429 runs are named beside its counts too, its recorded failures unchanged.
+    const maritime = providerFaqs("maritime").find((f) => f.question === "How reliable is Maritime?")?.answer ?? "";
+    assert.match(maritime, /Not in these counts, because we replaced the runs.*refused its first 27 creates with HTTP 429/);
+    assert.match(maritime, /with failures recorded: Maritime POST \/sandboxes\/\{id\}\/pause failed/);
+  });
+
+  test("ranks count products, apart from providers, as the home page does (Upstash sells two products)", () => {
+    const r = providerResults("buddy");
+    for (const t of r.tracks) {
+      const products = tracks[t.id].providers.filter((p) => !isExtraTier(p.id)).length;
+      assert.deepEqual(t.field, { providers: products - 1, products });
+      assert.equal(fieldText(t.field), `${products - 1} providers, ${products} products`);
+      assert.equal(rivalsText(t.field), `${products - 1} other sandbox products (${products - 1} providers in all)`);
+    }
+    const cold = providerFaqs("buddy").find((f) => f.question === "How fast is Buddy's cold start?")?.answer ?? "";
+    assert.match(cold, /16th of 16 products\./);
+    assert.doesNotMatch(cold, /of \d+ providers/);
   });
 });

@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { costNotCountedWhy, costPick, costStatus, estimateNotCounted, costTag, isEligible, pricedTasks, taskCostOf, unpricedTasks } from "@/lib/cost";
+import { agentData, llmsTxt } from "@/lib/agent-data";
+import { costNotCountedWhy, costPick, costStatus, estimateNotCounted, costTag, isEligible, machineText, pricedTasks, taskCostOf, unpricedTasks, wholeMachine } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 import type { TaskCost, Track } from "@/lib/data";
+import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 // The cost eligibility table and the pick built on it. Run with `bun test`.
@@ -154,5 +156,52 @@ describe("cost pick", () => {
   test("no costs at all: empty", () => {
     const base = tracks["same-spec"];
     assert.equal(costPick({ ...base, costs: {} } as typeof base).kind, "empty");
+  });
+});
+
+describe("Buddy's decimal GB", () => {
+  test("its priced tiers keep 8 and 4 decimal GB apart from the GiB they measure", () => {
+    const want = { "same-spec": { cpu: 4, gb: 8, gib: 7.451, measured: "4 vCPU, 7.45 GiB" }, default: { cpu: 2, gb: 4, gib: 3.725, measured: "2 vCPU, 3.73 GiB" } } as const;
+    for (const id of trackIds) {
+      const p = tracks[id].providers.find((x) => x.id === "buddy");
+      assert.ok(p);
+      const w = wholeMachine(p);
+      assert.ok(w.kind === "hourly");
+      assert.equal(w.memory.unit, "GB");
+      assert.equal(machineText(w), `${want[id].cpu} vCPU, ${want[id].gb} GB (${want[id].gib.toFixed(2)} GiB)`);
+      const out = agentData().tracks[id].providers.find((x) => x.id === "buddy");
+      assert.ok(out && "allocation" in out.wholeMachineAtListPrice);
+      assert.deepEqual(out.wholeMachineAtListPrice.allocation, { cpu: want[id].cpu, memoryGB: want[id].gb, memoryGiB: want[id].gib });
+      assert.equal(out.allocation.pricedAt?.memoryGB, want[id].gb);
+      assert.equal(out.allocation.measuredText, want[id].measured);
+      assert.doesNotMatch(out.wholeMachineAtListPrice.text, /\d GiB\b(?! *\))/, "no tier is labelled GiB");
+    }
+  });
+
+  test("every other provider keeps its GiB allocation and wording", () => {
+    for (const id of trackIds)
+      for (const p of tracks[id].providers.filter((x) => x.id !== "buddy")) {
+        const w = wholeMachine(p);
+        if (w.kind !== "hourly" || p.pricingAllocation === null) continue;
+        assert.deepEqual(w.memory, { unit: "GiB", gib: p.pricingAllocation.memoryGiB });
+        assert.equal(machineText(w), `${w.cpu} vCPU, ${Number(p.pricingAllocation.memoryGiB.toFixed(1))} GiB`);
+        const out = agentData().tracks[id].providers.find((x) => x.id === p.id);
+        assert.deepEqual(out?.allocation.pricedAt, p.pricingAllocation);
+      }
+  });
+
+  test("llms.txt gives the pick rule's own reasons Buddy isn't the quick-task cost pick", () => {
+    const text = llmsTxt();
+    assert.doesNotMatch(text, /never names it cheapest/);
+    const def = costPick(tracks.default);
+    assert.ok(def.kind === "picked" && def.pick.id !== "buddy");
+    assert.ok(text.includes(`An exact estimate can still be the quick-task cost pick: on the default machines ${providerName(def.pick.id)}'s cost is lower; on the same-machine track Buddy's 4x8 size measured 7.45 GiB, not 8 GiB, so the exact-size rule leaves it out of the pick.`));
+    assert.match(text, /estimates, not verified or settled bills/);
+  });
+
+  test("Buddy's provenance keeps the SDK commit apart from the harness commits", () => {
+    const text = llmsTxt();
+    assert.match(text, /all on SDK commit a5c99d2; the benchmark harness was at commit 1e5683a for the default machine's runs and 5afd423 for the 4 vCPU runs/);
+    assert.doesNotMatch(text, /commit 5afd423; its default-machine runs used a5c99d2/);
   });
 });

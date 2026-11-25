@@ -22,7 +22,9 @@
  * unchanged.
  *
  * Buddy was added on 2026-11-25 the same way, from its own run (rtb-buddy-1124,
- * started 07:41 UTC on Nov 25, sandbox-sdk 5afd423, the same plan); every other
+ * started 07:41 UTC on Nov 25, the same plan, from a sandbox-sdk checkout at
+ * 5afd423: harness commit 5afd423, SDK commit a5c99d2. The run file's
+ * sdkCommit field records that checkout, 5afd423); every other
  * provider's entry, Maritime's included, is unchanged.
  *
  * What it changes on the way:

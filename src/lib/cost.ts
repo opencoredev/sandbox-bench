@@ -3,6 +3,7 @@ import { usdPrice } from "@/lib/fx";
 import { allocationNotes } from "@/lib/notes";
 import { isExtraTier, isPreemptible, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
+import { gbToGiB, soldInDecimalGB } from "@/lib/sizes";
 
 export type Priced = Exclude<TaskCost, { kind: "none" }>;
 export type PricedKind = Priced["kind"];
@@ -289,8 +290,33 @@ export function billingLabel(b: BillingBasis) {
  * For a provider that bills usage it is a counterfactual, never its price.
  */
 export type WholeMachine =
-  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memoryGiB: number; counterfactual: boolean; bound: PriceBound | null }
+  | { kind: "hourly"; usdPerHour: number; converted: boolean; cpu: number; memory: MachineMemory; counterfactual: boolean; bound: PriceBound | null }
   | { kind: "none"; why: string };
+
+/**
+ * A priced size's memory in the unit the provider sells it in. Most sell GiB;
+ * a decimal-GB seller (lib/sizes.ts) is priced on its tier's GB, which is
+ * fewer GiB (Buddy's 8 GB tier is 7.45 GiB), so both are kept.
+ */
+export type MachineMemory = { unit: "GiB"; gib: number } | { unit: "GB"; gb: number; gib: number };
+
+/** The harness's pricing allocation memory, read in the provider's own unit: its `memoryGiB` is the tier's GB for a decimal-GB seller. */
+export const pricedMemory = (id: ProviderId, tierMemory: number): MachineMemory =>
+  soldInDecimalGB(id) ? { unit: "GB", gb: tierMemory, gib: gbToGiB(tierMemory) } : { unit: "GiB", gib: tierMemory };
+
+/** A priced allocation for the agent files: memoryGiB always in GiB, plus memoryGB where the provider sells decimal GB. */
+export const allocationExport = ({ cpu, memory, round }: { cpu: number; memory: MachineMemory; round: (v: number) => number | null }) => {
+  switch (memory.unit) {
+    case "GiB":
+      return { cpu, memoryGiB: round(memory.gib) };
+    case "GB":
+      return { cpu, memoryGB: memory.gb, memoryGiB: round(memory.gib) };
+    default: {
+      const _exhaustive: never = memory;
+      return _exhaustive;
+    }
+  }
+};
 
 export const wholeMachineLabel = "Whole machine at list price";
 export const perTaskLifetimeNote =
@@ -304,7 +330,7 @@ export function wholeMachine(p: Provider): WholeMachine {
     usdPerHour: price.usd,
     converted: price.converted,
     cpu: p.pricingAllocation.cpu,
-    memoryGiB: p.pricingAllocation.memoryGiB,
+    memory: pricedMemory(p.id, p.pricingAllocation.memoryGiB),
     counterfactual: billingBases[p.id].kind === "usage",
     bound: p.pricingBound,
   };
@@ -324,8 +350,20 @@ export function regionNote(p: Pick<Provider, "id" | "pricingRegion" | "regionMul
 export const hourlyText = (w: Extract<WholeMachine, { kind: "hourly" }>, style: BoundStyle = "prose") =>
   `${qualify({ amount: `$${w.usdPerHour.toFixed(3)}`, bound: w.bound, style })} an hour`;
 
-/** "4 vCPU, 16 GiB". */
-export const machineText = (w: Extract<WholeMachine, { kind: "hourly" }>) => `${w.cpu} vCPU, ${Number(w.memoryGiB.toFixed(1))} GiB`;
+/** "4 vCPU, 16 GiB", or "4 vCPU, 8 GB (7.45 GiB)" for a size sold in decimal GB. */
+export function machineText(w: Extract<WholeMachine, { kind: "hourly" }>) {
+  const m = w.memory;
+  switch (m.unit) {
+    case "GiB":
+      return `${w.cpu} vCPU, ${Number(m.gib.toFixed(1))} GiB`;
+    case "GB":
+      return `${w.cpu} vCPU, ${Number(m.gb.toFixed(1))} GB (${m.gib.toFixed(2)} GiB)`;
+    default: {
+      const _exhaustive: never = m;
+      return _exhaustive;
+    }
+  }
+}
 
 /** "$0.391 an hour for 4 vCPU, 16 GiB (from euros), counterfactual: …", one line for agent files. */
 export function wholeMachineText(w: WholeMachine) {

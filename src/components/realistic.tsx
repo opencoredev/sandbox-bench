@@ -38,6 +38,7 @@ import {
   taskPick,
   wallText,
   wilsonText,
+  wrongSizeWhy,
 } from "@/lib/realistic";
 import type { Costed, IdleGroup, IdlePoint, ProfileId, RealisticData, RealisticRow, RunTrack } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
@@ -139,7 +140,9 @@ function RowDetails({ row, track }: { row: RealisticRow; track: TrackId | undefi
   const lines = [
     ...(row.cost ? [] : [`${cap(noCostReason(row))}.`]),
     // Only what the runs did (failures, machine size); how the cost was priced isn't graded.
-    ...flagsOf(row).flatMap((f) => (f.status === null && f.short !== "not eligible" && f.short !== "not attributable" ? [sentence(cap(f.text))] : [])),
+    ...flagsOf(row).flatMap((f) => (f.status === null && f.short !== "not eligible" && f.short !== "not attributable" && f.short !== "wrong size" ? [sentence(cap(f.text))] : [])),
+    // The size reason the pick uses: the harness's flag, or the track's own exact-size rule where the flag is missing.
+    ...wrongSizeWhy(row).map((t) => sentence(cap(t))),
     ...(row.costNote ? [sentence(cap(row.costNote))] : []),
     ...[track ? regionFor(row.provider, track) : null].flatMap((r) => (r ? [sentence(cap(r.long))] : [])),
     ...(notRun(row) ? [] : [`Completed ${completedText(row)}, 95% interval ${wilsonText(row)}.`]),

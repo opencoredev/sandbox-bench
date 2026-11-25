@@ -91,7 +91,8 @@
  * held-open entries came out unchanged.
  *
  * Rebuilt on 2026-11-25 with Buddy added (sbx-buddy: headline runs that day,
- * 04:27 to 07:19 UTC, sandbox-sdk 5afd423 on the buddy-provider branch). Buddy
+ * 04:27 to 07:19 UTC, sandbox-sdk checkout 5afd423 on the buddy-provider branch:
+ * harness commit 5afd423, SDK commit a5c99d2). Buddy
  * has no usage or billing API, so its costs are list-price estimates
  * (buddy.works/pricing, per started minute) and it has no held-open run. Its
  * five incomplete runs (Build on the 2 vCPU, 4 GB default, each past the

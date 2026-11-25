@@ -35,3 +35,14 @@ describe("updates", () => {
     for (const u of updates) assert.match(homeHref(u), /^\/#[\w-]+(\/[\w-]+)?$/);
   });
 });
+
+describe("Buddy's update", () => {
+  test("names the SDK commit apart from each track's harness commit", () => {
+    const u = updates.find((x) => x.slug === "buddy-added");
+    assert.ok(u);
+    const body = u.body.join(" ");
+    assert.match(body, /all on SDK commit a5c99d2; the benchmark harness was at commit 1e5683a for the default machine's runs and 5afd423 for the 4 vCPU runs and the real tasks/);
+    assert.match(body, /we fixed that in harness commit 5afd423 and reran it/);
+    assert.doesNotMatch(body, /sandbox-sdk 5afd423|used a5c99d2, the same SDK code/);
+  });
+});

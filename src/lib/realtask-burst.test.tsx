@@ -59,7 +59,7 @@ describe("real tasks at once", () => {
     assert.match(text, /not run: the account allows 10 vCPU/);
   });
 
-  test("a provider from a later run carries that run, and the notes name its day and SDK commit", () => {
+  test("a provider from a later run carries that run, and the notes name its day and sandbox-sdk commit", () => {
     const later = structuredClone(fixture) as { providers: Record<string, unknown>[] };
     later.providers[0] = { ...later.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "2026-11-23T20:00:00Z" } };
     const data = parseRealtaskBurst(later);
@@ -69,7 +69,7 @@ describe("real tasks at once", () => {
     assert.equal(e2b?.status === "ran" && e2b.run, null);
     const text = renderToStaticMarkup(<RealtaskBurstChart data={data} />).replace(/<[^>]+>/g, " ");
     assert.match(text, /all on one day \(Nov 19; Modal on Nov 23\)/);
-    assert.match(text, /SDK commit abcdef1; Modal(?:'|&#x27;)s 1234567\)/);
+    assert.match(text, /sandbox-sdk commit abcdef1; Modal(?:'|&#x27;)s 1234567\)/);
     const bad = structuredClone(later);
     bad.providers[0] = { ...bad.providers[0], run: { id: "rtb-later" } };
     assert.throws(() => parseRealtaskBurst(bad), /run\.sdkCommit/);
