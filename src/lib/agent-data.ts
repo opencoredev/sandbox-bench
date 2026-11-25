@@ -359,7 +359,7 @@ export function quickPicks(track: Track): QuickPick[] {
 // What a task costs: the realistic workloads (pilot), in every export.
 
 const realisticAbout =
-  "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
+  "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GiB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
   "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, 4 vCPU and 8 GiB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
@@ -595,7 +595,9 @@ const requestedAllocationExport = (p: Track["providers"][number]) => {
   return { ...req, compute, provisioned, text: requestedText(p) };
 };
 
-function allocationVerificationExport(p: Track["providers"][number]) {
+const MEMORY_MISMATCH = "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)";
+
+export function allocationVerificationExport(p: Track["providers"][number]) {
   const req = p.requestedAllocation;
   const rawProv = "provisioned" in req ? req.provisioned : null;
   if (!soldInDecimalGB(p.id) || req.size !== null || !isProvisionedAllocation(rawProv) || p.measuredAllocations.length === 0) {
@@ -603,14 +605,13 @@ function allocationVerificationExport(p: Track["providers"][number]) {
   }
   const expectedGiB = gbToGiB(rawProv.memoryGiB);
   const tol = Math.max(expectedGiB * 0.05, 96 / 1024);
-  const mismatches: string[] = [];
-  for (const m of p.measuredAllocations) {
-    if (m.cpu !== rawProv.cpu) mismatches.push(`cpu ${m.cpu} != ${rawProv.cpu}`);
-    if (Math.abs(m.memoryGiB - expectedGiB) > tol) {
-      mismatches.push(`memory ${m.memoryGiB.toFixed(3)} GiB != ${rawProv.memoryGiB} GB (${expectedGiB.toFixed(3)} GiB)`);
-    }
-  }
-  return { verified: mismatches.length === 0, mismatches };
+  const kept = p.allocationVerification.mismatches.filter((m) => m !== MEMORY_MISMATCH);
+  const memOutOfRange = p.measuredAllocations.some((m) => m.memoryGiB > expectedGiB || m.memoryGiB < expectedGiB - tol);
+  const mismatches = memOutOfRange ? [...kept, MEMORY_MISMATCH] : kept;
+  return {
+    verified: p.allocationVerification.verified === null ? null : mismatches.length === 0,
+    mismatches,
+  };
 }
 
 const allocationOf = (p: Track["providers"][number]) => ({

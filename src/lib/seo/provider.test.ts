@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { agentData, llmsTxt } from "@/lib/agent-data";
+import { agentData, allocationVerificationExport, llmsTxt } from "@/lib/agent-data";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { hardware, locationLabel } from "@/lib/hardware";
@@ -316,18 +316,18 @@ describe("provider page links", () => {
 });
 
 describe("Buddy's provider page", () => {
-  test("a provider marked machine differs never reads as the same 4 vCPU, 8 GB machine", () => {
+  test("a provider marked machine differs never reads as the same 4 vCPU, 8 GiB machine", () => {
     for (const id of ["buddy", "boxd"] as const) {
       const r = providerResults(id);
       const same = r.tracks.find((t) => t.id === "same-spec");
       assert.ok(same && !same.machine.equalSpec, `${id} is marked machine differs`);
       const texts = [providerSummary(id), verdict(same, id), ...providerFaqs(id).map((f) => f.answer), JSON.stringify(faqJsonLd(providerFaqs(id)))];
-      for (const t of texts) assert.doesNotMatch(t, /the same 4 vCPU, 8 GB machine/, `${id}: ${t}`);
-      assert.match(verdict(same, id), /^On its nearest size to 4 vCPU, 8 GB \(4 vCPU, [\d.]+ Gi?B measured inside, so the machine differs\)/);
+      for (const t of texts) assert.doesNotMatch(t, /the same 4 vCPU, 8 Gi?B machine/, `${id}: ${t}`);
+      assert.match(verdict(same, id), /^On its nearest size to 4 vCPU, 8 GiB \(4 vCPU, [\d.]+ Gi?B measured inside, so the machine differs\)/);
     }
-    assert.match(providerSummary("buddy"), /^Buddy sandbox on its nearest size to 4 vCPU, 8 GB \(4 vCPU, 7\.45 GiB measured inside, so the machine differs\)/);
+    assert.match(providerSummary("buddy"), /^Buddy sandbox on its nearest size to 4 vCPU, 8 GiB \(4 vCPU, 7\.45 GiB measured inside, so the machine differs\)/);
     // An equal-size provider keeps the plain wording.
-    assert.match(providerSummary("maritime"), /^Maritime sandbox on the same 4 vCPU, 8 GB machine:/);
+    assert.match(providerSummary("maritime"), /^Maritime sandbox on the same 4 vCPU, 8 GiB machine:/);
     // The machine note describes the 4x8 size Buddy actually sells.
     const note = providerResults("buddy").tracks.find((t) => t.id === "same-spec")?.machine.note ?? "";
     assert.match(note, /^ran 4 vCPU, 7\.45 GiB, not 4 vCPU, 8 GiB\. Buddy sells memory in decimal GB: its 4x8 size is 4 vCPU and 8 GB \(8,000,000,000 bytes\), which is 7\.45 GiB/);
@@ -385,9 +385,29 @@ describe("Buddy's provider page", () => {
     assert.deepEqual(defBuddy.allocation.mismatches, []);
     const sameBuddy = data.tracks["same-spec"].providers.find((p) => p.id === "buddy");
     assert.ok(sameBuddy);
+    assert.equal(sameBuddy.allocation.requested.text, "4 vCPU, 8 GiB");
     assert.equal(sameBuddy.allocation.equalSpec, false);
     assert.equal(sameBuddy.allocation.verified, false);
     assert.match(llmsTxt(), /on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts\./);
+    assert.match(llmsTxt(), /Same machine: 4 vCPU, 8 GiB\. Every provider asked for Boat's machine, 4 vCPU and 8 GiB/);
+    assert.match(data.whatATaskCosts.about, /same-machine track \(4 vCPU, 8 GiB\)/);
+    // Independent harness mismatch reasons and over-provisioned RAM are preserved when re-evaluating decimal-GB memory.
+    const rawDefBuddy = tracks.default.providers.find((p) => p.id === "buddy");
+    assert.ok(rawDefBuddy);
+    for (const reason of ["Restored allocation differs from source", "Multiple requested allocations"]) {
+      const res = allocationVerificationExport({
+        ...rawDefBuddy,
+        allocationVerification: { verified: false, mismatches: [...rawDefBuddy.allocationVerification.mismatches, reason] },
+      });
+      assert.equal(res.verified, false);
+      assert.deepEqual(res.mismatches, [reason]);
+    }
+    const overMem = allocationVerificationExport({
+      ...rawDefBuddy,
+      measuredAllocations: [{ cpu: 2, memoryGiB: 3.73, diskGiB: 45.5 }],
+    });
+    assert.equal(overMem.verified, false);
+    assert.equal(overMem.mismatches.length, 1);
     assert.equal(advertisedCapacityText("buddy", "diskGiB", 46.6), "50 GB (46.6 GiB)");
     assert.equal(measuredDiskText("buddy", 45.534), "45.5 GiB");
     assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GB");

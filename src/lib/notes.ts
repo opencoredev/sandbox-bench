@@ -2,7 +2,7 @@ import type { Allocation, Provider, Track, TrackId } from "@/lib/data";
 import { formatGiB, formatValue } from "@/lib/format";
 import { isProviderId, providerInfo } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { measuredMemoryText } from "@/lib/sizes";
+import { measuredMemoryText, soldInDecimalGB } from "@/lib/sizes";
 
 export type Notes = Partial<Record<ProviderId, string>>;
 
@@ -31,7 +31,11 @@ export function measuredText(p: Provider) {
 /** What we asked the provider for. */
 export function requestedText(p: Provider) {
   const r = p.requestedAllocation;
-  const size = r.compute ? formatCompute(r.compute) : null;
+  const size = r.compute
+    ? soldInDecimalGB(p.id) && r.size !== null
+      ? `${r.compute.cpu} vCPU, ${r.compute.memoryGiB} GiB`
+      : formatCompute(r.compute)
+    : null;
   const preset = typeof r.size === "string" ? `"${r.size}"` : null;
   const template = r.template ? `template ${r.template}` : null;
   const parts = [size && preset ? `${size} (${preset})` : (size ?? preset), template].filter((x) => x !== null);
