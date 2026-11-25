@@ -415,4 +415,22 @@ describe("Buddy's provider page", () => {
     assert.equal(measuredDiskText("buddy", 45.534), "45.5 GiB");
     assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GB");
   });
+
+  test("results.json and results.md carry Buddy's replaced runs beside its published reliability", () => {
+    const data = agentData();
+    const defBuddy = data.tracks.default.providers.find((p) => p.id === "buddy");
+    const sameBuddy = data.tracks["same-spec"].providers.find((p) => p.id === "buddy");
+    assert.ok(defBuddy && sameBuddy);
+    assert.equal(defBuddy.replacedRuns.length, 1);
+    assert.match(defBuddy.replacedRuns[0]?.run ?? "", /first bursts \(Nov 25, 01:32 UTC\)/);
+    assert.equal(sameBuddy.replacedRuns.length, 2);
+    assert.match(sameBuddy.replacedRuns[0]?.failed ?? "", /GET \/sandboxes\/\{id\}/);
+    assert.match(sameBuddy.replacedRuns[1]?.failed ?? "", /5afd423/);
+    const md = agentMarkdown();
+    assert.match(md, /- Buddy: no failures counted against the provider\. Not in these counts, because we replaced the run/);
+    assert.match(md, /- Buddy: no failures counted against the provider\. Not in these counts, because we replaced the runs/);
+    assert.match(md, /- Buddy: its first bursts \(Nov 25, 01:32 UTC\), where/);
+    assert.match(md, /- Buddy: its first main run of 100 \(Nov 25\), where Buddy answered a status check/);
+    assert.match(md, /- Buddy: its first snapshot run \(Nov 25\), where our harness restored 6 snapshots/);
+  });
 });

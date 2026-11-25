@@ -77,6 +77,7 @@ import {
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
+import { replacedFor, replacedRunText, replacedSentence } from "@/lib/replaced-runs";
 import { advertised, gbToGiB, sharedDisk, sizeOf, soldInDecimalGB } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 import { bestFirst, hasExpanded } from "@/lib/expanded";
@@ -797,6 +798,7 @@ function trackData(track: Track) {
         reliability: { attempts: rel.attempts, succeeded: rel.succeeded, successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5 },
         failures: p.failureReasons,
         setAside: p.ourFailures,
+        replacedRuns: replacedFor(p.id, track.id),
       };
     }),
     quickPicks: hasResults(track) ? quickPicks(track) : [],
@@ -983,10 +985,14 @@ function trackMarkdown(id: TrackId) {
   for (const p of d.providers) {
     const counted = p.failures.length === 0 ? "no failures counted against the provider." : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")})`).join("; ")}.`;
     const aside = p.setAside.map((f) => ` Set aside, not counted: ${f.reason} (${f.runs} runs, ${f.count} failed tests).`).join("");
-    lines.push(`- ${p.name}: ${counted}${aside}`);
+    const replaced = replacedSentence(p.id, id);
+    lines.push(`- ${p.name}: ${counted}${aside}${replaced ? ` ${replaced}` : ""}`);
   }
   lines.push("");
-  const rerun = d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`));
+  const rerun = [
+    ...d.providers.flatMap((p) => setAsideLines(p.id).filter((l) => l.startsWith(`${trackInfo[id].label}:`)).map((l) => `- ${l.slice(trackInfo[id].label.length + 2)}`)),
+    ...d.providers.flatMap((p) => replacedFor(p.id, id).map((r) => `- ${p.name}: ${replacedRunText(r)}.`)),
+  ];
   if (rerun.length) lines.push("## Runs set aside and rerun", "", ...rerun, "");
   if (track.stress) lines.push(...stressMarkdown(track.stress));
   return lines;
