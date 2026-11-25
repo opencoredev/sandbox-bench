@@ -8,6 +8,7 @@ import { Card } from "@/components/tabs";
 import { independence, independenceTitle, privateOffer, privateSummary, privateTitle } from "@/lib/private-benchmarks";
 import { forProvidersPath, lastModified, site } from "@/lib/seo/pages";
 import { openGraphImages, twitterImages } from "@/lib/seo/social";
+import { ctaAttributes } from "@/lib/cta";
 
 const description = "Daily private runs of the Sandbox bench harness for sandbox providers, in the regions you choose: run logs, reruns, uptime checks, regression alerts, a shared Slack channel and cost checked against your bill.";
 
@@ -53,7 +54,7 @@ export default function ForProvidersPage() {
         <h1 className="pt-l font-brand text-xl font-medium text-balance sm:text-xxl">{privateTitle}</h1>
         <p className="mt-s max-w-[64ch] text-m text-pretty text-neutral-8">{privateSummary}</p>
         <p className="mt-m">
-          <a href="#contact" className="surface surface-link focus-ring inline-flex h-10 items-center px-m text-s font-medium text-neutral-10">
+          <a href="#contact" {...ctaAttributes({ cta: "contact_jump", placement: "for_providers_hero" })} className="surface surface-link focus-ring inline-flex h-10 items-center px-m text-s font-medium text-neutral-10">
             Get in touch
           </a>
         </p>

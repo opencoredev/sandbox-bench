@@ -5,6 +5,7 @@ import { Lockup } from "@/components/brand";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import type { Sections } from "@/components/section-nav";
 import { TrackSwitch } from "@/components/track-switch";
+import { ctaAttributes } from "@/lib/cta";
 
 export { ordinal } from "@/lib/format";
 
@@ -102,7 +103,7 @@ export const SiteFooter = ({ label, updated, width = "narrow" }: { label: string
       <span aria-hidden className="hidden sm:inline">
         ·
       </span>
-      <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
+      <a {...ctaAttributes({ cta: "github", placement: "page_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
         Source on GitHub
       </a>
       <span aria-hidden className="hidden sm:inline">
