@@ -48,10 +48,12 @@ export interface Machine {
 /**
  * A provider's entry in one check: a result when it completed, why not otherwise. `run` is null
  * when it ran in the check's run, or the provider's own later run when it was added from one.
+ * "not-run" never started for a reason on our side (a rejected key, our account's billing), so it
+ * never reads as the provider's failure.
  */
 export type Entry<R> =
   | { provider: ProviderId; machine: Machine; run: FairnessRun | null; status: "completed"; reason: null; result: R }
-  | { provider: ProviderId; machine: Machine; run: FairnessRun | null; status: "failed" | "skipped"; reason: string; result: null };
+  | { provider: ProviderId; machine: Machine; run: FairnessRun | null; status: "failed" | "skipped" | "not-run"; reason: string; result: null };
 
 export interface CpuNativeResult {
   cpuModel: string | null;
@@ -442,7 +444,7 @@ function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: st
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
   const provider = isProviderId(id) ? id : fail(`${path}.provider`, `is not a known provider: ${id}`);
-  const status = oneOf(["completed", "failed", "skipped"] as const, o.status, `${path}.status`);
+  const status = oneOf(["completed", "failed", "skipped", "not-run"] as const, o.status, `${path}.status`);
   const m = obj(o.machine, `${path}.machine`);
   const machine = { cpu: positive(m.cpu, `${path}.machine.cpu`), memoryGiB: positive(m.memoryGiB, `${path}.machine.memoryGiB`), sameSize: bool(m.sameSize, `${path}.machine.sameSize`) };
   if (machine.sameSize !== (machine.cpu === 4 && machine.memoryGiB === 8)) fail(`${path}.machine.sameSize`, "must be true exactly for 4 vCPU, 8 GiB");
@@ -453,6 +455,7 @@ function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: st
       return { provider, machine, run, status, reason: null, result: parseResult(obj(o.result, `${path}.result`), `${path}.result`) };
     case "failed":
     case "skipped":
+    case "not-run":
       if (o.result !== null) fail(`${path}.result`, `must be null on a ${status} entry`);
       return { provider, machine, run, status, reason: str(o.reason, `${path}.reason`), result: null };
     default: {

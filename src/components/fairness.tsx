@@ -54,7 +54,18 @@ function marksFor<R>(data: FairnessData, shown: readonly Completed<R>[], extra: 
 const markNotes = (marks: ReturnType<typeof marksFor>): Note[] => [...marks].map(([id, m]) => ({ mark: m.mark, text: <><Who id={id} />: {m.note}</>, about: id }));
 
 const missingNotes = <R,>(check: CheckData<R> | null): Note[] =>
-  notCompleted(check).map(({ provider, status, why }) => ({ text: <><Who id={provider} />: {status === "skipped" ? "not run" : "no result"} ({why}).</>, about: provider }));
+  notCompleted(check).map(({ provider, status, why }) => ({ text: <><Who id={provider} />: {status === "failed" ? "no result" : "not run"} ({why}).</>, about: provider }));
+
+/** The providers missing from the chart: those we didn't run apart from those with no result. */
+function Missing<R>({ check }: { check: CheckData<R> }) {
+  const missing = notCompleted(check);
+  return (
+    <>
+      <NotOnChart ids={missing.filter((m) => m.status === "failed").map((m) => m.provider)} />
+      <NotOnChart ids={missing.filter((m) => m.status !== "failed").map((m) => m.provider)} lead="Not run:" />
+    </>
+  );
+}
 
 /** The check's run, then each provider added from its own later run, named by that run's id. */
 const runNote = <R,>(check: CheckData<R>): Note => {
@@ -106,7 +117,7 @@ function NativeCpu({ data, check, held }: { data: FairnessData; check: CheckData
         sub={held ? "One static binary, 4 workers, 30 windows of 30 s · Median operations per second of the last six windows · Tag: held, last 3 minutes ÷ the four-core run · Higher is better" : "One static binary, 4 workers · Median operations per second of three 10-second runs · Tag: four cores ÷ (4 × one core) · Higher is better"}
       />
       <Columns columns={cpuColumns(rows, marks, value, (r) => (held ? percentText(heldShare(r)) : `${r.scaling.toFixed(2)}×`))} label={`${title}: operations per second by provider`} />
-      <NotOnChart ids={notCompleted(check).map((m) => m.provider)} />
+      <Missing check={check} />
       <Footnotes
         items={[
           ...markNotes(marks),
@@ -158,7 +169,7 @@ function Disk({ data, check, writes }: { data: FairnessData; check: CheckData<Di
         sub={writes ? "Each 4 KB write followed by fdatasync, 10 seconds · Operations per second · Tag: filesystem · Higher is better" : "Direct I/O past the guest's page cache, every page checked · MiB per second · Tag: filesystem · Higher is better"}
       />
       <Columns columns={columns} label={`${title} by provider`} />
-      <NotOnChart ids={notCompleted(check).map((m) => m.provider)} />
+      <Missing check={check} />
       <Footnotes
         items={[
           ...markNotes(marks),
@@ -201,7 +212,7 @@ function Burst({ data, check }: { data: FairnessData; check: CheckData<BurstResu
     <>
       <ChartHead title="Native CPU, 10 sandboxes at once" sub="10 sandboxes of 4 vCPU on one account, 4 workers each for 2 minutes together · Median operations per second per sandbox · Tag: at once ÷ alone · Higher is better" />
       <Columns columns={columns} label="Native CPU, 10 sandboxes at once: operations per second per sandbox by provider" />
-      <NotOnChart ids={notCompleted(check).map((m) => m.provider)} />
+      <Missing check={check} />
       <Footnotes
         items={[
           ...markNotes(marks),
@@ -274,7 +285,7 @@ function Limits({ data, check }: { data: FairnessData; check: CheckData<MemoryRe
           </tbody>
         </table>
       </div>
-      <NotOnChart ids={notCompleted(check).map((m) => m.provider)} />
+      <Missing check={check} />
       <Footnotes
         items={[
           ...markNotes(marks),
@@ -366,7 +377,7 @@ export function IsolationTable({ data }: { data: FairnessData }) {
           </tbody>
         </table>
       </div>
-      <NotOnChart ids={notCompleted(check).map((m) => m.provider)} />
+      <Missing check={check} />
       <Footnotes
         items={[
           ...missingNotes(check),

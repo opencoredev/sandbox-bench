@@ -27,7 +27,7 @@ export const fairnessAbout =
   "Five checks run the same way on every provider's same-machine sandbox (4 vCPU, 8 GB requested; boxd ran its nearest 4 vCPU, 16 GiB size): the CPU checks use one compiled program instead of each image's Python, the disk check reads past the guest's cache, and burst credit and the CPUs a sandbox reports are measured rather than left to chance. They remove differences that made earlier numbers less comparable; they are not scored. Native CPU: one static C binary with no runtime (an aarch64 build of the same source on ARM providers), single core, four cores and 15 minutes held. Disk: a 2 GiB file with direct I/O past the guest's page cache, plus synced 4 KB random writes and direct reads, each checked against what was written. 10 at once: ten 4 vCPU sandboxes on one account burning together for 2 minutes against one alone. CPUs and memory: nproc and MemTotal against the cgroup quota and limit, then 6 GiB of memory held while a 2 GiB file is written. Isolation and kernel: read-only facts from a fresh sandbox. Styne, whose burst credit is shared across an account, ran each CPU check alone after at least 45 minutes without Styne load; it measured 5.33B ops/s in the short four-core runs, 5.09B in the first 30-second window of the 15-minute burn, and about 0.87B from the second window on. The Nov 25 Sustained CPU test (Python) ran at full speed about a minute, then at about 16% of it; these traces don't measure the account's remaining credit.";
 
 export const fairnessHowToRead =
-  "Each check has `run` (id, SDK commit, start), and each result its own `run`: null when it came from the check's run, or the provider's own later run when it was added from one. Each check has `results` (the providers that completed it, each with `status: \"completed\"`) and `noResult` (the rest, each with `status` failed or skipped and `why`). `machine.sameSize` is false for a sandbox that isn't 4 vCPU, 8 GiB. `arch` names ARM providers, which ran the aarch64 build. Disk rows and 10-at-once rows carry `comparable` and `notComparableWhy`: a disk on a filesystem held in memory, one that refused direct I/O, or under gVisor's own file layer isn't comparable; a cohort missing sandboxes, burns, or 90 of 120 seconds of proven overlap isn't either. In `cpuNative`, `first3MinOpsPerS` and `last3MinOpsPerS` are medians of the first and last six measured 30-second windows, `retention` is their ratio, and `heldShare` is the last 3 minutes over the short four-core run (`allCoreOpsPerS`), which still shows a drop before minute 3. Rates are operations per second; disk throughput is MiB/s; latencies are microseconds. One run per provider.";
+  "Each check has `run` (id, SDK commit, start), and each result its own `run`: null when it came from the check's run, or the provider's own later run when it was added from one. Each check has `results` (the providers that completed it, each with `status: \"completed\"`) and `noResult` (the rest, each with `status` and `why`: `failed` when the provider returned no result, `not-run` or `skipped` when it never started, `not-run` for a reason on our side such as a rejected API key). `machine.sameSize` is false for a sandbox that isn't 4 vCPU, 8 GiB. `arch` names ARM providers, which ran the aarch64 build. Disk rows and 10-at-once rows carry `comparable` and `notComparableWhy`: a disk on a filesystem held in memory, one that refused direct I/O, or under gVisor's own file layer isn't comparable; a cohort missing sandboxes, burns, or 90 of 120 seconds of proven overlap isn't either. In `cpuNative`, `first3MinOpsPerS` and `last3MinOpsPerS` are medians of the first and last six measured 30-second windows, `retention` is their ratio, and `heldShare` is the last 3 minutes over the short four-core run (`allCoreOpsPerS`), which still shows a drop before minute 3. Rates are operations per second; disk throughput is MiB/s; latencies are microseconds. One run per provider.";
 
 const why = <R>(check: CheckData<R> | null) => notCompleted(check).map((m) => ({ provider: m.provider, name: providerName(m.provider), status: m.status, why: m.why }));
 
@@ -115,7 +115,7 @@ const diskRow = (e: Completed<DiskResult>) =>
 const secRow = (e: Completed<SecurityResult>) =>
   `| ${providerName(e.provider)} | ${isolationText(e.result)} | ${cpuLine(e.result.cpu)} | ${[...e.result.weakeningFlags, ...e.result.notableFlags].join(" ") || "none of the listed flags"} | ${vulnerableText(e.result)} | ${runsAsText(e.result)} | ${uptimeText(e.result)} |`;
 
-const missingLines = <R>(check: CheckData<R> | null) => notCompleted(check).map((m) => `${providerName(m.provider)}: ${m.status === "skipped" ? "not run" : "no result"} (${m.why}).`);
+const missingLines = <R>(check: CheckData<R> | null) => notCompleted(check).map((m) => `${providerName(m.provider)}: ${m.status === "failed" ? "no result" : "not run"} (${m.why}).`);
 
 export function fairnessMarkdown(d: FairnessData): string[] {
   const out = ["# Like-for-like checks (Same machine)", "", fairnessAbout, ""];
@@ -164,7 +164,7 @@ export function fairnessLlms(d: FairnessData): string {
     parts.push(`CPUs and memory:\n${[...completed(d.memoryHonesty)].sort((a, b) => a.provider.localeCompare(b.provider)).map((e) => line(e.provider, `${e.result.visibleCpus ?? "?"} CPUs shown, ${e.result.usableCpus ?? "?"} usable; ${memoryOutcomeText(e.result)}`)).join("\n")}\n`);
   if (d.securityProbe)
     parts.push(`Isolation:\n${[...completed(d.securityProbe)].sort((a, b) => a.provider.localeCompare(b.provider)).map((e) => line(e.provider, `${isolationText(e.result)}; ${runsAsText(e.result)}; ${uptimeText(e.result)}`)).join("\n")}\n`);
-  const labelled = (label: string, rows: ReturnType<typeof why>) => rows.map((m) => `- ${label}, ${m.name}: ${m.status === "skipped" ? "not run" : "no result"} (${m.why})`);
+  const labelled = (label: string, rows: ReturnType<typeof why>) => rows.map((m) => `- ${label}, ${m.name}: ${m.status === "failed" ? "no result" : "not run"} (${m.why})`);
   const missing = [
     ...labelled("Native CPU", why(d.cpuNative)),
     ...labelled("Disk", why(d.diskReal)),
@@ -172,6 +172,6 @@ export function fairnessLlms(d: FairnessData): string {
     ...labelled("CPUs and memory", why(d.memoryHonesty)),
     ...labelled("Isolation", why(d.securityProbe)),
   ];
-  if (missing.length > 0) parts.push(`No result:\n${missing.join("\n")}\n`);
+  if (missing.length > 0) parts.push(`Not run or no result:\n${missing.join("\n")}\n`);
   return `${parts.join("\n")}\n`;
 }

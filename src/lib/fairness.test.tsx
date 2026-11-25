@@ -249,6 +249,52 @@ describe("site-data script", () => {
     assert.throws(() => checkFromReport({ ...report("disk-real", []), track: "default" }), /same-machine/);
   });
 
+  test("a failure on our side is published as not run, never as the provider's", () => {
+    const keyRejected = "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.";
+    const billing = "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).";
+    const entries = [
+      { provider: "baseten", status: "failed", reason: keyRejected, machine, result: null },
+      { provider: "superserve", status: "failed", reason: billing, machine, result: null },
+      { provider: "daytona", status: "failed", reason: "Created 1 of 10 sandboxes, fewer than the 2 this check needs: Daytona POST /sandbox failed (HTTP 400).", machine, result: null },
+    ];
+    assert.throws(() => checkFromReport(report("cpu-native", entries)), /baseten in cpu-native failed on our side.*--not-run baseten=/);
+    assert.throws(() => checkFromReport(report("cpu-native", entries), new Map([["baseten", "our API key was rejected"]])), /superserve in cpu-native failed on our side/);
+    const notRun = new Map([
+      ["baseten", "our API key was rejected"],
+      ["superserve", "our account wasn't eligible for billing (HTTP 402)"],
+    ]);
+    const { data } = checkFromReport(report("cpu-native", entries), notRun);
+    assert.deepEqual(
+      (data.entries as { provider: string; status: string; reason: string }[]).map((e) => [e.provider, e.status, e.reason]),
+      [
+        ["baseten", "not-run", "our API key was rejected"],
+        ["superserve", "not-run", "our account wasn't eligible for billing (HTTP 402)"],
+        ["daytona", "failed", "Created 1 of 10 sandboxes, fewer than the 2 this check needs: Daytona POST /sandbox failed (HTTP 400)."],
+      ],
+    );
+    assert.throws(() => checkFromReport(report("cpu-native", [{ provider: "baseten", status: "completed", reason: null, machine, result: cpu(4e9) }]), notRun), /--not-run baseten: it completed cpu-native/);
+
+    const f = fixture();
+    f.checks["cpu-native"].entries = [
+      ...f.checks["cpu-native"].entries.filter((e) => e.provider !== "superserve"),
+      { provider: "baseten", machine, status: "not-run", reason: "our API key was rejected", result: null },
+      { provider: "daytona", machine, status: "failed", reason: "Daytona POST /sandbox failed (HTTP 400).", result: null },
+    ] as (typeof f.checks)["cpu-native"]["entries"];
+    const d = parseFairness(f);
+    const text = renderToStaticMarkup(<FairnessSection data={d} />).replace(/<[^>]+>/g, "");
+    assert.ok(text.includes("Baseten: not run (our API key was rejected)."));
+    assert.ok(text.includes("Daytona: no result (Daytona POST /sandbox failed (HTTP 400).)."));
+    assert.match(text, /Not run: Baseten\. Notes says why\./);
+    assert.match(text, /No result for Daytona\. Notes says why\./);
+    assert.doesNotMatch(text, /Baseten: no result|No result for Baseten/);
+    assert.deepEqual(fairnessData(d).cpuNative?.noResult.find((m) => m.provider === "baseten"), { provider: "baseten", name: "Baseten", status: "not-run", why: "our API key was rejected" });
+    for (const out of [fairnessMarkdown(d).join("\n"), fairnessLlms(d)]) {
+      assert.match(out, /Baseten: not run \(our API key was rejected\)/);
+      assert.match(out, /Daytona: no result/);
+      assert.doesNotMatch(out, /Baseten: no result/);
+    }
+  });
+
   test("a provider added from its own later run carries that run, and the section and exports name it", () => {
     const later = { id: "cpu-native-later", sdkCommit: "27f304a8c8db", startedAt: "2026-11-24T08:23:48.000Z" };
     const f = fixture();

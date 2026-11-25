@@ -14,7 +14,10 @@
  * The published file: --report r4's security-probe, memory-honesty and
  * disk-real (sandbox-sdk c6163c6) and r6's cpu-native and cpu-burst-10
  * (072122c), then --add Maritime's own run of all five (Nov 24, 27f304a,
- * the same runner code as 072122c).
+ * the same runner code as 072122c), with Baseten and Superserve not run:
+ *
+ *     --not-run baseten="our API key was rejected" \
+ *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)"
  *
  * What it changes on the way:
  * - Each provider keeps only the figures the page and the agent files use;
@@ -30,6 +33,11 @@
  * - --add FILE appends the providers of a later run of one check, each with
  *   that run's id, SDK commit and start as its `run`, so the section can say
  *   it ran apart. A check with no --report, or a provider already in it, stops it.
+ * - --not-run provider="why" marks that provider's entries that didn't complete
+ *   as not run, with that why: they never started for a reason on our side (a
+ *   rejected key, our account's billing), so they never read as the provider's
+ *   failure. A completed entry for it, or none that failed, stops it, and so
+ *   does a failure that reads as ours (see ourSide) without --not-run.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -56,6 +64,7 @@ const numOrNull = (v: unknown, what: string): number | null => (v === null ? nul
 function args() {
   const reports: string[] = [];
   const adds: string[] = [];
+  const notRun = new Map<string, string>();
   let out: string | undefined;
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 2) {
@@ -64,10 +73,14 @@ function args() {
     if (flag === "--report") reports.push(value);
     else if (flag === "--add") adds.push(value);
     else if (flag === "--out") out = value;
-    else throw new Error(`unknown flag ${flag}`);
+    else if (flag === "--not-run") {
+      const eq = value.indexOf("=");
+      if (eq < 1) throw new Error("--not-run takes provider=why");
+      notRun.set(value.slice(0, eq), value.slice(eq + 1));
+    } else throw new Error(`unknown flag ${flag}`);
   }
-  if (reports.length === 0 || !out) throw new Error("usage: --report FILE [--report FILE]... [--add FILE]... --out FILE");
-  return { reports, adds, out };
+  if (reports.length === 0 || !out) throw new Error('usage: --report FILE [--report FILE]... [--add FILE]... [--not-run provider="why"]... --out FILE');
+  return { reports, adds, notRun, out };
 }
 
 /**
@@ -90,6 +103,13 @@ export function plainReason(reason: string): string {
   const first = scrub(reason).replace(/\s+/g, " ").trim();
   return first.length > 240 ? `${first.slice(0, 239)}…` : first;
 }
+
+/**
+ * Whether a harness failure reads as a problem on our side rather than the provider's: a key the
+ * provider rejected (or none), our account's billing, or a provider the runner skipped. Such a run
+ * must be published as not run, with --not-run.
+ */
+export const ourSide = (reason: string) => /credentials are missing or were rejected|\bHTTP 40[123]\b|billing_ineligible|^Skipped:/i.test(reason);
 
 const round = (v: number, places: number) => Number(v.toFixed(places));
 
@@ -229,8 +249,11 @@ const convert: Record<CheckId, (r: Json) => Json> = {
   "security-probe": securityProbe,
 };
 
-/** One harness report (`fairness.v1`) to the site's check: run plus one entry per provider. */
-export function checkFromReport(report: unknown): { check: CheckId; data: Json } {
+/**
+ * One harness report (`fairness.v1`) to the site's check: run plus one entry per provider. A
+ * provider in `notRun` that didn't complete is not run, with its why.
+ */
+export function checkFromReport(report: unknown, notRun: ReadonlyMap<string, string> = new Map()): { check: CheckId; data: Json } {
   const o = obj(report, "report");
   if (o.schema !== "fairness.v1") throw new Error(`report schema must be fairness.v1, not ${String(o.schema)}`);
   if (o.track !== "same-machine") throw new Error("report track must be same-machine");
@@ -241,8 +264,15 @@ export function checkFromReport(report: unknown): { check: CheckId; data: Json }
     const e = obj(p, "providers[]");
     const status = e.status;
     const machine = e.machine;
-    if (status === "completed") return { provider: e.provider, machine, status, reason: null, result: scrubDeep(convert[check](obj(e.result, `${String(e.provider)} result`))) };
-    return { provider: e.provider, machine, status, reason: plainReason(String(e.reason ?? "No reason recorded")), result: null };
+    const why = notRun.get(String(e.provider));
+    if (status === "completed") {
+      if (why !== undefined) throw new Error(`--not-run ${String(e.provider)}: it completed ${check}`);
+      return { provider: e.provider, machine, status, reason: null, result: scrubDeep(convert[check](obj(e.result, `${String(e.provider)} result`))) };
+    }
+    if (why !== undefined) return { provider: e.provider, machine, status: "not-run", reason: why, result: null };
+    const reason = String(e.reason ?? "No reason recorded");
+    if (ourSide(reason)) throw new Error(`${String(e.provider)} in ${check} failed on our side ("${plainReason(reason)}"): mark it --not-run ${String(e.provider)}="why"`);
+    return { provider: e.provider, machine, status, reason: plainReason(reason), result: null };
   });
   return { check, data: { run: { id: run.id, sdkCommit: run.sdkCommit, startedAt: run.startedAt }, entries } };
 }
@@ -300,14 +330,17 @@ export function addLaterRun(checks: Json, later: { check: CheckId; data: Json },
 }
 
 function main() {
-  const { reports, adds, out } = args();
+  const { reports, adds, notRun, out } = args();
   const checks: Json = {};
   for (const path of reports) {
-    const { check, data } = checkFromReport(JSON.parse(readFileSync(path, "utf8")));
+    const { check, data } = checkFromReport(JSON.parse(readFileSync(path, "utf8")), notRun);
     if (check in checks) throw new Error(`two reports for ${check}`);
     checks[check] = data;
   }
-  for (const path of adds) addLaterRun(checks, checkFromReport(JSON.parse(readFileSync(path, "utf8"))), path);
+  for (const path of adds) addLaterRun(checks, checkFromReport(JSON.parse(readFileSync(path, "utf8")), notRun), path);
+  const marked = new Set(Object.values(checks).flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => obj(e, "entry")).filter((e) => e.status === "not-run").map((e) => String(e.provider))));
+  const unused = [...notRun.keys()].filter((id) => !marked.has(id));
+  if (unused.length) throw new Error(`--not-run names providers with no entry that failed: ${unused.join(", ")}`);
   markGvisorDisk(checks);
   const file = { schema: SCHEMA, generatedAt: new Date().toISOString(), track: "same-machine", arch: archFrom(checks), checks };
   // The site's own parser, so this never writes a file the build would refuse.

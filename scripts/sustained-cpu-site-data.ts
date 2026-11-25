@@ -30,6 +30,9 @@
  * - --not-run provider="why" marks a run that never started for a reason on our
  *   side (a rejected key, our account's billing) as not run, with that why, so
  *   it never reads as the provider's failure. A run with any segment stops it.
+ * - A run that stopped or failed gets a public reason from publicStopReason, never
+ *   the harness's own text. A reason with no public wording, or one that reads as
+ *   ours (a rejected key, our billing) without --not-run, stops it.
  * - Only the figures the page and the agent files use reach the site; the raw
  *   output, sandbox ids and the guest's Python path stay in the harness's report.
  */
@@ -37,6 +40,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 import { SCHEMA, parseSustainedCpu, windowMeans } from "../src/lib/sustained-cpu";
 import type { CpuSegment } from "../src/lib/sustained-cpu";
+import { ourSide } from "./fairness-site-data";
 
 type Json = Record<string, unknown>;
 
@@ -83,6 +87,33 @@ function segmentOf(v: unknown, index: number, what: string): CpuSegment & { chec
   return { index, startS: round(num(p.wallOffsetS, `${what}.wallOffsetS`) - elapsedS, 3), durationS: elapsedS, opsPerS: num(p.opsPerSec, `${what}.opsPerSec`), checksumVerified: true };
 }
 
+const publicReasons: readonly [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Segment (\d+) timed out$/, (m) => `segment ${m[1]} timed out`],
+  [/^Segment (\d+): /, (m) => `segment ${m[1]}'s result didn't verify`],
+  [/^No sandbox$/, () => "no sandbox was created"],
+  [/^No python3 or python in the sandbox$/, () => "the sandbox had no Python"],
+  [/^(?:Fingerprint|Writing the script) exited (\d+)/, (m) => `a setup command in the sandbox exited ${m[1]}`],
+  [/^Run ended without a stop record/, () => "the run ended without a stop record"],
+  [/^Stopped before the target$/, () => "it stopped before the last segment"],
+  [/^Interrupted$/, () => "we interrupted the run"],
+  [/\bHTTP (\d{3})\b/, (m) => `the provider's API returned HTTP ${m[1]}`],
+  [/timed out|timeout/i, () => "a call to the provider timed out"],
+];
+
+/**
+ * The site's wording for why a run stopped or failed, from the harness's stop reason, so its raw
+ * text (provider error bodies, commands' stderr) never reaches the site. A reason that reads as
+ * ours, or one with no wording here, stops the build: mark it --not-run, or add its wording.
+ */
+export function publicStopReason(id: string, raw: string): string {
+  if (ourSide(raw)) throw new Error(`${id} stopped on our side ("${raw}"): mark it --not-run ${id}="why"`);
+  for (const [pattern, text] of publicReasons) {
+    const m = raw.match(pattern);
+    if (m) return text(m);
+  }
+  throw new Error(`${id}: no public wording for its stop reason "${raw}"; add one to publicReasons`);
+}
+
 /** One harness provider result to the site's provider, carrying `run` when it came from a later run. */
 export function providerOf(v: unknown, run: Json | null, notRun: string | undefined): Json {
   const p = obj(v, "provider");
@@ -97,7 +128,7 @@ export function providerOf(v: unknown, run: Json | null, notRun: string | undefi
     provider: id,
     ...(run ? { run } : {}),
     status: notRun !== undefined ? "not-run" : p.status,
-    stopReason: notRun ?? p.stopReason,
+    stopReason: notRun ?? (p.status === "completed" ? p.stopReason : publicStopReason(id, String(p.stopReason))),
     guestVcpus: p.guestVcpus,
     durationS: segments.length === 0 ? 0 : num(obj(points.at(-1), `${id} last point`).wallOffsetS, `${id} last wallOffsetS`),
     segments,

@@ -228,6 +228,19 @@ describe("runs apart and runs we didn't start", () => {
     assert.equal(notRun.status, "not-run");
     assert.equal(notRun.stopReason, "our API key was rejected");
   });
+
+  test("a stop reason reaches the site only in the site's own words", () => {
+    const points = Array.from({ length: 6 }, (_, i) => ({ segment: i + 1, minute: ((i + 1) * 30.2) / 60, elapsedS: 30.01, wallOffsetS: (i + 1) * 30.2, opsPerSec: 40e6 }));
+    const stopped = (status: string, stopReason: string, pts = points) => providerOf({ provider: "modal", status, stopReason, guestVcpus: 4, points: pts }, null, undefined).stopReason;
+    assert.equal(stopped("stopped-early", "Segment 7 timed out"), "segment 7 timed out");
+    assert.equal(stopped("stopped-early", "Segment 7: checksum 0x1f2e did not match"), "segment 7's result didn't verify");
+    assert.equal(stopped("failed", 'Modal POST /sandboxes failed (HTTP 503): {"detail":"sb-01M8604F365C5Q09 at /home/leo"}', []), "the provider's API returned HTTP 503");
+    assert.equal(stopped("stopped-early", "Fingerprint exited 127: sh: lscpu: not found"), "a setup command in the sandbox exited 127");
+    assert.throws(() => stopped("failed", "Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.", []), /modal stopped on our side.*--not-run modal=/);
+    assert.throws(() => stopped("failed", "Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).", []), /on our side/);
+    assert.throws(() => stopped("stopped-early", "something new went wrong"), /no public wording/);
+    assert.equal(providerOf({ provider: "styne", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined).stopReason, null);
+  });
 });
 
 describe("section", () => {
