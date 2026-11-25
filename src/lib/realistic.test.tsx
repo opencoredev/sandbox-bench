@@ -891,7 +891,7 @@ describe("page", () => {
 
   test("the footprint is in the notes and the cost line is above the chart", () => {
     const html = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />);
-    assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GB machine, not counting installation\./);
+    assert.match(html, /Workload size: <\/span>About \d+–\d+ CPU-seconds and [\d.–]+ GiB of memory on a 4 vCPU, 8 GiB machine, not counting installation\./);
     assert.doesNotMatch(html, /<p class="mt-xxs text-xs text-neutral-7">Workload CPU/);
     assert.doesNotMatch(html, /install excluded/);
     assert.ok(html.includes(costCovers));
@@ -978,7 +978,7 @@ describe("page", () => {
   });
 
   test("on phones each task card says which machine it ran on", () => {
-    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GB<\/span>/);
+    assert.match(renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />), /<span class="block sm:hidden">Same machine · 4 vCPU, 8 GiB<\/span>/);
     assert.match(renderToStaticMarkup(<TaskCost track={tracks.default} />), /<span class="block sm:hidden">Default machines · sizes vary<\/span>/);
   });
 

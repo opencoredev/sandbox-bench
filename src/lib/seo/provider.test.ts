@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { agentData, allocationVerificationExport, llmsTxt } from "@/lib/agent-data";
+import { agentData, agentMarkdown, allocationVerificationExport, llmsTxt } from "@/lib/agent-data";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { hardware, locationLabel } from "@/lib/hardware";
@@ -390,7 +390,10 @@ describe("Buddy's provider page", () => {
     assert.equal(sameBuddy.allocation.verified, false);
     assert.match(llmsTxt(), /on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts\./);
     assert.match(llmsTxt(), /Same machine: 4 vCPU, 8 GiB\. Every provider asked for Boat's machine, 4 vCPU and 8 GiB/);
+    assert.equal(data.commonSize, "4 vCPU, 8 GiB");
+    assert.ok(data.comingNextUpdate.includes("The same-machine (4 vCPU, 8 GiB) track"));
     assert.match(data.whatATaskCosts.about, /same-machine track \(4 vCPU, 8 GiB\)/);
+    assert.match(agentMarkdown(), /on a 4 vCPU, 8 GiB reference machine/);
     // Independent harness mismatch reasons and over-provisioned RAM are preserved when re-evaluating decimal-GB memory.
     const rawDefBuddy = tracks.default.providers.find((p) => p.id === "buddy");
     assert.ok(rawDefBuddy);

@@ -28,7 +28,7 @@ export const conversionNote = (original: string, per: string) =>
   `bills in euros, ${original} ${per}, converted at the ECB rate of ${eurUsd.rate} dollars per euro on ${eurUsd.date}.`;
 
 /** The common allocation; providers without this exact size have no price. */
-export const commonSize = { vcpu: 4, memoryGiB: 8, label: "4 vCPU, 8 GB" } as const;
+export const commonSize = { vcpu: 4, memoryGiB: 8, label: "4 vCPU, 8 GiB" } as const;
 
 /** Compute-only price from the harness's audited size model, converted to USD. */
 export function commonPrice(p: Provider) {

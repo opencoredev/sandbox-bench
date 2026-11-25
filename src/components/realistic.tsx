@@ -335,8 +335,8 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
   const { costed, uncosted } = headlineRows(realistic, run, profile);
   const w = realistic.workloads?.[profile] ?? null;
   const footprint = profileFootprintNote(w);
-  const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GB";
-  const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GB";
+  const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GiB";
+  const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GiB";
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
   return (
     <>
@@ -603,7 +603,7 @@ export function IdleChart() {
     <>
       <ChartHead
         title="What leaving the sandbox open costs"
-        sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GB · US dollars"
+        sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GiB · US dollars"
         meta={`${idle.attempts} runs per provider and wait. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts. Each provider's bars use its own scale. ${multipleNote} Providers whose sandbox stopped or couldn't resume come last.`}
       />
       {lines.length ? <p className="mb-m text-s text-pretty">{lines}</p> : null}

@@ -83,7 +83,7 @@ export function RealtaskBurstChart({ data }: { data: RealtaskBurst }) {
   const apartCommits = apart.map((a) => `; ${providerName(a.id)}'s ${a.run.sdkCommit.slice(0, 7)}`).join("");
   return (
     <Card>
-      <ChartHead title={title} sub={`${data.size} Fix and test tasks started together, ${data.rounds} rounds · 4 vCPU, 8 GB · Median seconds per task · Tag: time at 5 at once ÷ time alone · Lower is better`} />
+      <ChartHead title={title} sub={`${data.size} Fix and test tasks started together, ${data.rounds} rounds · 4 vCPU, 8 GiB · Median seconds per task · Tag: time at 5 at once ÷ time alone · Lower is better`} />
       <Columns columns={columnsOf(timed, marks, data.size)} label={`${title}: time to finish by provider`} />
       <NotOnChart ids={missing.map((m) => m.id)} />
       <Footnotes

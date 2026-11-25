@@ -483,12 +483,12 @@ export function profileWhat(profile: ProfileId, w: Workload | null): string {
 export function profileFootprint(profile: ProfileId, w: Workload | null): string | null {
   if (!w) return null;
   const memory = profile === "build" ? `${range(w.memoryGiB, 1)} GiB of memory` : `${range(w.memoryGiB, 1)} GiB`;
-  return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine`;
+  return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GiB reference machine`;
 }
 
-/** "About 175–204 CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GB machine, not counting installation.", for the notes, or null without a footprint. */
+/** "About 175–204 CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GiB machine, not counting installation.", for the notes, or null without a footprint. */
 export const profileFootprintNote = (w: Workload | null) =>
-  w ? `About ${range(w.workCpuS)} CPU-seconds and ${range(w.memoryGiB, 1)} GiB of memory on a 4 vCPU, 8 GB machine, not counting installation.` : null;
+  w ? `About ${range(w.workCpuS)} CPU-seconds and ${range(w.memoryGiB, 1)} GiB of memory on a 4 vCPU, 8 GiB machine, not counting installation.` : null;
 
 /** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
 export const costCovers = "Includes setup and failed attempts, through confirmed deletion.";

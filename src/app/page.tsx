@@ -511,10 +511,10 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Two tracks",
-    line: "Same machine asks every provider for 4 vCPU and 8 GB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
+    line: "Same machine asks every provider for 4 vCPU and 8 GiB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
     more: (
       <>
-        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
+        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GiB size and ran 4 vCPU, 16 GiB. Superserve ran Same machine at 4 vCPU and 8 GiB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
       </>
     ),
   },
@@ -689,7 +689,7 @@ export default function Page() {
                 track.id === "same-spec" ? (
                   <RealtaskBurstChart data={realtaskBurst} />
                 ) : (
-                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GiB machine. Switch to Same machine to see it.</p>
                 )
               }
             </PerTrack>
@@ -902,7 +902,7 @@ export default function Page() {
           <Section
             id="tiers"
             title="CPU tiers"
-            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GB machine, so the table shows what changes when you pay less."
+            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GiB machine, so the table shows what changes when you pay less."
           >
             <div className="mb-m flex flex-wrap items-center gap-x-m gap-y-xs">
               <TierSwitch />
@@ -952,7 +952,7 @@ export default function Page() {
                       <>
                         <ChartHead
                           title="What each provider ran"
-                          sub={track.id === "default" ? "Each provider's default sandbox, and the vCPU and RAM measured inside it" : "Asked for 4 vCPU, 8 GB; measured inside each sandbox"}
+                          sub={track.id === "default" ? "Each provider's default sandbox, and the vCPU and RAM measured inside it" : "Asked for 4 vCPU, 8 GiB; measured inside each sandbox"}
                         />
                         <Allocations track={track} />
                       </>

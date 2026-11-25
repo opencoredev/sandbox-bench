@@ -76,7 +76,7 @@ function TaskTime({ track, profile }: { track: Track; profile: ProfileId }) {
   const { timed, missing } = taskTimes(track, profile);
   const marks = marksFor(track, timed);
   const title = `${profileInfo[profile].label}: time to finish`;
-  const machine = track.id === "default" ? "Each provider's default machine" : "4 vCPU, 8 GB";
+  const machine = track.id === "default" ? "Each provider's default machine" : "4 vCPU, 8 GiB";
   return (
     <>
       <ChartHead title={title} sub={`${profileWhat(profile, realistic.workloads?.[profile] ?? null)} · ${machine} · Median seconds · Lower is better`} />
