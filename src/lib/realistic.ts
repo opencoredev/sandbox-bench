@@ -864,7 +864,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time. Shown on the chart, not picked as Cheapest.` }] : []),
-    ...partial.flatMap((id) => partialEstimateLines([id]).map((text) => ({ lead: `${providerName(id)} estimate`, text }))),
+    ...partial.flatMap((id) => partialEstimateLines([id]).map((text) => ({ lead: `${providerName(id)} estimate`, text: `${text} Shown on the chart, not picked as Cheapest.` }))),
     {
       lead: "Not counted",
       text: transfer.length

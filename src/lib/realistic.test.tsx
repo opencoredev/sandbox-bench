@@ -24,7 +24,7 @@ import { readExclusions } from "@/lib/data";
 import { iterationRanges, setAside, setAsideSentence } from "@/lib/exclusions";
 import { StatStrip, leaders } from "@/components/stat-strip";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
-import { billingBases, billingLabel } from "@/lib/cost";
+import { billingBases, billingLabel, estimateNotCounted } from "@/lib/cost";
 import { tracks } from "@/lib/data";
 import {
   SCHEMA,
@@ -565,25 +565,30 @@ describe("pick", () => {
     assert.match(boxd.whyNotCounted.join(), /15\.6 GiB/);
   });
 
-  test("Buddy's 4x8 (8 decimal GB, 7.45 GiB) is never a Same machine pick, though the harness's 10% tolerance doesn't flag it", () => {
+  test("Buddy's rows are never a pick: list-price estimates on both tracks, and on Same machine its 4x8 (8 decimal GB, 7.45 GiB) also fails the exact-size rule the harness's 10% tolerance doesn't flag", () => {
+    const size = "it ran with 7.45 GiB of memory, not the 8 GiB this track asks for";
     for (const profile of profileIds) {
       const rows = headlineRows(realistic, "same-machine", profile).costed.filter((r) => r.provider === "buddy");
       assert.equal(rows.length, 1, `Buddy has one costed ${profile} row`);
       const [buddy] = rows;
       assert.ok(buddy);
+      assert.equal(buddy.cost.kind, "estimate");
       assert.ok(!buddy.flags.some((f) => f.startsWith("wrong machine size")), "the harness doesn't flag the size, so the site's rule must");
       assert.equal(tracks["same-spec"].providers.find((p) => p.id === "buddy")?.equalSpec, false);
       const pick = taskPick([buddy]);
       assert.equal(pick.kind, "none", `a Buddy-only ${profile} input has no pick`);
-      assert.deepEqual(notCountedWhy(buddy), ["it ran with 7.45 GiB of memory, not the 8 GiB this track asks for"]);
-      assert.deepEqual(notCountedWhy({ ...buddy, track: "default" }), [], "size only counts on Same machine");
+      assert.deepEqual(notCountedWhy(buddy), [estimateNotCounted, size]);
+      // The size rule stands on its own: the same row, billed or metered, still isn't counted.
+      assert.deepEqual(notCountedWhy({ ...buddy, cost: { ...buddy.cost, kind: "metered" } }), [size]);
+      assert.deepEqual(notCountedWhy({ ...buddy, track: "default" }), [estimateNotCounted], "size only counts on Same machine");
       const exported = agentData().whatATaskCosts.tracks["same-spec"]?.workloads[profile].providers.find((r) => r.provider === "buddy");
       assert.equal(exported?.counted, false);
-      assert.deepEqual(exported?.whyNotCounted, ["it ran with 7.45 GiB of memory, not the 8 GiB this track asks for"]);
+      assert.deepEqual(exported?.whyNotCounted, [estimateNotCounted, size]);
     }
-    // On its default machine the size rule doesn't apply, so its 5 of 5 fix and test row counts.
+    // On its default machine the size rule doesn't apply, so its 5 of 5 fix and test row is left out only as an estimate.
     const def = headlineRows(realistic, "default", "fix-and-test").costed.find((r) => r.provider === "buddy");
-    assert.ok(def && isCounted(def));
+    assert.ok(def && !isCounted(def));
+    assert.deepEqual(notCountedWhy(def), [estimateNotCounted]);
   });
 
   test("Buddy's realistic scope says its estimate leaves storage out, and never groups it with estimates that include disk", () => {
@@ -904,14 +909,14 @@ describe("page", () => {
     assert.match(text, /Not counted: Styne \$0\.55 \(list-price estimate, not billed or metered by the provider\)\./);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Styne, Instabox, Boat and Maritime, boxd and Buddy are the cheapest bars on a different machine: both are named, and the pick is
-    // the next counted row, Superserve since its Nov 18 rerun with a 20 GB disk. boxd is caught by the harness's size flag, Buddy by the
-    // track's exact-size rule (equalSpec), with no row left out of the test by hand.
+    // Without Styne, Instabox, Boat and Maritime, boxd and Buddy are among the cheaper bars that don't count: both are named, and the pick
+    // is the next counted row, Superserve since its Nov 18 rerun with a 20 GB disk. boxd is caught by the harness's size flag, Buddy by
+    // the list-price estimate rule and the track's exact-size rule (equalSpec); Buddy's row isn't left out of the test by hand.
     const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox" && r.provider !== "maritime" && r.provider !== "styne") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
     assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
-    assert.match(line, /Not counted: Buddy \$5\.76 \(it ran with 7\.45 GiB of memory, not the 8 GiB this track asks for\)\./);
+    assert.match(line, /Not counted: Buddy \$5\.76 \(list-price estimate, not billed or metered by the provider; it ran with 7\.45 GiB of memory, not the 8 GiB this track asks for\)\./);
   });
 
   test("only Upstash Box and Ephemeral Box have an estimated part in this data", () => {

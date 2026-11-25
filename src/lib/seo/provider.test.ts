@@ -364,7 +364,7 @@ describe("Buddy's provider page", () => {
       assert.equal(rivalsText(t.field), `${products - 1} other sandbox products (${products - 1} providers in all)`);
     }
     const cold = providerFaqs("buddy").find((f) => f.question === "How fast is Buddy's cold start?")?.answer ?? "";
-    assert.match(cold, /16th of 16 products\./);
+    assert.match(cold, /17th of 17 products\./);
     assert.doesNotMatch(cold, /of \d+ providers/);
   });
 

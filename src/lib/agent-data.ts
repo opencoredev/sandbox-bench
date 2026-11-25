@@ -6,7 +6,9 @@ import {
   costBasis,
   costPick,
   costStatus,
+  costNotCountedWhy,
   costTag,
+  estimateNotCounted,
   hasLowerBounds,
   isEligible,
   isLowerBound,
@@ -18,6 +20,7 @@ import {
   perThousandText,
   pickLabel,
   pricedMemory,
+  pricedTasks,
   qualify,
   regionNote,
   statusNote,
@@ -1129,27 +1132,26 @@ function billingSummary() {
   return [...byLabel].map(([label, group]) => `Billing model of ${nameList(group)}: ${label}.`).join(" ");
 }
 
-/** The llms.txt guide: what the site is and where agents find each piece. */
 /**
- * Why Buddy isn't the quick-task cost pick, from the pick rule itself (cost.ts costPick): an
- * exact list-price estimate is eligible, so on the default machines it loses on price, and on
- * the same-machine track its 4x8 size (8 decimal GB, 7.45 GiB) fails the exact-size rule.
+ * Why Buddy is never the quick-task cost pick, from the pick rule itself (cost.ts costNotCountedWhy):
+ * its costs are list-price estimates, which Cheapest never picks on either track, and on the
+ * same-machine track its 4x8 size (8 decimal GB, 7.45 GiB) also fails the exact-size rule.
  */
 function buddyPickLine() {
-  const def = costPick(tracks.default);
+  const why = (id: TrackId) => {
+    const t = pricedTasks(tracks[id]).find((x) => x.id === "buddy");
+    return t ? costNotCountedWhy(tracks[id], t) : [];
+  };
+  const estimate = trackIds.every((id) => why(id).includes(estimateNotCounted));
   const same = tracks["same-spec"].providers.find((p) => p.id === "buddy");
-  const onDefault =
-    def.kind === "picked" && def.pick.id === "buddy"
-      ? "on the default machines it is the cheapest exact cost"
-      : `on the default machines ${def.kind === "picked" ? `${providerName(def.pick.id)}'s cost is lower` : "no exact cost is ranked"}`;
   const measured = same ? Math.min(...same.measuredAllocations.map((a) => a.memoryGiB)) : null;
-  const onSame =
-    same && !same.equalSpec && measured !== null && Number.isFinite(measured)
-      ? `; on the same-machine track Buddy's 4x8 size measured ${measured.toFixed(2)} GiB, not 8 GiB, so the exact-size rule leaves it out of the pick`
-      : "";
-  return `An exact estimate can still be the quick-task cost pick: ${onDefault}${onSame}.`;
+  const wrongSize = same !== undefined && !same.equalSpec && why("same-spec").length > (estimate ? 1 : 0) && measured !== null && Number.isFinite(measured);
+  const onSame = wrongSize ? `on the same-machine track its 4x8 size measured ${measured.toFixed(2)} GiB, not 8 GiB, so the exact-size rule leaves it out too` : "";
+  if (!estimate) return onSame ? `${onSame[0]?.toUpperCase()}${onSame.slice(1)}.` : "";
+  return `Cheapest needs a cost billed or metered by the provider, so Buddy's list-price estimates are shown but never the quick-task cost pick${onSame ? `; ${onSame}` : ""}.`;
 }
 
+/** The llms.txt guide: what the site is and where agents find each piece. */
 export function llmsTxt() {
   const picks = trackIds.flatMap((id) => {
     const t = tracks[id];

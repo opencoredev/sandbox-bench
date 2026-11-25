@@ -6,7 +6,6 @@ import { costNotCountedWhy, costPick, costStatus, estimateNotCounted, costTag, i
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 import type { TaskCost, Track } from "@/lib/data";
-import { providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 // The cost eligibility table and the pick built on it. Run with `bun test`.
@@ -140,7 +139,7 @@ describe("cost pick", () => {
     assert.ok(c.kind === "none");
     assert.equal(c.why, "not-counted");
     assert.deepEqual(c.lower.map((x) => x.id), ["boxd"]);
-    assert.match(c.lower[0]?.why.join() ?? "", /not 4 vCPU, 8 GB/);
+    assert.match(c.lower[0]?.why.join() ?? "", /not 4 vCPU, 8 GiB/);
   });
 
   test("with only a list-price estimate, there is no pick, and the estimate is listed with why", () => {
@@ -190,12 +189,24 @@ describe("Buddy's decimal GB", () => {
       }
   });
 
-  test("llms.txt gives the pick rule's own reasons Buddy isn't the quick-task cost pick", () => {
+  test("llms.txt gives the pick rule's own reasons Buddy is never the quick-task cost pick", () => {
     const text = llmsTxt();
-    assert.doesNotMatch(text, /never names it cheapest/);
-    const def = costPick(tracks.default);
-    assert.ok(def.kind === "picked" && def.pick.id !== "buddy");
-    assert.ok(text.includes(`An exact estimate can still be the quick-task cost pick: on the default machines ${providerName(def.pick.id)}'s cost is lower; on the same-machine track Buddy's 4x8 size measured 7.45 GiB, not 8 GiB, so the exact-size rule leaves it out of the pick.`));
+    assert.doesNotMatch(text, /An exact estimate can still be the quick-task cost pick/);
+    for (const id of trackIds) {
+      const t = pricedTasks(tracks[id]).find((x) => x.id === "buddy");
+      assert.ok(t && t.cost.kind === "estimate", `Buddy's ${id} quick-task cost is a list-price estimate`);
+      const why = costNotCountedWhy(tracks[id], t);
+      assert.equal(why[0], estimateNotCounted, `the rule leaves Buddy out of the ${id} pick as an estimate`);
+      // Even made the cheapest cost on the track, an estimate is never picked.
+      const alone = costPick({ ...tracks[id], costs: { buddy: tracks[id].costs.buddy } });
+      assert.ok(alone.kind === "none" && alone.why === "not-counted" && alone.lower.some((x) => x.id === "buddy"));
+    }
+    assert.equal(costNotCountedWhy(tracks.default, pricedTasks(tracks.default).find((x) => x.id === "buddy") ?? assert.fail()).length, 1, "size only counts on the same-machine track");
+    assert.ok(
+      text.includes(
+        "Cheapest needs a cost billed or metered by the provider, so Buddy's list-price estimates are shown but never the quick-task cost pick; on the same-machine track its 4x8 size measured 7.45 GiB, not 8 GiB, so the exact-size rule leaves it out too.",
+      ),
+    );
     assert.match(text, /estimates, not verified or settled bills/);
   });
 

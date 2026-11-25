@@ -85,16 +85,16 @@ describe("real tasks at once", () => {
     assert.equal(earlyProvider?.status === "ran" && earlyProvider.run?.startedAt, "0099-12-31T04:21:00.000Z");
   });
 
-  test("the published data appends Maritime's and Buddy's own runs after the Nov 19 run's providers", () => {
+  test("the published data appends Maritime's, Styne's and Buddy's own runs after the Nov 19 run's providers", () => {
     const buddy = realtaskBurst.providers.at(-1);
     assert.ok(buddy?.provider === "buddy" && buddy.status === "ran");
     assert.deepEqual(buddy.run, { id: "rtb-buddy-1124", sdkCommit: "5afd423cd15668d7d6a4d9587ab55d7f6ae74925", startedAt: "2026-11-25T07:41:14.244Z" });
     assert.equal(buddy.completed, 10);
     assert.equal(buddy.attempts, 10);
     assert.equal(buddy.slowdown, 1.146);
-    assert.equal(realtaskBurst.providers.filter((p) => p.status === "ran" && p.run !== null).length, 2);
+    assert.equal(realtaskBurst.providers.filter((p) => p.status === "ran" && p.run !== null).length, 3);
     const text = renderToStaticMarkup(<RealtaskBurstChart data={realtaskBurst} />).replace(/<[^>]+>/g, " ");
-    assert.match(text, /all on one day \(Nov 19; Maritime on Nov 24; Buddy on Nov 25\)/);
-    assert.match(text, /Maritime(?:'|&#x27;)s 619307b; Buddy(?:'|&#x27;)s 5afd423\)/);
+    assert.match(text, /all on one day \(Nov 19; Maritime on Nov 24; Styne on Nov 23; Buddy on Nov 25\)/);
+    assert.match(text, /Maritime(?:'|&#x27;)s 619307b; Styne(?:'|&#x27;)s cd2e6e1; Buddy(?:'|&#x27;)s 5afd423\)/);
   });
 });

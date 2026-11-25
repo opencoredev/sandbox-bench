@@ -98,7 +98,11 @@
  * five incomplete runs (Build on the 2 vCPU, 4 GB default, each past the
  * 20-minute step limit) failed in the workload, not in setup, so it needs no
  * --attempts file. Every other provider's rows and held-open entries came out
- * unchanged.
+ * unchanged. The committed file before it had Styne's rows last in each
+ * profile and track group, where this command sorts them by provider, so
+ * Buddy's four rows from this command's output were placed into that file's
+ * order, after boxd in each group; every other row, Styne's included, keeps
+ * its place and bytes.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one
