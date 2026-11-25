@@ -933,14 +933,44 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "microsandbox",
+   "track": "default",
+   "requested": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 0.5
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 0.5
+    }
+   },
+   "measured": [
+    {
+     "cpu": 1,
+     "memoryGiB": 0.5054244995117188,
+     "diskGiB": 3.86688232421875
+    }
+   ],
+   "equalSpec": false,
+   "verification": {
+    "verified": false,
+    "mismatches": [
+     "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)"
+    ]
+   }
   }
  ],
  "generatedFrom": "m",
  "window": {
   "start": "2026-10-22T18:05:53.908Z",
-  "end": "2026-11-24T05:33:43.007Z"
+  "end": "2026-11-25T08:26:09.404Z"
  },
- "observations": 48512,
+ "observations": 51497,
  "runs": [
   {
    "id": "sbx53-default-burst-r8b2",
@@ -1321,6 +1351,26 @@
    "id": "sbxst-default-burst",
    "suite": "burst",
    "samples": 426
+  },
+  {
+   "id": "msb-default-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "msb-default-snapshot",
+   "suite": "snapshot",
+   "samples": 326
+  },
+  {
+   "id": "msb-default-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "msb-default-burst",
+   "suite": "burst",
+   "samples": 426
   }
  ],
  "excluded": [
@@ -1464,6 +1514,12 @@
    "replacements": []
   },
   "styne": {
+   "removed": {},
+   "superseded": [],
+   "notRun": [],
+   "replacements": []
+  },
+  "microsandbox": {
    "removed": {},
    "superseded": [],
    "notRun": [],
@@ -4031,6 +4087,139 @@
     "n": 100
    },
    "standbyResume": null
+  },
+  {
+   "id": "microsandbox",
+   "costPerTask": {
+    "usd": null,
+    "kind": "metered",
+    "source": "billing.json: per-sandbox evidence required",
+    "confidence": "none",
+    "n": 0,
+    "settled": false,
+    "bound": null
+   },
+   "track": "default",
+   "requestedAllocation": {
+    "size": null,
+    "template": null,
+    "compute": {
+     "cpu": 1,
+     "memoryGiB": 0.5
+    },
+    "provisioned": {
+     "cpu": 1,
+     "memoryGiB": 0.5
+    }
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 1,
+     "memoryGiB": 0.5054244995117188,
+     "diskGiB": 3.86688232421875
+    }
+   ],
+   "equalSpec": false,
+   "currency": "USD",
+   "hourly": null,
+   "pricingBound": null,
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.216,
+   "perVcpuHour": null,
+   "pricingAllocation": null,
+   "allocationVerification": {
+    "verified": false,
+    "mismatches": [
+     "Measured memory exceeds provisioned RAM or falls below it by more than max(5%, 96 MiB)"
+    ]
+   },
+   "rates": {
+    "vcpuHour": 0.048,
+    "memoryGiBHour": 0.003,
+    "diskGiBHour": 6.25e-05,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": null,
+    "offeredSizes": null
+   },
+   "pricingSource": "https://microsandbox.dev/pricing",
+   "pricingNotes": "Published Standard (dedicated CPU) rates: $0.048/vCPU-hour, $0.003/GiB-hour of memory and $0.0000625/GiB-hour of provisioned root disk, while running ($0.220/hour for 4 vCPU / 8 GiB / 64 GiB). A stopped sandbox stops CPU and memory billing but keeps billing its root disk until deleted; persistent volumes ($0.15/GiB-month), managed snapshots ($0.08/GiB-month), plan fees and credits excluded.",
+   "reliability": {
+    "successes": 2881,
+    "failures": 4,
+    "raw": 0.9986135181975736,
+    "adjusted": 0.9986135181975736,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 4
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 1,
+    "visibleCpus": [
+     1
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 0.5054244995117188,
+    "diskGiB": 3.86688232421875,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC",
+      "count": 130
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": null,
+    "kernel": "6.12.118",
+    "location": [
+     {
+      "value": "Falkenstein, DE",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS24940 Hetzner Online GmbH",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [
+    {
+     "kind": "provider-operation",
+     "reason": "Microsandbox: reading a file failed (runtime) (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Agent tool replay"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Microsandbox: snapshot b979df81-9efd-4be7-84c6-93e2d2841518 (sandbox-sdk-947d8cc5-6080-446b-ac76-4a53b9d44b08) was taken, but the sandbox... (provider)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "Take snapshot"
+     ]
+    },
+    {
+     "kind": "provider-operation",
+     "reason": "Microsandbox: the command may have started, but the guest agent did not confirm it (outcome_unknown)",
+     "count": 1,
+     "runs": 1,
+     "tests": [
+      "tool-replay"
+     ]
+    }
+   ],
+   "ourFailures": [],
+   "pauseSplit": null,
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -4247,6 +4436,19 @@
      "min": 0.1460054990000208,
      "ciLow": 0.18200492400000803,
      "ciHigh": 0.19313274099992123,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 6.6294925509996245,
+     "p95": 9.357758330999873,
+     "min": 4.483169835999608,
+     "ciLow": 6.323902969999705,
+     "ciHigh": 6.923852270000032,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4471,6 +4673,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 1.0899749819990248,
+     "p95": 1.1289177700001747,
+     "min": 1.068681369001046,
+     "ciLow": 1.0854698399994522,
+     "ciHigh": 1.0922127880000043,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4687,6 +4902,19 @@
      "min": 0.0871435829999973,
      "ciLow": 0.10265154999995138,
      "ciHigh": 0.11284571199999846,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 3.3494505449999123,
+     "p95": 3.430455018999055,
+     "min": 3.305341165000573,
+     "ciLow": 3.3451025240011516,
+     "ciHigh": 3.3540651519999374,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -4911,6 +5139,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 14.991392624000088,
+     "p95": 19.093095731999725,
+     "min": 8.537237608999945,
+     "ciLow": 14.39520176499989,
+     "ciHigh": 15.619038726000115,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5131,6 +5372,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 2.2426560909999536,
+     "p95": 2.332724380999978,
+     "min": 2.1123914800006895,
+     "ciLow": 2.2382872419999913,
+     "ciHigh": 2.248610347000882,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5296,6 +5550,19 @@
      "ciLow": 0.1554705660000909,
      "ciHigh": 0.16787541600002442,
      "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 0,
+     "p50": null,
+     "p95": null,
+     "min": null,
+     "ciLow": null,
+     "ciHigh": null,
+     "successes": 0,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -5528,6 +5795,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 0.13430102200061084,
+     "p95": 0.31094804800022396,
+     "min": 0.12256402999907733,
+     "ciLow": 0.13211808100063355,
+     "ciHigh": 0.1367679500002414,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5709,6 +5989,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 29,
+     "p50": 11.368839400000056,
+     "p95": 17.443129675999984,
+     "min": 7.8032171499999246,
+     "ciLow": 10.893603067999939,
+     "ciHigh": 12.094875664000007,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5887,6 +6180,19 @@
      "ciLow": 0.1818103899999842,
      "ciHigh": 0.1896852859999999,
      "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 29,
+     "p50": 5.864722513999906,
+     "p95": 8.286736346999998,
+     "min": 5.000220449000015,
+     "ciLow": 5.393191492000013,
+     "ciHigh": 6.406736930000013,
+     "successes": 29,
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
@@ -6106,6 +6412,19 @@
      "min": 0.2502537010000087,
      "ciLow": 0.28644763000000967,
      "ciHigh": 0.30725541599999995,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 2.4438523490000517,
+     "p95": 2.7060473349997776,
+     "min": 2.2397715599997903,
+     "ciLow": 2.3669925329999826,
+     "ciHigh": 2.454738309999928,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6330,6 +6649,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 2.191335972999921,
+     "p95": 2.238979330000002,
+     "min": 2.1105662860004233,
+     "ciLow": 2.175859230999835,
+     "ciHigh": 2.2029673760000152,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6546,6 +6878,19 @@
      "min": 2.1571041909999913,
      "ciLow": 2.441996477000008,
      "ciHigh": 2.927108699000004,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 3.8548186969999225,
+     "p95": 4.088716984000057,
+     "min": 3.6681756019992755,
+     "ciLow": 3.7515430279998108,
+     "ciHigh": 3.899436797000468,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6770,6 +7115,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 7.736229255000129,
+     "p95": 8.030285976999439,
+     "min": 7.649090150999837,
+     "ciLow": 7.712091177000664,
+     "ciHigh": 7.755449769000057,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6990,6 +7348,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 0.558696097000502,
+     "p95": 0.753539037999697,
+     "min": 0.4901660179998726,
+     "ciLow": 0.5339335680007935,
+     "ciHigh": 0.5691488910000772,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7193,6 +7564,19 @@
      "min": 0.12108861200000684,
      "ciLow": 0.12971186999999917,
      "ciHigh": 0.13992339000001083,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 30,
+     "p50": 3.664244878999889,
+     "p95": 3.942636406000005,
+     "min": 3.606046467999928,
+     "ciLow": 3.652418251000345,
+     "ciHigh": 3.681796272000298,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -7417,6 +7801,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 29,
+     "p50": 179.79630472500065,
+     "p95": 183.55907895699983,
+     "min": 177.44625586399997,
+     "ciLow": 179.0414279810004,
+     "ciHigh": 180.49235330500036,
+     "successes": 29,
+     "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7637,6 +8034,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 3,
+     "p50": 9.330062392999986,
+     "p95": 12.142103984000002,
+     "min": 8.79804479,
+     "ciLow": 8.79804479,
+     "ciHigh": 12.142103984000002,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7840,6 +8250,19 @@
      "min": 0.24590403700000024,
      "ciLow": 0.24590403700000024,
      "ciHigh": 0.3912008259999998,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 3,
+     "p50": 11.396389001000003,
+     "p95": 14.014503599000003,
+     "min": 10.076523373000004,
+     "ciLow": 10.076523373000004,
+     "ciHigh": 14.014503599000003,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -8064,6 +8487,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 19683757.60098112,
+     "p95": 20150058.696113706,
+     "min": 12794755.665076522,
+     "ciLow": 19501536.43830144,
+     "ciHigh": 19757186.938526988,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8282,6 +8718,19 @@
      "ciHigh": 67434191.39081027,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 16521509.237225326,
+     "p95": 17380611.795449402,
+     "min": 9396481.82565375,
+     "ciLow": 16415546.290584685,
+     "ciHigh": 16622761.797070235,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -8504,6 +8953,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 49071.914449922486,
+     "p95": 51912.25280633733,
+     "min": 45714.82367078812,
+     "ciLow": 48659.48605040301,
+     "ciHigh": 49293.10165391376,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8722,6 +9184,19 @@
      "ciHigh": 1024.787652289451,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 613.8606688503362,
+     "p95": 635.9686874459563,
+     "min": 561.8452996449782,
+     "ciLow": 611.8829330606458,
+     "ciHigh": 616.6937420110938,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -8944,6 +9419,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 14590.256865484356,
+     "p95": 15340.382119365258,
+     "min": 12276.866596440548,
+     "ciLow": 14430.545882101915,
+     "ciHigh": 14749.450485209216,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -9162,6 +9650,19 @@
      "ciHigh": 20565.755921586067,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 4950.7294126236175,
+     "p95": 5219.805819145597,
+     "min": 4378.254359886111,
+     "ciLow": 4931.121478793951,
+     "ciHigh": 4987.079082002617,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -9384,6 +9885,19 @@
      "failures": 1,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 515127.8563438459,
+     "p95": 530254.5428934911,
+     "min": 474747.5122120607,
+     "ciLow": 512071.6900364532,
+     "ciHigh": 517674.7506161695,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -9587,6 +10101,19 @@
      "ciHigh": 1.9313429977046326,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "microsandbox",
+     "n": 100,
+     "p50": 6.292886200001391,
+     "p95": 6.421806800000951,
+     "min": 6.174187599998504,
+     "ciLow": 6.2810457999994185,
+     "ciHigh": 6.313601400000124,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -11221,6 +11748,108 @@
    0.281,
    0.33,
    0.376
+  ],
+  "microsandbox": [
+   4.483,
+   4.566,
+   4.927,
+   4.971,
+   4.971,
+   4.992,
+   5.071,
+   5.116,
+   5.174,
+   5.177,
+   5.21,
+   5.242,
+   5.322,
+   5.351,
+   5.397,
+   5.466,
+   5.522,
+   5.54,
+   5.608,
+   5.682,
+   5.694,
+   5.758,
+   5.82,
+   5.84,
+   5.855,
+   5.918,
+   5.926,
+   5.951,
+   5.978,
+   6.008,
+   6.073,
+   6.101,
+   6.134,
+   6.138,
+   6.149,
+   6.166,
+   6.252,
+   6.272,
+   6.288,
+   6.324,
+   6.364,
+   6.379,
+   6.385,
+   6.388,
+   6.454,
+   6.532,
+   6.54,
+   6.598,
+   6.628,
+   6.629,
+   6.645,
+   6.666,
+   6.689,
+   6.709,
+   6.721,
+   6.751,
+   6.779,
+   6.86,
+   6.873,
+   6.924,
+   6.94,
+   7.032,
+   7.05,
+   7.058,
+   7.142,
+   7.161,
+   7.251,
+   7.361,
+   7.375,
+   7.503,
+   7.599,
+   7.661,
+   7.729,
+   7.844,
+   7.873,
+   7.944,
+   7.988,
+   8.072,
+   8.13,
+   8.145,
+   8.161,
+   8.176,
+   8.233,
+   8.356,
+   8.61,
+   8.804,
+   8.909,
+   8.912,
+   9.107,
+   9.139,
+   9.155,
+   9.263,
+   9.29,
+   9.338,
+   9.358,
+   10.185,
+   10.346,
+   10.415,
+   10.659,
+   11.424
   ]
  },
  "missing": {
