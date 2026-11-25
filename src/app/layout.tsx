@@ -8,8 +8,7 @@ import { Theme } from "@/components/theme";
 import { trackScript } from "@/components/track";
 import { tierScript } from "@/lib/tiers";
 import { TracePanel } from "@/components/trace-panel";
-import { DatabuddyProvider } from "@databuddy/sdk/react";
-import { databuddyOptions } from "@/lib/databuddy";
+import { AnalyticsProvider } from "@/components/analytics-provider";
 import { PostHogProvider } from "@/lib/posthog-provider";
 import { homeOpenGraph, homeTwitter, siteDescription as description, siteTitle as title } from "@/lib/seo/home";
 
@@ -61,12 +60,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </noscript>
       </head>
       <body>
-        <DatabuddyProvider {...databuddyOptions({ nodeEnv: process.env.NODE_ENV })}>
+        <AnalyticsProvider>
           <Theme colorMode={colorMode}>
             {children}
             <TracePanel />
           </Theme>
-        </DatabuddyProvider>
+        </AnalyticsProvider>
         <PostHogProvider />
       </body>
     </html>

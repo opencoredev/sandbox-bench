@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { databuddyClientId, databuddyOptions } from "@/lib/databuddy";
+import { databuddyClientId, databuddyOptions, hasOptedOut } from "@/lib/databuddy";
 import { privateCtaLabel, privateCtaLabels } from "@/lib/flags";
 
 // Databuddy loads on the production site only, with aisandboxbench.com's client ID. Run with `bun test`.
@@ -13,7 +13,7 @@ describe("databuddy", () => {
   });
 
   test("production loads the tracker, replay and attribute clicks", () => {
-    assert.deepEqual(databuddyOptions({ nodeEnv: "production" }), {
+    assert.deepEqual(databuddyOptions({ nodeEnv: "production", optedOut: false }), {
       clientId: databuddyClientId,
       disabled: false,
       replay: true,
@@ -23,7 +23,23 @@ describe("databuddy", () => {
 
   test("dev, test and an unset NODE_ENV load nothing", () => {
     for (const nodeEnv of ["development", "test", undefined]) {
-      assert.equal(databuddyOptions({ nodeEnv }).disabled, true, `NODE_ENV=${nodeEnv}`);
+      assert.equal(databuddyOptions({ nodeEnv, optedOut: false }).disabled, true, `NODE_ENV=${nodeEnv}`);
+    }
+  });
+
+  test("an opted-out visitor loads nothing, so no flags request leaves the browser", () => {
+    assert.equal(databuddyOptions({ nodeEnv: "production", optedOut: true }).disabled, true);
+  });
+
+  test("Do Not Track, Global Privacy Control and Databuddy's stored opt-out each count as opted out", () => {
+    const none = () => null;
+    const base = { doNotTrack: null, globalPrivacyControl: undefined, stored: none };
+    assert.equal(hasOptedOut(base), false);
+    assert.equal(hasOptedOut({ ...base, doNotTrack: "0" }), false);
+    assert.equal(hasOptedOut({ ...base, doNotTrack: "1" }), true);
+    assert.equal(hasOptedOut({ ...base, globalPrivacyControl: true }), true);
+    for (const key of ["databuddy_opt_out", "databuddy_disabled"]) {
+      assert.equal(hasOptedOut({ ...base, stored: (k) => (k === key ? "true" : null) }), true, key);
     }
   });
 

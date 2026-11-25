@@ -396,7 +396,7 @@ function Attribution() {
       {links.map((l, i) => (
         <span key={l.href}>
           {i > 0 ? <span aria-hidden>{" · "}</span> : null}
-          <a href={l.href} className={quietLink}>
+          <a href={l.href} {...(l.href === forProvidersPath ? ctaAttributes({ cta: "private_benchmarks", placement: "home_hero" }) : {})} className={quietLink}>
             {l.text}
           </a>
         </span>

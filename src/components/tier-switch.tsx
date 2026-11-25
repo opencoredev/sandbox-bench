@@ -46,10 +46,11 @@ function select(event: MouseEvent<HTMLAnchorElement>, view: TierView) {
   const url = new URL(window.location.href);
   if (view === "all") url.searchParams.set(tierParam, allTiersValue);
   else url.searchParams.delete(tierParam);
+  const changed = current() !== view;
   show(view);
   window.history.replaceState(null, "", url);
   window.dispatchEvent(new Event(EVENT));
-  captureEvent("tiers_switched", { view });
+  if (changed) captureEvent("tiers_switched", { view });
 }
 
 const Segment = themePart("a", "toggle-group", "control", "ui-button");
