@@ -51,6 +51,8 @@ import { Tracked } from "@/components/track";
 import { TierSwitch } from "@/components/tier-switch";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
+import { PrivateCtaLabel } from "@/components/private-cta-label";
+import { SectionViews } from "@/components/section-views";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
@@ -64,6 +66,7 @@ import { isExtraTier, isProviderId, providerBrand, providerColor, providerName }
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
+import { ctaAttributes } from "@/lib/cta";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
 // and one bar of section links, a hero with the title on the left and a short
@@ -399,7 +402,7 @@ function Attribution() {
       {links.map((l, i) => (
         <span key={l.href}>
           {i > 0 ? <span aria-hidden>{" · "}</span> : null}
-          <a href={l.href} className={quietLink}>
+          <a href={l.href} {...(l.href === forProvidersPath ? ctaAttributes({ cta: "private_benchmarks", placement: "home_hero" }) : {})} className={quietLink}>
             {l.text}
           </a>
         </span>
@@ -609,6 +612,7 @@ export default function Page() {
 
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
       <main className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
+        <SectionViews />
         {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
         {/* Kept short so the stat tiles and the top of the scores fit in a 1440 x 900 window. The CPU tier switch lives under CPU tiers. */}
         <div className="grid gap-m pt-s pb-m lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-xl lg:pt-xl lg:pb-l">
@@ -1012,7 +1016,7 @@ export default function Page() {
             <MethodList rows={methodRows} />
             <p className="mt-m text-s text-neutral-7">
               Every number with its full method:{" "}
-              <a className="focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="results.md">
+              <a {...ctaAttributes({ cta: "data_download", placement: "home_method" })} className="focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="results.md">
                 results.md
               </a>
             </p>
@@ -1032,8 +1036,10 @@ export default function Page() {
             <p className="mt-m max-w-[72ch] text-s text-pretty text-neutral-7">
               <span className="font-medium text-neutral-10">{independenceTitle}.</span> Every result on this page comes from runs on our own accounts.
             </p>
-            <a href={forProvidersPath} className="group focus-ring mt-m inline-flex items-center gap-xxs rounded-xs text-s font-medium text-accent">
-              <span className="underline decoration-dotted underline-offset-4 group-hover:text-neutral-10">What&apos;s included, and get in touch</span>
+            <a href={forProvidersPath} {...ctaAttributes({ cta: "private_benchmarks", placement: "home_section" })} className="group focus-ring mt-m inline-flex items-center gap-xxs rounded-xs text-s font-medium text-accent">
+              <span className="underline decoration-dotted underline-offset-4 group-hover:text-neutral-10">
+                <PrivateCtaLabel />
+              </span>
               <ArrowUpRight aria-hidden className="size-4 shrink-0 group-hover:text-neutral-10" />
             </a>
           </Card>
@@ -1051,7 +1057,7 @@ export default function Page() {
             {["llms.txt", "results.json", "results.md"].map((f, i) => (
               <span key={f}>
                 {i > 0 ? " · " : ""}
-                <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
+                <a {...ctaAttributes({ cta: "data_download", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
                   {f}
                 </a>
               </span>
@@ -1060,11 +1066,11 @@ export default function Page() {
           <span aria-hidden className="hidden sm:inline">·</span>
           <HomeLinks />
           <span aria-hidden className="hidden sm:inline">·</span>
-          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={forProvidersPath}>
+          <a {...ctaAttributes({ cta: "private_benchmarks", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={forProvidersPath}>
             For providers
           </a>
           <span aria-hidden className="hidden sm:inline">·</span>
-          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
+          <a {...ctaAttributes({ cta: "github", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
             Source on GitHub
           </a>
           <span aria-hidden className="hidden sm:inline">·</span>

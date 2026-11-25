@@ -33,6 +33,7 @@ import type { Track, TrackId } from "@/lib/data";
 import { fingerprintDate } from "@/lib/hardware";
 import { faqJsonLd, highlights, machineOf, providerFaqs, providerNotes, providerResults, providerSummary, rankText, scorecard, taskText, verdict } from "@/lib/seo/provider";
 import type { Faq, MetricRow, Placed, ProviderTrack, ScorecardEntry } from "@/lib/seo/provider";
+import { ctaAttributes } from "@/lib/cta";
 
 export const dynamicParams = false;
 
@@ -793,7 +794,7 @@ export default async function ProviderPage(props: Props) {
                 </a>
               </li>
               <li>
-                <a className={link} href={forProvidersPath}>
+                <a className={link} href={forProvidersPath} {...ctaAttributes({ cta: "private_benchmarks", placement: "provider_page" })}>
                   {privateTitle}
                 </a>
               </li>
