@@ -162,7 +162,10 @@ const grid = (n: number): CSSProperties => ({ "--tiers": n });
 export function TierTable({ brand, track, realistic, burst }: { brand: TieredProvider; track: Track; realistic: RealisticData; burst: RealtaskBurst }) {
   const tiers: readonly CpuTier[] = cpuTiers[brand];
   const lines = tierLines({ track, tiers, realistic, burst });
-  const machine = track.providers.find((p) => p.id === brand)?.measuredAllocations[0];
+  // Priced on the size every tier asked for, not what one sandbox reported inside.
+  const requested = track.providers.find((p) => p.id === brand)?.requestedAllocation;
+  const size = requested?.size;
+  const machine = requested?.compute ? { ...requested.compute, diskGiB: typeof size === "object" && size !== null ? size.diskGb : undefined } : undefined;
   const groups = [...new Set(lines.map((l) => l.group))];
   const source = tierSources[brand];
   const first = tiers[0];
@@ -178,7 +181,7 @@ export function TierTable({ brand, track, realistic, burst }: { brand: TieredPro
       <div role="table" aria-label={`${providerName(brand)} CPU tiers`} className="text-s">
         <div role="row" className={`${gridClass} items-end gap-x-s pb-m sm:gap-x-l`} style={grid(tiers.length)}>
           <span role="columnheader" className="sr-only text-xs text-neutral-7 sm:not-sr-only sm:self-end">
-            {machine ? `${machine.cpu} vCPU, ${machine.memoryGiB} GB` : "Tier"}
+            {machine ? `${machine.cpu} vCPU, ${machine.memoryGiB} GiB${machine.diskGiB === undefined ? "" : `, ${machine.diskGiB} GiB disk`}` : "Tier"}
           </span>
           {tiers.map((t, i) => {
             const price = hourly(t);
