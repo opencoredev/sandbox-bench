@@ -320,7 +320,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(footprint ? [{ lead: "Workload size", text: footprint }] : []),
     { lead: "Cost per task", text: "The cost of every attempt divided by the tasks that completed. Each task starts from the provider's base image and installs its own toolchain." },
     ...scopeNotes(data),
-    { lead: "Cheapest", text: "The lowest cost from the provider's bill or usage meter, with at most 1 incomplete run, on the CPU tier a new account gets. List-price estimates are shown but not picked. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
+    { lead: "Cheapest", text: "The lowest cost from the provider's bill or usage meter, with at most 1 incomplete run, on the CPU tier a new account gets. List-price estimates are shown but not picked. On Same machine, only providers that measured 4 vCPU and 8 GiB count." },
     { lead: "Whole machine at list price", text: "The machine's published rate over each task's billed time. For providers that bill usage, this is a what-if, not their bill." },
     ...(track === "default" ? [{ lead: "Default machines", text: "Each provider's own default size, so sizes differ. A default too small for the workload wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),

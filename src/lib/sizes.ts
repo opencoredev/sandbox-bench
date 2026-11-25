@@ -20,6 +20,16 @@ export const gbToGiB = (gb: number) => gb * GIB_PER_GB;
 /** Measured memory in GiB as a provider's labels need it: "7.45 GiB" for a decimal-GB seller, the site's rounded "7.8 GB" otherwise. */
 export const measuredMemoryText = (id: ProviderId, gib: number) => (soldInDecimalGB(id) ? `${gib.toFixed(2)} GiB` : formatGiB(gib));
 
+/** Measured disk in GiB as a provider's labels need it: "45.5 GiB" for a decimal-GB seller, the site's rounded "46 GB" otherwise. */
+export const measuredDiskText = (id: ProviderId, gib: number) => (soldInDecimalGB(id) ? `${gib.toFixed(1)} GiB` : formatGiB(gib));
+
+/** Advertised capacity in chart tooltips: shows both decimal GB and binary GiB for decimal-GB sellers. */
+export function advertisedCapacityText(id: ProviderId, key: "memoryGiB" | "diskGiB", gib: number) {
+  if (!soldInDecimalGB(id)) return formatGiB(gib);
+  const gb = Math.round(gib / GIB_PER_GB);
+  return `${gb} GB (${key === "memoryGiB" ? gib.toFixed(2) : gib.toFixed(1)} GiB)`;
+}
+
 /**
  * The size each provider advertises for the sandbox we got, from its own docs
  * (checked 2026-10-21), or null where the docs don't say. Measured values sit

@@ -74,7 +74,7 @@ import {
 import type { CostKind, Costed, ProfileId, RealisticRow } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { regionFor } from "@/lib/plan-minimum";
-import { advertised, sharedDisk, sizeOf } from "@/lib/sizes";
+import { advertised, gbToGiB, sharedDisk, sizeOf, soldInDecimalGB } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
 import { bestFirst, hasExpanded } from "@/lib/expanded";
 import type { Expanded } from "@/lib/expanded";
@@ -362,7 +362,7 @@ const realisticAbout =
   "Real work instead of the quick task, each in a fresh sandbox from the create request to confirmed deletion, setup included. Fix and test applies a real Vue bug, runs the type checker and Vue's test suite, applies the fix and runs them again. Build is a production build of the Jitsi Meet web app. Each runs on the same-machine track (4 vCPU, 8 GB) and on each provider's default machine. An idle test leaves the sandbox open after fix and test.";
 
 const realisticHowToRead =
-  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, exactly 4 vCPU and 8 GB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
+  "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, 4 vCPU and 8 GiB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
@@ -566,8 +566,37 @@ Idle test (same machine, fix and test, then 10 or 60 minutes open, ${realistic.c
 `;
 }
 
+interface ProvisionedAllocation {
+  cpu: number;
+  memoryGiB: number;
+  diskGiB?: number | null;
+}
+
+function isProvisionedAllocation(v: unknown): v is ProvisionedAllocation {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as Record<string, unknown>;
+  return typeof r.cpu === "number" && typeof r.memoryGiB === "number" && (r.diskGiB === undefined || r.diskGiB === null || typeof r.diskGiB === "number");
+}
+
+const requestedAllocationExport = (p: Track["providers"][number]) => {
+  const req = p.requestedAllocation;
+  const rawProv = "provisioned" in req ? req.provisioned : null;
+  if (!soldInDecimalGB(p.id) || !isProvisionedAllocation(rawProv)) return { ...req, text: requestedText(p) };
+  const provisioned = {
+    cpu: rawProv.cpu,
+    memoryGB: rawProv.memoryGiB,
+    memoryGiB: round(gbToGiB(rawProv.memoryGiB)),
+    ...(typeof rawProv.diskGiB === "number" ? { diskGB: rawProv.diskGiB, diskGiB: round(gbToGiB(rawProv.diskGiB)) } : { diskGiB: null }),
+  };
+  const compute =
+    req.size === null && req.compute !== null
+      ? { cpu: req.compute.cpu, memoryGB: req.compute.memoryGiB, memoryGiB: round(gbToGiB(req.compute.memoryGiB)) }
+      : req.compute;
+  return { ...req, compute, provisioned, text: requestedText(p) };
+};
+
 const allocationOf = (p: Track["providers"][number]) => ({
-  requested: { ...p.requestedAllocation, text: requestedText(p) },
+  requested: requestedAllocationExport(p),
   // A shared file system reports the host's disk, not the sandbox's: no size, and why.
   measured: p.measuredAllocations.map((a) => ({ cpu: a.cpu, memoryGiB: round(a.memoryGiB), diskGiB: sharedDisk[p.id] ? null : round(a.diskGiB) })),
   ...(sharedDisk[p.id] ? { diskNote: sharedDisk[p.id] } : {}),
@@ -763,10 +792,10 @@ function trackData(track: Track) {
 }
 
 const about =
-  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: the same 4 vCPU, 8 GB machine for every provider (the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure kept, failures caused by our own code set aside.";
+  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: a 4 vCPU, 8 GiB machine (nearest size where a provider has no exact match, marked as machine differs; the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure in the published runs kept, failures caused by our own code set aside, and replaced earlier runs disclosed beside the results.";
 
 const howToRead =
-  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
+  "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GiB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GiB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.3 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GiB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation, a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
 
 /** How to read lower bounds and region multipliers, said only once the data has one. */
 function howToReadQualifiers() {

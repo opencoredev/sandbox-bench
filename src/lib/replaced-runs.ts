@@ -62,7 +62,7 @@ export const replacedRuns: Partial<Record<ProviderId, Partial<Record<TrackId, re
     "same-spec": [
       {
         run: "its first main run of 100 (Nov 25)",
-        failed: "Buddy answered its 98th create with HTTP 429, and one preview's new hostname didn't resolve yet (3 DNS lookup failures on its retries)",
+        failed: "Buddy answered a status check (GET /sandboxes/{id}) on its 98th create with HTTP 429, and one preview's new hostname didn't resolve yet (3 DNS lookup failures on its retries)",
         replacedBy: "rerun as two halves of 50 in separate UTC hours (04:00 and 07:19 UTC)",
       },
       {

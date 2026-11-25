@@ -594,7 +594,8 @@ describe("pick", () => {
     assert.match(line, /compute, memory, disk and standby storage, except where an estimate below leaves a charge out\./);
     const notes = scopeNotes(realistic);
     const estimates = notes.find((n) => n.lead === "List-price estimates");
-    assert.ok(estimates && !estimates.text.includes("Buddy"), estimates?.text);
+    assert.ok(estimates !== undefined, "missing List-price estimates note");
+    assert.ok(!estimates.text.includes("Buddy"), estimates.text);
     assert.match(notes.find((n) => n.lead === "Buddy estimate")?.text ?? "", /CPU and RAM per started minute.*leaves out separately billed storage, \$0\.00011 per GB-hour of disk used/);
     assert.match(notes.find((n) => n.lead === "What a cost includes")?.text ?? "", /except the storage Buddy's estimate leaves out/);
     assert.equal(agentData().whatATaskCosts.costScope, line);

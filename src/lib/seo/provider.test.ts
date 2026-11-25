@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
+import { agentData } from "@/lib/agent-data";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { hardware, locationLabel } from "@/lib/hardware";
@@ -10,6 +11,7 @@ import { headlineRows, runTrackOf } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import { rankScores } from "@/lib/score";
 import { trackScores } from "@/lib/score-categories";
+import { advertisedCapacityText, measuredDiskText } from "@/lib/sizes";
 import { isProviderPage, providerPages, providerPath } from "@/lib/seo/pages";
 import { faqJsonLd, fieldText, highlights, providerFaqs, providerNotes, providerResults, providerSummary, realTaskCost, realTaskTime, rivalsText, scorecard, verdict } from "@/lib/seo/provider";
 
@@ -340,7 +342,7 @@ describe("Buddy's provider page", () => {
     // Default machine: the first bursts, one HTTP 429 and 9 ownership-verification failures.
     assert.match(a, /its first bursts \(Nov 25, 01:32 UTC\), where 10 creates in its bursts of 10 failed: Buddy answered one status check with HTTP 429.*9 failed with a provider request error, their sandboxes' ownership unverified; rerun at 02:01 UTC/);
     // Same machine: the main run's 429 at create 98 plus 3 DNS failures on one preview, and the wrong-size snapshot run before 5afd423.
-    assert.match(a, /its first main run of 100 \(Nov 25\), where Buddy answered its 98th create with HTTP 429, and one preview's new hostname didn't resolve yet \(3 DNS lookup failures on its retries\)/);
+    assert.match(a, /its first main run of 100 \(Nov 25\), where Buddy answered a status check \(GET \/sandboxes\/\{id\}\) on its 98th create with HTTP 429, and one preview's new hostname didn't resolve yet \(3 DNS lookup failures on its retries\)/);
     assert.match(a, /its first snapshot run \(Nov 25\), where our harness restored 6 snapshots at Buddy's default 2x4 size instead of 4x8, since fixed in harness commit 5afd423/);
     const ld = JSON.stringify(faqJsonLd(providerFaqs("buddy")));
     assert.ok(ld.includes(JSON.stringify(a).slice(1, -1)), "the JSON-LD answer is the page's answer");
@@ -364,5 +366,23 @@ describe("Buddy's provider page", () => {
     const cold = providerFaqs("buddy").find((f) => f.question === "How fast is Buddy's cold start?")?.answer ?? "";
     assert.match(cold, /16th of 16 products\./);
     assert.doesNotMatch(cold, /of \d+ providers/);
+  });
+
+  test("Buddy default allocation exports and disk chart helpers keep decimal GB and binary GiB distinct", () => {
+    const data = agentData();
+    assert.match(data.about, /4 vCPU, 8 GiB machine \(nearest size where a provider has no exact match/);
+    assert.match(data.about, /every provider-side failure in the published runs kept.*replaced earlier runs disclosed/);
+    assert.match(data.whatATaskCosts.howToRead, /on the same-machine track, 4 vCPU and 8 GiB/);
+    const defBuddy = data.tracks.default.providers.find((p) => p.id === "buddy");
+    assert.ok(defBuddy);
+    const req = defBuddy.allocation.requested;
+    assert.ok("provisioned" in req && req.provisioned !== null);
+    assert.equal(req.provisioned.memoryGB, 4);
+    assert.equal(req.provisioned.memoryGiB, 3.725);
+    assert.equal("diskGB" in req.provisioned ? req.provisioned.diskGB : undefined, 50);
+    assert.equal(req.provisioned.diskGiB, 46.566);
+    assert.equal(advertisedCapacityText("buddy", "diskGiB", 46.6), "50 GB (46.6 GiB)");
+    assert.equal(measuredDiskText("buddy", 45.534), "45.5 GiB");
+    assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GB");
   });
 });
