@@ -65,7 +65,7 @@ export function allocationNotes(t: Track): Notes {
     t.providers.flatMap((p) => {
       if (p.equalSpec) return [];
       const measured = measuredText(p);
-      const ran = measured ? `ran ${measured}, not 4 vCPU, 8 GB.` : "machine size not measured, so we can't confirm it matched.";
+      const ran = measured ? `ran ${measured}, not 4 vCPU, 8 GiB.` : "machine size not measured, so we can't confirm it matched.";
       return [[p.id, [ran, sameSpecWhy[p.id]].filter(Boolean).join(" ")]];
     }),
   );

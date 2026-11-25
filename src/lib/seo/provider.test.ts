@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { agentData } from "@/lib/agent-data";
+import { agentData, llmsTxt } from "@/lib/agent-data";
 import { trackIds, tracks } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { hardware, locationLabel } from "@/lib/hardware";
@@ -330,7 +330,7 @@ describe("Buddy's provider page", () => {
     assert.match(providerSummary("maritime"), /^Maritime sandbox on the same 4 vCPU, 8 GB machine:/);
     // The machine note describes the 4x8 size Buddy actually sells.
     const note = providerResults("buddy").tracks.find((t) => t.id === "same-spec")?.machine.note ?? "";
-    assert.match(note, /^ran 4 vCPU, 7\.45 GiB, not 4 vCPU, 8 GB\. Buddy sells memory in decimal GB: its 4x8 size is 4 vCPU and 8 GB \(8,000,000,000 bytes\), which is 7\.45 GiB/);
+    assert.match(note, /^ran 4 vCPU, 7\.45 GiB, not 4 vCPU, 8 GiB\. Buddy sells memory in decimal GB: its 4x8 size is 4 vCPU and 8 GB \(8,000,000,000 bytes\), which is 7\.45 GiB/);
   });
 
   test("the reliability answer and its JSON-LD say the counts are the published runs, and name the replaced ones", () => {
@@ -381,6 +381,13 @@ describe("Buddy's provider page", () => {
     assert.equal(req.provisioned.memoryGiB, 3.725);
     assert.equal("diskGB" in req.provisioned ? req.provisioned.diskGB : undefined, 50);
     assert.equal(req.provisioned.diskGiB, 46.566);
+    assert.equal(defBuddy.allocation.verified, true);
+    assert.deepEqual(defBuddy.allocation.mismatches, []);
+    const sameBuddy = data.tracks["same-spec"].providers.find((p) => p.id === "buddy");
+    assert.ok(sameBuddy);
+    assert.equal(sameBuddy.allocation.equalSpec, false);
+    assert.equal(sameBuddy.allocation.verified, false);
+    assert.match(llmsTxt(), /on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts\./);
     assert.equal(advertisedCapacityText("buddy", "diskGiB", 46.6), "50 GB (46.6 GiB)");
     assert.equal(measuredDiskText("buddy", 45.534), "45.5 GiB");
     assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GB");
