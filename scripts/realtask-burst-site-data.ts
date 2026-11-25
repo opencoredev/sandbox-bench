@@ -12,6 +12,7 @@
  *     --location "Florida, US" \
  *     --add ~/agents/realtask-burst/runs/rtb-maritime-1123/realtask-burst-maritime.json \
  *     --add ~/agents/realtask-burst/runs/rtb-styne-1123/realtask-burst-styne.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-buddy-1124/realtask-burst-buddy.json \
  *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox.json \
  *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox-shared.json \
  *     --out src/data/realtask-burst.json
@@ -23,6 +24,12 @@
  * unchanged. Microsandbox Standard and Shared were added on 2026-11-25 from
  * their own runs (rtb-msb-std-1124 and rtb-msb-shr-1124, sandbox-sdk afdf664,
  * the same plan with solo controls).
+ *
+ * Buddy was added on 2026-11-25 the same way, from its own run (rtb-buddy-1124,
+ * started 07:41 UTC on Nov 25, the same plan, from a sandbox-sdk checkout at
+ * 5afd423: harness commit 5afd423, SDK commit a5c99d2. The run file's
+ * sdkCommit field records that checkout, 5afd423); every other
+ * provider's entry, Maritime's included, is unchanged.
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to

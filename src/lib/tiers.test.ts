@@ -107,7 +107,7 @@ describe("CPU tiers on the published data", () => {
       if (c.kind === "picked") assert.ok(!isExtraTier(c.pick.id));
       const beam = providerTrack(tid, "beam");
       const firsts = t.providers.filter((p) => !isExtraTier(p.id)).length;
-      if (beam) assert.equal(beam.providerCount, firsts);
+      if (beam) assert.equal(beam.field.products, firsts);
       for (const a of alternativesTrack(tid, "e2b")?.alternatives ?? []) assert.ok(!isExtraTier(a.id), a.id);
       for (const { scores } of trackScores(tracks[tid])) for (const s of scores) assert.ok(!isExtraTier(s.provider), `${tid} scores ${s.provider}`);
     }

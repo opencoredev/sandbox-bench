@@ -1,5 +1,6 @@
 import { billingBases, billingLabel, costStatuses, estimateNotCounted, formatPerThousand, kindStatusText } from "@/lib/cost";
 import type { CostStatusKind } from "@/lib/cost";
+import { tracks } from "@/lib/data";
 import { isExtraTier, isPreemptible, isProviderId, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import type { TrackId } from "@/lib/tracks";
@@ -439,7 +440,7 @@ export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b). Beam's same-machine rows are from its 2026-11-20 Performance rerun (its first run was on 2026-11-18, 16:58 to 17:25 UTC), on the same machine only: its default sandbox, 1 CPU and 128 MiB, is too small for either task, and like Baseten it has no held-open run. Luxor's and Superserve's same-machine runs were repeated on 2026-11-18 (Luxor 21:53 to 22:14 UTC, Superserve 22:20 to 22:39 UTC) with 20 GB disks, after their first runs had too little free disk for the build (Superserve for both tasks); their default-machine rows are from the first runs. Styne ran on 2026-11-23 (19:36 to 20:01 UTC); like Baseten it has no held-open run, as its costs are list-price estimates. Maritime ran on 2026-11-24 (02:34 to 04:20 UTC), on the same harness commit as its main suite (619307b), metered from its per-sandbox usage records; it has no held-open run, as that usage leaves out the charge for a paused sandbox's disk.";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b). Beam's same-machine rows are from its 2026-11-20 Performance rerun (its first run was on 2026-11-18, 16:58 to 17:25 UTC), on the same machine only: its default sandbox, 1 CPU and 128 MiB, is too small for either task, and like Baseten it has no held-open run. Luxor's and Superserve's same-machine runs were repeated on 2026-11-18 (Luxor 21:53 to 22:14 UTC, Superserve 22:20 to 22:39 UTC) with 20 GB disks, after their first runs had too little free disk for the build (Superserve for both tasks); their default-machine rows are from the first runs. Styne ran on 2026-11-23 (19:36 to 20:01 UTC); like Baseten it has no held-open run, as its costs are list-price estimates. Maritime ran on 2026-11-24 (02:34 to 04:20 UTC), on the same harness commit as its main suite (619307b), metered from its per-sandbox usage records; it has no held-open run, as that usage leaves out the charge for a paused sandbox's disk. Buddy ran on 2026-11-25 (04:27 to 07:19 UTC), on harness commit 5afd423 and SDK commit a5c99d2, priced at its list price per started minute because it has no usage or billing API; like Baseten it has no held-open run.";
 
 /** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
 export const vercelTransferLine =
@@ -482,12 +483,12 @@ export function profileWhat(profile: ProfileId, w: Workload | null): string {
 export function profileFootprint(profile: ProfileId, w: Workload | null): string | null {
   if (!w) return null;
   const memory = profile === "build" ? `${range(w.memoryGiB, 1)} GiB of memory` : `${range(w.memoryGiB, 1)} GiB`;
-  return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GB reference machine`;
+  return `Workload CPU and memory, excluding installation: about ${range(w.workCpuS)} CPU-seconds and ${memory} on a 4 vCPU, 8 GiB reference machine`;
 }
 
-/** "About 175–204 CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GB machine, not counting installation.", for the notes, or null without a footprint. */
+/** "About 175–204 CPU-seconds and 2.5 GiB on a 4 vCPU, 8 GiB machine, not counting installation.", for the notes, or null without a footprint. */
 export const profileFootprintNote = (w: Workload | null) =>
-  w ? `About ${range(w.workCpuS)} CPU-seconds and ${range(w.memoryGiB, 1)} GiB of memory on a 4 vCPU, 8 GB machine, not counting installation.` : null;
+  w ? `About ${range(w.workCpuS)} CPU-seconds and ${range(w.memoryGiB, 1)} GiB of memory on a 4 vCPU, 8 GiB machine, not counting installation.` : null;
 
 /** What a task's cost covers, in one line above each chart; the scope line says the same at length. */
 export const costCovers = "Includes setup and failed attempts, through confirmed deletion.";
@@ -648,6 +649,28 @@ export const pickLabels = {
 export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.coverage.headline.attempts} pilot runs there is no statistical test, so the result is descriptive`;
 
 /**
+ * Why a same-machine row isn't on the exact 4 vCPU, 8 GiB machine, or [] when
+ * it is. The harness flags a size more than 10% off; the site's own rule is the
+ * track's `equalSpec`, which the quick-task cost pick and the Machines table
+ * use, so a provider the same-machine track marks as "machine differs" is
+ * never counted here either, even when the harness's looser tolerance let it
+ * through (Buddy's 8 decimal GB measure 7.45 GiB, within 10% of 8 GiB).
+ */
+export function wrongSizeWhy(r: Pick<RealisticRow, "flags" | "track" | "provider">): string[] {
+  if (r.track !== "same-machine") return [];
+  const flagged = flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : []));
+  if (flagged.length > 0) return flagged;
+  const p = tracks["same-spec"].providers.find((x) => x.id === r.provider);
+  if (!p || p.equalSpec) return [];
+  const memory = p.measuredAllocations.map((a) => a.memoryGiB);
+  if (memory.length === 0) return ["its machine size wasn't measured, so it can't be confirmed as the 4 vCPU, 8 GiB this track asks for"];
+  const lo = Math.min(...memory);
+  const cpus = [...new Set(p.measuredAllocations.map((a) => a.cpu))];
+  const cpu = cpus.length === 1 && cpus[0] === 4 ? "" : ` and ${cpus.join("–")} vCPU`;
+  return [`it ran with ${lo.toFixed(2)} GiB of memory${cpu}, not the 8 GiB this track asks for`];
+}
+
+/**
  * Why a row can't be called cheapest, in plain words, or [] when it can: a
  * list-price estimate instead of the provider's own bill or usage meter, more
  * than one incomplete run, on the same-machine track the wrong machine size,
@@ -658,7 +681,7 @@ export const uncertifiedWhy = (d: Pick<RealisticData, "coverage">) => `with ${d.
 export function notCountedWhy(r: Pick<RealisticRow, "incomplete" | "flags" | "track" | "provider" | "cost">): string[] {
   const estimate = r.cost?.kind === "estimate" ? [estimateNotCounted] : [];
   const failed = r.incomplete > 1 ? [`${r.incomplete} of its runs didn't complete, and the pick allows at most 1`] : [];
-  const size = r.track === "same-machine" ? flagsOf(r).flatMap((f) => (f.short === "wrong size" ? [f.text] : [])) : [];
+  const size = wrongSizeWhy(r);
   // Spot capacity can be stopped mid-task. Any other tier past a provider's first is compared in CPU tiers, not ranked against other providers.
   const tier = isPreemptible(r.provider)
     ? ["the provider can stop it before the task ends (spot capacity)"]
@@ -794,6 +817,27 @@ export const changeText = (p: Pick<HeldOpen, "changeVsZeroWait">) => {
   return `${pct >= 0 ? "+" : ""}${pct}% vs no wait`;
 };
 
+/**
+ * A list-price estimate that prices only part of what the provider bills, with
+ * what it covers and the separately billed charge it leaves out. The other
+ * estimates price the whole machine, disk included. Buddy bills storage on its
+ * own (cost.ts, billingBases.buddy), and the harness's Buddy pricing sets that
+ * rate to zero, so its estimates are CPU and RAM only.
+ */
+export const partialEstimates: Partial<Record<ProviderId, { covers: string; leavesOut: string }>> = {
+  buddy: {
+    covers: "CPU and RAM per started minute, for the whole size while the sandbox exists",
+    leavesOut: "separately billed storage, $0.00011 per GB-hour of disk used",
+  },
+};
+
+/** "Buddy's list-price estimate covers CPU and RAM …, and leaves out …", one sentence per provider, in the order given. */
+const partialEstimateLines = (ids: readonly ProviderId[]) =>
+  ids.flatMap((id) => {
+    const e = partialEstimates[id];
+    return e ? [`${providerName(id)}'s list-price estimate covers ${e.covers}, and leaves out ${e.leavesOut}, so it is under the bill by that amount.`] : [];
+  });
+
 /** A note under a chart: a short bold lead, then one or two plain sentences. */
 export type Note = { lead: string; text: string };
 
@@ -808,13 +852,19 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
   const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))].filter((id) => !isExtraTier(id));
   const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
-  const estimates = has((r) => r.cost?.kind === "estimate");
+  const allEstimates = has((r) => r.cost?.kind === "estimate");
+  const partial = allEstimates.filter((id) => id in partialEstimates);
+  const estimates = allEstimates.filter((id) => !partial.includes(id));
   const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
   return [
-    { lead: "What a cost includes", text: "Every charge from create to confirmed deletion: compute, memory, disk and standby storage, with setup and failed attempts." },
+    {
+      lead: "What a cost includes",
+      text: `Every charge from create to confirmed deletion: compute, memory, disk and standby storage, with setup and failed attempts${partial.length ? `, except the storage ${providerList(partial)}'s estimate leaves out (below)` : ""}.`,
+    },
     ...(added.length ? [{ lead: "Disk", text: `The billing data we read for ${providerList(added)} leaves disk out, so disk is added at list price.` }] : []),
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time. Shown on the chart, not picked as Cheapest.` }] : []),
+    ...partial.flatMap((id) => partialEstimateLines([id]).map((text) => ({ lead: `${providerName(id)} estimate`, text: `${text} Shown on the chart, not picked as Cheapest.` }))),
     {
       lead: "Not counted",
       text: transfer.length
@@ -826,7 +876,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
 
 /** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
 export const runNotes: Note[] = [
-  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18, Beam Nov 20, Styne Nov 23, Maritime Nov 24. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
+  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18, Beam Nov 20, Styne Nov 23, Maritime Nov 24, Buddy Nov 25. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
   { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
 ];
 
@@ -840,16 +890,19 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
   const has = (pred: (r: RealisticRow) => boolean) => [...new Set(costed.filter(pred).map((r) => r.provider))];
   const added = has((r) => r.estimatedPart !== null);
   const unknown = has((r) => r.flags.some((f) => f.includes("storage coverage")));
-  const estimates = has((r) => r.cost?.kind === "estimate");
+  const allEstimates = has((r) => r.cost?.kind === "estimate");
+  const partial = allEstimates.filter((id) => id in partialEstimates);
+  const estimates = allEstimates.filter((id) => !partial.includes(id));
   // Vercel bills sandbox data transfer, and its headline runs (2026-11-16) metered it; its
   // held-open runs (2026-11-09) kept no byte counters.
   const transfer = has((r) => r.provider === "vercel" && r.variant === "headline");
   const plural = (ids: readonly ProviderId[], one: string, many: string) => (ids.length === 1 ? one : many);
   return [
-    "Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage.",
+    `Cost scope: every charge from the create request through confirmed deletion, setup and failed attempts included: compute, memory, disk and standby storage${partial.length ? `, except where an estimate below leaves a charge out` : ""}.`,
     added.length ? `${providerList(added)}'s billing leaves disk out, so disk is added at list price.` : "",
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time; list-price estimates are shown but not picked as cheapest.` : "",
+    ...partialEstimateLines(partial),
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
       : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

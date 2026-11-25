@@ -6,6 +6,7 @@ import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { hardware } from "@/lib/hardware";
 import { isExtraTier, isProviderId, providerBrand, providerInfo, providerLabel, providerName } from "@/lib/providers";
+import { replacedSentence } from "@/lib/replaced-runs";
 import type { ProviderId } from "@/lib/providers";
 import { headlineRows, noCostReason, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
@@ -84,6 +85,31 @@ function standingOf(m: MetricData, id: ProviderId, track: Track): Standing {
   };
 }
 
+/**
+ * Who a track ranks: products (one row per product on its first CPU tier, the
+ * denominator of every rank) and the providers, the companies, behind them.
+ * Upstash sells two products, so a track can have 15 providers and 16 products.
+ */
+export interface Field {
+  providers: number;
+  products: number;
+}
+
+export const fieldOf = (ids: readonly ProviderId[]): Field => {
+  const products = ids.filter((x) => !isExtraTier(x));
+  return { providers: new Set(products.map(providerBrand)).size, products: products.length };
+};
+
+/** "15 providers, 16 products", as the home page's facts line counts them, or "12 providers" when every provider sells one. */
+export const fieldText = (f: Field) => (f.products === f.providers ? `${f.providers} providers` : `${f.providers} providers, ${f.products} products`);
+
+/** "15 other sandbox products (15 providers in all)", or "11 other sandbox providers" when every provider sells one product. */
+export const rivalsText = (f: Field) =>
+  f.products === f.providers ? `${Math.max(0, f.providers - 1)} other sandbox providers` : `${Math.max(0, f.products - 1)} other sandbox products (${f.providers} providers in all)`;
+
+/** What a rank counts: products when a provider sells more than one, so "11th of 16" never reads as 16 companies. */
+export const rankNoun = (f: Field) => (f.products === f.providers ? "providers" : "products");
+
 export function providerTrack(trackId: TrackId, id: ProviderId) {
   const t = agentData().tracks[trackId];
   const p = t.providers.find((x) => x.id === id);
@@ -96,7 +122,7 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
     label: t.label,
     description: t.description,
     run: { start: t.run.start.slice(0, 10), end: t.run.end.slice(0, 10) },
-    providerCount: t.providers.filter((x) => !isExtraTier(x.id)).length,
+    field: fieldOf(t.providers.map((x) => x.id)),
     machine: { asked: p.allocation.requested.text, measured: p.allocation.measuredText, equalSpec: p.allocation.equalSpec, note: p.allocationNote },
     ranIn: p.ranIn,
     outboundIpLocation: p.outboundIpLocation,
@@ -233,8 +259,16 @@ export function providerNotes(id: ProviderId) {
  * from the numbers above, so a page can say nothing the charts don't show.
  * ------------------------------------------------------------------------- */
 
-/** The machine a track ran on, in words, from the track's own definition. */
-export const machineOf = (trackId: TrackId) => (trackId === "same-spec" ? `the same ${trackInfo["same-spec"].short} machine` : "its default machine");
+/**
+ * The machine a provider ran on a track, in words. On the same-machine track a
+ * provider marked "machine differs" (equalSpec false) ran its nearest size,
+ * never "the same" machine, and the words say what it measured inside.
+ */
+export const machineOf = (t: Pick<ProviderTrack, "id" | "machine">) => {
+  if (t.id === "default") return "its default machine";
+  if (t.machine.equalSpec) return `the same ${trackInfo["same-spec"].short} machine`;
+  return `its nearest size to ${trackInfo["same-spec"].short} (${t.machine.measured ? `${t.machine.measured} measured inside` : "size not measured"}, so the machine differs)`;
+};
 
 /** A rank among providers with a result, ties counted as the better place: "2nd of 12". */
 export type Rank = { rank: number; of: number };
@@ -357,9 +391,9 @@ export function verdict(t: ProviderTrack, id: ProviderId): string {
     task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${rankText(cost.rank)} on cost)` : ""}` : null,
     !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${rankText(cost.rank)})` : null,
   ].filter((x) => x !== null);
-  if (parts.length === 0) return `${name} has no ranked cold start, real task or cost result on ${machineOf(t.id)} yet.`;
+  if (parts.length === 0) return `${name} has no ranked cold start, real task or cost result on ${machineOf(t)} yet.`;
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-  return `On ${machineOf(t.id)}, ${name} ${list}.`;
+  return `On ${machineOf(t)}, ${name} ${list}.`;
 }
 
 /** One sentence of measured facts for the meta description, from the landing track, machine first. */
@@ -378,7 +412,7 @@ export function providerSummary(id: ProviderId): string {
     task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000` : ""}` : null,
     !task && t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 quick tasks (${t.cost.tag})` : null,
   ].filter((x) => x !== null);
-  return `${r.name} sandbox on ${machineOf(t.id)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
+  return `${r.name} sandbox on ${machineOf(t)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
 }
 
 export interface Faq {
@@ -389,13 +423,16 @@ export interface Faq {
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
 
-/** "On the same 4 vCPU, 8 GB machine, …" for each track the provider has results on. */
+/** "On the same 4 vCPU, 8 GB machine, …" (or its nearest size, where the machine differs) for each track the provider has results on. */
 function perTrack(r: ReturnType<typeof providerResults>, say: (t: ProviderTrack) => string): string {
   const said = r.tracks.map((t) => ({ t, text: say(t) }));
   const [first] = said;
   // The same words on both tracks read once.
-  if (first && said.length > 1 && said.every((x) => x.text === first.text)) return sentence(`On both the same ${trackInfo["same-spec"].short} machine and its default machine, ${first.text}`);
-  return said.map(({ t, text }) => sentence(`On ${machineOf(t.id)}, ${text}`)).join(" ");
+  if (first && said.length > 1 && said.every((x) => x.text === first.text)) {
+    const machines = said.map(({ t }) => machineOf(t));
+    return sentence(`On both ${machines.slice(0, -1).join(", ")} and ${machines.at(-1)}, ${first.text}`);
+  }
+  return said.map(({ t, text }) => sentence(`On ${machineOf(t)}, ${text}`)).join(" ");
 }
 
 function coldAnswer(r: ReturnType<typeof providerResults>): string {
@@ -404,7 +441,7 @@ function coldAnswer(r: ReturnType<typeof providerResults>): string {
     if (!row) return "cold start wasn't measured";
     const s = row.standing;
     return s.kind === "ranked"
-      ? `${r.name}'s median cold start is ${s.median} (p95 ${s.p95}), ${ordinal(s.rank)} of ${s.of} providers${s.tiedWith.length ? `, tied with ${s.tiedWith.map(providerName).join(", ")}` : ""}`
+      ? `${r.name}'s median cold start is ${s.median} (p95 ${s.p95}), ${ordinal(s.rank)} of ${s.of} ${rankNoun(t.field)}${s.tiedWith.length ? `, tied with ${s.tiedWith.map(providerName).join(", ")}` : ""}`
       : `there is no cold start result: ${s.why.charAt(0).toLowerCase()}${s.why.slice(1)}`;
   });
   return `${lead} Cold start is the provider's own time, from create() until the first command runs in the new sandbox.`;
@@ -448,7 +485,7 @@ function hardwareAnswer(id: ProviderId, r: ReturnType<typeof providerResults>): 
   return `${r.name} runs each sandbox as a ${h.runsAs}. CPU: ${h.chip}; ${h.family}${memory}. ${hosting} ${machines}`;
 }
 
-function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
+function reliabilityAnswer(id: ProviderId, r: ReturnType<typeof providerResults>): string {
   return perTrack(r, (t) => {
     const rel = t.reliability;
     if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
@@ -461,7 +498,11 @@ function reliabilityAnswer(r: ReturnType<typeof providerResults>): string {
         : rel.succeeded === rel.attempts
           ? `with separate errors recorded outside those attempts: ${list}`
           : `with failures recorded: ${list}`;
-    return `${formatCount(rel.succeeded)} of ${formatCount(rel.attempts)} attempts succeeded (${formatPercent(rel.successRate, 2)}), ${detail}`;
+    // A run replaced before publishing isn't in these counts; say so beside them, so 100% never reads as nothing failed.
+    const replaced = replacedSentence(id, t.id);
+    const scope = replaced ? " in the published runs" : "";
+    const counts = `${formatCount(rel.succeeded)} of ${formatCount(rel.attempts)} attempts${scope} succeeded (${formatPercent(rel.successRate, 2)}), ${detail}`;
+    return replaced ? `${counts}. ${replaced}` : counts;
   });
 }
 
@@ -479,7 +520,7 @@ export function providerFaqs(id: ProviderId): Faq[] {
     { question: `How much does ${name} cost for AI coding tasks?`, answer: costAnswer(id, r) },
     { question: `Does ${name} support pause and resume?`, answer: pauseAnswer(r) },
     { question: `What hardware and isolation does ${name} run on?`, answer: hardwareAnswer(id, r) },
-    { question: `How reliable is ${name}?`, answer: reliabilityAnswer(r) },
+    { question: `How reliable is ${name}?`, answer: reliabilityAnswer(id, r) },
   ].map((f) => ({ question: f.question, answer: capitalise(f.answer) }));
 }
 

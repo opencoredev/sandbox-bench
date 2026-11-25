@@ -38,6 +38,7 @@ import {
   taskPick,
   wallText,
   wilsonText,
+  wrongSizeWhy,
 } from "@/lib/realistic";
 import type { Costed, IdleGroup, IdlePoint, ProfileId, RealisticData, RealisticRow, RunTrack } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
@@ -139,7 +140,9 @@ function RowDetails({ row, track }: { row: RealisticRow; track: TrackId | undefi
   const lines = [
     ...(row.cost ? [] : [`${cap(noCostReason(row))}.`]),
     // Only what the runs did (failures, machine size); how the cost was priced isn't graded.
-    ...flagsOf(row).flatMap((f) => (f.status === null && f.short !== "not eligible" && f.short !== "not attributable" ? [sentence(cap(f.text))] : [])),
+    ...flagsOf(row).flatMap((f) => (f.status === null && f.short !== "not eligible" && f.short !== "not attributable" && f.short !== "wrong size" ? [sentence(cap(f.text))] : [])),
+    // The size reason the pick uses: the harness's flag, or the track's own exact-size rule where the flag is missing.
+    ...wrongSizeWhy(row).map((t) => sentence(cap(t))),
     ...(row.costNote ? [sentence(cap(row.costNote))] : []),
     ...[track ? regionFor(row.provider, track) : null].flatMap((r) => (r ? [sentence(cap(r.long))] : [])),
     ...(notRun(row) ? [] : [`Completed ${completedText(row)}, 95% interval ${wilsonText(row)}.`]),
@@ -317,7 +320,7 @@ function profileNotes(data: RealisticData, track: RunTrack, rows: readonly Reali
     ...(footprint ? [{ lead: "Workload size", text: footprint }] : []),
     { lead: "Cost per task", text: "The cost of every attempt divided by the tasks that completed. Each task starts from the provider's base image and installs its own toolchain." },
     ...scopeNotes(data),
-    { lead: "Cheapest", text: "The lowest cost from the provider's bill or usage meter, with at most 1 incomplete run, on the CPU tier a new account gets. List-price estimates are shown but not picked. On Same machine, only providers that measured exactly 4 vCPU and 8 GB count." },
+    { lead: "Cheapest", text: "The lowest cost from the provider's bill or usage meter, with at most 1 incomplete run, on the CPU tier a new account gets. List-price estimates are shown but not picked. On Same machine, only providers that measured 4 vCPU and 8 GiB count." },
     { lead: "Whole machine at list price", text: "The machine's published rate over each task's billed time. For providers that bill usage, this is a what-if, not their bill." },
     ...(track === "default" ? [{ lead: "Default machines", text: "Each provider's own default size, so sizes differ. A default too small for the workload wasn't run, and that isn't counted as a failure." }] : []),
     ...(has("boxd") && data.fx ? [{ lead: "boxd", text: `Bills in euros, converted at ${data.fx.eurToUsd} dollars per euro (the ${data.fx.date} rate).` }] : []),
@@ -332,8 +335,8 @@ function ProfileChart({ track, profile }: { track: Track; profile: ProfileId }) 
   const { costed, uncosted } = headlineRows(realistic, run, profile);
   const w = realistic.workloads?.[profile] ?? null;
   const footprint = profileFootprintNote(w);
-  const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GB";
-  const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GB";
+  const machine = run === "default" ? "Each provider's default machine" : "4 vCPU, 8 GiB";
+  const machineShort = run === "default" ? "Default machines · sizes vary" : "Same machine · 4 vCPU, 8 GiB";
   const title = `${profileInfo[profile].label}: cost per 1,000 completed tasks`;
   return (
     <>
@@ -600,7 +603,7 @@ export function IdleChart() {
     <>
       <ChartHead
         title="What leaving the sandbox open costs"
-        sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GB · US dollars"
+        sub="Fix and test, then left idle on each provider's default settings, then a resume step (git status and the tests) · Same machine, 4 vCPU, 8 GiB · US dollars"
         meta={`${idle.attempts} runs per provider and wait. Median cost per attempt × 1,000, including fix, wait, resume and failed attempts. Each provider's bars use its own scale. ${multipleNote} Providers whose sandbox stopped or couldn't resume come last.`}
       />
       {lines.length ? <p className="mb-m text-s text-pretty">{lines}</p> : null}

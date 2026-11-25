@@ -1574,6 +1574,124 @@
       }
     },
     {
+      "provider": "buddy",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 103.84,
+          "uploadS": 5.948,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 116.689,
+          "uploadS": 7.552,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 105.124,
+          "uploadS": 4.712,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 110.816,
+          "uploadS": 7.136,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 122.617,
+          "uploadS": 7.945,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 107.147,
+          "uploadS": 6.381,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 116.213,
+          "uploadS": 7.198,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 107.343,
+          "uploadS": 6.396,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 99.448,
+          "uploadS": 4.61,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 111.768,
+          "uploadS": 6.878,
+          "completed": true
+        }
+      ],
+      "medianWallS": 109.08,
+      "medianUploadS": 6.637,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        122.617,
+        116.214
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 122.617
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 116.214
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 91.252,
+            "uploadS": 3.341,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 99.116,
+            "uploadS": 3.122,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 95.184,
+      "soloMedianUploadS": 3.232,
+      "slowdown": 1.146,
+      "slowdownWithoutUpload": 1.113,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-buddy-1124",
+        "sdkCommit": "5afd423cd15668d7d6a4d9587ab55d7f6ae74925",
+        "startedAt": "2026-11-25T07:41:14.244Z"
+      }
+    },
+    {
       "provider": "microsandbox",
       "tasks": [
         {

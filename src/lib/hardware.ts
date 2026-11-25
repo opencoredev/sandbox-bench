@@ -60,6 +60,7 @@ export const fromFingerprints = [
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
   { providers: ["maritime"], date: "Nov 23 and 24, 2026" },
   { providers: ["styne"], date: "Nov 23, 2026" },
+  { providers: ["buddy"], date: "Nov 25, 2026" },
 ] as const satisfies readonly { providers: readonly ProviderId[]; date: string }[];
 
 /** When a provider's hardware entry was read from its runs' fingerprints, or null when it comes from the probe. */
@@ -74,7 +75,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam, Maritime and Styne
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam, Maritime, Styne and Buddy
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -392,6 +393,27 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "DMI names only Cloud Hypervisor, so the memory type isn't shown. It runs as root, with sudo.",
     ],
     sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
+  },
+  buddy: {
+    chip: "AMD EPYC 9645",
+    family: "Zen 5c (Turin Dense), 96 cores; the CPU names itself, with AVX-512 including VP2INTERSECT",
+    chipBasis: "named",
+    memory: { kind: "known", type: "DDR5", basis: "inferred", detail: "DDR5, the only memory 5th Gen EPYC takes" },
+    cloud: "Not disclosed; outbound IPs are Hivelocity's (AS29802)",
+    region: "Outbound IPs are Hivelocity's (AS29802) in New York City, US for all 260 sandboxes fingerprinted; that is where traffic leaves, not proof of where the sandbox runs",
+    regionShort: null,
+    egressRegionShort: "New York",
+    runsAs: "Linux container (LXC) in a KVM virtual machine",
+    runsAsDetail: "QEMU's generic i440FX machine (Standard PC (i440FX + PIIX, 1996)) under KVM, with Linux 6.8.0-147-generic inside",
+    storage: "50 GB disk, 45.5 GiB usable, ext4 on a device-mapper volume",
+    kernel: "Linux 6.8.0-147-generic, Ubuntu 24.04.5 LTS",
+    hidden: [
+      "The CPU names itself as an AMD EPYC 9645 96-Core Processor in every one of the 260 sandboxes fingerprinted, with AVX-512 and AVX-512 VP2INTERSECT exposed.",
+      "Memory is set in decimal GB: the 2x4 size shows 4,000,000,000 bytes (3.73 GiB) and the 4x8 size 8,000,000,000 bytes (7.45 GiB), about 6.9% under the GiB its name suggests.",
+      "DMI shows only QEMU's generic i440FX machine, so the memory type is inferred from the chip. It runs as an ordinary user, buddy (uid 1001), with passwordless sudo.",
+      "Outbound traffic left from Hivelocity in New York City for every sandbox; outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
+    ],
+    sameSpec: "The 4 vCPU, 8 GB machine (Buddy's 4x8 size) has the same 50 GB disk, on the same AMD EPYC 9645 and LXC in KVM setup, with Hivelocity outbound IPs in New York City. Its 8 decimal GB show as 7.45 GiB, so it is marked as a different machine.",
   },
 };
 

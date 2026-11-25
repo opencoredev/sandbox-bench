@@ -28,6 +28,8 @@
  *     --parts scripts/realistic-parts/sbx-maritime.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-styne/summary.json \
  *     --parts scripts/realistic-parts/sbx-styne.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-buddy/summary.json \
+ *     --parts scripts/realistic-parts/sbx-buddy.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/standard/summary.json \
  *     --parts scripts/realistic-parts/sbx-microsandbox-standard.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/shared/summary.json \
@@ -92,13 +94,28 @@
  * setup, so it needs no --attempts file. Every other provider's rows and
  * held-open entries came out unchanged.
  *
+ * Rebuilt on 2026-11-25 with Buddy added (sbx-buddy: headline runs that day,
+ * 04:27 to 07:19 UTC, sandbox-sdk checkout 5afd423 on the buddy-provider branch:
+ * harness commit 5afd423, SDK commit a5c99d2). Buddy
+ * has no usage or billing API, so its costs are list-price estimates
+ * (buddy.works/pricing, per started minute) and it has no held-open run. Its
+ * five incomplete runs (Build on the 2 vCPU, 4 GB default, each past the
+ * 20-minute step limit) failed in the workload, not in setup, so it needs no
+ * --attempts file. Every other provider's rows and held-open entries came out
+ * unchanged. The committed file before it had Styne's rows last in each
+ * profile and track group, where this command sorts them by provider, so
+ * Buddy's four rows from this command's output were placed into that file's
+ * order, after boxd in each group; every other row, Styne's included, keeps
+ * its place and bytes.
+ *
  * Rebuilt on 2026-11-25 with Microsandbox's two CPU tiers added (sbx-microsandbox:
  * Standard's headline runs 12:52 to 13:23 UTC and Shared's 19:04 to 19:36 UTC,
  * sandbox-sdk afdf664). Costs are metered from Microsandbox's per-sandbox usage
  * API, which counts running time only, so it has no held-open run. Its default
  * machine (1 vCPU, 512 MiB) is too small for either workload, so those rows are
- * not run. Every other provider's rows and held-open entries came out unchanged;
- * the row order differs, as it does when the command above is rerun without them.
+ * not run. As for Buddy, the eight Microsandbox rows from this command's output were
+ * placed into the committed file's order, last in each profile and track group;
+ * every other row and held-open entry keeps its place and bytes.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

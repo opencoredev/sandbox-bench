@@ -29,7 +29,7 @@ export function publishedProviders() {
 }
 
 const published = publishedProviders();
-export const siteDescription = `${published.count} cloud sandbox providers for AI agents (${published.names.join(", ")}) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GB machine.`;
+export const siteDescription = `${published.count} cloud sandbox providers for AI agents (${published.names.join(", ")}) timed on cold start, real agent tasks, bursts, reliability and cost, on each default machine and on the same 4 vCPU, 8 GiB machine.`;
 
 /** The site-wide cards, set in the root layout. */
 export const homeOpenGraph = {

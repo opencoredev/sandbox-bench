@@ -58,14 +58,14 @@ import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, q
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
-import { dayRange, formatGiB, formatMoney } from "@/lib/format";
+import { dayRange, formatMoney } from "@/lib/format";
 import { commonPrice, commonSize, conversionNote, usdPrice } from "@/lib/fx";
 import type { PriceKey } from "@/lib/fx";
 import { allocationNotes, destroyNotes, execNotes, farNotes, forTrack, machineNotes, mergeNotes, probeNote, snapshotNotes } from "@/lib/notes";
 import { isExtraTier, isProviderId, providerBrand, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
-import { advertised } from "@/lib/sizes";
+import { advertised, measuredMemoryText } from "@/lib/sizes";
 import { ctaAttributes } from "@/lib/cta";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
@@ -106,7 +106,7 @@ const machineRows = (track: Track) => track.providers.filter((p) => !isExtraTier
 /** The machine a provider ran on in a track, for hover cards: "4 vCPU, 8 GB RAM". */
 const ranOn = (p: Provider | undefined) => {
   const m = p?.measuredAllocations[0];
-  return m ? `${m.cpu} vCPU, ${formatGiB(m.memoryGiB)} RAM` : "size not measured";
+  return p && m ? `${m.cpu} vCPU, ${measuredMemoryText(p.id, m.memoryGiB)} RAM` : "size not measured";
 };
 
 /** A titled section. `tight` is for the first one under the hero, so it starts above the fold. */
@@ -511,10 +511,10 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   },
   {
     term: "Two tracks",
-    line: "Same machine asks every provider for 4 vCPU and 8 GB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
+    line: "Same machine asks every provider for 4 vCPU and 8 GiB, so it is the fair comparison; Default machines compares each provider's default sandbox, the one you get without choosing a size.",
     more: (
       <>
-        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GB size and ran 4 vCPU, 16 GB. Superserve ran Same machine at 4 vCPU and 8 GB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
+        Default sizes differ: E2B&apos;s default template is 2 vCPU and 512 MB, though its pricing page says 4 GB. boxd has no 4 vCPU, 8 GiB size and ran 4 vCPU, 16 GiB. Superserve ran Same machine at 4 vCPU and 8 GiB after Superserve raised our template limit. Every chart marks a machine that differs from its track.
       </>
     ),
   },
@@ -526,12 +526,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Styne joined on Nov 23: every Styne result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Styne joined on Nov 23: every Styne result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots and bursts included, comes from its own runs, all on SDK commit a5c99d2 (benchmark harness 1e5683a on the default machine, 5afd423 on 4 vCPU). Buddy allows 5,000 API requests an hour per route, so its runs were spread across UTC hours: its 4 vCPU main tests ran as two halves of 50 and its 4 vCPU bursts of 25 one an hour. Runs that went past that limit, and a first 4 vCPU snapshot run that restored at the default size, are replaced; those charts say so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox and Maritime give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam and Styne use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox and Maritime give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam, Styne and Buddy use our measured time at their list prices, Buddy's per started minute. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -689,7 +689,7 @@ export default function Page() {
                 track.id === "same-spec" ? (
                   <RealtaskBurstChart data={realtaskBurst} />
                 ) : (
-                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GB machine. Switch to Same machine to see it.</p>
+                  <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Fix and test, 5 at once, ran only on the same 4 vCPU, 8 GiB machine. Switch to Same machine to see it.</p>
                 )
               }
             </PerTrack>
@@ -902,7 +902,7 @@ export default function Page() {
           <Section
             id="tiers"
             title="CPU tiers"
-            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GB machine, so the table shows what changes when you pay less."
+            lede="Some providers sell the same sandbox on more than one CPU tier: dedicated, shared with other customers, or spare capacity that can be taken back. Each tier runs the same tests on the same 4 vCPU, 8 GiB machine, so the table shows what changes when you pay less."
           >
             <div className="mb-m flex flex-wrap items-center gap-x-m gap-y-xs">
               <TierSwitch />
@@ -952,7 +952,7 @@ export default function Page() {
                       <>
                         <ChartHead
                           title="What each provider ran"
-                          sub={track.id === "default" ? "Each provider's default sandbox, and the vCPU and RAM measured inside it" : "Asked for 4 vCPU, 8 GB; measured inside each sandbox"}
+                          sub={track.id === "default" ? "Each provider's default sandbox, and the vCPU and RAM measured inside it" : "Asked for 4 vCPU, 8 GiB; measured inside each sandbox"}
                         />
                         <Allocations track={track} />
                       </>

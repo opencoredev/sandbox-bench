@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-25T19:49:25.426Z",
+  "generatedAt": "2026-11-25T19:53:04.848Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -23,6 +23,7 @@
         "beam-spot",
         "maritime",
         "styne",
+        "buddy",
         "microsandbox",
         "microsandbox-shared"
       ],
@@ -95,6 +96,11 @@
           "provider": "styne",
           "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
           "short": "account totals only"
+        },
+        {
+          "provider": "buddy",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         },
         {
           "provider": "microsandbox",
@@ -195,6 +201,13 @@
       "generatedAt": "2026-11-23T20:08:04.169Z",
       "providers": [
         "styne"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-buddy",
+      "generatedAt": "2026-11-25T07:19:53.119Z",
+      "providers": [
+        "buddy"
       ]
     },
     {
@@ -395,6 +408,34 @@
       "flags": []
     },
     {
+      "provider": "buddy",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "build",
       "track": "default",
@@ -527,54 +568,6 @@
       ]
     },
     {
-      "provider": "microsandbox",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 0,
-      "incomplete": 0,
-      "notRun": 5,
-      "reasons": [
-        {
-          "reason": "default-size-too-small",
-          "runs": 5
-        }
-      ],
-      "prepare": null,
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": []
-    },
-    {
-      "provider": "microsandbox-shared",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 0,
-      "incomplete": 0,
-      "notRun": 5,
-      "reasons": [
-        {
-          "reason": "default-size-too-small",
-          "runs": 5
-        }
-      ],
-      "prepare": null,
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": []
-    },
-    {
       "provider": "modal",
       "profile": "build",
       "track": "default",
@@ -597,37 +590,6 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
-    },
-    {
-      "provider": "styne",
-      "profile": "build",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 4,
-      "incomplete": 1,
-      "notRun": 0,
-      "reasons": [
-        {
-          "reason": "create-failed",
-          "runs": 1
-        }
-      ],
-      "prepare": null,
-      "medianWallS": 86.3975,
-      "medianCpuS": 170.389,
-      "cost": {
-        "kind": "estimate",
-        "usdPerCompleted": 0.000773333,
-        "wholeMachineUsdPerCompleted": null,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
-      ]
     },
     {
       "provider": "superserve",
@@ -934,6 +896,32 @@
       ]
     },
     {
+      "provider": "buddy",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 226.017,
+      "medianCpuS": 270.019,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.012672,
+        "wholeMachineUsdPerCompleted": 0.012672,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "build",
       "track": "same-machine",
@@ -1065,60 +1053,6 @@
       ]
     },
     {
-      "provider": "microsandbox",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 237.489,
-      "medianCpuS": 205.987,
-      "cost": {
-        "kind": "metered",
-        "usdPerCompleted": 0.0141589,
-        "wholeMachineUsdPerCompleted": 0.0144833,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
-      ]
-    },
-    {
-      "provider": "microsandbox-shared",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 237.472,
-      "medianCpuS": 211.615,
-      "cost": {
-        "kind": "metered",
-        "usdPerCompleted": 0.00228435,
-        "wholeMachineUsdPerCompleted": 0.00234694,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
-      ]
-    },
-    {
       "provider": "modal",
       "profile": "build",
       "track": "same-machine",
@@ -1141,32 +1075,6 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
-    },
-    {
-      "provider": "styne",
-      "profile": "build",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 89.048,
-      "medianCpuS": 173.654,
-      "cost": {
-        "kind": "estimate",
-        "usdPerCompleted": 0.000892444,
-        "wholeMachineUsdPerCompleted": 0.000892444,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
-      ]
     },
     {
       "provider": "superserve",
@@ -1241,7 +1149,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000671296,
+        "usd": 6.71296e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1270,7 +1178,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000659722,
+        "usd": 6.59722e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1454,6 +1362,32 @@
       "flags": []
     },
     {
+      "provider": "buddy",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 133.668,
+      "medianCpuS": 204.541,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00432,
+        "wholeMachineUsdPerCompleted": 0.00432,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "fix-and-test",
       "track": "default",
@@ -1580,54 +1514,6 @@
       ]
     },
     {
-      "provider": "microsandbox",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 0,
-      "incomplete": 0,
-      "notRun": 5,
-      "reasons": [
-        {
-          "reason": "default-size-too-small",
-          "runs": 5
-        }
-      ],
-      "prepare": null,
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": []
-    },
-    {
-      "provider": "microsandbox-shared",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 0,
-      "incomplete": 0,
-      "notRun": 5,
-      "reasons": [
-        {
-          "reason": "default-size-too-small",
-          "runs": 5
-        }
-      ],
-      "prepare": null,
-      "medianWallS": null,
-      "medianCpuS": null,
-      "cost": null,
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": []
-    },
-    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "default",
@@ -1650,32 +1536,6 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
-    },
-    {
-      "provider": "styne",
-      "profile": "fix-and-test",
-      "track": "default",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 56.219,
-      "medianCpuS": 134.368,
-      "cost": {
-        "kind": "estimate",
-        "usdPerCompleted": 0.000533333,
-        "wholeMachineUsdPerCompleted": 0.000533333,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
-      ]
     },
     {
       "provider": "superserve",
@@ -1748,7 +1608,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000525463,
+        "usd": 5.25463e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1777,7 +1637,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000516975,
+        "usd": 5.16975e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1969,6 +1829,32 @@
       ]
     },
     {
+      "provider": "buddy",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 96.361,
+      "medianCpuS": 203.664,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00576,
+        "wholeMachineUsdPerCompleted": 0.00576,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -2100,60 +1986,6 @@
       ]
     },
     {
-      "provider": "microsandbox",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 130.4,
-      "medianCpuS": 157.41,
-      "cost": {
-        "kind": "metered",
-        "usdPerCompleted": 0.00774883,
-        "wholeMachineUsdPerCompleted": 0.00806667,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
-      ]
-    },
-    {
-      "provider": "microsandbox-shared",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 141.464,
-      "medianCpuS": 151.409,
-      "cost": {
-        "kind": "metered",
-        "usdPerCompleted": 0.00129974,
-        "wholeMachineUsdPerCompleted": 0.00136694,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unsettled (5 attempts)",
-        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
-      ]
-    },
-    {
       "provider": "modal",
       "profile": "fix-and-test",
       "track": "same-machine",
@@ -2176,32 +2008,6 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
-    },
-    {
-      "provider": "styne",
-      "profile": "fix-and-test",
-      "track": "same-machine",
-      "variant": "headline",
-      "attempts": 5,
-      "completed": 5,
-      "incomplete": 0,
-      "notRun": 0,
-      "reasons": [],
-      "prepare": null,
-      "medianWallS": 56.028,
-      "medianCpuS": 134.685,
-      "cost": {
-        "kind": "estimate",
-        "usdPerCompleted": 0.000545778,
-        "wholeMachineUsdPerCompleted": 0.000545778,
-        "wholeMachineBound": "exact"
-      },
-      "costNote": null,
-      "estimatedPart": null,
-      "eligible": false,
-      "flags": [
-        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
-      ]
     },
     {
       "provider": "superserve",
@@ -2281,7 +2087,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000364198,
+        "usd": 3.64198e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2310,7 +2116,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000347222,
+        "usd": 3.47222e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2971,7 +2777,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000455247,
+        "usd": 4.55247e-05,
         "labels": [
           "disk at list price"
         ]
@@ -3000,7 +2806,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000439815,
+        "usd": 4.39815e-05,
         "labels": [
           "disk at list price"
         ]
@@ -3031,6 +2837,319 @@
       "estimatedPart": null,
       "eligible": false,
       "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 4,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "create-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 86.3975,
+      "medianCpuS": 170.389,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000773333,
+        "wholeMachineUsdPerCompleted": null,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 89.048,
+      "medianCpuS": 173.654,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000892444,
+        "wholeMachineUsdPerCompleted": 0.000892444,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 237.489,
+      "medianCpuS": 205.987,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.0141589,
+        "wholeMachineUsdPerCompleted": 0.0144833,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 237.472,
+      "medianCpuS": 211.615,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00228435,
+        "wholeMachineUsdPerCompleted": 0.00234694,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "styne",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 56.219,
+      "medianCpuS": 134.368,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000533333,
+        "wholeMachineUsdPerCompleted": 0.000533333,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 0,
+      "notRun": 5,
+      "reasons": [
+        {
+          "reason": "default-size-too-small",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "styne",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 56.028,
+      "medianCpuS": 134.685,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.000545778,
+        "wholeMachineUsdPerCompleted": 0.000545778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 130.4,
+      "medianCpuS": 157.41,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00774883,
+        "wholeMachineUsdPerCompleted": 0.00806667,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
+    },
+    {
+      "provider": "microsandbox-shared",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 141.464,
+      "medianCpuS": 151.409,
+      "cost": {
+        "kind": "metered",
+        "usdPerCompleted": 0.00129974,
+        "wholeMachineUsdPerCompleted": 0.00136694,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)",
+        "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
+      ]
     }
   ],
   "heldOpen": [
@@ -3329,7 +3448,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 0.0000432099,
+        "usd": 4.32099e-05,
         "labels": [
           "disk at list price"
         ]
@@ -3386,7 +3505,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 0.0000455247,
+        "usd": 4.55247e-05,
         "labels": [
           "disk at list price"
         ]

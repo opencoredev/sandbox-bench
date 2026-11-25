@@ -22,10 +22,10 @@ export const trackInfo = {
     description: "Each provider's default sandbox, so machine sizes differ.",
   },
   "same-spec": {
-    label: "Same machine: 4 vCPU, 8 GB",
+    label: "Same machine: 4 vCPU, 8 GiB",
     tab: "Same machine",
-    short: "4 vCPU, 8 GB",
-    description: "Every provider asked for Boat's machine, 4 vCPU and 8 GB, or its nearest size.",
+    short: "4 vCPU, 8 GiB",
+    description: "Every provider asked for Boat's machine, 4 vCPU and 8 GiB, or its nearest size.",
   },
 } as const satisfies Record<TrackId, { label: string; tab: string; short: string; description: string }>;
 

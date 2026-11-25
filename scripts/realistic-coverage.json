@@ -20,6 +20,7 @@
       "beam-spot",
       "maritime",
       "styne",
+      "buddy",
       "microsandbox",
       "microsandbox-shared"
     ],
@@ -92,6 +93,11 @@
         "provider": "styne",
         "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
         "short": "account totals only"
+      },
+      {
+        "provider": "buddy",
+        "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "no billing data we can read"
       },
       {
         "provider": "microsandbox",
