@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v1",
-  "generatedAt": "2026-11-24T08:21:25.794Z",
+  "generatedAt": "2026-11-25T05:11:50.262Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -15,7 +15,8 @@
     "modal": "x86_64",
     "instabox": "x86_64",
     "beam": "x86_64",
-    "styne": "x86_64"
+    "styne": "x86_64",
+    "maritime": "x86_64"
   },
   "checks": {
     "security-probe": {
@@ -526,6 +527,45 @@
             "uptimeS": 2162.85,
             "bootedBeforeCreateS": 2162.5
           }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "microvm",
+            "evidence": [
+              "virtio-mmio devices on the kernel command line and no DMI table: a microVM layout, as Firecracker's and QEMU's microvm machine use"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.1.141 x86_64",
+            "cpu": {
+              "vendor": "GenuineIntel",
+              "family": 6,
+              "model": 158,
+              "modelName": "Intel(R) Xeon(R) Processor @ 3.20GHz",
+              "mhz": 3191.998
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [],
+            "vulnerabilityFiles": 15,
+            "uid": 1000,
+            "passwordlessSudo": true,
+            "createS": 2.623,
+            "uptimeS": 2.88,
+            "bootedBeforeCreateS": 0.1
+          },
+          "run": {
+            "id": "security-probe-20261124T082125",
+            "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
+            "startedAt": "2026-11-24T08:21:25.343Z"
+          }
         }
       ]
     },
@@ -920,6 +960,39 @@
               "fileMiBps": 548.2,
               "swapUsedMiB": 0
             }
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.78,
+            "memLimitGiB": 7.65,
+            "swapTotalGiB": 0,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 0.72,
+              "verifyGiBps": 2.93,
+              "fileMiBps": 871.7,
+              "swapUsedMiB": 0
+            }
+          },
+          "run": {
+            "id": "memory-honesty-20261124T082144",
+            "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
+            "startedAt": "2026-11-24T08:21:44.782Z"
           }
         }
       ]
@@ -1341,6 +1414,41 @@
               "randWrite": true,
               "randRead": true
             }
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "~",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 48,
+            "seqReadMiBps": 4600,
+            "randWriteIops": 5970,
+            "randWriteP99Us": 2832,
+            "randReadIops": 7938,
+            "randReadP99Us": 49.6,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          },
+          "run": {
+            "id": "disk-real-20261124T082218",
+            "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
+            "startedAt": "2026-11-24T08:22:18.481Z"
           }
         }
       ]
@@ -3219,6 +3327,153 @@
               }
             ]
           }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "Intel(R) Xeon(R) Processor @ 3.20GHz",
+            "guestVcpus": 4,
+            "singleOps": 1075907889,
+            "allCoreOps": 4223666212,
+            "scaling": 0.9814,
+            "first3MinOps": 4255051795,
+            "last3MinOps": 4257008835,
+            "retention": 1.0005,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 4237356370
+              },
+              {
+                "minute": 1,
+                "opsPerS": 4249808422
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 4256380017
+              },
+              {
+                "minute": 2,
+                "opsPerS": 4253723572
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 4258197004
+              },
+              {
+                "minute": 3,
+                "opsPerS": 4256799303
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 4252185413
+              },
+              {
+                "minute": 4,
+                "opsPerS": 4260154125
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 4262392078
+              },
+              {
+                "minute": 5,
+                "opsPerS": 4264208689
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 4265047879
+              },
+              {
+                "minute": 6,
+                "opsPerS": 4266865953
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 4266446121
+              },
+              {
+                "minute": 7,
+                "opsPerS": 4266585683
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 4242818050
+              },
+              {
+                "minute": 8,
+                "opsPerS": 4265047758
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 4260014888
+              },
+              {
+                "minute": 9,
+                "opsPerS": 4263090186
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 4253024515
+              },
+              {
+                "minute": 10,
+                "opsPerS": 4248690070
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 4264488916
+              },
+              {
+                "minute": 11,
+                "opsPerS": 4265467290
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 4265886407
+              },
+              {
+                "minute": 12,
+                "opsPerS": 4258337658
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 4259874867
+              },
+              {
+                "minute": 13,
+                "opsPerS": 4255680417
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 4265327647
+              },
+              {
+                "minute": 14,
+                "opsPerS": 4003183548
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 4258197222
+              },
+              {
+                "minute": 15,
+                "opsPerS": 4255820447
+              }
+            ]
+          },
+          "run": {
+            "id": "cpu-native-20261124T082348",
+            "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
+            "startedAt": "2026-11-24T08:23:48.408Z"
+          }
         }
       ]
     },
@@ -3553,6 +3808,35 @@
             "comparable": true,
             "notComparableWhy": null,
             "distinctBootIds": 10
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 3366794595,
+            "medianOps": 3484668191,
+            "relativeToSolo": 1.035,
+            "spread": 1.6835,
+            "verified": 9,
+            "guaranteedOverlapS": 93.486,
+            "comparable": false,
+            "notComparableWhy": "9 of 10 burns verified",
+            "distinctBootIds": 5
+          },
+          "run": {
+            "id": "cpu-burst-10-20261124T084705",
+            "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
+            "startedAt": "2026-11-24T08:47:06.001Z"
           }
         }
       ]

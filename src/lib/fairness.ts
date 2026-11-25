@@ -45,10 +45,13 @@ export interface Machine {
   sameSize: boolean;
 }
 
-/** A provider's entry in one check: a result when it completed, why not otherwise. */
+/**
+ * A provider's entry in one check: a result when it completed, why not otherwise. `run` is null
+ * when it ran in the check's run, or the provider's own later run when it was added from one.
+ */
 export type Entry<R> =
-  | { provider: ProviderId; machine: Machine; status: "completed"; reason: null; result: R }
-  | { provider: ProviderId; machine: Machine; status: "failed" | "skipped"; reason: string; result: null };
+  | { provider: ProviderId; machine: Machine; run: FairnessRun | null; status: "completed"; reason: null; result: R }
+  | { provider: ProviderId; machine: Machine; run: FairnessRun | null; status: "failed" | "skipped"; reason: string; result: null };
 
 export interface CpuNativeResult {
   cpuModel: string | null;
@@ -443,14 +446,15 @@ function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: st
   const m = obj(o.machine, `${path}.machine`);
   const machine = { cpu: positive(m.cpu, `${path}.machine.cpu`), memoryGiB: positive(m.memoryGiB, `${path}.machine.memoryGiB`), sameSize: bool(m.sameSize, `${path}.machine.sameSize`) };
   if (machine.sameSize !== (machine.cpu === 4 && machine.memoryGiB === 8)) fail(`${path}.machine.sameSize`, "must be true exactly for 4 vCPU, 8 GiB");
+  const run = o.run === undefined ? null : parseRun(o.run, `${path}.run`);
   switch (status) {
     case "completed":
       if (o.reason !== null) fail(`${path}.reason`, "must be null on a completed entry");
-      return { provider, machine, status, reason: null, result: parseResult(obj(o.result, `${path}.result`), `${path}.result`) };
+      return { provider, machine, run, status, reason: null, result: parseResult(obj(o.result, `${path}.result`), `${path}.result`) };
     case "failed":
     case "skipped":
       if (o.result !== null) fail(`${path}.result`, `must be null on a ${status} entry`);
-      return { provider, machine, status, reason: str(o.reason, `${path}.reason`), result: null };
+      return { provider, machine, run, status, reason: str(o.reason, `${path}.reason`), result: null };
     default: {
       const _exhaustive: never = status;
       return _exhaustive;
@@ -458,20 +462,23 @@ function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: st
   }
 }
 
+function parseRun(v: unknown, path: string): FairnessRun {
+  const run = obj(v, path);
+  return { id: str(run.id, `${path}.id`), sdkCommit: str(run.sdkCommit, `${path}.sdkCommit`), startedAt: iso(run.startedAt, `${path}.startedAt`) };
+}
+
 function parseCheck<R>(v: unknown, path: string, parseResult: (o: Json, path: string) => R): CheckData<R> | null {
   if (v === null || v === undefined) return null;
   const o = obj(v, path);
-  const run = obj(o.run, `${path}.run`);
+  const run = parseRun(o.run, `${path}.run`);
   const entries = arr(o.entries, `${path}.entries`).map((e, i) => parseEntry(e, `${path}.entries[${i}]`, parseResult));
   const seen = new Set<ProviderId>();
   for (const e of entries) {
     if (seen.has(e.provider)) fail(`${path}.entries`, `lists ${e.provider} twice`);
     seen.add(e.provider);
+    if (e.run?.id === run.id) fail(`${path}.entries`, `${e.provider}'s run is the check's own; leave it out`);
   }
-  return {
-    run: { id: str(run.id, `${path}.run.id`), sdkCommit: str(run.sdkCommit, `${path}.run.sdkCommit`), startedAt: iso(run.startedAt, `${path}.run.startedAt`) },
-    entries,
-  };
+  return { run, entries };
 }
 
 /** Parses the file, so a malformed one stops the build instead of reaching the page. */

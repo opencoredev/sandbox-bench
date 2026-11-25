@@ -23,7 +23,7 @@ import {
   vulnerableText,
 } from "@/lib/fairness";
 import type { BurstResult, CheckData, Completed, CpuNativeResult, DiskResult, FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
-import { providerColor } from "@/lib/providers";
+import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 /** The section id, for the nav and links that open a tab: `#like-for-like/disk`. */
@@ -56,7 +56,11 @@ const markNotes = (marks: ReturnType<typeof marksFor>): Note[] => [...marks].map
 const missingNotes = <R,>(check: CheckData<R> | null): Note[] =>
   notCompleted(check).map(({ provider, status, why }) => ({ text: <><Who id={provider} />: {status === "skipped" ? "not run" : "no result"} ({why}).</>, about: provider }));
 
-const runNote = <R,>(check: CheckData<R>): Note => ({ lead: "Run", text: `One run per provider, ${dayOf(check.run.startedAt)} (SDK commit ${check.run.sdkCommit.slice(0, 7)}). A single run, so read small gaps as noise.` });
+/** The check's run, then each provider added from its own later run, named by that run's id. */
+const runNote = <R,>(check: CheckData<R>): Note => {
+  const apart = check.entries.flatMap((e) => (e.run === null ? [] : [`; ${providerName(e.provider)} on ${dayOf(e.run.startedAt)} in its own run (${e.run.id}, SDK commit ${e.run.sdkCommit.slice(0, 7)})`]));
+  return { lead: "Run", text: `One run per provider, ${dayOf(check.run.startedAt)} (SDK commit ${check.run.sdkCommit.slice(0, 7)})${apart.join("")}. A single run, so read small gaps as noise.` };
+};
 
 const solid = (id: ProviderId, value: number) => [{ value, color: providerColor(id), fill: "solid" as const }] as const;
 

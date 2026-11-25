@@ -8,7 +8,13 @@
  *     --report ~/agents/fairness-bench/runs/<run>/cpu-native/cpu-native.json \
  *     --report .../disk-real.json --report .../cpu-burst-10.json \
  *     --report .../memory-honesty.json --report .../security-probe.json \
+ *     --add ~/agents/fairness-bench/runs/maritime/<check>/<check>.json ... \
  *     --out src/data/fairness.json
+ *
+ * The published file: --report r4's security-probe, memory-honesty and
+ * disk-real (sandbox-sdk c6163c6) and r6's cpu-native and cpu-burst-10
+ * (072122c), then --add Maritime's own run of all five (Nov 24, 27f304a,
+ * the same runner code as 072122c).
  *
  * What it changes on the way:
  * - Each provider keeps only the figures the page and the agent files use;
@@ -21,6 +27,9 @@
  * - Each provider's CPU architecture comes from the security probe's kernel line.
  * - A provider must appear once per report; a report from another track, or
  *   one with a provider the site doesn't know, stops the build.
+ * - --add FILE appends the providers of a later run of one check, each with
+ *   that run's id, SDK commit and start as its `run`, so the section can say
+ *   it ran apart. A check with no --report, or a provider already in it, stops it.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -46,17 +55,19 @@ const numOrNull = (v: unknown, what: string): number | null => (v === null ? nul
 
 function args() {
   const reports: string[] = [];
+  const adds: string[] = [];
   let out: string | undefined;
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 2) {
     const [flag, value] = [argv[i], argv[i + 1]];
     if (value === undefined) throw new Error(`${flag} needs a value`);
     if (flag === "--report") reports.push(value);
+    else if (flag === "--add") adds.push(value);
     else if (flag === "--out") out = value;
     else throw new Error(`unknown flag ${flag}`);
   }
-  if (reports.length === 0 || !out) throw new Error("usage: --report FILE [--report FILE]... --out FILE");
-  return { reports, out };
+  if (reports.length === 0 || !out) throw new Error("usage: --report FILE [--report FILE]... [--add FILE]... --out FILE");
+  return { reports, adds, out };
 }
 
 /**
@@ -274,14 +285,29 @@ export function markGvisorDisk(checks: Json) {
   }
 }
 
+/** Appends a later run's providers to a check already built, each carrying that run. */
+export function addLaterRun(checks: Json, later: { check: CheckId; data: Json }, path: string) {
+  const into = checks[later.check];
+  if (!isJson(into)) throw new Error(`${path}: no --report for ${later.check} to add to`);
+  const entries = list(into.entries, `${later.check} entries`);
+  const have = new Set(entries.map((e) => obj(e, "entry").provider));
+  const added = list(later.data.entries, `${path} entries`).map((e) => {
+    const entry = obj(e, `${path} entry`);
+    if (have.has(entry.provider)) throw new Error(`${path}: ${String(entry.provider)} is already in ${later.check}`);
+    return { ...entry, run: later.data.run };
+  });
+  into.entries = [...entries, ...added];
+}
+
 function main() {
-  const { reports, out } = args();
+  const { reports, adds, out } = args();
   const checks: Json = {};
   for (const path of reports) {
     const { check, data } = checkFromReport(JSON.parse(readFileSync(path, "utf8")));
     if (check in checks) throw new Error(`two reports for ${check}`);
     checks[check] = data;
   }
+  for (const path of adds) addLaterRun(checks, checkFromReport(JSON.parse(readFileSync(path, "utf8"))), path);
   markGvisorDisk(checks);
   const file = { schema: SCHEMA, generatedAt: new Date().toISOString(), track: "same-machine", arch: archFrom(checks), checks };
   // The site's own parser, so this never writes a file the build would refuse.

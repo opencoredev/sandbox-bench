@@ -10,7 +10,7 @@ import { completed, hasFairness, heldShare, memoryOutcomeText, parseFairness, up
 import type { FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
 import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 import { fairness } from "@/lib/fairness-data";
-import { archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
+import { addLaterRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
 
 // The like-for-like checks: the file's parser, the site-data script, the section and the exports. Run with `bun test`.
 
@@ -247,6 +247,25 @@ describe("site-data script", () => {
     assert.doesNotMatch(scrubbed, /leo|01M8604F|610c6d1847fc|0f8fad5b|2654435760/);
     assert.match(scrubbed, /HTTP 400/);
     assert.throws(() => checkFromReport({ ...report("disk-real", []), track: "default" }), /same-machine/);
+  });
+
+  test("a provider added from its own later run carries that run, and the section and exports name it", () => {
+    const later = { id: "cpu-native-later", sdkCommit: "27f304a8c8db", startedAt: "2026-11-24T08:23:48.000Z" };
+    const f = fixture();
+    const checks = f.checks as unknown as Record<string, unknown>;
+    addLaterRun(checks, checkFromReport({ ...report("cpu-native", [{ provider: "maritime", status: "completed", reason: null, machine, result: { ...cpu(4e9), single: { medianOps: 1e9 }, allCore: { medianOps: 4e9 }, sustained: { first3MinOps: 4e9, last3MinOps: 4e9, segments: cpu(4e9).sustained.map((s) => ({ minute: s.minute, opsPerSec: s.opsPerS })) } } }]), run: later }), "later.json");
+    assert.throws(() => addLaterRun(checks, checkFromReport({ ...report("cpu-native", [{ provider: "maritime", status: "failed", reason: "x", machine, result: null }]), run: later }), "again.json"), /already in cpu-native/);
+    assert.throws(() => addLaterRun({}, checkFromReport({ ...report("cpu-native", []), run: later }), "none.json"), /no --report for cpu-native/);
+    const d = parseFairness(f);
+    const added = d.cpuNative?.entries.find((e) => e.provider === "maritime");
+    assert.deepEqual(added?.run, later);
+    assert.ok(d.cpuNative?.entries.every((e) => e.provider === "maritime" || e.run === null));
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    assert.match(html, /Maritime on Nov 24, 2026 in its own run \(cpu-native-later, SDK commit 27f304a\)/);
+    assert.deepEqual(fairnessData(d).cpuNative?.results.find((r) => r.provider === "maritime")?.run, later);
+    const own = structuredClone(f);
+    Object.assign(own.checks["cpu-native"].entries.at(-1) ?? {}, { run });
+    assert.throws(() => parseFairness(own), /run is the check's own/);
   });
 });
 
