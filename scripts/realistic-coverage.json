@@ -18,7 +18,8 @@
       "beam",
       "beam-shared",
       "beam-spot",
-      "maritime"
+      "maritime",
+      "styne"
     ],
     "profiles": [
       "fix-and-test",
@@ -84,6 +85,11 @@
         "provider": "maritime",
         "reason": "its usage API reports running time only and leaves out the $0.08 per GB-month it charges for a paused sandbox's disk, so an idle run's cost couldn't be read from it",
         "short": "paused disk not in its usage API"
+      },
+      {
+        "provider": "styne",
+        "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "account totals only"
       }
     ]
   }

@@ -5,6 +5,7 @@ import type { MouseEvent } from "react";
 
 import { themePart } from "@graphical/components/library/component-theme";
 
+import { captureEvent } from "@/lib/analytics";
 import { landingTrack, linkedTrack, trackFromParam, trackIds, trackInfo, trackStyle } from "@/lib/tracks";
 import type { TrackId } from "@/lib/tracks";
 
@@ -48,9 +49,11 @@ function select(event: MouseEvent<HTMLAnchorElement>, id: TrackId) {
   const url = new URL(window.location.href);
   if (id === landingTrack) url.searchParams.delete("track");
   else url.searchParams.set("track", id);
+  const changed = current() !== id;
   show(id);
   window.history.replaceState(null, "", url);
   window.dispatchEvent(new Event(EVENT));
+  if (changed) captureEvent("track_switched", { track: id });
 }
 
 // The theme's toggle group: a segment per track, the current one pressed. Links, not toggles, so they work without scripts.

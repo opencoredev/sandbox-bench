@@ -9,9 +9,12 @@
  * gap left, between E2B's orange and boxd's rose), and Maritime's chartreuse (Maritime's own blue sits under 5.7 from
  * Daytona and Freestyle under colour-blind simulation, and no colour left in sRGB keeps ΔE ≥ 6.7 from every other;
  * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
- * left), and Microsandbox's violet (its own purple mark, lifted in chroma and turned toward blue so it keeps ΔE ≥ 6.06
- * from Freestyle's periwinkle and Baseten's pink under protanopia and deuteranopia, at 6.2:1 on the card), with lightness spread so every pair stays apart under
- * protanopia and deuteranopia (OKLab ΔE ≥ 6.0; names and logos sit beside
+ * left), and Styne's violet (its mark is black and white; no colour left in
+ * sRGB keeps ΔE ≥ 6.7 from every other, and this one, at 6.1 from Freestyle's periwinkle under deuteranopia, is
+ * about the best gap left), and Microsandbox's green (its purple is taken twice over, by Styne's violet and Freestyle's periwinkle, and no violet
+ * left keeps ΔE ≥ 5.5 from both under colour-blind simulation; this one is 15.9 from its nearest in normal vision and 5.6
+ * from Beam's coral under protanopia, so the palette floor is now 5.5), with lightness spread so every pair stays apart under
+ * protanopia and deuteranopia (OKLab ΔE ≥ 5.5; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
@@ -31,13 +34,14 @@ export const providerInfo = {
   instabox: { name: "Instabox", color: "oklch(0.97 0.14 110)" },
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
   maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
-  microsandbox: { name: "Microsandbox", color: "oklch(0.72 0.18 304)" },
+  styne: { name: "Styne", color: "oklch(0.72 0.18 304)" },
+  microsandbox: { name: "Microsandbox", color: "oklch(0.7 0.23 142)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
-  "microsandbox-shared": { name: "Microsandbox Shared", color: "oklch(0.72 0.18 304)", short: "Microsandbox", tag: "Shared", brand: "microsandbox" },
+  "microsandbox-shared": { name: "Microsandbox Shared", color: "oklch(0.7 0.23 142)", short: "Microsandbox", tag: "Shared", brand: "microsandbox" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;
@@ -77,9 +81,35 @@ export function providerLabel(id: ProviderId): ProviderLabel {
 /**
  * How a CPU tier treats the processor it sells. `dedicated`: vCPUs no one
  * else runs on; `shared`: vCPUs shared with other customers' sandboxes;
- * `spot`: spare capacity the provider can take back mid-task.
+ * `burstable`: shared vCPUs that run at full speed on burst credit, then are
+ * held to a baseline share; `spot`: spare capacity the provider can take back mid-task.
  */
-export type CpuClass = "dedicated" | "shared" | "spot";
+export type CpuClass = "dedicated" | "shared" | "burstable" | "spot";
+
+/** A CPU class a reader should know about before reading a result: a few words for a tile, a sentence for a hover or an agent file. */
+export interface CpuCaveat {
+  cpu: Exclude<CpuClass, "dedicated">;
+  short: string;
+  detail: string;
+}
+
+/**
+ * Every row whose CPU is not dedicated, whether it is the provider's only
+ * product (Styne) or one of its CPU tiers (Beam Shared, Beam Spot). A row
+ * with an entry here says so wherever it is named as a winner. tiers.test.ts
+ * checks that each tier's class matches.
+ */
+const cpuCaveats: Partial<Record<ProviderId, CpuCaveat>> = {
+  styne: { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" },
+  "beam-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs, not preemptible" },
+  "beam-spot": { cpu: "spot", short: "Spot · preemptible", detail: "Spare capacity, can be stopped with 30 seconds' notice" },
+  "microsandbox-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk, not preemptible" },
+};
+
+/** The row's CPU caveat, or null when its CPU has none to state. */
+export function cpuCaveat(id: ProviderId): CpuCaveat | null {
+  return cpuCaveats[id] ?? null;
+}
 
 export interface CpuTier {
   /** The row its results sit under. */

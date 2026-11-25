@@ -77,6 +77,12 @@ export const advertised = {
     source: "https://maritime.sh/docs/billing",
     note: "Maritime's default is its small preset: 2 vCPU, 4 GiB RAM and a 12 GiB disk. On the same-machine track it ran its medium preset, 4 vCPU, 8 GiB RAM and a 50 GiB disk.",
   },
+  styne: {
+    vcpu: 4,
+    memoryGiB: 8,
+    diskGiB: 51,
+    source: "https://docs.styne.ai/guide-templates",
+    note: "Styne's default base template is 4 vCPU, 8 GiB RAM and a 51 GiB root disk, so both tracks ran the same machine.",
   microsandbox: {
     vcpu: 1,
     memoryGiB: 0.5,

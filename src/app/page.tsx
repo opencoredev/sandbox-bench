@@ -16,7 +16,13 @@ import { IdleChart, TaskCost, TaskCostHeadline, taskCostSection } from "@/compon
 import { RealTaskHeadline, RealTasks, realTasksSection } from "@/components/real-tasks";
 import { RealtaskBurstChart, realtaskBurstSection } from "@/components/realtask-burst";
 import { ExpandedBenchmarks, expandedSection } from "@/components/expanded-benchmarks";
+import { FairnessSection, IsolationTable, fairnessSection } from "@/components/fairness";
 import { StressSection, stressSection } from "@/components/stress";
+import { SustainedCpuSection, sustainedCpuSection } from "@/components/sustained-cpu";
+import { hasSustainedCpu } from "@/lib/sustained-cpu";
+import { sustainedCpu } from "@/lib/sustained-cpu-data";
+import { hasFairness } from "@/lib/fairness";
+import { fairness } from "@/lib/fairness-data";
 import { hasExpanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { hasStress } from "@/lib/stress";
@@ -45,6 +51,8 @@ import { Tracked } from "@/components/track";
 import { TierSwitch } from "@/components/tier-switch";
 import { TrackSwitch } from "@/components/track-switch";
 import { TraceWaterfall } from "@/components/trace-waterfall";
+import { PrivateCtaLabel } from "@/components/private-cta-label";
+import { SectionViews } from "@/components/section-views";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
 import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
@@ -58,6 +66,7 @@ import { isExtraTier, isProviderId, providerBrand, providerColor, providerName }
 import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
 import { advertised } from "@/lib/sizes";
+import { ctaAttributes } from "@/lib/cta";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
 // and one bar of section links, a hero with the title on the left and a short
@@ -393,7 +402,7 @@ function Attribution() {
       {links.map((l, i) => (
         <span key={l.href}>
           {i > 0 ? <span aria-hidden>{" · "}</span> : null}
-          <a href={l.href} className={quietLink}>
+          <a href={l.href} {...(l.href === forProvidersPath ? ctaAttributes({ cta: "private_benchmarks", placement: "home_hero" }) : {})} className={quietLink}>
             {l.text}
           </a>
         </span>
@@ -517,12 +526,12 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Styne joined on Nov 23: every Styne result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox and Maritime give a usage record, priced at their published rates. Freestyle, Luxor, Baseten and Beam use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest is the lowest exact cost. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox and Maritime give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam and Styne use our measured time at their list prices. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
@@ -603,6 +612,7 @@ export default function Page() {
 
       {/* Hidden hover cards near a chart's edge are wider than a phone screen; clip them rather than let the page scroll sideways. */}
       <main className="mx-auto max-w-[1440px] overflow-x-clip px-m sm:px-l">
+        <SectionViews />
         {/* As on Artificial Analysis: the title and what the site is on the left, the latest updates on the right. */}
         {/* Kept short so the stat tiles and the top of the scores fit in a 1440 x 900 window. The CPU tier switch lives under CPU tiers. */}
         <div className="grid gap-m pt-s pb-m lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-xl lg:pt-xl lg:pb-l">
@@ -684,6 +694,19 @@ export default function Page() {
               }
             </PerTrack>
           </div>
+          {hasSustainedCpu(sustainedCpu) ? (
+            <div id={sustainedCpuSection} className="mt-l scroll-mt-24">
+              <PerTrack>
+                {(track) =>
+                  track.id === "same-spec" ? (
+                    <SustainedCpuSection data={sustainedCpu} />
+                  ) : (
+                    <p className="max-w-[72ch] text-s text-pretty text-neutral-7">Sustained CPU over 15 minutes ran only on the same-machine track (4 vCPU, 8 GB requested; boxd ran 4 vCPU, 16 GiB). Switch to Same machine to see it.</p>
+                  )
+                }
+              </PerTrack>
+            </div>
+          ) : null}
         </Section>
 
         <Section id="agent" title="Tool calls and agent steps" lede="The single steps a coding agent repeats: 100 tool calls in a row, package installs, a clone, a dev server and its preview.">
@@ -795,6 +818,24 @@ export default function Page() {
                     <span className="font-medium text-neutral-10">{trackInfo[track.id].label}: no stress results yet.</span> Switch to{" "}
                     {`${trackInfo[track.id === "default" ? "same-spec" : "default"].label.toLowerCase()} for them.`}
                   </Card>
+                )
+              }
+            </PerTrack>
+          </Section>
+        ) : null}
+
+        {hasFairness(fairness) ? (
+          <Section
+            id={fairnessSection}
+            title="Like-for-like checks"
+            lede="The same compiled code and the same method on every provider's same-machine sandbox (4 vCPU, 8 GB requested; boxd 4 vCPU, 16 GiB). The image's Python version no longer changes the CPU numbers, comparable disk results are read past the guest's cache, and changes in CPU throughput and the CPUs a sandbox reports are shown as measured."
+          >
+            <PerTrack>
+              {(track) =>
+                track.id === "same-spec" ? (
+                  <FairnessSection data={fairness} />
+                ) : (
+                  <Card className="text-s text-neutral-7">These checks ran only on the same-machine track (4 vCPU, 8 GB requested). Switch to Same machine to see them.</Card>
                 )
               }
             </PerTrack>
@@ -942,6 +983,9 @@ export default function Page() {
                       </>
                     ),
                   },
+                  ...(track.id === "same-spec" && fairness.securityProbe !== null
+                    ? [{ id: "isolation", label: "Isolation and kernel", content: <IsolationTable data={fairness} /> }]
+                    : []),
                   ...metricTabs(track, [
                     { id: "cpu-single", what: "One core running a fixed Python loop", notes: probeNotes(track) },
                     { id: "cpu-all", what: "Every core at once, so bigger machines win", notes: probeNotes(track) },
@@ -972,7 +1016,7 @@ export default function Page() {
             <MethodList rows={methodRows} />
             <p className="mt-m text-s text-neutral-7">
               Every number with its full method:{" "}
-              <a className="focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="results.md">
+              <a {...ctaAttributes({ cta: "data_download", placement: "home_method" })} className="focus-ring -my-xs inline-block rounded-xs py-xs text-accent underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="results.md">
                 results.md
               </a>
             </p>
@@ -992,8 +1036,10 @@ export default function Page() {
             <p className="mt-m max-w-[72ch] text-s text-pretty text-neutral-7">
               <span className="font-medium text-neutral-10">{independenceTitle}.</span> Every result on this page comes from runs on our own accounts.
             </p>
-            <a href={forProvidersPath} className="group focus-ring mt-m inline-flex items-center gap-xxs rounded-xs text-s font-medium text-accent">
-              <span className="underline decoration-dotted underline-offset-4 group-hover:text-neutral-10">What&apos;s included, and get in touch</span>
+            <a href={forProvidersPath} {...ctaAttributes({ cta: "private_benchmarks", placement: "home_section" })} className="group focus-ring mt-m inline-flex items-center gap-xxs rounded-xs text-s font-medium text-accent">
+              <span className="underline decoration-dotted underline-offset-4 group-hover:text-neutral-10">
+                <PrivateCtaLabel />
+              </span>
               <ArrowUpRight aria-hidden className="size-4 shrink-0 group-hover:text-neutral-10" />
             </a>
           </Card>
@@ -1011,7 +1057,7 @@ export default function Page() {
             {["llms.txt", "results.json", "results.md"].map((f, i) => (
               <span key={f}>
                 {i > 0 ? " · " : ""}
-                <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
+                <a {...ctaAttributes({ cta: "data_download", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
                   {f}
                 </a>
               </span>
@@ -1020,11 +1066,11 @@ export default function Page() {
           <span aria-hidden className="hidden sm:inline">·</span>
           <HomeLinks />
           <span aria-hidden className="hidden sm:inline">·</span>
-          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={forProvidersPath}>
+          <a {...ctaAttributes({ cta: "private_benchmarks", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={forProvidersPath}>
             For providers
           </a>
           <span aria-hidden className="hidden sm:inline">·</span>
-          <a className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
+          <a {...ctaAttributes({ cta: "github", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href="https://github.com/opencoredev/sandbox-bench">
             Source on GitHub
           </a>
           <span aria-hidden className="hidden sm:inline">·</span>

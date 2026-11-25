@@ -5,6 +5,7 @@ import type { MouseEvent } from "react";
 
 import { themePart } from "@graphical/components/library/component-theme";
 
+import { captureEvent } from "@/lib/analytics";
 import { allTiersValue, tierParam, tierStyle, tierViewInfo, tierViews } from "@/lib/tiers";
 import type { TierView } from "@/lib/tiers";
 
@@ -45,9 +46,11 @@ function select(event: MouseEvent<HTMLAnchorElement>, view: TierView) {
   const url = new URL(window.location.href);
   if (view === "all") url.searchParams.set(tierParam, allTiersValue);
   else url.searchParams.delete(tierParam);
+  const changed = current() !== view;
   show(view);
   window.history.replaceState(null, "", url);
   window.dispatchEvent(new Event(EVENT));
+  if (changed) captureEvent("tiers_switched", { view });
 }
 
 const Segment = themePart("a", "toggle-group", "control", "ui-button");

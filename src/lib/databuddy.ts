@@ -1,34 +1,36 @@
-import type { ScriptHTMLAttributes } from "react";
+import type { DatabuddyProviderProps } from "@databuddy/sdk/react";
 
 /** Public client ID of the "AI Sandbox Bench" website in Databuddy (Leo's Workspace). Safe to ship. */
 export const databuddyClientId = "9ba806bf-df8d-4a9c-a97b-b058d3733026";
 
-/** A `<script>` tag's props, including the `data-*` attributes Databuddy reads its settings from. */
-export type DatabuddyScriptProps = ScriptHTMLAttributes<HTMLScriptElement> & Record<`data-${string}`, string> & { src: string };
+/** The browser's privacy signals and Databuddy's stored opt-out, as the tracker reads them. */
+export type PrivacySignals = {
+  doNotTrack: string | null | undefined;
+  globalPrivacyControl: boolean | undefined;
+  stored: (key: string) => string | null;
+};
 
 /**
- * The tracker (pageviews, web vitals, outgoing links, errors) and session replay, loaded async from
- * Databuddy's CDN, as on cicdbench.com. Runs alongside PostHog, which stays the source the SEO agent reads.
+ * Whether the visitor declined tracking: Do Not Track, Global Privacy Control,
+ * or Databuddy's opt-out. The tracker stops itself on these; this also keeps the
+ * flags request, which carries the visitor id, from leaving the browser.
  */
-export const databuddyScriptTags = [
-  {
-    src: "https://cdn.databuddy.cc/databuddy.js",
-    "data-client-id": databuddyClientId,
-    "data-track-web-vitals": "true",
-    "data-track-outgoing-links": "true",
-    "data-track-errors": "true",
-    crossOrigin: "anonymous",
-    async: true,
-  },
-  {
-    src: "https://cdn.databuddy.cc/replay.js",
-    "data-client-id": databuddyClientId,
-    crossOrigin: "anonymous",
-    async: true,
-  },
-] as const satisfies readonly DatabuddyScriptProps[];
+export function hasOptedOut({ doNotTrack, globalPrivacyControl, stored }: PrivacySignals): boolean {
+  return doNotTrack === "1" || globalPrivacyControl === true || stored("databuddy_opt_out") === "true" || stored("databuddy_disabled") === "true";
+}
 
-/** The script tags for the page head: only production builds load Databuddy, so `next dev` and tests send nothing. */
-export function databuddyScripts({ nodeEnv }: { nodeEnv: string | undefined }): readonly DatabuddyScriptProps[] {
-  return nodeEnv === "production" ? databuddyScriptTags : [];
+/**
+ * DatabuddyProvider's settings: the tracker (pageviews, web vitals, outgoing
+ * links, errors, `data-track` clicks), session replay and feature flags.
+ * Only production builds for visitors who haven't opted out load anything, so
+ * `next dev`, tests and opted-out visitors send nothing and every flag serves
+ * its default. Runs alongside PostHog, which stays the source the SEO agent reads.
+ */
+export function databuddyOptions({ nodeEnv, optedOut }: { nodeEnv: string | undefined; optedOut: boolean }) {
+  return {
+    clientId: databuddyClientId,
+    disabled: nodeEnv !== "production" || optedOut,
+    replay: true,
+    autocapture: { webVitals: true, outgoingLinks: true, errors: true, attributes: true },
+  } as const satisfies Omit<DatabuddyProviderProps, "children">;
 }
