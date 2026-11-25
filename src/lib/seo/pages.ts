@@ -74,6 +74,7 @@ const contentDates = {
   "/providers/beam/": "2026-11-20",
   "/providers/modal/": "2026-11-23",
   "/providers/maritime/": "2026-11-24",
+  "/providers/styne/": "2026-11-23",
   "/compare/e2b-vs-daytona/": "2026-11-18",
   "/compare/upstash-box-vs-e2b/": "2026-11-18",
   "/compare/upstash-box-vs-daytona/": "2026-11-18",
@@ -87,6 +88,8 @@ const contentDates = {
   "/updates/real-tasks-at-once/": "2026-11-19",
   "/updates/beam-cpu-tiers/": "2026-11-20",
   "/updates/maritime-added/": "2026-11-24",
+  "/updates/styne-added/": "2026-11-23",
+  "/updates/like-for-like-checks/": "2026-11-24",
 } as const satisfies Record<SitePath, string>;
 
 /** When the published results last changed: the end of the newest run window across both tracks. */

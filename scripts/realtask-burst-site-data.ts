@@ -11,11 +11,14 @@
  *     --hold-change boat="Boat's two tasks alone took 168 and 203 s, about twice its usual time, and a repeat showed identical Boat machines varying up to 2x, so two tasks can't set its baseline" \
  *     --location "Florida, US" \
  *     --add ~/agents/realtask-burst/runs/rtb-maritime-1123/realtask-burst-maritime.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-styne-1123/realtask-burst-styne.json \
  *     --out src/data/realtask-burst.json
  *
  * Maritime was added on 2026-11-24 from its own run (rtb-maritime-1123, started
- * 04:21 UTC on Nov 24, sandbox-sdk 619307b, the same plan), with --add; every
- * other provider's entry is the Nov 19 run's, unchanged.
+ * 04:21 UTC on Nov 24, sandbox-sdk 619307b, the same plan), and Styne on
+ * 2026-11-23 from its own run (rtb-styne-1123, sandbox-sdk cd2e6e1, the same
+ * plan), each with --add; every other provider's entry is the Nov 19 run's,
+ * unchanged.
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to

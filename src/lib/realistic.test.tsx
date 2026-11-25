@@ -12,6 +12,7 @@ import { buildRealistic, flagsOf as harnessFlags, prepareFailures, sourceName, w
 import { Columns, axisMax, layout, type Column } from "@/components/columns";
 import { CheapestLine, IdleChart, ProviderRows, TaskCost, columnsOf, rowBars } from "@/components/realistic";
 import { providersOf } from "@/components/trace-waterfall";
+import { taskTimes } from "@/components/real-tasks";
 
 /** Text as React renders it in markup: apostrophes escaped. */
 const esc = (s: string) => s.replaceAll("'", "&#x27;");
@@ -505,7 +506,7 @@ const costed = (provider: Costed["provider"], usd: number, eligible: boolean, ov
 });
 
 describe("pick", () => {
-  test("the cheapest counted row wins, whatever its cost kind or status", () => {
+  test("the cheapest counted row wins, billed or metered, whatever its billing status", () => {
     const p = taskPick([costed("upstash", 0.012, true), costed("freestyle", 0.009, false), costed("vercel", 0.014, false)]);
     assert.ok(p.kind === "picked");
     assert.equal(p.label, pickLabels.cheapest);
@@ -520,6 +521,16 @@ describe("pick", () => {
     assert.ok(p.kind === "picked");
     assert.equal(p.pick.provider, "e2b");
     assert.deepEqual(p.lower.map((r) => r.provider), ["boxd"]);
+  });
+
+  test("a cheaper list-price estimate isn't counted, and is listed as lower with why", () => {
+    const estimate: Costed = { ...costed("styne", 0.0005, false), cost: { kind: "estimate", usdPerCompleted: 0.0005, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" } };
+    const p = taskPick([costed("instabox", 0.0008, false), estimate]);
+    assert.ok(p.kind === "picked");
+    assert.equal(p.pick.provider, "instabox");
+    assert.deepEqual(p.lower.map((r) => r.provider), ["styne"]);
+    assert.deepEqual(notCountedWhy(estimate), ["list-price estimate, not billed or metered by the provider"]);
+    assert.equal(taskPick([estimate]).kind, "none", "an estimate alone is no pick");
   });
 
   test("more than one incomplete run can't be a pick", () => {
@@ -570,10 +581,10 @@ describe("pick", () => {
       return `${track}/${profile}: ${p.kind === "picked" ? `${p.pick.provider} [${p.lower.map((r) => r.provider).join()}]` : p.kind}`;
     }));
     assert.deepEqual(picks.sort(), [
-      "default/build: instabox []",
-      "default/fix-and-test: instabox []",
-      "same-machine/build: instabox []",
-      "same-machine/fix-and-test: instabox []",
+      "default/build: instabox [styne]",
+      "default/fix-and-test: instabox [styne]",
+      "same-machine/build: instabox [styne]",
+      "same-machine/fix-and-test: instabox [styne]",
     ]);
   });
 
@@ -765,7 +776,7 @@ describe("final review", () => {
   test("the idle chart's not-tested note is one sentence, grouped by short reason", () => {
     const html = renderToStaticMarkup(<IdleChart />);
     const text = html.replace(/<[^>]+>/g, "");
-    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\), Superserve \(account totals only\) and Maritime \(paused disk not in its usage API\)\./);
+    assert.match(text, /Not in this test: Freestyle, Luxor, Baseten and Beam \(no billing data we can read\), Superserve and Styne \(account totals only\) and Maritime \(paused disk not in its usage API\)\./);
     const task = renderToStaticMarkup(<TaskCost track={tracks.default} />).replace(/<[^>]+>/g, "");
     assert.doesNotMatch(task, /Completed ?not run/, "a provider that wasn't run never reads as completed");
   });
@@ -851,12 +862,14 @@ describe("page", () => {
 
   test("on Same machine, a cheaper bar on the wrong machine size is named as not counted", () => {
     const text = renderToStaticMarkup(<TaskCost track={tracks["same-spec"]} />).replace(/<[^>]+>/g, "");
+    // Styne's list-price estimate is the lowest bar, but Cheapest needs a bill or usage meter: Instabox's metered cost wins.
     assert.match(text, /Cheapest: Instabox \$0\.76 per 1,000/);
+    assert.match(text, /Not counted: Styne \$0\.55 \(list-price estimate, not billed or metered by the provider\)\./);
     // In the published data boxd's $5.50 is on the wrong size but dearer than Instabox, so it isn't named.
     assert.doesNotMatch(text, /Not counted: boxd/);
-    // Without Instabox, Boat and Maritime, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
+    // Without Styne, Instabox, Boat and Maritime, boxd is the cheapest bar on the wrong size: it is named, and the pick is the next counted row,
     // Superserve since its Nov 18 rerun with a 20 GB disk.
-    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox" && r.provider !== "maritime") }, "same-machine", "fix-and-test");
+    const { costed } = headlineRows({ rows: realistic.rows.filter((r) => r.provider !== "boat" && r.provider !== "instabox" && r.provider !== "maritime" && r.provider !== "styne") }, "same-machine", "fix-and-test");
     const line = renderToStaticMarkup(<CheapestLine costed={costed} />).replace(/<[^>]+>/g, "");
     assert.match(line, /Cheapest: Superserve \$7\.49 per 1,000/);
     assert.match(line, /Not counted: boxd \$5\.50 \(it ran with 15\.6 GiB of memory, not the 8 GiB this track asks for\)\./);
@@ -977,12 +990,32 @@ describe("page", () => {
     ]);
     assert.deepEqual(lead, { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
     assert.equal(leaders([]), null);
-    // On the published data Superserve, Luxor and Instabox all print 82s for fix and test on Same machine.
+    // On the published data Superserve, Luxor and Instabox all print 82s for fix and test on Same machine,
+    // behind Styne's 56s: the tile crowns Styne alone, and the three behind it still tie.
+    const timed = taskTimes(tracks["same-spec"], "fix-and-test").timed.map((t) => ({ provider: t.provider, seconds: t.medianWallS }));
+    assert.deepEqual(leaders(timed), { provider: "styne", tied: [], value: "56s" });
+    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne")), { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     const fix = html.slice(html.indexOf("Fastest fix and test"), html.indexOf("Fastest build"));
-    assert.match(fix, /82s/);
-    assert.match(fix, /Superserve/);
-    assert.match(fix, /Tied with/);
-    for (const name of ["Luxor", "Instabox"]) assert.ok(fix.includes(name), name);
+    assert.match(fix, /56s/);
+    assert.match(fix, />Styne</);
+    assert.doesNotMatch(fix, /Tied with/);
+  });
+
+  test("a winner on a burstable CPU says so on its tile, and the metered cheapest has no caveat", () => {
+    const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
+    const tiles = html.split("<li").slice(1);
+    const styne = tiles.filter((t) => t.includes(">Styne<"));
+    assert.ok(styne.length > 0, "Styne wins at least one tile");
+    for (const t of styne) {
+      assert.match(t, /title="Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU">/);
+      assert.equal(t.replace(/<[^>]+>/g, "").includes("Burstable · 16% baseline"), true);
+    }
+    const cheapest = tiles.filter((t) => t.includes("Cheapest"));
+    assert.equal(cheapest.length, 2);
+    for (const t of cheapest) {
+      assert.match(t, />Instabox</);
+      assert.doesNotMatch(t, /Burstable/);
+    }
   });
 });

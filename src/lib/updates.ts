@@ -17,7 +17,9 @@ export type UpdateCharts =
   /** Fix and test, several at once on each provider, on the same machine. */
   | { kind: "realtask-burst" }
   /** One provider's CPU tiers side by side, on the same machine. */
-  | { kind: "tiers"; provider: TieredProvider };
+  | { kind: "tiers"; provider: TieredProvider }
+  /** The like-for-like checks and the isolation table, on the same machine. */
+  | { kind: "like-for-like" };
 
 export interface Update {
   /** The page's address under /updates/. */
@@ -40,15 +42,48 @@ export const updates = [
     slug: "maritime-added",
     date: "2026-11-24",
     title: "Maritime added",
-    text: "Maritime on both machines, with snapshots, bursts, both real tasks and costs metered from its own usage API. Its traffic leaves from Hetzner in Germany and Finland; it was among the slowest at cold start and the slowest on both real tasks, at the third-lowest Fix and test cost.",
+    text: "Maritime on both machines, with snapshots, bursts, both real tasks and costs metered from its own usage API. Its traffic leaves from Hetzner in Germany and Finland; it was among the slowest at cold start and the slowest on both real tasks, at the third-lowest Fix and test cost billed or metered per sandbox.",
     body: [
       "Maritime joined on both tracks from its own runs on Nov 23 and 24 (UTC, sandbox-sdk 619307b): pause and resume, snapshots, bursts and both real tasks included. Its default is its small preset, 2 vCPU, 4 GB and a 12 GB disk; on 4 vCPU and 8 GB it ran its medium preset, which has a 50 GB disk. Outbound traffic left from Hetzner in Falkenstein, Germany for 495 of 522 sandboxes and Helsinki, Finland for 27.",
-      "On 4 vCPU and 8 GB it started in 1.62 s (100 of 100), 13th of 15, and ran 100 tool calls in 18.8 s, 8th. A snapshot took 11.2 s, starting from one 2.93 s, and pause and resume 16.6 s (99 of 100); its one failure on this track was a pause that got no response. On the default machine it started in 2.14 s (96 of 100), 14th of 15, with 6 creates taking 80 to 167 s, and pause and resume took 6.33 s.",
+      "On 4 vCPU and 8 GB it started in 1.62 s (100 of 100), 14th of 16, and ran 100 tool calls in 18.8 s, 9th. A snapshot took 11.2 s, starting from one 2.93 s, and pause and resume 16.6 s (99 of 100); its one failure on this track was a pause that got no response. On the default machine it started in 2.14 s (96 of 100), 15th of 16, with 6 creates taking 80 to 167 s, and pause and resume took 6.33 s.",
       "Maritime allows 30 creates a minute per API key, so, as with Instabox, each burst of 10 and 25 started a minute apart. Ten at once were all ready in 2.27 s on the default machine and 2.41 s on 4 vCPU, and 25 at once in 3.25 s and 4.71 s. Our first bursts ran back to back, and Maritime refused the creates past its rate with HTTP 429; so did the first 27 creates of the 4 vCPU main tests, which started two seconds later. We reran both with the spacing on Nov 24 and replaced the first runs, as we did for E2B's bursts; their failures, 6 besides the 429s, aren't counted, and the charts say so.",
-      "Costs come from Maritime's own per-sandbox usage records at $0.0055 per vCPU-hour and $0.00275 per GB-hour: $0.14 per 1,000 quick tasks on the default machine and $0.29 on 4 vCPU. Fix and test took 281 s and 158 s, the slowest on both machines, at $1.65 and $2.13 per 1,000, third cheapest on both. Build finished 4 of 5 on 4 vCPU (300 s, $5.51 per 1,000) but only 1 of 5 on the default machine: one was killed with exit 137 with 4 GB of memory, and three lost their command stream before the build finished, as did the one failure on 4 vCPU. There is no held-open run, because its usage API leaves out the $0.08 per GB-month it charges for a paused sandbox's disk.",
+      "Costs come from Maritime's own per-sandbox usage records at $0.0055 per vCPU-hour and $0.00275 per GB-hour: $0.14 per 1,000 quick tasks on the default machine and $0.29 on 4 vCPU. Fix and test took 281 s and 158 s, the slowest on both machines, at $1.65 and $2.13 per 1,000, third cheapest on both among costs billed or metered per sandbox, after Instabox and Boat. Build finished 4 of 5 on 4 vCPU (300 s, $5.51 per 1,000) but only 1 of 5 on the default machine: one was killed with exit 137 with 4 GB of memory, and three lost their command stream before the build finished, as did the one failure on 4 vCPU. There is no held-open run, because its usage API leaves out the $0.08 per GB-month it charges for a paused sandbox's disk.",
       "Five Fix and test tasks at once, run on Nov 24, finished 7 of 10, with a median of 359 s against 187 s for one alone; the other 3 failed a Vue test step. With fewer than 8 of 10 finished, the chart doesn't tag a change from alone.",
     ],
     charts: { kind: "provider", provider: "maritime" },
+    home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
+  },
+  {
+    slug: "like-for-like-checks",
+    date: "2026-11-24",
+    title: "Like-for-like checks",
+    text: "Five checks run the same way on every provider's same-machine sandbox (4 vCPU, 8 GB requested; boxd 16 GiB): native CPU, disk past the page cache, 10 at once, the CPUs and memory a sandbox shows, and its isolation and kernel.",
+    body: [
+      "Some earlier numbers differed for reasons other than the machine: each image's Python version (3.11 to 3.14), reads served from the guest's memory cache, burst credit, and how many CPUs a sandbox shows build tools. These checks hold the code and method fixed, so those differences either drop out (Python, the guest's cache) or show up as measured results (burst credit, reported CPUs). They are measured the same way on every provider and are not scored.",
+      "Native CPU: one static C program with no runtime, built once per CPU architecture from one source (Upstash runs ARM, so it ran the ARM build). On four cores, Upstash Ephemeral Box (5.58B ops/s), Upstash Box (5.57B), Boat (5.38B) and Styne (5.33B) led; In minutes 12–15 of a continuous 15-minute burn, 12 of the 14 still ran at 97% or more of that rate. boxd ran at 82% and Styne at 16%: its burst credit is shared across the account, and after 46 minutes without Styne load it measured 5.33B ops/s in the short runs, 5.09B in the burn's first 30 seconds and about 0.87B after that. Our account had run many Styne sandboxes earlier that day, and these runs don't measure how much credit was left; the Nov 25 Python sustained test ran at full speed for about a minute, then at about 16% of it.",
+      "Disk: a 2 GiB file with direct I/O past the guest's cache, then synced 4 KB writes, with every written page read back and checked. Synced 4 KB writes ranged from 103 a second (Boat) to 53,440 (Upstash Ephemeral Box). Modal and Beam run under gVisor, whose own file layer sits between the sandbox and the disk, so their disk figures are shown but marked not comparable.",
+      "CPUs and memory: Daytona and Upstash Box show 64 CPUs and Upstash Ephemeral Box 48 through nproc, with a 4-CPU quota, so build tools that size from nproc start more workers than the sandbox can run at once. All 14 held 6 GiB of memory while writing a 2 GiB file.",
+      "Isolation and kernel: every provider answered the same read-only questions. Boat's and Styne's kernels turn off one CPU mitigation (spec_rstack_overflow=off); Boat also sets init_on_free=0 and Styne cpuidle_haltpoll.force=1. Superserve (HTTP 402, billing) did not run, nor did Baseten, because our API key was rejected.",
+      "Maritime ran all five checks in its own run on Nov 24 (sandbox-sdk 27f304a, the same check code); each chart's run note says so. It kept its four-core speed for the full 15 minutes (minutes 12–15 at 100% of minutes 0–3), and its 10 at once is shown but not comparable, as 9 of its 10 burns verified.",
+    ],
+    charts: { kind: "like-for-like" },
+    home: { section: "like-for-like", tab: "cpu", label: "Like-for-like checks" },
+  },
+  {
+    slug: "styne-added",
+    date: "2026-11-23",
+    title: "Styne added",
+    text: "Styne on both machines, with snapshots, bursts and both real tasks. It was the fastest at cold start, 100 tool calls and both real tasks, on both tracks.",
+    body: [
+      "Styne joined on both tracks, from its own runs on Nov 23: pause and resume, snapshots, bursts of 10 and 25 and both real tasks included. Its default machine is 4 vCPU, 8 GB and a 51 GB disk, so both tracks ran the same machine.",
+      "On 4 vCPU and 8 GB it started in 0.20 s, against Modal's 0.38 s, and ran 100 tool calls in 7.6 s, against Beam's 11 s. It was also first on bursts of 10 and 25 and on taking and starting from a snapshot. Fix and test took 56 s and Build 89 s; the next fastest took 82 s and 138 s.",
+      "At Styne's list price of $0.032 an hour for this size, Fix and test cost $0.55 per 1,000 and Build $0.89, the lowest figures on the chart. These are estimates from our measured time: Styne's usage API reports daily account totals, not per sandbox. Cheapest needs a cost from the provider's bill or usage meter for each sandbox, so Styne is shown on the chart but not picked; Instabox, at $0.76 and $1.26 metered on this machine, is Cheapest.",
+      "Five Fix and test tasks at once took 87.5 s, still the fastest, but 1.44 times its 61 s alone, the largest change on that chart. Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load) before holding to 16% per vCPU, and replenishes credit while under baseline; our longest Styne real task took 131 s.",
+      "To measure past that burst window, we ran a 15-minute sustained CPU test (30 back-to-back 30-second segments with 4 workers per sandbox) on every provider's same-machine sandbox (4 vCPU and 8 GB requested; boxd ran its nearest 4 vCPU, 16 GiB size, and container providers Daytona and both Upstash products exposed 48–64 host CPUs while capped to 4 workers). In the Nov 25 run, Styne's first two segments were the fastest of any provider, about 105M ops/s. In its third, from minute 1, it fell to 22M, and it held 16–17M ops/s, about 16% of that peak, for the rest of the 15 minutes. Its docs say a sandbox gets less burst credit after recent load on the account; this run doesn't measure how much our account had left. It finished last of the 15 providers that completed, at 16.6M ops/s in minutes 12–15. The other 14 held 94% to 103% of their minutes 0–3 speed, led by Luxor (84.7M), Beam (76.2M) and Instabox (75.5M). Baseten didn't run, because our API key was rejected.",
+      "A live probe of one Styne sandbox found desktop AMD Ryzen 5000 (Vermeer) silicon: CPU family 25, model 33, stepping 0 at 4.29 GHz, which Cloud Hypervisor names \"AMD EPYC Processor\". The guest kernel command line sets spec_rstack_overflow=off and cpuidle_haltpoll.force=1, and lscpu reports \"Spec rstack overflow: Vulnerable\" and \"Tsa: Vulnerable: No microcode\". /proc/uptime on a sandbox created moments before read about 21 hours, so its guest kernel was up long before that create; that suggests it came from a pool or snapshot, though the probe doesn't show which.",
+      "On the default track, 10 of 2,989 operations failed with Styne errors: 9 commands that returned HTTP 503 in one run, and one file write that returned HTTP 500. One of five default-track Builds failed while its sandbox was being created, with the same 503. The same-machine track had no failures.",
+    ],
+    charts: { kind: "provider", provider: "styne" },
     home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
   },
   {

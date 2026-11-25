@@ -1,5 +1,6 @@
 import type { PriceBound, Provider, TaskCost, Track } from "@/lib/data";
 import { usdPrice } from "@/lib/fx";
+import { allocationNotes } from "@/lib/notes";
 import { isExtraTier, isPreemptible, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -236,6 +237,11 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "maritime.sh/docs/billing (checked Nov 23, 2026): a sandbox's vCPUs and memory times the seconds it runs, at $0.0055 per vCPU-hour and $0.00275 per GiB-hour, with its disk included while it runs; a paused sandbox pays $0.08 per GB-month for its disk. Its per-sandbox running intervals come from GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}, which leave out the paused-disk charge.",
   },
+  styne: {
+    kind: "unconfirmed",
+    evidence:
+      "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep and stops metering only when no user process is running inside it (a background process keeps it running and billed unless idleTimeout is set), so actual charges can sit below elapsed-time estimates when the sandbox sleeps between calls.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",
@@ -335,31 +341,59 @@ export type PricedTask = ReturnType<typeof pricedTasks>[number];
 export const pickLabel = "Cheapest";
 export const noPickLabel = "No cheapest";
 
+/** Said wherever a list-price estimate is passed over for Cheapest, on the quick task and the real tasks alike. */
+export const estimateNotCounted = "list-price estimate, not billed or metered by the provider";
+
+/** A priced task that can't be the pick, with every reason, never empty. */
+export type NotCounted = PricedTask & { why: readonly [string, ...string[]] };
+
 /**
- * The cost pick: the cheapest exact cost. Lower bounds are never picked: their
- * charge is unknown above the bound, so they are not compared with exact costs
- * at all. On the same-machine track only a provider that measured 4 vCPU and
- * 8 GB counts; `lower` lists each cheaper one that didn't. With no exact cost,
- * `kind` is "none".
+ * Why an exact cost on a provider's first CPU tier can't be called cheapest,
+ * or [] when it can: a list-price estimate instead of the provider's own bill
+ * or usage meter, or, on the same-machine track, a machine that didn't
+ * measure 4 vCPU and 8 GB. Billing status (settled, reconciled) doesn't matter.
+ */
+export function costNotCountedWhy(track: Track, t: PricedTask): string[] {
+  const estimate = t.cost.kind === "estimate" ? [estimateNotCounted] : [];
+  const sized = track.id === "default" || track.providers.some((p) => p.id === t.id && p.equalSpec);
+  const size = sized ? [] : [(allocationNotes(track)[t.id] ?? "machine differs").replace(/\.$/, "")];
+  return [...estimate, ...size];
+}
+
+const notCounted = (track: Track, t: PricedTask): NotCounted[] => {
+  const [first, ...rest] = costNotCountedWhy(track, t);
+  return first === undefined ? [] : [{ ...t, why: [first, ...rest] }];
+};
+
+/**
+ * The cost pick: the cheapest exact cost from the provider's bill or usage
+ * meter. Lower bounds are never picked: their charge is unknown above the
+ * bound, so they are not compared with exact costs at all. A list-price
+ * estimate is shown but never picked, and on the same-machine track only a
+ * provider that measured 4 vCPU and 8 GB counts; `lower` lists each cheaper
+ * exact cost that didn't count, with why. With no exact cost, or none that
+ * counts, `kind` is "none".
  */
 export type CostPick =
-  | { kind: "picked"; pick: PricedTask; runnerUp: PricedTask | null; lower: readonly PricedTask[] }
-  | { kind: "none"; why: "lower-bounds" | "machine"; lower: readonly PricedTask[] }
+  | { kind: "picked"; pick: PricedTask; runnerUp: PricedTask | null; lower: readonly NotCounted[] }
+  | { kind: "none"; why: "lower-bounds" | "not-counted"; lower: readonly NotCounted[] }
   | { kind: "empty" };
 
 /** Why there is no pick, in a sentence. */
 export const noPickWhy = (c: Extract<CostPick, { kind: "none" }>) =>
-  c.why === "machine" ? "no exact cost ran on 4 vCPU and 8 GB, so none is ranked" : "every reported cost is a lower bound, so none is ranked";
+  c.why === "not-counted"
+    ? "every exact cost is a list-price estimate or ran on a different machine, so none is ranked"
+    : "every reported cost is a lower bound, so none is ranked";
 
 export function costPick(track: Track): CostPick {
   const all = pricedTasks(track);
   // Providers are picked on their first CPU tier; the CPU tiers table compares the rest (Spot can also be taken back mid-task).
   const exact = all.filter((t) => !isLowerBound(t.cost) && !isExtraTier(t.id) && !isPreemptible(t.id));
-  const sized = (t: PricedTask) => track.id === "default" || track.providers.some((p) => p.id === t.id && p.equalSpec);
-  const [pick, runnerUp] = exact.filter(sized);
-  if (pick) return { kind: "picked", pick, runnerUp: runnerUp ?? null, lower: exact.filter((t) => !sized(t) && t.cost.usd < pick.cost.usd) };
+  const counted = exact.filter((t) => costNotCountedWhy(track, t).length === 0);
+  const [pick, runnerUp] = counted;
+  if (pick) return { kind: "picked", pick, runnerUp: runnerUp ?? null, lower: exact.filter((t) => t.cost.usd < pick.cost.usd).flatMap((t) => notCounted(track, t)) };
   if (all.length === 0) return { kind: "empty" };
-  return exact.length ? { kind: "none", why: "machine", lower: exact } : { kind: "none", why: "lower-bounds", lower: [] };
+  return exact.length ? { kind: "none", why: "not-counted", lower: exact.flatMap((t) => notCounted(track, t)) } : { kind: "none", why: "lower-bounds", lower: [] };
 }
 
 /** Providers with no cost at all, and why: no data or a failed run. */

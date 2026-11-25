@@ -21,7 +21,7 @@ import {
   wholeMachine,
   wholeMachineLabel,
 } from "@/lib/cost";
-import type { PricedTask } from "@/lib/cost";
+import type { NotCounted, PricedTask } from "@/lib/cost";
 import { provider } from "@/lib/data";
 import type { Track } from "@/lib/data";
 import { allocationNotes } from "@/lib/notes";
@@ -48,6 +48,9 @@ export function costColumns(track: Track) {
   return { columns, marks };
 }
 
+/** Whether a track shows a list-price estimate, so the notes say it can't be picked only when one is on the chart. */
+const showsEstimate = (track: Track) => pricedTasks(track).some((t) => t.cost.kind === "estimate");
+
 /** Whether a track shows a lower-bound cost, so the notes explain one only when it does. */
 const showsLowerBound = (track: Track) => pricedTasks(track).some((t) => isLowerBound(t.cost));
 
@@ -57,10 +60,22 @@ const Amount = ({ t }: { t: PricedTask }) => (
   </>
 );
 
-/** The cheapest exact cost, and any cheaper one that ran a different machine. A lower bound is never picked: its charge is unknown above the bound. */
 /** A tier row past a provider's first hides under "One per provider" (globals.css). */
 const tierAttrs = (id: ProviderId) => (isExtraTier(id) ? { "data-tier-extra": "" } : {});
 
+/** Each cheaper exact cost that can't be the pick, with why. */
+const NotCountedLines = ({ lower }: { lower: readonly NotCounted[] }) =>
+  lower.map((t) => (
+    <p key={t.id} className="text-xs text-neutral-7">
+      Not counted: <Amount t={t} /> ({t.why.join("; ")}).
+    </p>
+  ));
+
+/**
+ * The cheapest exact cost from a provider's bill or usage meter, and any
+ * cheaper one that couldn't count: a list-price estimate, or a different
+ * machine. A lower bound is never picked: its charge is unknown above the bound.
+ */
 export function CostPick({ track }: { track: Track }) {
   const c = costPick(track);
   switch (c.kind) {
@@ -70,15 +85,16 @@ export function CostPick({ track }: { track: Track }) {
           <p>
             <span className="text-neutral-7">{pickLabel}:</span> <Amount t={c.pick} /> <span className="text-neutral-7">per 1,000 tasks</span>
           </p>
-          {c.lower.map((t) => (
-            <p key={t.id} className="text-xs text-neutral-7">
-              Not counted: <Amount t={t} /> ({(allocationNotes(track)[t.id] ?? "machine differs").replace(/\.$/, "")}).
-            </p>
-          ))}
+          <NotCountedLines lower={c.lower} />
         </div>
       );
     case "none":
-      return <p className="mb-m text-s font-medium text-pretty">{noPickLabel}: {noPickWhy(c)}.</p>;
+      return (
+        <div className="mb-m flex flex-col gap-xxs text-s text-pretty">
+          <p className="font-medium">{noPickLabel}: {noPickWhy(c)}.</p>
+          <NotCountedLines lower={c.lower} />
+        </div>
+      );
     case "empty":
       return null;
     default: {
@@ -195,6 +211,7 @@ export function CostPerTaskChart({ track }: { track: Track }) {
         items={[
           ...[...marks].map(([id, mark]) => ({ mark, text: <><Who id={id} />: {sentence(machine[id] ?? "")}</> })),
           { text: "Each task ran in its own sandbox, up to 10 per provider, in a separate cost run. The bar is the median." },
+          ...(showsEstimate(track) ? [{ text: "Cheapest needs a cost from the provider's bill or usage meter. A list-price estimate is shown on the chart but never picked." }] : []),
           ...(showsLowerBound(track)
             ? [{ text: "A lower bound (≥) counts only the resources requested, and the provider also bills use above them, so the charge can be higher. It is listed after every exact cost and is never called cheapest." }]
             : []),
