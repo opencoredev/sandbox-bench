@@ -236,6 +236,18 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "maritime.sh/docs/billing (checked Nov 23, 2026): a sandbox's vCPUs and memory times the seconds it runs, at $0.0055 per vCPU-hour and $0.00275 per GiB-hour, with its disk included while it runs; a paused sandbox pays $0.08 per GB-month for its disk. Its per-sandbox running intervals come from GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}, which leave out the paused-disk charge.",
   },
+  microsandbox: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, and its disk until it is deleted",
+    evidence:
+      "microsandbox.dev/pricing and GET /v1/billing (checked Nov 24, 2026): on the Standard tier, $0.048 per vCPU-hour, $0.003 per GiB of RAM per hour and $0.0000625 per GiB of root disk per hour while a sandbox runs; a stopped sandbox keeps paying for its root disk until it is deleted. Its per-sandbox usage (GET /v1/billing/usage/sandbox) meters running time only.",
+  },
+  "microsandbox-shared": {
+    kind: "machine",
+    label: "bills the whole machine while it runs, and its disk until it is deleted",
+    evidence:
+      "microsandbox.dev/pricing and GET /v1/billing (checked Nov 24, 2026): on the Shared tier, $0.007 per vCPU-hour on shared vCPUs, $0.000375 per GiB of RAM per hour and $0.0000625 per GiB of root disk per hour while a sandbox runs; a stopped sandbox keeps paying for its root disk until it is deleted. Its per-sandbox usage (GET /v1/billing/usage/sandbox) meters running time only.",
+  },
   vercel: {
     kind: "usage",
     label: "bills active CPU time, the memory it allocates and data transfer",

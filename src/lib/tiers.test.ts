@@ -51,6 +51,14 @@ describe("CPU tiers", () => {
     assert.equal(tierHourly(spot, m).toFixed(4), "0.0360");
   });
 
+  test("list price per hour on 4 vCPU, 8 GB and a 64 GB disk counts the disk where the tier bills it", () => {
+    const m = { cpu: 4, memoryGiB: 8, diskGiB: 64 };
+    const [standard, shared] = cpuTiers.microsandbox;
+    assert.equal(tierHourly(standard, m).toFixed(3), "0.220");
+    assert.equal(tierHourly(shared, m).toFixed(3), "0.035");
+    assert.equal(tierHourly(cpuTiers.beam[0], m).toFixed(3), "0.280", "a tier with no disk rate ignores the disk");
+  });
+
   test("a provider is picked on its first tier; spot says it can be stopped", () => {
     assert.equal(isPreemptible("beam-spot"), true);
     assert.equal(isPreemptible("beam-shared"), false);

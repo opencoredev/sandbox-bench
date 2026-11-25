@@ -9,7 +9,8 @@
  * gap left, between E2B's orange and boxd's rose), and Maritime's chartreuse (Maritime's own blue sits under 5.7 from
  * Daytona and Freestyle under colour-blind simulation, and no colour left in sRGB keeps ΔE ≥ 6.7 from every other;
  * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
- * left), with lightness spread so every pair stays apart under
+ * left), and Microsandbox's violet (its own purple mark, lifted in chroma and turned toward blue so it keeps ΔE ≥ 6.06
+ * from Freestyle's periwinkle and Baseten's pink under protanopia and deuteranopia, at 6.2:1 on the card), with lightness spread so every pair stays apart under
  * protanopia and deuteranopia (OKLab ΔE ≥ 6.0; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
@@ -30,11 +31,13 @@ export const providerInfo = {
   instabox: { name: "Instabox", color: "oklch(0.97 0.14 110)" },
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
   maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
+  microsandbox: { name: "Microsandbox", color: "oklch(0.72 0.18 304)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
+  "microsandbox-shared": { name: "Microsandbox Shared", color: "oklch(0.72 0.18 304)", short: "Microsandbox", tag: "Shared", brand: "microsandbox" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;
@@ -86,8 +89,8 @@ export interface CpuTier {
   cpu: CpuClass;
   /** The provider can stop it before the task ends, so it is never picked as cheapest. */
   preemptible: boolean;
-  /** List rates in US dollars. */
-  rates: { vcpuHour: number; memoryGiBHour: number };
+  /** List rates in US dollars; disk only where the provider bills it. */
+  rates: { vcpuHour: number; memoryGiBHour: number; diskGiBHour?: number };
   /** What the provider says about it, in a few words. */
   promise: string;
 }
@@ -109,6 +112,10 @@ export const cpuTiers = {
     { id: "beam-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.011, memoryGiBHour: 0.0055 }, promise: "Shared vCPUs, not preemptible, up to 8 vCPU and 16 GiB" },
     { id: "beam-spot", name: "Spot", cpu: "spot", preemptible: true, rates: { vcpuHour: 0.0063, memoryGiBHour: 0.00135 }, promise: "Spare capacity, can be stopped with 30 seconds' notice" },
   ],
+  microsandbox: [
+    { id: "microsandbox", name: "Standard", cpu: "dedicated", preemptible: false, rates: { vcpuHour: 0.048, memoryGiBHour: 0.003, diskGiBHour: 0.0000625 }, promise: "Dedicated vCPUs, not preemptible" },
+    { id: "microsandbox-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.007, memoryGiBHour: 0.000375, diskGiBHour: 0.0000625 }, promise: "Shared vCPUs with dedicated memory and disk, not preemptible" },
+  ],
 } as const satisfies Partial<Record<ProviderId, readonly [CpuTier, ...CpuTier[]]>>;
 
 export type TieredProvider = keyof typeof cpuTiers;
@@ -120,10 +127,16 @@ export const tierSources = {
     checked: "Nov 20, 2026",
     note: "Every tier's real tasks ran on Nov 20, one tier at a time, 5 runs each; Beam's own real-task results are that day's Performance run. Performance's quick tests are Beam's own row, from Nov 18: a same-day rerun on the same Intel hosts in Warrenton came within 7% on cold start, commands, 100 tool calls and every CPU, memory and disk test, and took 3.6 s for the 10 MB write and read against 2.9 s. Five Fix and test runs at once, against the same task alone that day, took 1.23 times as long on Performance, 1.40 on Shared and 1.48 on Spot. No Spot sandbox was taken back, but each lived at most 4 minutes, so this says little about long Spot work.",
   },
+  microsandbox: {
+    url: "https://microsandbox.dev/pricing",
+    checked: "Nov 24, 2026",
+    note: "MSB_TIER_NOTE",
+  },
 } as const satisfies Record<TieredProvider, { url: string; checked: string; note: string }>;
 
-/** A tier's list price per hour for a machine. */
-export const tierHourly = (t: Pick<CpuTier, "rates">, m: { cpu: number; memoryGiB: number }) => t.rates.vcpuHour * m.cpu + t.rates.memoryGiBHour * m.memoryGiB;
+/** A tier's list price per hour for a machine, its disk included where the tier bills disk. */
+export const tierHourly = (t: Pick<CpuTier, "rates">, m: { cpu: number; memoryGiB: number; diskGiB?: number }) =>
+  t.rates.vcpuHour * m.cpu + t.rates.memoryGiBHour * m.memoryGiB + (t.rates.diskGiBHour ?? 0) * (m.diskGiB ?? 0);
 
 const tierList: readonly CpuTier[] = Object.values(cpuTiers).flat();
 

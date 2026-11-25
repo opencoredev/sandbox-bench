@@ -77,6 +77,21 @@ export const advertised = {
     source: "https://maritime.sh/docs/billing",
     note: "Maritime's default is its small preset: 2 vCPU, 4 GiB RAM and a 12 GiB disk. On the same-machine track it ran its medium preset, 4 vCPU, 8 GiB RAM and a 50 GiB disk.",
   },
+  microsandbox: {
+    vcpu: 1,
+    memoryGiB: 0.5,
+    diskGiB: 4,
+    source: "https://docs.microsandbox.dev",
+    note: "Microsandbox Cloud's default sandbox, with no size asked for, is 1 vCPU, 512 MiB RAM and a 4 GiB root disk. That is too small for both realistic workloads. On the same-machine track it ran at 4 vCPU, 8 GiB RAM and a 64 GiB disk.",
+  },
+  // Microsandbox's Shared tier ran on Same machine only; the default size is Microsandbox's.
+  "microsandbox-shared": {
+    vcpu: 1,
+    memoryGiB: 0.5,
+    diskGiB: 4,
+    source: "https://docs.microsandbox.dev",
+    note: "Microsandbox's Shared tier is the same sandbox as Microsandbox, on shared vCPUs; it ran on Same machine only, at 4 vCPU, 8 GiB and a 64 GiB disk.",
+  },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {
     vcpu: 1,
