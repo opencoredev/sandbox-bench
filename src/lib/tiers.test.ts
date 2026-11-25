@@ -8,7 +8,7 @@ import { trackIds, tracks } from "@/lib/data";
 import { alternativesTrack } from "@/lib/seo/alternatives";
 import { providerTrack } from "@/lib/seo/provider";
 import { rowFill } from "@/lib/marks";
-import { cpuTiers, isExtraTier, isPreemptible, isProviderId, providerBrand, providerInfo, tierHourly, tierOf, tiersOf } from "@/lib/providers";
+import { cpuCaveat, cpuTiers, isExtraTier, isPreemptible, isProviderId, providerBrand, providerInfo, tierHourly, tierOf, tiersOf } from "@/lib/providers";
 import { notCountedWhy } from "@/lib/realistic";
 import { trackScores } from "@/lib/score-categories";
 
@@ -54,10 +54,22 @@ describe("CPU tiers", () => {
   test("a provider is picked on its first tier; spot says it can be stopped", () => {
     assert.equal(isPreemptible("beam-spot"), true);
     assert.equal(isPreemptible("beam-shared"), false);
-    const row = { incomplete: 0, flags: [], track: "same-machine" as const };
+    const row = { incomplete: 0, flags: [], track: "same-machine" as const, cost: null };
     assert.deepEqual(notCountedWhy({ ...row, provider: "beam" }), []);
     assert.match(notCountedWhy({ ...row, provider: "beam-shared" }).join(), /CPU tier/);
     assert.match(notCountedWhy({ ...row, provider: "beam-spot" }).join(), /stop it before the task ends/);
+  });
+
+  test("every tier that isn't dedicated carries a CPU caveat of its own class; a dedicated tier has none", () => {
+    for (const t of Object.values(cpuTiers).flat()) {
+      const caveat = cpuCaveat(t.id);
+      if (t.cpu === "dedicated") assert.equal(caveat, null, t.id);
+      else assert.equal(caveat?.cpu, t.cpu, t.id);
+    }
+    assert.deepEqual(cpuCaveat("styne"), { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" });
+    assert.equal(cpuCaveat("beam-spot")?.short, "Spot · preemptible");
+    assert.equal(cpuCaveat("beam-shared")?.short, "Shared vCPU");
+    assert.equal(cpuCaveat("e2b"), null);
   });
 
   test("relative wording against the first tier", () => {
