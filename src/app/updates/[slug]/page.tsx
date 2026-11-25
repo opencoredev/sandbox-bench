@@ -106,6 +106,7 @@ export default async function UpdatePage(props: Props) {
           ) : null}
         </div>
 
+        <p className="text-s text-neutral-7">The charts show the current standings, so their ranks can differ from this post&apos;s as providers join.</p>
         <UpdateCharts charts={u.charts} />
 
         <nav aria-label="More" className="grid gap-m pt-xxl sm:grid-cols-2">

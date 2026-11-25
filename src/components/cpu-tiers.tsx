@@ -5,6 +5,7 @@ import type { Track } from "@/lib/data";
 import { formatMoney, formatValue } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { markFill, rowFill } from "@/lib/marks";
+import { hardware } from "@/lib/hardware";
 import { cpuTiers, providerColor, providerName, tierHourly, tierSources } from "@/lib/providers";
 import type { CpuTier, ProviderId, TieredProvider } from "@/lib/providers";
 import { headlineRows, profileInfo, runTrackOf } from "@/lib/realistic";
@@ -174,8 +175,10 @@ export function TierTable({ brand, track, realistic, burst }: { brand: TieredPro
   const where = tiers.flatMap((t) => {
     const h = track.providers.find((p) => p.id === t.id)?.hardware;
     const place = h?.location[0]?.value;
-    return h && place ? [`${t.name} on ${h.vendor} hosts in ${place}`] : [];
+    if (!h || !place) return [];
+    return [hardware[brand]?.regionShort === null ? `${t.name} on ${h.vendor} hosts, outbound IP in ${place}` : `${t.name} on ${h.vendor} hosts in ${place}`];
   });
+  const costKind = headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed.find((r) => r.provider === brand)?.cost.kind;
   return (
     <figure aria-label={`${providerName(brand)}'s CPU tiers compared`} className="flex flex-col gap-m">
       <div role="table" aria-label={`${providerName(brand)} CPU tiers`} className="text-s">
@@ -250,7 +253,12 @@ export function TierTable({ brand, track, realistic, burst }: { brand: TieredPro
         items={[
           { text: <>Medians. Each tier runs the same tests on the same 4 vCPU, 8 GiB sandbox, chosen with {providerName(brand)}&apos;s per-sandbox CPU tier setting. Prices are list rates from <a className="underline decoration-neutral-6 underline-offset-2 hover:text-neutral-10" href={source.url}>{source.url.replace(/^https:\/\//, "")}</a>, checked {source.checked}.</> },
           { text: source.note },
-          { text: `Task costs are each tier's measured sandbox time at its list rate per hour, an estimate not checked against ${providerName(brand)}'s bill, as for every list-priced provider on the site.` },
+          {
+            text:
+              costKind === "estimate"
+                ? `Task costs are each tier's measured sandbox time at its list rate per hour, an estimate not checked against ${providerName(brand)}'s bill, as for every list-priced provider on the site.`
+                : `Task costs are ${providerName(brand)}'s own per-sandbox usage meter for each tier, provisional until checked against a settled bill.`,
+          },
           ...(where.length > 1 ? [{ text: <>Where each tier ran, from our runs&apos; fingerprints: {where.join("; ")}. A tier can land on different hardware and in a different place, so calls that cross the network (commands, files, clones, tool calls) also reflect distance from our server in Florida.</> }] : []),
           { text: `Green is better than ${first?.name ?? "the first tier"} and red is worse, by more than 5%; within 5% reads "same". Bars run out from the centre line on a log scale, half the track at 10×.` },
           { text: <>Ranks, headline numbers and Cheapest elsewhere on the site use {first?.name ?? "the first tier"}, the tier a new account gets. {tiers.filter((t) => t.preemptible).map((t) => `${providerName(t.id)} can be stopped before a task ends. `).join("")}</> },

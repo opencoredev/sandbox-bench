@@ -107,7 +107,7 @@ const cpuCaveats: Partial<Record<ProviderId, CpuCaveat>> = {
   styne: { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" },
   "beam-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs, not preemptible" },
   "beam-spot": { cpu: "spot", short: "Spot · preemptible", detail: "Spare capacity, can be stopped with 30 seconds' notice" },
-  "microsandbox-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk, not preemptible" },
+  "microsandbox-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk" },
 };
 
 /** The row's CPU caveat, or null when its CPU has none to state. */
@@ -147,8 +147,8 @@ export const cpuTiers = {
     { id: "beam-spot", name: "Spot", cpu: "spot", preemptible: true, rates: { vcpuHour: 0.0063, memoryGiBHour: 0.00135 }, promise: "Spare capacity, can be stopped with 30 seconds' notice" },
   ],
   microsandbox: [
-    { id: "microsandbox", name: "Standard", cpu: "dedicated", preemptible: false, rates: { vcpuHour: 0.048, memoryGiBHour: 0.003, diskGiBHour: 0.0000625 }, promise: "Dedicated vCPUs, not preemptible" },
-    { id: "microsandbox-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.007, memoryGiBHour: 0.000375, diskGiBHour: 0.0000625 }, promise: "Shared vCPUs with dedicated memory and disk, not preemptible" },
+    { id: "microsandbox", name: "Standard", cpu: "dedicated", preemptible: false, rates: { vcpuHour: 0.048, memoryGiBHour: 0.003, diskGiBHour: 0.0000625 }, promise: "Reserved vCPUs" },
+    { id: "microsandbox-shared", name: "Shared", cpu: "shared", preemptible: false, rates: { vcpuHour: 0.007, memoryGiBHour: 0.000375, diskGiBHour: 0.0000625 }, promise: "Shared vCPUs with dedicated memory and disk" },
   ],
 } as const satisfies Partial<Record<ProviderId, readonly [CpuTier, ...CpuTier[]]>>;
 
@@ -164,7 +164,7 @@ export const tierSources = {
   microsandbox: {
     url: "https://microsandbox.dev/pricing",
     checked: "Nov 24, 2026",
-    note: "Both tiers ran on Nov 25, one tier at a time, on the same 4 vCPU, 8 GiB, 64 GiB machine: Standard's quick tests from 09:02 to 11:44 UTC and Shared's from 15:19 to 18:00 UTC. Shared's cold start (5.4 s against 5.7 s) and first command (1.14 s against 1.10 s) came within 6% of Standard's, and its Fix and test runs took 141 s against 130 s at about a sixth of the cost ($1.30 against $7.75 per 1,000). In bursts of 25 at once, 33 of Shared's 75 creates failed with no answer from the guest agent; all of Standard's succeeded. Five Fix and test runs at once, against the same task alone that day, took 1.49 times as long on Standard and 1.45 on Shared.",
+    note: "Both tiers ran on Nov 25, one tier at a time, on the same 4 vCPU, 8 GiB, 64 GiB machine: Standard's quick tests from 09:02 to 11:44 UTC and Shared's from 15:19 to 18:00 UTC. Shared's cold start (6.5 s against 6.8 s) and a command (1.1 s on both) came within 5% of Standard's, and its Fix and test runs took 141 s against 130 s at about a sixth of the metered cost ($1.30 against $7.75 per 1,000, provisional usage meters). In bursts of 25 at once, 33 of Shared's 75 creates failed with no answer from the guest agent; all of Standard's succeeded. Five Fix and test runs at once, against the same task alone that day, took 1.49 times as long on Standard and 1.45 on Shared.",
   },
 } as const satisfies Record<TieredProvider, { url: string; checked: string; note: string }>;
 

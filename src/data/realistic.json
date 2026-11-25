@@ -1149,7 +1149,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 6.71296e-05,
+        "usd": 0.0000671296,
         "labels": [
           "disk at list price"
         ]
@@ -1178,7 +1178,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 6.59722e-05,
+        "usd": 0.0000659722,
         "labels": [
           "disk at list price"
         ]
@@ -1608,7 +1608,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 5.25463e-05,
+        "usd": 0.0000525463,
         "labels": [
           "disk at list price"
         ]
@@ -1637,7 +1637,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 5.16975e-05,
+        "usd": 0.0000516975,
         "labels": [
           "disk at list price"
         ]
@@ -2087,7 +2087,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 3.64198e-05,
+        "usd": 0.0000364198,
         "labels": [
           "disk at list price"
         ]
@@ -2116,7 +2116,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 3.47222e-05,
+        "usd": 0.0000347222,
         "labels": [
           "disk at list price"
         ]
@@ -2777,7 +2777,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 4.55247e-05,
+        "usd": 0.0000455247,
         "labels": [
           "disk at list price"
         ]
@@ -2806,7 +2806,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 4.39815e-05,
+        "usd": 0.0000439815,
         "labels": [
           "disk at list price"
         ]
@@ -3448,7 +3448,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 4.32099e-05,
+        "usd": 0.0000432099,
         "labels": [
           "disk at list price"
         ]
@@ -3505,7 +3505,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 4.55247e-05,
+        "usd": 0.0000455247,
         "labels": [
           "disk at list price"
         ]
