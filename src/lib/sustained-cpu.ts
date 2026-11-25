@@ -19,9 +19,14 @@ import type { ProviderId } from "@/lib/providers";
  *   run               { id, sdkCommit, startedAt (ISO) }
  *   providers[]       one per provider, no repeats:
  *     provider        a provider id
+ *     run             optional: the provider's own later run { id, sdkCommit,
+ *                     startedAt } when it was added from one; absent when it
+ *                     ran in the file's run
  *     status          "completed" (every segment ran), "stopped-early" (some
- *                     segments ran, then the run stopped) or "failed"
- *     stopReason      why it stopped: null when completed, a string otherwise
+ *                     segments ran, then the run stopped), "failed", or
+ *                     "not-run" (never started for a reason on our side, such
+ *                     as a rejected key: no segments, and not the provider's failure)
+ *     stopReason      why it stopped or didn't run: null when completed, a string otherwise
  *     guestVcpus      vCPUs the guest reported, a whole number above 0, or null
  *     durationS       seconds from the first segment's start to the end of the run
  *     segments[]      { index (0, 1, 2, ...), startS, durationS, opsPerS,
@@ -38,7 +43,7 @@ import type { ProviderId } from "@/lib/providers";
 
 export const SCHEMA = "sustained-cpu.v1";
 
-export const sustainedStatuses = ["completed", "stopped-early", "failed"] as const;
+export const sustainedStatuses = ["completed", "stopped-early", "failed", "not-run"] as const;
 export type SustainedStatus = (typeof sustainedStatuses)[number];
 
 /** The run's shape, fixed by the schema: 30 segments of 30 seconds. */
@@ -59,6 +64,8 @@ export interface CpuSegment {
 
 interface RunFigures {
   provider: ProviderId;
+  /** The provider's own later run when it was added from one, null when it ran in the file's run. */
+  run: SustainedRun | null;
   guestVcpus: number | null;
   durationS: number;
   segments: readonly CpuSegment[];
@@ -67,7 +74,8 @@ interface RunFigures {
 /** A provider's run. Only a completed run is sure to have both windows; a run that stopped early may have reached minute 12 or not. */
 export type SustainedProvider =
   | (RunFigures & { status: "completed"; stopReason: null; first3MinOps: number; last3MinOps: number; retention: number })
-  | (RunFigures & { status: "stopped-early" | "failed"; stopReason: string; first3MinOps: number | null; last3MinOps: number | null; retention: number | null });
+  | (RunFigures & { status: "stopped-early" | "failed"; stopReason: string; first3MinOps: number | null; last3MinOps: number | null; retention: number | null })
+  | (RunFigures & { status: "not-run"; stopReason: string; first3MinOps: null; last3MinOps: null; retention: null });
 
 export interface SustainedRun {
   id: string;
@@ -160,6 +168,11 @@ function parseSegments(v: unknown, path: string): CpuSegment[] {
   return segments;
 }
 
+function parseRun(v: unknown, path: string): SustainedRun {
+  const o = obj(v, path);
+  return { id: str(o.id, `${path}.id`), sdkCommit: str(o.sdkCommit, `${path}.sdkCommit`), startedAt: iso(o.startedAt, `${path}.startedAt`) };
+}
+
 function parseProvider(v: unknown, path: string): SustainedProvider {
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
@@ -179,7 +192,8 @@ function parseProvider(v: unknown, path: string): SustainedProvider {
   // From the stored means, so a file that rounds them still agrees with itself; a first window of 0 ops has no ratio.
   const ratio = first3MinOps !== null && last3MinOps !== null && first3MinOps > 0 ? last3MinOps / first3MinOps : null;
   agrees({ stored: retention, derived: ratio, tolerance: RETENTION_TOLERANCE, path: `${path}.retention` });
-  const common = { provider, guestVcpus, durationS, segments };
+  const run = o.run === undefined ? null : parseRun(o.run, `${path}.run`);
+  const common = { provider, run, guestVcpus, durationS, segments };
   switch (status) {
     case "completed": {
       if (o.stopReason !== null) fail(`${path}.stopReason`, "must be null on a completed run");
@@ -195,6 +209,9 @@ function parseProvider(v: unknown, path: string): SustainedProvider {
       if (segments.length === SEGMENTS_TARGET) fail(`${path}.status`, `is ${status}, but all ${SEGMENTS_TARGET} segments ran`);
       return { ...common, status, stopReason, first3MinOps, last3MinOps, retention };
     }
+    case "not-run":
+      if (segments.length > 0) fail(`${path}.segments`, "must be empty on a run that never started");
+      return { ...common, status, stopReason: str(o.stopReason, `${path}.stopReason`), first3MinOps: null, last3MinOps: null, retention: null };
     default: {
       const _exhaustive: never = status;
       return _exhaustive;
@@ -210,12 +227,13 @@ export function parseSustainedCpu(raw: unknown): SustainedCpuData {
   if (o.targetDurationS !== TARGET_DURATION_S) fail("targetDurationS", `must be ${TARGET_DURATION_S}`);
   if (o.segmentDurationS !== SEGMENT_DURATION_S) fail("segmentDurationS", `must be ${SEGMENT_DURATION_S}`);
   if (o.segmentsTarget !== SEGMENTS_TARGET) fail("segmentsTarget", `must be ${SEGMENTS_TARGET}`);
-  const run = obj(o.run, "run");
+  const run = parseRun(o.run, "run");
   const providers = arr(o.providers, "providers").map((p, i) => parseProvider(p, `providers[${i}]`));
   const seen = new Set<ProviderId>();
   for (const p of providers) {
     if (seen.has(p.provider)) fail("providers", `lists ${p.provider} twice`);
     seen.add(p.provider);
+    if (p.run?.id === run.id) fail("providers", `${p.provider}'s run is the file's own; leave it out`);
   }
   return {
     generatedAt: iso(o.generatedAt, "generatedAt"),
@@ -223,7 +241,7 @@ export function parseSustainedCpu(raw: unknown): SustainedCpuData {
     targetDurationS: TARGET_DURATION_S,
     segmentDurationS: SEGMENT_DURATION_S,
     segmentsTarget: SEGMENTS_TARGET,
-    run: { id: str(run.id, "run.id"), sdkCommit: str(run.sdkCommit, "run.sdkCommit"), startedAt: iso(run.startedAt, "run.startedAt") },
+    run,
     providers,
   };
 }
@@ -238,6 +256,9 @@ export const hasSustainedCpu = (d: Pick<SustainedCpuData, "providers">) => d.pro
 export type SteadyRun = SustainedProvider & { first3MinOps: number; last3MinOps: number; retention: number };
 
 const isSteady = (p: SustainedProvider): p is SteadyRun => p.first3MinOps !== null && p.last3MinOps !== null && p.retention !== null;
+
+/** The fastest segment's rate, or null with none: with the minutes 12–15 figure, it shows a burst that ends early in the first window. */
+export const peakOps = (p: Pick<SustainedProvider, "segments">) => (p.segments.length === 0 ? null : Math.max(...p.segments.map((s) => s.opsPerS)));
 
 /** "15 min", "11.5 min". */
 export const minutesText = (s: number) => `${Number((s / 60).toFixed(1))} min`;
@@ -255,6 +276,8 @@ export function noSteadyWhy(p: SustainedProvider): string {
       return `failed: ${p.stopReason}`;
     case "stopped-early":
       return `stopped at ${minutesText(p.durationS)}, before minute 12: ${p.stopReason}`;
+    case "not-run":
+      return `not run (${p.stopReason})`;
     case "completed":
       return "no steady-state figure";
     default: {
@@ -270,9 +293,9 @@ export function noSteadyWhy(p: SustainedProvider): string {
  */
 export function sustainedRanked(d: Pick<SustainedCpuData, "providers">) {
   const ranked = d.providers.filter(isSteady).sort((a, b) => b.last3MinOps - a.last3MinOps || a.provider.localeCompare(b.provider));
-  const missing = d.providers.filter((p) => !isSteady(p)).map((p) => ({ provider: p.provider, why: noSteadyWhy(p) }));
+  const missing = d.providers.filter((p) => !isSteady(p)).map((p) => ({ provider: p.provider, notRun: p.status === "not-run", why: noSteadyWhy(p) }));
   return { ranked, missing };
 }
 
-/** "Styne: 45.2M ops/s in minutes 0–3, 7.2M ops/s in minutes 12–15, 16% retained", one line for agent files. */
-export const steadyText = (p: SteadyRun) => `${opsText(p.first3MinOps)} in minutes 0–3, ${opsText(p.last3MinOps)} in minutes 12–15, ${retentionText(p.retention)} retained`;
+/** "fastest segment 106M ops/s, 47.5M ops/s in minutes 0–3, 16.6M ops/s in minutes 12–15, 35% retained", one line for agent files. */
+export const steadyText = (p: SteadyRun) => `fastest segment ${opsText(peakOps(p) ?? p.first3MinOps)}, ${opsText(p.first3MinOps)} in minutes 0–3, ${opsText(p.last3MinOps)} in minutes 12–15, ${retentionText(p.retention)} retained`;

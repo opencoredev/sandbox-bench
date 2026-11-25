@@ -70,7 +70,7 @@ const solid = (id: ProviderId, value: number) => [{ value, color: providerColor(
 /** Burst credit on Styne is shared across an account, so its CPU checks ran on their own, after a rest. */
 const restedNote: Note = {
   lead: "Rested start",
-  text: "Styne's CPU runs on burst credit that sustained load anywhere on the account uses up, and refills only while the account stays under its baseline. Styne ran each CPU check on its own, after at least 45 minutes with no Styne sandbox running. In this run it measured 5.33B ops/s in the short four-core runs, 5.09B in the first 30-second window of the 15-minute burn, and about 0.87B from the second window on. The Nov 23 Sustained CPU test (Python, a different workload) kept full speed for about 10.5 minutes. Our account had run many Styne sandboxes earlier that day; these traces don't measure how much credit was left.",
+  text: "Styne's CPU runs on burst credit that sustained load anywhere on the account uses up, and refills only while the account stays under its baseline. Styne ran each CPU check on its own, after at least 45 minutes with no Styne sandbox running. In this run it measured 5.33B ops/s in the short four-core runs, 5.09B in the first 30-second window of the 15-minute burn, and about 0.87B from the second window on. The Nov 25 Sustained CPU test (Python, a different workload) ran at full speed for about a minute, then at about 16% of it. Our account had run many Styne sandboxes earlier that day; these traces don't measure how much credit was left.",
   about: "styne",
 };
 

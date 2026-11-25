@@ -7,12 +7,12 @@ import { ProviderName } from "@/components/provider-name";
 import { linearTicks } from "@/components/scatter";
 import { isExtraTier, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { TARGET_DURATION_S, WINDOW_S, minutesText, opsText, retentionText } from "@/lib/sustained-cpu";
+import { TARGET_DURATION_S, WINDOW_S, minutesText, opsText, peakOps, retentionText } from "@/lib/sustained-cpu";
 import type { SustainedProvider } from "@/lib/sustained-cpu";
 
 // Plot insets in px: room for the y tick labels on the left and the x ticks below.
 const INSET = { left: 40, right: 10, top: 18, bottom: 26 };
-/** Where Styne's burst credit, the longest the bench knows of, runs out. */
+/** The most burst credit Styne's docs give a new sandbox, 10 minutes, the longest the bench knows of. */
 const MARKER_S = 600;
 const X_TICKS_MIN = [0, 3, 6, 9, 12, 15] as const;
 
@@ -22,11 +22,12 @@ const along = (f: number, axis: "x" | "y") =>
 
 const tierAttrs = (id: ProviderId) => (isExtraTier(id) ? { "data-tier-extra": "" } : {});
 
-/** "0–3 min 45.2M → 12–15 min 7.2M ops/s · 16% retained", or how far a run got and why it stopped. */
+/** "Fastest 106M ops/s · 0–3 min 47.5M → 12–15 min 16.6M ops/s · 35% retained", or how far a run got and why it stopped. */
 function summary(p: SustainedProvider) {
+  const peak = peakOps(p);
   const windows =
     p.first3MinOps !== null && p.last3MinOps !== null && p.retention !== null
-      ? `0–3 min ${opsText(p.first3MinOps)} → 12–15 min ${opsText(p.last3MinOps)} · ${retentionText(p.retention)} retained`
+      ? `${peak === null ? "" : `fastest ${opsText(peak)} · `}0–3 min ${opsText(p.first3MinOps)} → 12–15 min ${opsText(p.last3MinOps)} · ${retentionText(p.retention)} retained`
       : p.first3MinOps !== null
         ? `0–3 min ${opsText(p.first3MinOps)}`
         : "no segment finished";

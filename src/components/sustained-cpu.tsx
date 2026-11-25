@@ -8,7 +8,7 @@ import { TabCard } from "@/components/tabs";
 import { tracks } from "@/lib/data";
 import { formatShort } from "@/lib/format";
 import { allocationNotes } from "@/lib/notes";
-import { cpuCaveat, providerColor } from "@/lib/providers";
+import { cpuCaveat, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import {
   firstWindowLabel,
@@ -16,6 +16,7 @@ import {
   lastWindowLabel,
   minutesText,
   opsText,
+  peakOps,
   retentionText,
   sustainedRanked,
 } from "@/lib/sustained-cpu";
@@ -53,6 +54,7 @@ function steadyColumns(ranked: readonly SteadyRun[], marks: ReturnType<typeof ma
         [lastWindowLabel, opsText(p.last3MinOps)],
         [firstWindowLabel, opsText(p.first3MinOps)],
         ["Retention", retentionText(p.retention)],
+        ["Fastest segment", opsText(peakOps(p) ?? p.first3MinOps)],
         ["Workers", "4"],
         ["Visible vCPU", p.guestVcpus === null ? "not reported" : String(p.guestVcpus)],
         ["Duration", minutesText(p.durationS)],
@@ -74,16 +76,19 @@ function sharedNotes(data: SustainedCpuData): Note[] {
     },
     {
       lead: "Why 15 minutes",
-      text: "Some CPU classes run at full speed on burst credit and then drop to a baseline share. A test of a minute or two sees only the burst; 15 minutes runs past Styne's 10-minute credit window (the dashed line).",
+      text: "Some CPU classes run at full speed on burst credit and then drop to a baseline share, so a test of a minute or two can see only the burst. Styne's docs give a new sandbox up to 10 minutes of burst credit (the dashed line), and less after recent load on the account; its line shows where the credit ran out in this run.",
     },
-    { lead: "Retention", text: `The mean of the segments that start in minutes 12–15 divided by the mean of those that start in minutes 0–3 (the shaded bands). 100% means the sandbox held its speed.` },
-    { lead: "Runs", text: `One run per provider, from ${dayOf(data.run.startedAt)} (SDK commit ${data.run.sdkCommit.slice(0, 7)}). A single run, so read small gaps as noise.` },
+    { lead: "Retention", text: `The mean of the segments that start in minutes 12–15 divided by the mean of those that start in minutes 0–3 (the shaded bands). 100% means the sandbox held its speed. A burst that ends inside minutes 0–3 pulls that mean down, so each provider's fastest segment is shown beside it.` },
+    {
+      lead: "Runs",
+      text: `One run per provider, from ${dayOf(data.run.startedAt)} (SDK commit ${data.run.sdkCommit.slice(0, 7)})${data.providers.flatMap((p) => (p.run === null ? [] : [`; ${providerName(p.provider)} on ${dayOf(p.run.startedAt)} in its own run (${p.run.id}, SDK commit ${p.run.sdkCommit.slice(0, 7)})`])).join("")}. A single run, so read small gaps as noise.`,
+    },
   ];
 }
 
 /** Providers the chart has no figure for, each with its exact reason. */
-const missingNotes = (missing: readonly { provider: ProviderId; why: string }[]): Note[] =>
-  missing.map(({ provider, why }) => ({ text: <><Who id={provider} />: no result ({why}).</>, about: provider }));
+const missingNotes = (missing: readonly { provider: ProviderId; notRun: boolean; why: string }[]): Note[] =>
+  missing.map(({ provider, notRun, why }) => ({ text: <><Who id={provider} />: {notRun ? why : `no result (${why})`}.</>, about: provider }));
 
 /** Lines need at least one finished segment; legend order follows the steady-state ranking, then the rest by how far they got. */
 function lineRuns(data: SustainedCpuData, ranked: readonly SteadyRun[]): SustainedProvider[] {
@@ -107,7 +112,8 @@ export function SustainedCpuSection({ data }: { data: SustainedCpuData }) {
     <>
       <ChartHead title="Sustained CPU over 15 minutes" sub="4 workers, same-machine track (4 vCPU, 8 GB requested) · Million operations per second per 30-second segment · Higher is better" />
       <SustainedCpuLines providers={lines} />
-      <NotOnChart ids={noLine.map((p) => p.provider)} />
+      <NotOnChart ids={noLine.filter((p) => p.status !== "not-run").map((p) => p.provider)} />
+      <NotOnChart ids={noLine.filter((p) => p.status === "not-run").map((p) => p.provider)} lead="Not run:" />
       <Footnotes
         items={[
           ...missingNotes(missing.filter((m) => noLine.some((p) => p.provider === m.provider))),
@@ -121,7 +127,8 @@ export function SustainedCpuSection({ data }: { data: SustainedCpuData }) {
     <>
       <ChartHead title="Sustained CPU, minutes 12–15" sub="4 workers, same-machine track (4 vCPU, 8 GB requested) · Mean operations per second over minutes 12–15 · Tag: retention, minutes 12–15 ÷ minutes 0–3 · Higher is better" />
       {ranked.length > 0 ? <Columns columns={steadyColumns(ranked, marks)} label="Sustained CPU, minutes 12–15: operations per second by provider" /> : <p className="text-s text-neutral-7">No provider reached minute 12.</p>}
-      <NotOnChart ids={missing.map((m) => m.provider)} />
+      <NotOnChart ids={missing.filter((m) => !m.notRun).map((m) => m.provider)} />
+      <NotOnChart ids={missing.filter((m) => m.notRun).map((m) => m.provider)} lead="Not run:" />
       <Footnotes
         items={[
           ...[...marks].map(([id, m]) => ({ mark: m.mark, text: <><Who id={id} />: {m.note}</>, about: id })),

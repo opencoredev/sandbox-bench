@@ -79,7 +79,7 @@ import type { Expanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
 import type { StressData } from "@/lib/stress";
-import { hasSustainedCpu, retentionText, steadyText, sustainedRanked } from "@/lib/sustained-cpu";
+import { hasSustainedCpu, peakOps, retentionText, steadyText, sustainedRanked } from "@/lib/sustained-cpu";
 import type { SustainedCpuData } from "@/lib/sustained-cpu";
 import { sustainedCpu } from "@/lib/sustained-cpu-data";
 import { hasFairness } from "@/lib/fairness";
@@ -786,7 +786,7 @@ const sustainedAbout =
   "Each provider's same-machine sandbox (4 vCPU, 8 GB requested; boxd ran its nearest 4 vCPU, 16 GiB size) kept busy with 4 workers for 15 minutes: 30 back-to-back 30-second segments of 32-bit LCG arithmetic, each segment's checksum verified. Container providers (Daytona and both Upstash products) reported 48–64 host-visible CPUs while running 4 workers. A CPU that runs on burst credit, then drops to a baseline share, shows its speed after the credit is spent.";
 
 const sustainedHowToRead =
-  "`first3MinOpsPerS` and `last3MinOpsPerS` are the mean 4-worker operations per second of the segments that start in minutes 0–3 (`startS < 180`) and minutes 12–15 (`720 ≤ startS < 900`); `retention` is the second divided by the first (1 held its speed). `ranked` is every provider with a minutes 12–15 figure, highest first; `noSteadyState` lists the rest with why (a failed run, or one that stopped before minute 12). `status` is completed, stopped-early or failed, with `stopReason`. `guestVcpus` is guest-visible CPU count (which reflects host CPUs on containers such as Daytona and Upstash, not the 4-worker workload). `segments` has every segment's start, length and rate. `cpuCaveat` says when a row's CPU is burstable, shared or spot. One run per provider.";
+  "`first3MinOpsPerS` and `last3MinOpsPerS` are the mean 4-worker operations per second of the segments that start in minutes 0–3 (`startS < 180`) and minutes 12–15 (`720 ≤ startS < 900`); `retention` is the second divided by the first (1 held its speed). `peakOpsPerS` is the fastest segment: a burst that ends inside minutes 0–3 pulls that window's mean down, so compare it with `last3MinOpsPerS` too. `ranked` is every provider with a minutes 12–15 figure, highest first; `noSteadyState` lists the rest with why (a failed run, one that stopped before minute 12, or one we didn't run). `status` is completed, stopped-early, failed or not-run (never started for a reason on our side, such as a rejected key, so not the provider's failure), with `stopReason`. `run` is null for a provider from the file's run, or names the provider's own later run. `guestVcpus` is guest-visible CPU count (which reflects host CPUs on containers such as Daytona and Upstash, not the 4-worker workload). `segments` has every segment's start, length and rate. `cpuCaveat` says when a row's CPU is burstable, shared or spot. One run per provider.";
 
 export function sustainedCpuData(d: SustainedCpuData) {
   const { ranked, missing } = sustainedRanked(d);
@@ -801,9 +801,11 @@ export function sustainedCpuData(d: SustainedCpuData) {
     ranked: ranked.map((p) => ({
       provider: p.provider,
       name: providerName(p.provider),
+      peakOpsPerS: round(peakOps(p) ?? p.first3MinOps),
       first3MinOpsPerS: round(p.first3MinOps),
       last3MinOpsPerS: round(p.last3MinOps),
       retention: Number(p.retention.toFixed(3)),
+      run: p.run,
       status: p.status,
       stopReason: p.stopReason,
       cpuCaveat: cpuCaveat(p.provider),
@@ -811,6 +813,7 @@ export function sustainedCpuData(d: SustainedCpuData) {
     noSteadyState: missing.map((m) => ({ provider: m.provider, name: providerName(m.provider), why: m.why })),
     providers: d.providers.map((p) => ({
       provider: p.provider,
+      run: p.run,
       status: p.status,
       stopReason: p.stopReason,
       guestVcpus: p.guestVcpus,
@@ -827,11 +830,11 @@ export function sustainedCpuMarkdown(d: SustainedCpuData) {
     "",
     sustainedAbout,
     "",
-    "| Rank | Provider | Minutes 0–3, ops/s | Minutes 12–15, ops/s | Retention | Status |",
-    "| --- | --- | --- | --- | --- | --- |",
+    "| Rank | Provider | Fastest segment, ops/s | Minutes 0–3, ops/s | Minutes 12–15, ops/s | Retention | Status |",
+    "| --- | --- | --- | --- | --- | --- | --- |",
     ...ranked.map(
       (p, i) =>
-        `| ${i + 1} | ${providerName(p.provider)} | ${formatValue(p.first3MinOps, "ops/s")} | ${formatValue(p.last3MinOps, "ops/s")} | ${retentionText(p.retention)} | ${p.status === "completed" ? "completed" : `stopped early: ${p.stopReason}`} |`,
+        `| ${i + 1} | ${providerName(p.provider)} | ${formatValue(peakOps(p) ?? p.first3MinOps, "ops/s")} | ${formatValue(p.first3MinOps, "ops/s")} | ${formatValue(p.last3MinOps, "ops/s")} | ${retentionText(p.retention)} | ${p.status === "completed" ? "completed" : `stopped early: ${p.stopReason}`} |`,
     ),
     "",
     ...missing.map((m) => `${providerName(m.provider)}: no minutes 12–15 figure (${m.why}).`),

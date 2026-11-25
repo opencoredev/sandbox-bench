@@ -7,9 +7,10 @@ import raw from "@/data/sustained-cpu.json";
 import { SustainedCpuSection } from "@/components/sustained-cpu";
 import { agentData, agentMarkdown, llmsTxt, sustainedCpuData, sustainedCpuLlms, sustainedCpuMarkdown } from "@/lib/agent-data";
 import type { ProviderId } from "@/lib/providers";
-import { hasSustainedCpu, minutesText, parseSustainedCpu, retentionText, sustainedRanked, windowMeans } from "@/lib/sustained-cpu";
+import { hasSustainedCpu, minutesText, parseSustainedCpu, peakOps, retentionText, sustainedRanked, windowMeans } from "@/lib/sustained-cpu";
 import type { SustainedCpuData } from "@/lib/sustained-cpu";
 import { sustainedCpu } from "@/lib/sustained-cpu-data";
+import { providerOf } from "../../scripts/sustained-cpu-site-data";
 
 // The sustained CPU file's parser, its ranking and the section it draws. Run with `bun test`.
 
@@ -62,16 +63,22 @@ const providerAt = (f: ReturnType<typeof fixture>, id: ProviderId) => {
 };
 
 describe("parse", () => {
-  test("the published data parses with all 15 providers and an empty file draws nothing", () => {
-    assert.equal(sustainedCpu.providers.length, 15);
+  test("the published data parses with all 16 providers and an empty file draws nothing", () => {
+    assert.equal(sustainedCpu.providers.length, 16);
     assert.equal(hasSustainedCpu(sustainedCpu), true);
-    assert.equal(parseSustainedCpu(raw).run.id, "sustained15m-20261123");
+    assert.equal(parseSustainedCpu(raw).run.id, "sustained15m-20261125");
     const { ranked, missing } = sustainedRanked(sustainedCpu);
-    assert.equal(ranked.length, 13);
-    assert.equal(ranked[0]?.provider, "instabox");
-    assert.equal(ranked.at(-1)?.provider, "styne");
-    assert.equal(Math.round((ranked.at(-1)?.retention ?? 0) * 100), 17);
-    assert.deepEqual(missing.map((m) => m.provider).sort(), ["baseten", "superserve"]);
+    assert.equal(ranked.length, 15);
+    assert.equal(ranked[0]?.provider, "tenki");
+    const styne = ranked.at(-1);
+    assert.equal(styne?.provider, "styne");
+    // Styne's burst lasted about a minute: its fastest segment is over 6 times its minutes 12–15 rate.
+    assert.ok(styne && (peakOps(styne) ?? 0) > 100_000_000 && styne.last3MinOps < 17_000_000);
+    assert.equal(Math.round((styne?.retention ?? 0) * 100), 35);
+    assert.deepEqual(missing, [{ provider: "baseten", notRun: true, why: "not run (our API key was rejected)" }]);
+    // Maritime came from its own run, labelled with it; everyone else from the file's run.
+    assert.equal(sustainedCpu.providers.find((p) => p.provider === "maritime")?.run?.id, "sustained15m-maritime-20261125");
+    assert.ok(sustainedCpu.providers.every((p) => p.provider === "maritime" || p.run === null));
     const empty = parseSustainedCpu({ ...fixture(), providers: [] });
     assert.equal(hasSustainedCpu(empty), false);
     assert.equal(renderToStaticMarkup(<SustainedCpuSection data={empty} />), "");
@@ -158,7 +165,7 @@ describe("parse", () => {
     const inWindow = freestyle.segments.filter((s) => s.startS >= 720 && s.startS < 900);
     const expectedMean = inWindow.reduce((sum, s) => sum + s.opsPerS, 0) / inWindow.length;
     assert.equal(Math.round(expectedMean), freestyle.last3MinOps);
-    assert.ok(freestyle.last3MinOps > 40_100_000 && freestyle.last3MinOps < 40_300_000);
+    assert.ok(freestyle.last3MinOps > 39_500_000 && freestyle.last3MinOps < 39_700_000);
   });
 });
 
@@ -167,8 +174,8 @@ describe("rules", () => {
     const { ranked, missing } = sustainedRanked(parsed());
     assert.deepEqual(ranked.map((p) => p.provider), ["e2b", "daytona", "styne"]);
     assert.deepEqual(missing, [
-      { provider: "boxd", why: "stopped at 8 min, before minute 12: the provider deleted the sandbox at 8 minutes" },
-      { provider: "modal", why: "failed: create returned HTTP 503" },
+      { provider: "boxd", notRun: false, why: "stopped at 8 min, before minute 12: the provider deleted the sandbox at 8 minutes" },
+      { provider: "modal", notRun: false, why: "failed: create returned HTTP 503" },
     ]);
   });
 
@@ -178,6 +185,48 @@ describe("rules", () => {
     assert.equal(retentionText(1), "100%");
     assert.equal(minutesText(900), "15 min");
     assert.equal(minutesText(810), "13.5 min");
+  });
+});
+
+describe("runs apart and runs we didn't start", () => {
+  const later = { id: "sustained-later", sdkCommit: "27f304a8c8db", startedAt: "2026-11-25T05:00:16.926Z" };
+  const file = () =>
+    withEdit((f) => {
+      f.providers.push({ ...run("maritime", "completed", segments(30, () => 41_000_000)), run: later } as (typeof f.providers)[number]);
+      f.providers.push({ ...run("baseten", "failed", []), status: "not-run", stopReason: "our API key was rejected" } as unknown as (typeof f.providers)[number]);
+    });
+
+  test("a provider from its own run carries it, and a run we didn't start is not a failure", () => {
+    const d = parseSustainedCpu(file());
+    assert.deepEqual(d.providers.find((p) => p.provider === "maritime")?.run, later);
+    assert.deepEqual(sustainedRanked(d).missing.find((m) => m.provider === "baseten"), { provider: "baseten", notRun: true, why: "not run (our API key was rejected)" });
+    const text = renderToStaticMarkup(<SustainedCpuSection data={d} />).replace(/<[^>]+>/g, "");
+    assert.match(text, /Maritime on Nov 25, 2026 in its own run \(sustained-later, SDK commit 27f304a\)/);
+    assert.ok(text.includes("Baseten: not run (our API key was rejected)."));
+    assert.doesNotMatch(text, /Baseten: no result|No result for Baseten/);
+    assert.match(text, /Not run: Baseten\. Notes says why\./);
+    assert.deepEqual(sustainedCpuData(d).ranked.find((r) => r.provider === "maritime")?.run, later);
+  });
+
+  test("refuses a not-run row with segments, and a provider run that repeats the file's", () => {
+    assert.throws(() => parseSustainedCpu(withEdit((f) => f.providers.push({ ...run("baseten", "failed", segments(3, () => 1)), status: "not-run", stopReason: "x" } as unknown as (typeof f.providers)[number]))), /never started/);
+    assert.throws(() => parseSustainedCpu(withEdit((f) => f.providers.push({ ...run("maritime", "completed", segments(30, () => 1)), run: f.run } as (typeof f.providers)[number]))), /file's own/);
+  });
+
+  test("the site-data script turns harness points into segments and keeps the site's means", () => {
+    const points = Array.from({ length: 30 }, (_, i) => ({ segment: i + 1, minute: ((i + 1) * 30.2) / 60, elapsedS: 30.01, wallOffsetS: (i + 1) * 30.2, opsPerSec: i < 2 ? 105e6 : 16.6e6 }));
+    const p = providerOf({ provider: "styne", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined);
+    const d = parseSustainedCpu({ ...fixture(), providers: [p] });
+    const styne = d.providers[0];
+    assert.ok(styne?.status === "completed");
+    assert.equal(styne.segments[0]?.startS, 0.19);
+    assert.equal(styne.durationS, 906);
+    assert.equal(styne.first3MinOps, Math.round((2 * 105e6 + 4 * 16.6e6) / 6));
+    assert.equal(peakOps(styne), 105e6);
+    assert.throws(() => providerOf({ provider: "baseten", status: "failed", stopReason: "x", guestVcpus: null, points }, null, "our API key was rejected"), /ran 30 segments/);
+    const notRun = providerOf({ provider: "baseten", status: "failed", stopReason: "credentials rejected", guestVcpus: null, points: [] }, null, "our API key was rejected");
+    assert.equal(notRun.status, "not-run");
+    assert.equal(notRun.stopReason, "our API key was rejected");
   });
 });
 
@@ -228,7 +277,8 @@ describe("section", () => {
     assert.ok(text.includes("30 back-to-back 30-second segments of 32-bit LCG arithmetic with 4 workers per sandbox, 15 min of work in all, with each segment&#x27;s checksum verified"));
     assert.match(text, /4 vCPU and 8 GB/);
     assert.match(text, /boxd ran its nearest size, 4 vCPU and 16 GiB/);
-    assert.match(text, /15 minutes runs past Styne&#x27;s 10-minute credit window/);
+    assert.match(text, /Styne&#x27;s docs give a new sandbox up to 10 minutes of burst credit \(the dashed line\)/);
+    assert.match(text, /each provider&#x27;s fastest segment is shown beside it/);
     assert.match(text, /SDK commit abc1234/);
   });
 });
@@ -249,10 +299,10 @@ describe("exports", () => {
     assert.deepEqual(json.noSteadyState.map((m) => m.provider), ["boxd", "modal"]);
     assert.equal(json.providers.find((p) => p.provider === "styne")?.segments.length, 30);
     const md = sustainedCpuMarkdown(d).join("\n");
-    assert.match(md, /\| 3 \| Styne \| 62M\/s \| 9\.9M\/s \| 16% \| completed \|/);
+    assert.match(md, /\| 3 \| Styne \| 62M\/s \| 62M\/s \| 9\.9M\/s \| 16% \| completed \|/);
     assert.match(md, /\| 2 \| Daytona \| .* \| stopped early: the sandbox was stopped by its 13\.5-minute idle timeout \|/);
     assert.match(md, /Modal: no minutes 12–15 figure \(failed: create returned HTTP 503\)\./);
     const llms = sustainedCpuLlms(d);
-    assert.match(llms, /3\. Styne: 62M ops\/s in minutes 0–3, 9\.9M ops\/s in minutes 12–15, 16% retained \(Burstable · 16% baseline\)/);
+    assert.match(llms, /3\. Styne: fastest segment 62M ops\/s, 62M ops\/s in minutes 0–3, 9\.9M ops\/s in minutes 12–15, 16% retained \(Burstable · 16% baseline\)/);
   });
 });
