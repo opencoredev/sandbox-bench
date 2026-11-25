@@ -212,14 +212,15 @@ export function MetricChart({
 /**
  * The providers a chart has no column for, said under the chart rather than
  * only inside its folded notes, so a missing provider never reads as an
- * oversight. The reasons stay in the notes.
+ * oversight. The reasons stay in the notes. `lead` replaces "No result for" where the
+ * providers weren't run at all, so a run we didn't start never reads as theirs.
  */
-export function NotOnChart({ ids }: { ids: readonly ProviderId[] }) {
+export function NotOnChart({ ids, lead = "No result for" }: { ids: readonly ProviderId[]; lead?: string }) {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return null;
   return (
     <p className="mt-s text-xs text-neutral-7">
-      No result for{" "}
+      {lead}{" "}
       {unique.map((id, i) => (
         <span key={id}>
           {i === 0 ? "" : i === unique.length - 1 ? " and " : ", "}

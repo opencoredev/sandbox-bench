@@ -486,6 +486,34 @@
     "verified": true,
     "mismatches": []
    }
+  },
+  {
+   "provider": "styne",
+   "track": "same-spec",
+   "requested": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measured": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.770015716552734,
+     "diskGiB": 50.148834228515625
+    }
+   ],
+   "equalSpec": true,
+   "verification": {
+    "verified": true,
+    "mismatches": []
+   }
   }
  ],
  "generatedFrom": "m",
@@ -869,6 +897,26 @@
    "id": "sbxm-same-spec-b25-c3",
    "suite": "burst",
    "samples": 101
+  },
+  {
+   "id": "sbxst-same-spec-main",
+   "suite": "main",
+   "samples": 2183
+  },
+  {
+   "id": "sbxst-same-spec-snapshot",
+   "suite": "snapshot",
+   "samples": 330
+  },
+  {
+   "id": "sbxst-same-spec-cost",
+   "suite": "cost",
+   "samples": 50
+  },
+  {
+   "id": "sbxst-same-spec-burst",
+   "suite": "burst",
+   "samples": 426
   }
  ],
  "excluded": [
@@ -1040,6 +1088,12 @@
    "replacements": []
   },
   "maritime": {
+   "removed": {},
+   "superseded": [],
+   "notRun": [],
+   "replacements": []
+  },
+  "styne": {
    "removed": {},
    "superseded": [],
    "notRun": [],
@@ -3033,6 +3087,136 @@
     "n": 99
    },
    "standbyResume": null
+  },
+  {
+   "id": "styne",
+   "costPerTask": {
+    "usd": 6.222222222222222e-05,
+    "kind": "estimate",
+    "source": "https://docs.styne.ai/billing",
+    "confidence": "low",
+    "n": 10,
+    "settled": true,
+    "bound": "exact"
+   },
+   "track": "same-spec",
+   "requestedAllocation": {
+    "size": {
+     "cpu": 4,
+     "memoryMb": 8192
+    },
+    "template": null,
+    "compute": {
+     "cpu": 4,
+     "memoryGiB": 8
+    },
+    "provisioned": null
+   },
+   "measuredAllocations": [
+    {
+     "cpu": 4,
+     "memoryGiB": 7.770015716552734,
+     "diskGiB": 50.148834228515625
+    }
+   ],
+   "equalSpec": true,
+   "currency": "USD",
+   "hourly": 0.032,
+   "pricingBound": "exact",
+   "pricingRegion": null,
+   "regionMultiplier": 1,
+   "commonHourly": 0.032,
+   "perVcpuHour": 0.008,
+   "pricingAllocation": {
+    "cpu": 4,
+    "memoryGiB": 8
+   },
+   "allocationVerification": {
+    "verified": true,
+    "mismatches": []
+   },
+   "rates": {
+    "vcpuHour": null,
+    "memoryGiBHour": 0,
+    "fixed": null,
+    "fixedHour": null,
+    "tiers": [
+     {
+      "cpu": 2,
+      "memoryGiB": 4,
+      "hourly": 0.016
+     },
+     {
+      "cpu": 4,
+      "memoryGiB": 8,
+      "hourly": 0.032
+     },
+     {
+      "cpu": 8,
+      "memoryGiB": 16,
+      "hourly": 0.064
+     },
+     {
+      "cpu": 16,
+      "memoryGiB": 32,
+      "hourly": 0.128
+     }
+    ],
+    "offeredSizes": null
+   },
+   "pricingSource": "https://docs.styne.ai/billing",
+   "pricingNotes": "Published per-size rates from 2026-11-20 after the plan's included VM hours: small (2 vCPU, 4 GB) $0.016/hour, default (4, 8) $0.032, large (8, 16) $0.064, xlarge (16, 32) $0.128, metered per second while running; disk comes with the size; paused or sleeping VMs cost $0 and snapshot storage is $0 today. Estimates only: Styne has no per-sandbox billing API (GET /v1/run/usage is daily account totals). Plan fees ($20, $99, $499 a month) and their included hours excluded.",
+   "reliability": {
+    "successes": 2989,
+    "failures": 0,
+    "raw": 1,
+    "adjusted": 1,
+    "accountLimit": 0,
+    "clientNetwork": 0,
+    "provider": 0
+   },
+   "hardware": {
+    "fingerprints": 130,
+    "vcpu": 4,
+    "visibleCpus": [
+     4
+    ],
+    "cpuQuota": null,
+    "memoryGiB": 7.770015716552734,
+    "diskGiB": 50.148834228515625,
+    "cpuModels": [
+     {
+      "value": "AMD EPYC Processor",
+      "count": 130
+     }
+    ],
+    "vendor": "AMD",
+    "arch": "x86_64",
+    "isolation": "VM",
+    "hypervisor": true,
+    "host": "cloud-hypervisor",
+    "kernel": "6.16.9+",
+    "location": [
+     {
+      "value": "Manassas, US",
+      "count": 130
+     }
+    ],
+    "network": [
+     {
+      "value": "AS199524 G-Core Labs S.A.",
+      "count": 130
+     }
+    ]
+   },
+   "failureReasons": [],
+   "ourFailures": [],
+   "pauseSplit": {
+    "pause": 0.05703493999998318,
+    "resume": 0.11251172800001223,
+    "n": 100
+   },
+   "standbyResume": null
   }
  ],
  "metrics": [
@@ -3262,6 +3446,19 @@
      "min": 1.3843273460003547,
      "ciLow": 1.6032312940000557,
      "ciHigh": 1.6620363999996335,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.1970926450000261,
+     "p95": 0.2544791100000148,
+     "min": 0.16138099199999123,
+     "ciLow": 0.19201523199991788,
+     "ciHigh": 0.20564326599997004,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3499,6 +3696,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.05742321599996649,
+     "p95": 0.09165737799998896,
+     "min": 0.04238852500001667,
+     "ciLow": 0.054797823000000793,
+     "ciHigh": 0.06054269999999087,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -3728,6 +3938,19 @@
      "min": 0.2674615230000345,
      "ciLow": 0.28383312199963256,
      "ciHigh": 0.2944104779995978,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.1117311570000602,
+     "p95": 0.1694875699999975,
+     "min": 0.0898838129999931,
+     "ciLow": 0.10968676299997605,
+     "ciHigh": 0.1155464159999974,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -3965,6 +4188,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.4616893189999973,
+     "p95": 0.7089187689999817,
+     "min": 0.34790523800003575,
+     "ciLow": 0.43864221600000747,
+     "ciHigh": 0.49536378699995115,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4198,6 +4434,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.16619599299994298,
+     "p95": 0.2172470949999988,
+     "min": 0.14137736500002213,
+     "ciLow": 0.1592159120000433,
+     "ciHigh": 0.17126082399999723,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4351,6 +4600,19 @@
      "ciHigh": 17.56399373999983,
      "successes": 99,
      "failures": 1,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.17232722499998637,
+     "p95": 0.2328592640000861,
+     "min": 0.14131225700001232,
+     "ciLow": 0.16822248700005002,
+     "ciHigh": 0.17987752199999524,
+     "successes": 100,
+     "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
     }
@@ -4595,6 +4857,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 0.05532522300002165,
+     "p95": 0.07720893099997193,
+     "min": 0.04180963600001997,
+     "ciLow": 0.05342713399999775,
+     "ciHigh": 0.058406359000015076,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4763,6 +5038,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.1221033710000047,
+     "p95": 0.13317644900000597,
+     "min": 0.11134031200000027,
+     "ciLow": 0.11850803599999926,
+     "ciHigh": 0.12364383400000224,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -4927,6 +5215,19 @@
      "min": 1.7362511739999755,
      "ciLow": 2.448310375000001,
      "ciHigh": 3.7087462829999276,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.1592147219999897,
+     "p95": 0.38749249699999927,
+     "min": 0.1507414770000032,
+     "ciLow": 0.15757450300000347,
+     "ciHigh": 0.16221334999999817,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5164,6 +5465,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.3153550719999912,
+     "p95": 0.38158606599998895,
+     "min": 0.2661066869999995,
+     "ciLow": 0.3040208819999971,
+     "ciHigh": 0.32371580899998664,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5393,6 +5707,19 @@
      "min": 1.370076541000046,
      "ciLow": 1.6523469990000013,
      "ciHigh": 1.8857415930000134,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.5279873050000169,
+     "p95": 0.6467563829999999,
+     "min": 0.4620168169999961,
+     "ciLow": 0.5108954999999842,
+     "ciHigh": 0.5359259599999641,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -5630,6 +5957,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 2.623128343000004,
+     "p95": 3.184475842999993,
+     "min": 2.201409372999973,
+     "ciLow": 2.466456922000041,
+     "ciHigh": 2.756681543999999,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -5859,6 +6199,19 @@
      "min": 1.0436009320000885,
      "ciLow": 1.0775313819999575,
      "ciHigh": 1.1601527599999681,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.44429053000000207,
+     "p95": 0.5158705060000066,
+     "min": 0.38144806700000483,
+     "ciLow": 0.41771500299999026,
+     "ciHigh": 0.46549640800000636,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6096,6 +6449,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.14517716900000233,
+     "p95": 0.19230501199999708,
+     "min": 0.13191082699998516,
+     "ciLow": 0.14001615600002698,
+     "ciHigh": 0.152701976999997,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6325,6 +6691,19 @@
      "min": 0.5156774610001594,
      "ciLow": 0.5302996900000144,
      "ciHigh": 0.5663044540000847,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 0.1437975050000241,
+     "p95": 0.18150281400000676,
+     "min": 0.13101247999997576,
+     "ciLow": 0.14181935100000556,
+     "ciHigh": 0.15276582199998667,
      "successes": 30,
      "failures": 0,
      "ourFailures": 0,
@@ -6562,6 +6941,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 30,
+     "p50": 7.559756023000053,
+     "p95": 9.106676294999998,
+     "min": 6.900844419000001,
+     "ciLow": 7.317288309,
+     "ciHigh": 7.870470603000023,
+     "successes": 30,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6756,6 +7148,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 3,
+     "p50": 0.2571538790000004,
+     "p95": 0.37152938900000004,
+     "min": 0.215758362999999,
+     "ciLow": 0.215758362999999,
+     "ciHigh": 0.37152938900000004,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -6946,6 +7351,19 @@
      "min": 4.180542138999999,
      "ciLow": 4.180542138999999,
      "ciHigh": 4.916620302,
+     "successes": 3,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 3,
+     "p50": 0.3090403229999993,
+     "p95": 0.414713757,
+     "min": 0.262096012,
+     "ciLow": 0.262096012,
+     "ciHigh": 0.414713757,
      "successes": 3,
      "failures": 0,
      "ourFailures": 0,
@@ -7183,6 +7601,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 27290289.071232412,
+     "p95": 28267284.7014937,
+     "min": 17126495.076507077,
+     "ciLow": 27035002.354246546,
+     "ciHigh": 27469558.642888837,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7412,6 +7843,19 @@
      "min": 6646637.24687777,
      "ciLow": 10963812.92403248,
      "ciHigh": 14395853.775295468,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 67413105.0127994,
+     "p95": 87494927.4786049,
+     "min": 51292044.68228201,
+     "ciLow": 64703704.0272613,
+     "ciHigh": 70673708.08055432,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -7649,6 +8093,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 37658.076099390935,
+     "p95": 52139.750261856076,
+     "min": 12445.069438230346,
+     "ciLow": 35460.95008992543,
+     "ciHigh": 39822.654747349,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -7878,6 +8335,19 @@
      "min": 196.28959469964343,
      "ciLow": 329.3294646338247,
      "ciHigh": 427.0098461190957,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 995.9576139613489,
+     "p95": 1065.7658202576204,
+     "min": 549.4256664969658,
+     "ciLow": 983.4575997352769,
+     "ciHigh": 1012.4957763259772,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8115,6 +8585,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 27151.289131581532,
+     "p95": 31411.889842836088,
+     "min": 8961.598014467841,
+     "ciLow": 26455.704989853188,
+     "ciHigh": 27850.878505486467,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8344,6 +8827,19 @@
      "min": 1491.7765004596872,
      "ciLow": 6824.758282258291,
      "ciHigh": 10803.52117139874,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 17873.08725856456,
+     "p95": 23619.077427897453,
+     "min": 11692.712412318142,
+     "ciLow": 16113.49946549238,
+     "ciHigh": 19320.095645603997,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -8581,6 +9077,19 @@
      "failures": 0,
      "ourFailures": 0,
      "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 1242742.606470769,
+     "p95": 1424231.9793219767,
+     "min": 246118.8208223358,
+     "ciLow": 1198389.6737134554,
+     "ciHigh": 1273340.4221678174,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
     }
    ]
   },
@@ -8795,6 +9304,19 @@
      "min": 2.869949599999977,
      "ciLow": 6.477863799999994,
      "ciHigh": 6.857945000000143,
+     "successes": 100,
+     "failures": 0,
+     "ourFailures": 0,
+     "limitFailures": 0
+    },
+    {
+     "provider": "styne",
+     "n": 100,
+     "p50": 1.8836714021745138,
+     "p95": 2.276091801468283,
+     "min": 1.499351000529714,
+     "ciLow": 1.84961639897665,
+     "ciHigh": 1.9351498005562462,
      "successes": 100,
      "failures": 0,
      "ourFailures": 0,
@@ -10537,11 +11059,113 @@
    2.333,
    2.423,
    2.768
+  ],
+  "styne": [
+   0.161,
+   0.163,
+   0.164,
+   0.165,
+   0.166,
+   0.166,
+   0.167,
+   0.168,
+   0.168,
+   0.169,
+   0.171,
+   0.172,
+   0.175,
+   0.176,
+   0.178,
+   0.179,
+   0.179,
+   0.179,
+   0.18,
+   0.18,
+   0.18,
+   0.182,
+   0.183,
+   0.183,
+   0.183,
+   0.184,
+   0.185,
+   0.185,
+   0.186,
+   0.187,
+   0.188,
+   0.188,
+   0.19,
+   0.19,
+   0.19,
+   0.191,
+   0.191,
+   0.191,
+   0.192,
+   0.192,
+   0.193,
+   0.194,
+   0.195,
+   0.195,
+   0.195,
+   0.196,
+   0.196,
+   0.197,
+   0.197,
+   0.197,
+   0.198,
+   0.199,
+   0.199,
+   0.199,
+   0.2,
+   0.2,
+   0.201,
+   0.201,
+   0.205,
+   0.206,
+   0.206,
+   0.206,
+   0.206,
+   0.208,
+   0.208,
+   0.208,
+   0.209,
+   0.209,
+   0.209,
+   0.211,
+   0.214,
+   0.214,
+   0.215,
+   0.216,
+   0.217,
+   0.218,
+   0.218,
+   0.22,
+   0.221,
+   0.221,
+   0.221,
+   0.222,
+   0.223,
+   0.223,
+   0.223,
+   0.223,
+   0.229,
+   0.23,
+   0.231,
+   0.232,
+   0.239,
+   0.24,
+   0.24,
+   0.242,
+   0.254,
+   0.267,
+   0.284,
+   0.286,
+   0.591,
+   0.782
   ]
  },
  "missing": {},
  "sourceNotes": {
-  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24).",
+  "pause-resume": "Pause and resume are from the previous run (Oct 22, SDK a2316c3): the provider's own API, which the SDK update does not touch. Superserve's is from this run, at 4 vCPU. boxd's is from its Nov 19 re-run in New York. Vercel's is from its Nov 9 run (SBX-103). Baseten's is from its own pause runs (Nov 17), timed from its first command after standby. Instabox's is from its own runs (Nov 18). Maritime's is from its own runs (Nov 24). Styne's is from its own runs (Nov 23).",
   "burst-10": "E2B's bursts of 10 are from a rerun on Nov 18 on the same SDK commit (1185278), after one of its first three bursts had two creates time out on E2B's side. The rerun ran only bursts of 10, so they came closer together than in the first run, which alternated them with bursts of 25. As with every run we stopped early, the first run's failures aren't counted. Maritime's bursts of 10 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable.",
   "burst-25": "Maritime's bursts of 25 are from a rerun on Nov 24 on the same SDK commit (619307b), each burst started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its first bursts ran back to back, and Maritime refused the creates past that rate with HTTP 429; that run is replaced and its failures aren't counted, among them one create whose first command found Maritime's service unreachable.",
   "cold": "Maritime's main tests are from a rerun on Nov 24 on the same SDK commit (619307b), started 70 s after its bursts on the default machine. Its first run began two seconds after them, and Maritime refused its first 27 creates with HTTP 429 (30 creates a minute per API key); that run is replaced and its failures aren't counted, among them 3 creates whose first command found Maritime's service unreachable and one pause with no response."

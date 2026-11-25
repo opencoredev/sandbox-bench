@@ -1454,6 +1454,124 @@
         "startedAt": "2026-11-24T04:21:28.335Z"
       },
       "changeNote": "only 7 of 10 tasks finished, too few to compare with alone"
+    },
+    {
+      "provider": "styne",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 102.137,
+          "uploadS": 6.412,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 99.806,
+          "uploadS": 4.658,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 102.635,
+          "uploadS": 6.491,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 69.399,
+          "uploadS": 5.521,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 102.695,
+          "uploadS": 6.555,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 87.203,
+          "uploadS": 5.074,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 87.5,
+          "uploadS": 5.426,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 71.161,
+          "uploadS": 5.076,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 71.024,
+          "uploadS": 5.457,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 87.497,
+          "uploadS": 5.499,
+          "completed": true
+        }
+      ],
+      "medianWallS": 87.499,
+      "medianUploadS": 5.478,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        102.696,
+        87.5
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 102.696
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 87.5
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 58.011,
+            "uploadS": 2.053,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 63.787,
+            "uploadS": 2.309,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 60.899,
+      "soloMedianUploadS": 2.181,
+      "slowdown": 1.437,
+      "slowdownWithoutUpload": 1.398,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-styne-1123",
+        "sdkCommit": "cd2e6e19c7bf8aea4fc9ca98f63761875330fe14",
+        "startedAt": "2026-11-23T20:01:04.481Z"
+      }
     }
   ]
 }
