@@ -84,6 +84,13 @@ export const advertised = {
     source: "https://docs.styne.ai/guide-templates",
     note: "Styne's default base template is 4 vCPU, 8 GiB RAM and a 51 GiB root disk, so both tracks ran the same machine.",
   },
+  buddy: {
+    vcpu: 2,
+    memoryGiB: 3.73,
+    diskGiB: 46.6,
+    source: "https://buddy.works/docs/sandboxes/configuration.md",
+    note: "Buddy's default is its 2x4 size: 2 vCPU and 4 GB of RAM, in decimal GB, so 3.73 GiB inside, and a 50 GB disk, of which 45.5 GiB is usable. On the same-machine track it ran its 4x8 size: 4 vCPU and 8 GB, 7.45 GiB inside, which is why it shows as machine differs there; Buddy has no 8 GiB size.",
+  },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {
     vcpu: 1,

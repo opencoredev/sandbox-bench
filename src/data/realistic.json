@@ -1,6 +1,6 @@
 {
   "schema": "realistic-site/1",
-  "generatedAt": "2026-11-24T05:18:01.654Z",
+  "generatedAt": "2026-11-25T16:38:49.219Z",
   "coverage": {
     "headline": {
       "attempts": 5,
@@ -22,7 +22,8 @@
         "beam-shared",
         "beam-spot",
         "maritime",
-        "styne"
+        "styne",
+        "buddy"
       ],
       "profiles": [
         "fix-and-test",
@@ -93,6 +94,11 @@
           "provider": "styne",
           "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
           "short": "account totals only"
+        },
+        {
+          "provider": "buddy",
+          "reason": "it has no billing data we can read, so an idle run's cost couldn't be tied to the sandbox",
+          "short": "no billing data we can read"
         }
       ]
     }
@@ -183,6 +189,13 @@
       "generatedAt": "2026-11-23T20:08:04.169Z",
       "providers": [
         "styne"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-buddy",
+      "generatedAt": "2026-11-25T07:19:53.119Z",
+      "providers": [
+        "buddy"
       ]
     }
   ],
@@ -367,6 +380,34 @@
       "estimatedPart": null,
       "eligible": true,
       "flags": []
+    },
+    {
+      "provider": "buddy",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
     },
     {
       "provider": "daytona",
@@ -829,6 +870,32 @@
       ]
     },
     {
+      "provider": "buddy",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 226.017,
+      "medianCpuS": 270.019,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.012672,
+        "wholeMachineUsdPerCompleted": 0.012672,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "build",
       "track": "same-machine",
@@ -1269,6 +1336,32 @@
       "flags": []
     },
     {
+      "provider": "buddy",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 133.668,
+      "medianCpuS": 204.541,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00432,
+        "wholeMachineUsdPerCompleted": 0.00432,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
+      ]
+    },
+    {
       "provider": "daytona",
       "profile": "fix-and-test",
       "track": "default",
@@ -1707,6 +1800,32 @@
       "eligible": false,
       "flags": [
         "wrong machine size: 15.64040756225586 GiB memory, not within 10% of 8 GiB"
+      ]
+    },
+    {
+      "provider": "buddy",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 96.361,
+      "medianCpuS": 203.664,
+      "cost": {
+        "kind": "estimate",
+        "usdPerCompleted": 0.00576,
+        "wholeMachineUsdPerCompleted": 0.00576,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unverified estimate: missing rules-confirmed-in-writing and isolated-window-reconciliation"
       ]
     },
     {

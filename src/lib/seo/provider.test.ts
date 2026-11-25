@@ -225,9 +225,9 @@ describe("FAQ", () => {
     assert.equal(e.cell.display, "$5.50");
     assert.deepEqual(e.rank, { rank: 5, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
     const cost = providerFaqs("boxd")[1];
-    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 5th cheapest of 16, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
+    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 5th cheapest of 17, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
     const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
-    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 5 && chart.of === 16);
+    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 5 && chart.of === 17);
   });
 
   test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {
@@ -290,5 +290,25 @@ describe("provider page links", () => {
     assert.equal(locationLabel(hardware.maritime, "Sandbox in"), "Outbound IP in Germany");
     const faqs = providerFaqs("maritime");
     for (const q of faqs) assert.ok(!/Hosted on Hetzner/i.test(q.answer), q.answer);
+    const b = providerResults("buddy");
+    assert.equal(b.tracks.length, 2);
+    for (const t of b.tracks) {
+      assert.equal(t.ranIn, null);
+      assert.equal(t.outboundIpLocation, "New York City, US");
+    }
+    assert.ok(hardware.buddy);
+    assert.equal(locationLabel(hardware.buddy, "Runs in"), "Outbound IP in New York");
+    for (const q of providerFaqs("buddy")) assert.ok(!/Hosted on Hivelocity/i.test(q.answer), q.answer);
+  });
+
+  test("Buddy's hardware entry matches its 260 fingerprints, 130 on each machine", () => {
+    for (const id of trackIds) {
+      const p = tracks[id].providers.find((x) => x.id === "buddy");
+      assert.ok(p?.hardware, `no Buddy fingerprints on ${id}`);
+      assert.equal(p.hardware.cpuModels.reduce((n, m) => n + m.count, 0), 130);
+      assert.deepEqual(p.hardware.cpuModels, [{ value: "AMD EPYC 9645 96-Core Processor", count: 130 }]);
+      assert.deepEqual(p.hardware.location, [{ value: "New York City, US", count: 130 }]);
+    }
+    assert.match(hardware.buddy?.region ?? "", /all 260 sandboxes fingerprinted/);
   });
 });

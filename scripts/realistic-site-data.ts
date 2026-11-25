@@ -28,6 +28,8 @@
  *     --parts scripts/realistic-parts/sbx-maritime.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-styne/summary.json \
  *     --parts scripts/realistic-parts/sbx-styne.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-buddy/summary.json \
+ *     --parts scripts/realistic-parts/sbx-buddy.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
@@ -87,6 +89,15 @@
  * incomplete run (a build on the default track) failed to create, not in
  * setup, so it needs no --attempts file. Every other provider's rows and
  * held-open entries came out unchanged.
+ *
+ * Rebuilt on 2026-11-25 with Buddy added (sbx-buddy: headline runs that day,
+ * 04:27 to 07:19 UTC, sandbox-sdk 5afd423 on the buddy-provider branch). Buddy
+ * has no usage or billing API, so its costs are list-price estimates
+ * (buddy.works/pricing, per started minute) and it has no held-open run. Its
+ * five incomplete runs (Build on the 2 vCPU, 4 GB default, each past the
+ * 20-minute step limit) failed in the workload, not in setup, so it needs no
+ * --attempts file. Every other provider's rows and held-open entries came out
+ * unchanged.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

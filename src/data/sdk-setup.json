@@ -18,7 +18,8 @@
     "instabox": 0.3,
     "beam": 0.2,
     "maritime": 0.3,
-    "styne": 0.2
+    "styne": 0.2,
+    "buddy": 0.3
   },
   "runs": {
     "baseten": {
@@ -40,6 +41,10 @@
     "styne": {
       "sdkCommit": "cd2e6e1",
       "date": "Nov 23, 2026"
+    },
+    "buddy": {
+      "sdkCommit": "5afd423",
+      "date": "Nov 25, 2026"
     }
   }
 }

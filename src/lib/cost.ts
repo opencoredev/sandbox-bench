@@ -107,12 +107,17 @@ const provisionalCosts: Partial<Record<ProviderId, { kind: PricedKind; why: stri
 /**
  * Where an estimate comes from, when it needs saying beyond "list price".
  * Boat has a per-sandbox usage API, but that run's usage wasn't pulled, so
- * its figure is its documented price on our measured lifetime.
+ * its figure is its documented price on our measured lifetime. Buddy has no
+ * usage or billing API at all, so its figure is always its list price.
  */
 const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>> = {
   boat: {
     tag: "estimate from docs",
     why: "Boat's documented price on our measured sandbox lifetime; no settled-charge source for Boat is available",
+  },
+  buddy: {
+    tag: "estimate from list price",
+    why: "Buddy's list price per started minute on our measured sandbox lifetime; Buddy has no public usage or billing API to check it against",
   },
 };
 
@@ -241,6 +246,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     kind: "unconfirmed",
     evidence:
       "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep and stops metering only when no user process is running inside it (a background process keeps it running and billed unless idleTimeout is set), so actual charges can sit below elapsed-time estimates when the sandbox sleeps between calls.",
+  },
+  buddy: {
+    kind: "machine",
+    label: "bills the whole machine size while it exists, per started minute",
+    evidence:
+      "buddy.works/pricing (checked Nov 24, 2026): $0.00024 per CPU-minute and $0.00024 per GB-minute of the size's memory, billed in 1-minute increments; a 25-second 2x4 probe sandbox billed 2 CPU-minutes and 4 GB-minutes in Buddy's usage page. Storage, $0.00011 per GB-hour of the disk and snapshots actually stored, is left out. Buddy has no public per-sandbox usage or billing API, so every Buddy cost here is this list price on our measured lifetime.",
   },
   vercel: {
     kind: "usage",

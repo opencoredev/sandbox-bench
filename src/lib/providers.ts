@@ -11,8 +11,11 @@
  * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
  * left), and Styne's violet (its mark is black and white; no colour left in
  * sRGB keeps ΔE ≥ 6.7 from every other, and this one, at 6.1 from Freestyle's periwinkle under deuteranopia, is
- * about the best gap left), with lightness spread so every pair stays apart under
- * protanopia and deuteranopia (OKLab ΔE ≥ 6.0; names and logos sit beside
+ * about the best gap left), and Buddy's own blue, lightened toward periwinkle to stay clear of Styne's violet
+ * (13.0 from Styne in normal vision, 11.2 under protanopia and 7.0 under deuteranopia; its nearest is Daytona,
+ * 7.5 in normal vision and 5.7 under deuteranopia, the lowest pair on the page, and no blue left in sRGB keeps a
+ * wider gap from every other), with lightness spread so every pair stays apart under
+ * protanopia and deuteranopia (OKLab ΔE ≥ 5.7; names and logos sit beside
  * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
@@ -33,6 +36,7 @@ export const providerInfo = {
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
   maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
   styne: { name: "Styne", color: "oklch(0.72 0.18 304)" },
+  buddy: { name: "Buddy", color: "oklch(0.78 0.11 266)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
   // two more shades apart from every other provider under colour-blind simulation, so a tier keeps
   // its provider's colour and reads apart by its fill (rowFill in lib/marks.ts) and the tag beside its name.

@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { RealtaskBurstChart } from "@/components/realtask-burst";
 import { burstTimes, parseRealtaskBurst } from "@/lib/realtask-burst";
+import { realtaskBurst } from "@/lib/realtask-burst-data";
 
 const task = (round: number, wallS: number | null, completed = true) => ({ round, wallS, completed, ...(completed ? {} : { failure: { stage: "work", reason: "tests timed out" } }) });
 
@@ -82,5 +83,18 @@ describe("real tasks at once", () => {
     earlyYear.providers[0] = { ...earlyYear.providers[0], run: { id: "rtb-later", sdkCommit: "1234567890", startedAt: "0099-12-31T04:21:00.000Z" } };
     const earlyProvider = parseRealtaskBurst(earlyYear).providers[0];
     assert.equal(earlyProvider?.status === "ran" && earlyProvider.run?.startedAt, "0099-12-31T04:21:00.000Z");
+  });
+
+  test("the published data appends Maritime's and Buddy's own runs after the Nov 19 run's providers", () => {
+    const buddy = realtaskBurst.providers.at(-1);
+    assert.ok(buddy?.provider === "buddy" && buddy.status === "ran");
+    assert.deepEqual(buddy.run, { id: "rtb-buddy-1124", sdkCommit: "5afd423cd15668d7d6a4d9587ab55d7f6ae74925", startedAt: "2026-11-25T07:41:14.244Z" });
+    assert.equal(buddy.completed, 10);
+    assert.equal(buddy.attempts, 10);
+    assert.equal(buddy.slowdown, 1.146);
+    assert.equal(realtaskBurst.providers.filter((p) => p.status === "ran" && p.run !== null).length, 2);
+    const text = renderToStaticMarkup(<RealtaskBurstChart data={realtaskBurst} />).replace(/<[^>]+>/g, " ");
+    assert.match(text, /all on one day \(Nov 19; Maritime on Nov 24; Buddy on Nov 25\)/);
+    assert.match(text, /Maritime(?:'|&#x27;)s 619307b; Buddy(?:'|&#x27;)s 5afd423\)/);
   });
 });

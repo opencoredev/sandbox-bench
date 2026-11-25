@@ -12,6 +12,7 @@
  *     --location "Florida, US" \
  *     --add ~/agents/realtask-burst/runs/rtb-maritime-1123/realtask-burst-maritime.json \
  *     --add ~/agents/realtask-burst/runs/rtb-styne-1123/realtask-burst-styne.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-buddy-1124/realtask-burst-buddy.json \
  *     --out src/data/realtask-burst.json
  *
  * Maritime was added on 2026-11-24 from its own run (rtb-maritime-1123, started
@@ -19,6 +20,10 @@
  * 2026-11-23 from its own run (rtb-styne-1123, sandbox-sdk cd2e6e1, the same
  * plan), each with --add; every other provider's entry is the Nov 19 run's,
  * unchanged.
+ *
+ * Buddy was added on 2026-11-25 the same way, from its own run (rtb-buddy-1124,
+ * started 07:41 UTC on Nov 25, sandbox-sdk 5afd423, the same plan); every other
+ * provider's entry, Maritime's included, is unchanged.
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to
