@@ -36,8 +36,10 @@
  * - --not-run provider="why" marks that provider's entries that didn't complete
  *   as not run, with that why: they never started for a reason on our side (a
  *   rejected key, our account's billing), so they never read as the provider's
- *   failure. A completed entry for it, or none that failed, stops it, and so
- *   does a failure that reads as ours (see ourSide) without --not-run.
+ *   failure. A completed entry for it, an entry whose report lists a created
+ *   sandbox (or no sandboxes field), or none that failed, stops it, and so does
+ *   a failure that reads as ours (see ourSide) without --not-run. These errors
+ *   never echo the raw reason; it stays in the source report.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -269,9 +271,13 @@ export function checkFromReport(report: unknown, notRun: ReadonlyMap<string, str
       if (why !== undefined) throw new Error(`--not-run ${String(e.provider)}: it completed ${check}`);
       return { provider: e.provider, machine, status, reason: null, result: scrubDeep(convert[check](obj(e.result, `${String(e.provider)} result`))) };
     }
-    if (why !== undefined) return { provider: e.provider, machine, status: "not-run", reason: why, result: null };
+    if (why !== undefined) {
+      if (!Array.isArray(e.sandboxes)) throw new Error(`--not-run ${String(e.provider)}: ${check}.sandboxes is missing, so it can't show that no sandbox was created`);
+      if (e.sandboxes.length > 0) throw new Error(`--not-run ${String(e.provider)}: ${check}.sandboxes lists ${e.sandboxes.length} created, so it ran`);
+      return { provider: e.provider, machine, status: "not-run", reason: why, result: null };
+    }
     const reason = String(e.reason ?? "No reason recorded");
-    if (ourSide(reason)) throw new Error(`${String(e.provider)} in ${check} failed on our side ("${plainReason(reason)}"): mark it --not-run ${String(e.provider)}="why"`);
+    if (ourSide(reason)) throw new Error(`${String(e.provider)} in ${check}: its reason reads as a problem on our side; mark it --not-run ${String(e.provider)}="why" (the raw reason is in the source report)`);
     return { provider: e.provider, machine, status, reason: plainReason(reason), result: null };
   });
   return { check, data: { run: { id: run.id, sdkCommit: run.sdkCommit, startedAt: run.startedAt }, entries } };

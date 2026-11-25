@@ -253,12 +253,24 @@ describe("site-data script", () => {
     const keyRejected = "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.";
     const billing = "Created 0 of 1 sandboxes, fewer than the 1 this check needs: Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).";
     const entries = [
-      { provider: "baseten", status: "failed", reason: keyRejected, machine, result: null },
-      { provider: "superserve", status: "failed", reason: billing, machine, result: null },
-      { provider: "daytona", status: "failed", reason: "Created 1 of 10 sandboxes, fewer than the 2 this check needs: Daytona POST /sandbox failed (HTTP 400).", machine, result: null },
+      { provider: "baseten", status: "failed", reason: `${keyRejected} sentinel-x9Q`, machine, sandboxes: [], result: null },
+      { provider: "superserve", status: "failed", reason: billing, machine, sandboxes: [], result: null },
+      { provider: "daytona", status: "failed", reason: "Created 1 of 10 sandboxes, fewer than the 2 this check needs: Daytona POST /sandbox failed (HTTP 400).", machine, sandboxes: [{ id: "d1", createS: 0.3 }], result: null },
     ];
-    assert.throws(() => checkFromReport(report("cpu-native", entries)), /baseten in cpu-native failed on our side.*--not-run baseten=/);
-    assert.throws(() => checkFromReport(report("cpu-native", entries), new Map([["baseten", "our API key was rejected"]])), /superserve in cpu-native failed on our side/);
+    const thrown = (f: () => unknown) => {
+      try {
+        f();
+      } catch (err) {
+        return (err as Error).message;
+      }
+      assert.fail("expected a throw");
+    };
+    const ours = thrown(() => checkFromReport(report("cpu-native", entries)));
+    assert.match(ours, /baseten in cpu-native: its reason reads as a problem on our side; mark it --not-run baseten=/);
+    assert.doesNotMatch(ours, /sentinel|credentials|Check Baseten/);
+    assert.throws(() => checkFromReport(report("cpu-native", entries), new Map([["baseten", "our API key was rejected"]])), /superserve in cpu-native: its reason reads as a problem on our side/);
+    assert.throws(() => checkFromReport(report("cpu-native", entries), new Map([["baseten", "x"], ["superserve", "y"], ["daytona", "z"]])), /--not-run daytona: cpu-native.sandboxes lists 1 created, so it ran/);
+    assert.throws(() => checkFromReport(report("cpu-native", [{ ...entries[1]!, sandboxes: undefined }]), new Map([["superserve", "x"]])), /--not-run superserve: cpu-native.sandboxes is missing/);
     const notRun = new Map([
       ["baseten", "our API key was rejected"],
       ["superserve", "our account wasn't eligible for billing (HTTP 402)"],

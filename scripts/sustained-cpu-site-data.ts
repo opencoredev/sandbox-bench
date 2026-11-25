@@ -103,15 +103,16 @@ const publicReasons: readonly [RegExp, (m: RegExpMatchArray) => string][] = [
 /**
  * The site's wording for why a run stopped or failed, from the harness's stop reason, so its raw
  * text (provider error bodies, commands' stderr) never reaches the site. A reason that reads as
- * ours, or one with no wording here, stops the build: mark it --not-run, or add its wording.
+ * ours, or one with no wording here, stops the build: mark it --not-run, or add its wording. Its
+ * errors name the provider and field only, never the raw text, which stays in the source report.
  */
 export function publicStopReason(id: string, raw: string): string {
-  if (ourSide(raw)) throw new Error(`${id} stopped on our side ("${raw}"): mark it --not-run ${id}="why"`);
+  if (ourSide(raw)) throw new Error(`${id}.stopReason reads as a problem on our side: mark it --not-run ${id}="why" (the raw reason is in the source report)`);
   for (const [pattern, text] of publicReasons) {
     const m = raw.match(pattern);
     if (m) return text(m);
   }
-  throw new Error(`${id}: no public wording for its stop reason "${raw}"; add one to publicReasons`);
+  throw new Error(`${id}.stopReason has no public wording: add one to publicReasons (the raw reason is in the source report)`);
 }
 
 /** One harness provider result to the site's provider, carrying `run` when it came from a later run. */

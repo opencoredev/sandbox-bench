@@ -236,9 +236,20 @@ describe("runs apart and runs we didn't start", () => {
     assert.equal(stopped("stopped-early", "Segment 7: checksum 0x1f2e did not match"), "segment 7's result didn't verify");
     assert.equal(stopped("failed", 'Modal POST /sandboxes failed (HTTP 503): {"detail":"sb-01M8604F365C5Q09 at /home/leo"}', []), "the provider's API returned HTTP 503");
     assert.equal(stopped("stopped-early", "Fingerprint exited 127: sh: lscpu: not found"), "a setup command in the sandbox exited 127");
-    assert.throws(() => stopped("failed", "Baseten request failed: the credentials are missing or were rejected. Check Baseten and retry.", []), /modal stopped on our side.*--not-run modal=/);
-    assert.throws(() => stopped("failed", "Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).", []), /on our side/);
-    assert.throws(() => stopped("stopped-early", "something new went wrong"), /no public wording/);
+    const thrown = (f: () => unknown) => {
+      try {
+        f();
+      } catch (err) {
+        return (err as Error).message;
+      }
+      assert.fail("expected a throw");
+    };
+    const ours = thrown(() => stopped("failed", "Baseten request failed: the credentials are missing or were rejected. sentinel-x9Q", []));
+    assert.match(ours, /^modal\.stopReason reads as a problem on our side: mark it --not-run modal=/);
+    assert.match(thrown(() => stopped("failed", "Superserve POST /sandboxes failed (HTTP 402 billing_ineligible).", [])), /on our side/);
+    const unknown = thrown(() => stopped("stopped-early", "something new went wrong sentinel-x9Q"));
+    assert.match(unknown, /^modal\.stopReason has no public wording/);
+    for (const message of [ours, unknown]) assert.doesNotMatch(message, /sentinel|credentials|something new/);
     assert.equal(providerOf({ provider: "styne", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined).stopReason, null);
   });
 });
