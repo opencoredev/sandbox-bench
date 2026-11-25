@@ -83,6 +83,7 @@ export const advertised = {
     diskGiB: 51,
     source: "https://docs.styne.ai/guide-templates",
     note: "Styne's default base template is 4 vCPU, 8 GiB RAM and a 51 GiB root disk, so both tracks ran the same machine.",
+  },
   microsandbox: {
     vcpu: 1,
     memoryGiB: 0.5,
