@@ -6,12 +6,16 @@ import type { ReactNode } from "react";
 
 import { databuddyOptions, hasOptedOut } from "@/lib/databuddy";
 
-// The tracker fires this when the visitor opts in or out.
+// The tracker fires this when the visitor opts in or out in this tab; `storage` carries an opt-out from another tab.
 const CONSENT_EVENT = "databuddy:consent";
 
 function subscribe(onChange: () => void) {
   window.addEventListener(CONSENT_EVENT, onChange);
-  return () => window.removeEventListener(CONSENT_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(CONSENT_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
 }
 
 const stored = (key: string) => {
@@ -23,7 +27,7 @@ const stored = (key: string) => {
 };
 
 const optedOutInBrowser = () =>
-  window.databuddyOptedOut === true || hasOptedOut({ doNotTrack: navigator.doNotTrack, globalPrivacyControl: navigator.globalPrivacyControl, stored });
+  window.databuddyOptedOut === true || window.databuddyDisabled === true || hasOptedOut({ doNotTrack: navigator.doNotTrack, globalPrivacyControl: navigator.globalPrivacyControl, stored });
 
 /**
  * Databuddy's tracker, replay and flags. The static HTML and the first render
