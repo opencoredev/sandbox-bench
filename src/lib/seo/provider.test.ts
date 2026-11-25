@@ -281,6 +281,15 @@ describe("provider page links", () => {
     assert.equal(providerPageOf("vercel"), null);
   });
 
+  test("both Microsandbox CPU tiers export outbound IP location, never a hosting location", () => {
+    const rows = trackIds.flatMap((id) => agentData().tracks[id].providers.filter((p) => p.id === "microsandbox" || p.id === "microsandbox-shared"));
+    assert.deepEqual(rows.map((p) => p.id).sort(), ["microsandbox", "microsandbox", "microsandbox-shared"]);
+    for (const p of rows) {
+      assert.equal(p.ranIn, null, p.id);
+      assert.equal(p.outboundIpLocation, "Falkenstein, DE", p.id);
+    }
+  });
+
   test("egress-only providers report outbound IP location rather than proven hosting location", () => {
     const m = providerResults("maritime");
     for (const t of m.tracks) {
