@@ -12,13 +12,17 @@
  *     --location "Florida, US" \
  *     --add ~/agents/realtask-burst/runs/rtb-maritime-1123/realtask-burst-maritime.json \
  *     --add ~/agents/realtask-burst/runs/rtb-styne-1123/realtask-burst-styne.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox-shared.json \
  *     --out src/data/realtask-burst.json
  *
  * Maritime was added on 2026-11-24 from its own run (rtb-maritime-1123, started
  * 04:21 UTC on Nov 24, sandbox-sdk 619307b, the same plan), and Styne on
  * 2026-11-23 from its own run (rtb-styne-1123, sandbox-sdk cd2e6e1, the same
  * plan), each with --add; every other provider's entry is the Nov 19 run's,
- * unchanged.
+ * unchanged. Microsandbox Standard and Shared were added on 2026-11-25 from
+ * their own runs (rtb-msb-std-1124 and rtb-msb-shr-1124, sandbox-sdk afdf664,
+ * the same plan with solo controls).
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to

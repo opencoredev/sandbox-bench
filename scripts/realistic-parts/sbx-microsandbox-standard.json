@@ -1,0 +1,46 @@
+{
+  "schema": "realistic-estimated-parts/2",
+  "summarySha256": "2552ca3a5c7a6d71a4959355e05a63dae55b97a38ef11c86a00625e20be09f86",
+  "harness": {
+    "commit": "afdf664"
+  },
+  "rows": [
+    {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": null,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "totalPerCompletedUSD": null,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.014158869999999999,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    },
+    {
+      "provider": "microsandbox",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "totalPerCompletedUSD": 0.007748827777777777,
+      "estimatedPerCompletedUSD": 0,
+      "estimatedLabels": []
+    }
+  ],
+  "heldOpen": []
+}

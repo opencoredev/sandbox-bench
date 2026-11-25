@@ -19,7 +19,9 @@
       "beam-shared",
       "beam-spot",
       "maritime",
-      "styne"
+      "styne",
+      "microsandbox",
+      "microsandbox-shared"
     ],
     "profiles": [
       "fix-and-test",
@@ -90,6 +92,16 @@
         "provider": "styne",
         "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
         "short": "account totals only"
+      },
+      {
+        "provider": "microsandbox",
+        "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+        "short": "stopped disk not in its usage API"
+      },
+      {
+        "provider": "microsandbox-shared",
+        "reason": "its usage API reports running time only and leaves out the disk it charges for a stopped sandbox, so an idle run's cost couldn't be read from it",
+        "short": "stopped disk not in its usage API"
       }
     ]
   }

@@ -160,7 +160,7 @@ export const tierSources = {
   microsandbox: {
     url: "https://microsandbox.dev/pricing",
     checked: "Nov 24, 2026",
-    note: "MSB_TIER_NOTE",
+    note: "Both tiers ran on Nov 25, one tier at a time, on the same 4 vCPU, 8 GiB, 64 GiB machine: Standard's quick tests from 09:02 to 11:44 UTC and Shared's from 15:19 to 18:00 UTC. Shared's cold start (5.4 s against 5.7 s) and first command (1.14 s against 1.10 s) came within 6% of Standard's, and its Fix and test runs took 141 s against 130 s at about a sixth of the cost ($1.30 against $7.75 per 1,000). In bursts of 25 at once, 33 of Shared's 75 creates failed with no answer from the guest agent; all of Standard's succeeded. Five Fix and test runs at once, against the same task alone that day, took 1.49 times as long on Standard and 1.45 on Shared.",
   },
 } as const satisfies Record<TieredProvider, { url: string; checked: string; note: string }>;
 
