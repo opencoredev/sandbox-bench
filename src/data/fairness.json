@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v1",
-  "generatedAt": "2026-11-25T05:40:59.348Z",
+  "generatedAt": "2026-11-26T18:46:01.794Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -16,7 +16,8 @@
     "instabox": "x86_64",
     "beam": "x86_64",
     "styne": "x86_64",
-    "maritime": "x86_64"
+    "maritime": "x86_64",
+    "archil": "x86_64"
   },
   "checks": {
     "security-probe": {
@@ -566,6 +567,50 @@
             "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
             "startedAt": "2026-11-24T08:21:25.343Z"
           }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "isolation": "microvm",
+            "evidence": [
+              "virtio-mmio devices on the kernel command line and no DMI table: a microVM layout, as Firecracker's and QEMU's microvm machine use"
+            ],
+            "insideVm": null,
+            "kernel": "Linux 6.18.39 x86_64",
+            "cpu": {
+              "vendor": "AuthenticAMD",
+              "family": 26,
+              "model": 2,
+              "modelName": "AMD EPYC",
+              "mhz": 2600
+            },
+            "weakeningFlags": [],
+            "notableFlags": [],
+            "vulnerable": [
+              {
+                "name": "spec_rstack_overflow",
+                "status": "Vulnerable: Microcode, no safe RET"
+              }
+            ],
+            "vulnerabilityFiles": 19,
+            "uid": 0,
+            "passwordlessSudo": false,
+            "createS": 4.949,
+            "uptimeS": 4,
+            "bootedBeforeCreateS": -1.1
+          },
+          "run": {
+            "id": "fair-archil-security-probe-20261126",
+            "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+            "startedAt": "2026-11-26T18:22:45.726Z"
+          }
         }
       ]
     },
@@ -993,6 +1038,39 @@
             "id": "memory-honesty-20261124T082144",
             "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
             "startedAt": "2026-11-24T08:21:44.782Z"
+          }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "visibleCpus": 4,
+            "usableCpus": 4,
+            "quotaCpus": null,
+            "cpusOverReported": false,
+            "memTotalGiB": 7.77,
+            "memLimitGiB": null,
+            "swapTotalGiB": 3.88,
+            "memoryMiB": 6144,
+            "fileMiB": 2048,
+            "outcome": {
+              "kind": "completed",
+              "fillGiBps": 1.27,
+              "verifyGiBps": 4.88,
+              "fileMiBps": 1221.8,
+              "swapUsedMiB": 0
+            }
+          },
+          "run": {
+            "id": "fair-archil-memory-honesty-20261126",
+            "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+            "startedAt": "2026-11-26T18:22:45.739Z"
           }
         }
       ]
@@ -1449,6 +1527,41 @@
             "id": "disk-real-20261124T082218",
             "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
             "startedAt": "2026-11-24T08:22:18.481Z"
+          }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "fsType": "ext4",
+            "memoryBacked": false,
+            "comparable": true,
+            "notComparableWhy": null,
+            "directory": "/root",
+            "sizeMiB": 2048,
+            "seqWriteMiBps": 1297.5,
+            "seqReadMiBps": 587.8,
+            "randWriteIops": 22796,
+            "randWriteP99Us": 62.6,
+            "randReadIops": 26447,
+            "randReadP99Us": 52.1,
+            "direct": {
+              "seqWrite": true,
+              "seqRead": true,
+              "randWrite": true,
+              "randRead": true
+            }
+          },
+          "run": {
+            "id": "fair-archil-disk-real-20261126",
+            "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+            "startedAt": "2026-11-26T18:22:45.729Z"
           }
         }
       ]
@@ -3474,6 +3587,153 @@
             "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
             "startedAt": "2026-11-24T08:23:48.408Z"
           }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "cpuModel": "AMD EPYC",
+            "guestVcpus": 4,
+            "singleOps": 1119716346,
+            "allCoreOps": 4493931155,
+            "scaling": 1.0034,
+            "first3MinOps": 4476079790,
+            "last3MinOps": 4511392712,
+            "retention": 1.0079,
+            "sustained": [
+              {
+                "minute": 0.5,
+                "opsPerS": 4477675981
+              },
+              {
+                "minute": 1,
+                "opsPerS": 4471700250
+              },
+              {
+                "minute": 1.5,
+                "opsPerS": 4472526092
+              },
+              {
+                "minute": 2,
+                "opsPerS": 4484969392
+              },
+              {
+                "minute": 2.5,
+                "opsPerS": 4481753416
+              },
+              {
+                "minute": 3,
+                "opsPerS": 4474483598
+              },
+              {
+                "minute": 3.5,
+                "opsPerS": 4486646937
+              },
+              {
+                "minute": 4,
+                "opsPerS": 4480215169
+              },
+              {
+                "minute": 4.5,
+                "opsPerS": 4461761505
+              },
+              {
+                "minute": 5,
+                "opsPerS": 4491400142
+              },
+              {
+                "minute": 5.5,
+                "opsPerS": 4496852916
+              },
+              {
+                "minute": 6,
+                "opsPerS": 4492938276
+              },
+              {
+                "minute": 6.5,
+                "opsPerS": 4453372273
+              },
+              {
+                "minute": 7,
+                "opsPerS": 4483990700
+              },
+              {
+                "minute": 7.5,
+                "opsPerS": 4485528684
+              },
+              {
+                "minute": 8,
+                "opsPerS": 4482592950
+              },
+              {
+                "minute": 8.5,
+                "opsPerS": 4477698696
+              },
+              {
+                "minute": 9,
+                "opsPerS": 4480075949
+              },
+              {
+                "minute": 9.5,
+                "opsPerS": 4487905203
+              },
+              {
+                "minute": 10,
+                "opsPerS": 4487625712
+              },
+              {
+                "minute": 10.5,
+                "opsPerS": 4470149169
+              },
+              {
+                "minute": 11,
+                "opsPerS": 4480775203
+              },
+              {
+                "minute": 11.5,
+                "opsPerS": 4489163964
+              },
+              {
+                "minute": 12,
+                "opsPerS": 4510554699
+              },
+              {
+                "minute": 12.5,
+                "opsPerS": 4509575500
+              },
+              {
+                "minute": 13,
+                "opsPerS": 4516007865
+              },
+              {
+                "minute": 13.5,
+                "opsPerS": 4511812354
+              },
+              {
+                "minute": 14,
+                "opsPerS": 4509016829
+              },
+              {
+                "minute": 14.5,
+                "opsPerS": 4512651739
+              },
+              {
+                "minute": 15,
+                "opsPerS": 4510973070
+              }
+            ]
+          },
+          "run": {
+            "id": "fair-archil-cpu-native-20261126",
+            "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+            "startedAt": "2026-11-26T18:23:38.185Z"
+          }
         }
       ]
     },
@@ -3837,6 +4097,35 @@
             "id": "cpu-burst-10-20261124T084705",
             "sdkCommit": "27f304a8c8db5e890e7811051ef72699e27a9df9",
             "startedAt": "2026-11-24T08:47:06.001Z"
+          }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "requested": 10,
+            "created": 10,
+            "createErrors": [],
+            "soloOps": 4475770845,
+            "medianOps": 4493112122,
+            "relativeToSolo": 1.0039,
+            "spread": 1.0092,
+            "verified": 10,
+            "guaranteedOverlapS": 119.66,
+            "comparable": true,
+            "notComparableWhy": null,
+            "distinctBootIds": 10
+          },
+          "run": {
+            "id": "fair-archil-cpu-burst-10-20261126",
+            "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+            "startedAt": "2026-11-26T18:39:53.078Z"
           }
         }
       ]

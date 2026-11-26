@@ -63,22 +63,23 @@ const providerAt = (f: ReturnType<typeof fixture>, id: ProviderId) => {
 };
 
 describe("parse", () => {
-  test("the published data parses with all 16 providers and an empty file draws nothing", () => {
-    assert.equal(sustainedCpu.providers.length, 16);
+  test("the published data parses with all 17 providers and an empty file draws nothing", () => {
+    assert.equal(sustainedCpu.providers.length, 17);
     assert.equal(hasSustainedCpu(sustainedCpu), true);
     assert.equal(parseSustainedCpu(raw).run.id, "sustained15m-20261125");
     const { ranked, missing } = sustainedRanked(sustainedCpu);
-    assert.equal(ranked.length, 15);
-    assert.equal(ranked[0]?.provider, "tenki");
+    assert.equal(ranked.length, 16);
+    assert.equal(ranked[0]?.provider, "archil");
     const styne = ranked.at(-1);
     assert.equal(styne?.provider, "styne");
     // Styne's burst lasted about a minute: its fastest segment is over 6 times its minutes 12–15 rate.
     assert.ok(styne && (peakOps(styne) ?? 0) > 100_000_000 && styne.last3MinOps < 17_000_000);
     assert.equal(Math.round((styne?.retention ?? 0) * 100), 35);
     assert.deepEqual(missing, [{ provider: "baseten", notRun: true, why: "not run (our API key was rejected)" }]);
-    // Maritime came from its own run, labelled with it; everyone else from the file's run.
+    // Maritime and Archil came from their own runs, labelled with them; everyone else from the file's run.
     assert.equal(sustainedCpu.providers.find((p) => p.provider === "maritime")?.run?.id, "sustained15m-maritime-20261125");
-    assert.ok(sustainedCpu.providers.every((p) => p.provider === "maritime" || p.run === null));
+    assert.equal(sustainedCpu.providers.find((p) => p.provider === "archil")?.run?.id, "sustained15m-archil-20261126");
+    assert.ok(sustainedCpu.providers.every((p) => p.provider === "maritime" || p.provider === "archil" || p.run === null));
     const empty = parseSustainedCpu({ ...fixture(), providers: [] });
     assert.equal(hasSustainedCpu(empty), false);
     assert.equal(renderToStaticMarkup(<SustainedCpuSection data={empty} />), "");
