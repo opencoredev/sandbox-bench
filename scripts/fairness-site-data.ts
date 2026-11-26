@@ -24,10 +24,17 @@
  * --add Archil's own run of both (Nov 26, 2b2acec) from
  * ~/agents/new-scenarios/full/state-archil/state-survival.json and
  * ~/agents/new-scenarios/full/mem-archil/memory-pressure.json, with
- * Baseten and Superserve not run:
+ * Baseten and Superserve not run, and Baseten, Superserve and Boat listed as
+ * not run in the two new checks, whose reports don't include them:
  *
  *     --not-run baseten="our API key was rejected" \
- *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)"
+ *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)" \
+ *     --not-run-in state-survival:baseten="our API key was rejected" \
+ *     --not-run-in memory-pressure:baseten="our API key was rejected" \
+ *     --not-run-in state-survival:superserve="our account wasn't eligible for billing (HTTP 402)" \
+ *     --not-run-in memory-pressure:superserve="our account wasn't eligible for billing (HTTP 402)" \
+ *     --not-run-in state-survival:boat="our Boat account was busy with another benchmark run" \
+ *     --not-run-in memory-pressure:boat="our Boat account was busy with another benchmark run"
  *
  * What it changes on the way:
  * - Each provider keeps only the figures the page and the agent files use;
@@ -50,6 +57,11 @@
  *   sandbox (or no sandboxes field), or none that failed, stops it, and so does
  *   a failure that reads as ours (see ourSide) without --not-run. These errors
  *   never echo the raw reason; it stays in the source report.
+ * - --not-run-in check:provider="why" adds a not-run entry for a provider that
+ *   has none in that check, with that why and the machine its other checks
+ *   asked for, so a provider we didn't run there is listed, never missing. A
+ *   provider already in the check, or one with no machine in any other check,
+ *   stops it.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -77,6 +89,7 @@ function args() {
   const reports: string[] = [];
   const adds: string[] = [];
   const notRun = new Map<string, string>();
+  const notRunIn: { check: CheckId; provider: string; why: string }[] = [];
   let out: string | undefined;
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 2) {
@@ -89,10 +102,15 @@ function args() {
       const eq = value.indexOf("=");
       if (eq < 1) throw new Error("--not-run takes provider=why");
       notRun.set(value.slice(0, eq), value.slice(eq + 1));
+    } else if (flag === "--not-run-in") {
+      const match = /^([a-z0-9-]+):([a-z0-9-]+)=(.+)$/.exec(value);
+      const check = checkIds.find((id) => id === match?.[1]);
+      if (!match || !check) throw new Error('--not-run-in takes check:provider="why" with a known check');
+      notRunIn.push({ check, provider: match[2] ?? "", why: match[3] ?? "" });
     } else throw new Error(`unknown flag ${flag}`);
   }
-  if (reports.length === 0 || !out) throw new Error('usage: --report FILE [--report FILE]... [--add FILE]... [--not-run provider="why"]... --out FILE');
-  return { reports, adds, notRun, out };
+  if (reports.length === 0 || !out) throw new Error('usage: --report FILE [--report FILE]... [--add FILE]... [--not-run provider="why"]... [--not-run-in check:provider="why"]... --out FILE');
+  return { reports, adds, notRun, notRunIn, out };
 }
 
 /**
@@ -379,6 +397,19 @@ export function markGvisorDisk(checks: Json) {
   }
 }
 
+/** Lists a provider that has no entry in a check as not run there, with the machine its other checks asked for. */
+export function addNotRun(checks: Json, at: { check: CheckId; provider: string; why: string }) {
+  const into = checks[at.check];
+  if (!isJson(into)) throw new Error(`--not-run-in ${at.check}:${at.provider}: no --report for ${at.check}`);
+  const entries = list(into.entries, `${at.check} entries`).map((e) => obj(e, "entry"));
+  if (entries.some((e) => e.provider === at.provider)) throw new Error(`--not-run-in ${at.check}:${at.provider}: ${at.provider} is already in ${at.check}`);
+  const machine = Object.values(checks)
+    .flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => obj(e, "entry")))
+    .find((e) => e.provider === at.provider)?.machine;
+  if (machine === undefined) throw new Error(`--not-run-in ${at.check}:${at.provider}: no other check names its machine`);
+  into.entries = [...entries, { provider: at.provider, machine, status: "not-run", reason: at.why, result: null }];
+}
+
 /** Appends a later run's providers to a check already built, each carrying that run. */
 export function addLaterRun(checks: Json, later: { check: CheckId; data: Json }, path: string) {
   const into = checks[later.check];
@@ -394,7 +425,7 @@ export function addLaterRun(checks: Json, later: { check: CheckId; data: Json },
 }
 
 function main() {
-  const { reports, adds, notRun, out } = args();
+  const { reports, adds, notRun, notRunIn, out } = args();
   const checks: Json = {};
   for (const path of reports) {
     const { check, data } = checkFromReport(JSON.parse(readFileSync(path, "utf8")), notRun);
@@ -405,6 +436,7 @@ function main() {
   const marked = new Set(Object.values(checks).flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => obj(e, "entry")).filter((e) => e.status === "not-run").map((e) => String(e.provider))));
   const unused = [...notRun.keys()].filter((id) => !marked.has(id));
   if (unused.length) throw new Error(`--not-run names providers with no entry that failed: ${unused.join(", ")}`);
+  for (const at of notRunIn) addNotRun(checks, at);
   markGvisorDisk(checks);
   const file = { schema: SCHEMA, generatedAt: new Date().toISOString(), track: "same-machine", arch: archFrom(checks), checks };
   // The site's own parser, so this never writes a file the build would refuse.

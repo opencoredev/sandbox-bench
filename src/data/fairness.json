@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v2",
-  "generatedAt": "2026-11-26T23:34:18.193Z",
+  "generatedAt": "2026-11-26T23:50:28.087Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -4619,6 +4619,39 @@
             "sdkCommit": "2b2acec4530abcfe34ed45e4131ae513a67b2d6c",
             "startedAt": "2026-11-26T23:24:22.526Z"
           }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our API key was rejected",
+          "result": null
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our account wasn't eligible for billing (HTTP 402)",
+          "result": null
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our Boat account was busy with another benchmark run",
+          "result": null
         }
       ]
     },
@@ -4986,6 +5019,39 @@
             "sdkCommit": "2b2acec4530abcfe34ed45e4131ae513a67b2d6c",
             "startedAt": "2026-11-26T23:24:22.526Z"
           }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our API key was rejected",
+          "result": null
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our account wasn't eligible for billing (HTTP 402)",
+          "result": null
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our Boat account was busy with another benchmark run",
+          "result": null
         }
       ]
     }

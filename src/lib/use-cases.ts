@@ -200,7 +200,7 @@ function restartReading(): Reading {
       rows.flatMap((e) => {
         const { medianMs, samplesMs, failures } = e.result.restart;
         if (medianMs === null) return [];
-        const parts = [`one sandbox's median of ${samplesMs.length} restarts, one run`, failures > 0 ? `${failures} failed` : null, e.machine.sameSize ? null : `on ${e.machine.cpu} vCPU, ${e.machine.memoryGiB} GiB`].filter((x) => x !== null);
+        const parts = [`one sandbox's median of ${samplesMs.length} timed restarts, one run`, failures > 0 ? `${failures} failed` : null, e.machine.sameSize ? null : `on ${e.machine.cpu} vCPU, ${e.machine.memoryGiB} GiB`].filter((x) => x !== null);
         return [{ provider: e.provider, value: medianMs, display: formatValue(medianMs, "ms"), ci95: null, note: parts.join(", ") }];
       }),
       "lower",

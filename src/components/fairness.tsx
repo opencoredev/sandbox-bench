@@ -46,16 +46,17 @@ type Note = { mark?: number; lead?: string; text: ReactNode; about?: ProviderId 
 const dayOf = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
 /**
- * Notes every chart here can need for a provider: a machine that is not 4 vCPU, 8 GiB, and an
- * ARM CPU (which ran the aarch64 build of the same source). Numbered in chart order.
+ * Notes every chart here can need for a provider: a machine that is not 4 vCPU, 8 GiB, and, on the
+ * charts that ran the compiled C program (`cBuild`), an ARM CPU, which ran the aarch64 build of
+ * the same source. Numbered in chart order.
  */
-function marksFor<R>(data: FairnessData, shown: readonly Completed<R>[], extra: (e: Completed<R>) => string | undefined = () => undefined) {
+function marksFor<R>(data: FairnessData, shown: readonly Completed<R>[], extra: (e: Completed<R>) => string | undefined = () => undefined, { cBuild = true } = {}) {
   let next = 0;
   const marks = new Map<ProviderId, { mark: number; note: string }>();
   for (const e of shown) {
     const notes = [
       e.machine.sameSize ? undefined : `asked for ${e.machine.cpu} vCPU, ${e.machine.memoryGiB} GiB, its nearest size to 4 vCPU, 8 GiB`,
-      data.arch[e.provider] === "aarch64" ? "runs on ARM (aarch64), so it ran an ARM build of the same C source; its CPU figures come from different machine code than the x86 providers'" : undefined,
+      cBuild && data.arch[e.provider] === "aarch64" ? "runs on ARM (aarch64), so it ran an ARM build of the same C source; its CPU figures come from different machine code than the x86 providers'" : undefined,
       extra(e),
     ].filter((x) => x !== undefined);
     if (notes.length > 0) marks.set(e.provider, { mark: ++next, note: notes.map(sentence).join(" ") });
@@ -424,7 +425,7 @@ const dim = (r: StateResult) => (hasVerdict(r) ? "" : "text-neutral-7");
 
 function PauseSurvival({ data, check }: { data: FairnessData; check: CheckData<StateResult> }) {
   const rows = [...completed(check)].sort((a, b) => suspendOrder(a.result) - suspendOrder(b.result) || a.provider.localeCompare(b.provider));
-  const marks = marksFor(data, rows, verdictMark);
+  const marks = marksFor(data, rows, verdictMark, { cBuild: false });
   const cell = "px-m py-1.5 align-top";
   const sup = (id: ProviderId) => (marks.get(id) ? <sup className="ml-0.5 text-neutral-7">{marks.get(id)?.mark}</sup> : null);
   return (
@@ -478,8 +479,8 @@ function PauseSurvival({ data, check }: { data: FairnessData; check: CheckData<S
           ...markNotes(marks),
           ...missingNotes(check),
           { lead: "Why", text: "An agent that sleeps while it waits wants its dev server, its shell state and its files back as they were. A provider can freeze the sandbox's memory, keep it running, or bring back only the disk; this says which, from what the sandbox shows afterwards." },
-          { lead: "Work", text: "In a fresh directory: a 16 MiB random file, an HTTP server holding a random token and 32 MiB of random bytes, and a shell worker counting a heartbeat every second, both started detached as an agent's dev server would be. Then the provider's pause, 60 seconds, and its resume. Afterwards the file's hash, the boot ID, and each process's ID, start time, token and memory digest are compared with the start." },
-          { lead: "Verdicts", text: "Memory intact: the same server and worker came back, and the worker missed at least 80% of the hold's heartbeats, so it was frozen. Kept running: the same, but it missed at most 20%. Files kept, processes gone: both processes confirmed gone with the file intact. Files lost: the file or its directory is gone or changed. The original server answering with its random token and memory counts for more than a changed boot ID, which a restored checkpoint can also show; such a verdict carries a note." },
+          { lead: "Work", text: "In a fresh directory: a 16 MiB random file, an HTTP server holding a random token and 32 MiB of random bytes, and a shell worker counting a heartbeat every second, both started detached as an agent's dev server would be. Then the provider's pause, 60 seconds, and its resume. Afterwards the file's hash and the boot ID are compared with the start; the server's process ID, start time, token and memory digest are checked; and, separately, the worker's process ID, start time and heartbeat." },
+          { lead: "Verdicts", text: "Memory intact: the same server, with its token and memory, and the same worker came back, and the worker missed at least 80% of the hold's heartbeats, so it was frozen. Kept running: the same, but it missed at most 20%. Files kept, processes gone: both processes confirmed gone with the file intact. Files lost: the file or its directory is gone or changed. The original server answering with its random token and memory counts for more than a changed boot ID, which a restored checkpoint can also show; such a verdict carries a note." },
           { lead: "No verdict", text: "When the evidence fits none of those, or a pause, resume or first command didn't complete, there is no verdict. That settles nothing about the provider; the reason is shown." },
           { lead: "Serving again", text: "From the resume returning until the original server answered. When it was gone, it was started again, and the time is the first command plus that restart, which leaves out the check's own reads (about)." },
           { lead: "Not tested", text: "Our SDK adapter has no pause for these providers. Stopping and starting a sandbox has no portable SDK call, so that isn't tested here." },
@@ -490,18 +491,21 @@ function PauseSurvival({ data, check }: { data: FairnessData; check: CheckData<S
   );
 }
 
+const timedOf = (r: StateResult) => r.restart.samplesMs.length;
+const attemptsOf = (r: StateResult) => r.restart.samplesMs.length + r.restart.failures + r.restart.startsOnly;
+
 function RestartSpeed({ data, check }: { data: FairnessData; check: CheckData<StateResult> }) {
   const timed = completed(check).flatMap((e) => (e.result.restart.medianMs === null ? [] : [{ ...e, medianMs: e.result.restart.medianMs }]));
   const rows = [...timed].sort((a, b) => a.medianMs - b.medianMs || a.provider.localeCompare(b.provider));
-  const marks = marksFor(data, rows);
+  const marks = marksFor(data, rows, undefined, { cBuild: false });
   const columns: Column[] = rows.map((e) => ({
     provider: e.provider,
     label: formatValue(e.medianMs, "ms"),
     mark: marks.get(e.provider)?.mark,
-    ...(e.result.restart.failures > 0 ? { tag: `${e.result.restart.failures} failed` } : {}),
+    ...(timedOf(e.result) < attemptsOf(e.result) ? { tag: `${timedOf(e.result)} of ${attemptsOf(e.result)} timed` } : {}),
     segments: solid(e.provider, e.medianMs),
     detail: [
-      ["Median", formatValue(e.medianMs, "ms")],
+      ["Median", `${formatValue(e.medianMs, "ms")} of ${timedOf(e.result)} timed restarts`],
       ["Each restart", e.result.restart.samplesMs.map((s) => formatValue(s, "ms")).join(", ")],
       ...(e.result.restart.failures > 0 ? [["Failed", String(e.result.restart.failures)] as const] : []),
       ...(e.result.restart.startsOnly > 0 ? [["Starts, not timed", String(e.result.restart.startsOnly)] as const] : []),
@@ -510,7 +514,7 @@ function RestartSpeed({ data, check }: { data: FairnessData; check: CheckData<St
   const untimed = completed(check).filter((e) => e.result.restart.medianMs === null);
   return (
     <>
-      <ChartHead title="How fast a killed process restarts" sub="A server killed with SIGKILL and started again in the same sandbox, 5 times · Median milliseconds from the kill until the new one answers, timed in the guest · Lower is better" />
+      <ChartHead title="How fast a killed process restarts" sub="A server killed with SIGKILL and started again in the same sandbox, 5 attempts · Median milliseconds of the timed restarts, from the kill until the new one answers, timed in the guest · Tag: restarts timed, when not all · Lower is better" />
       <Columns columns={columns} label="How fast a killed process restarts: median milliseconds by provider" />
       <Missing check={check} />
       <NotOnChart ids={untimed.map((e) => e.provider)} lead="No restart timed for" />
@@ -521,7 +525,7 @@ function RestartSpeed({ data, check }: { data: FairnessData; check: CheckData<St
           ...untimed.map((e) => ({ text: <><Who id={e.provider} />: no restart was timed ({e.result.restart.failures} failed, {e.result.restart.startsOnly} found no server to kill).</>, about: e.provider })),
           { lead: "Why", text: "When an agent's dev server crashes, or the agent restarts it after a change, this is how long the sandbox takes to have it serving again." },
           { lead: "Work", text: "The same small HTTP server each time, in the runtime the image ships. The guest kills it with SIGKILL, starts it again, and times until the new process answers on its port with its own launch nonce, so the host's round trip isn't in the figure. A trial that found no server to kill is a start, not a restart, and is left out of the median." },
-          { lead: "One run", text: "Each bar is one sandbox's median of 5 restarts, from a single run per provider; the hover card lists every restart. Figures can move between runs, so read small gaps as noise." },
+          { lead: "One run", text: "Each bar is one sandbox's median of its timed restarts out of 5 attempts, from a single run per provider; the hover card lists every restart, and a tag says when fewer than 5 were timed. Figures can move between runs, so read small gaps as noise." },
           { lead: "What it isn't", text: "A process restart inside a running sandbox, not the sandbox itself stopped and started, which has no portable SDK call." },
           runNote(check),
         ]}
@@ -539,7 +543,7 @@ const heldText = (r: PressureResult) => `${reachedText(r)}${r.swapTotalGiB ? `, 
 
 function MemoryPressure({ data, check }: { data: FairnessData; check: CheckData<PressureResult> }) {
   const rows = [...completed(check)].sort((a, b) => pressureOrder.indexOf(a.result.outcome.kind) - pressureOrder.indexOf(b.result.outcome.kind) || (b.result.reached?.fraction ?? 0) - (a.result.reached?.fraction ?? 0) || a.provider.localeCompare(b.provider));
-  const marks = marksFor(data, rows);
+  const marks = marksFor(data, rows, undefined, { cBuild: false });
   const cell = "px-m py-1.5 align-top";
   const sup = (id: ProviderId) => (marks.get(id) ? <sup className="ml-0.5 text-neutral-7">{marks.get(id)?.mark}</sup> : null);
   const quiet = (r: PressureResult) => (r.outcome.kind === "inconclusive" ? "text-neutral-7" : "");
@@ -596,7 +600,7 @@ function MemoryPressure({ data, check }: { data: FairnessData; check: CheckData<
           { lead: "Work", text: `A detached process, the hog, allocates random bytes 64 MiB at a time, logging each chunk, up to ${OVERSHOOT} times the provider's advertised memory, while a shell above it records how it exits and a canary process writes the time every second. The host polls every 2 seconds and waits through silences. Afterwards: is the boot ID the same, is the canary still the same live process, and do a fresh 256 MiB allocation and a file write succeed.` },
           { lead: "What happened", text: "Only evidence counts: an exit status the shell recorded (killed is SIGKILL), the process's own refusal, a new boot ID, or the provider's own lookup saying the sandbox is gone. Anything else has no verdict, with the reason, and settles nothing about the provider." },
           { lead: "Held", text: "Exact when read from the process's whole log; \"at least\" when it is the last progress seen before the process or the sandbox went away. Memory past 100% of the advertised size came from swap or from no limit at that size." },
-          { lead: "Took down", text: "Only the process: the canary was the same live process with a fresh beat. Other processes stopped too: the canary was gone. The whole sandbox: it rebooted or ended. Not determined otherwise." },
+          { lead: "Took down", text: "Judged from one canary process, not every process in the sandbox. The hog was killed and the canary stayed alive: the canary was the same live process with a fresh beat. The canary was gone too: it was confirmed gone. The provider reported the sandbox gone: the provider's own lookup said the sandbox had ended, which doesn't say why. The whole sandbox rebooted: a new boot ID. Not determined otherwise. Usable after means a fresh allocation and a file write worked, not that other work survived." },
           runNote(check),
         ]}
       />

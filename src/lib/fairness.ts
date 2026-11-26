@@ -735,6 +735,9 @@ export const notCompleted = <R>(check: CheckData<R> | null) =>
 export const hasFairness = (d: FairnessData) =>
   [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe, d.stateSurvival, d.memoryPressure].some((c) => c !== null && c.entries.length > 0);
 
+/** How many providers have a result in either new check (pause survival, memory pressure). */
+export const newScenarioProviders = (d: FairnessData) => new Set([...completed(d.stateSurvival), ...completed(d.memoryPressure)].map((e) => e.provider)).size;
+
 /** Highest first by `value`, ties by provider id. */
 export const rankBy = <R>(entries: readonly Completed<R>[], value: (r: R) => number) =>
   [...entries].sort((a, b) => value(b.result) - value(a.result) || a.provider.localeCompare(b.provider));
@@ -901,11 +904,14 @@ export function servingText(r: StateResult): string | null {
   return "didn't serve again";
 }
 
-/** How far the hog got: exact from its log, "at least" from the last poll. */
+/** How far the hog got: exact from its log; "at least" from the last poll, rounded down so the bound never exceeds what was seen. */
 export function reachedText(r: PressureResult): string {
   if (r.reached === null) return "nothing observed";
-  const held = `${mibText(r.reached.mib)} (${percentText(r.reached.fraction)} of ${mibText(r.advertisedMiB)})`;
-  return r.reached.evidence === "log" ? held : `at least ${held}`;
+  const of = mibText(r.advertisedMiB);
+  if (r.reached.evidence === "log") return `${mibText(r.reached.mib)} (${percentText(r.reached.fraction)} of ${of})`;
+  const mib = r.reached.mib;
+  const held = mib < 1024 ? `${Math.floor(mib)} MiB` : `${Math.floor((mib / 1024) * 10) / 10} GiB`;
+  return `at least ${held} (${Math.floor((mib / r.advertisedMiB) * 100)}% of ${of})`;
 }
 
 /** What stopped the hog, in a few words. */
@@ -931,9 +937,23 @@ export function pressureOutcomeText(r: PressureResult): string {
   }
 }
 
-/** What else the hog took down. */
-export const scopeText = (r: PressureResult) =>
-  r.scope === "process" ? "Only the process: the rest kept running" : r.scope === "collateral" ? "Other processes stopped too" : r.scope === "sandbox" ? "The whole sandbox" : "Not determined";
+/** What else the hog took down, as far as the canary process shows; a lost sandbox claims no cause. */
+export function scopeText(r: PressureResult): string {
+  switch (r.scope) {
+    case "process":
+      return "The hog was killed; the canary process stayed alive";
+    case "collateral":
+      return "The canary process was gone too";
+    case "sandbox":
+      return r.outcome.kind === "sandbox-lost" ? "The provider reported the sandbox gone; the cause isn't known" : "The whole sandbox rebooted";
+    case null:
+      return "Not determined";
+    default: {
+      const _exhaustive: never = r.scope;
+      return _exhaustive;
+    }
+  }
+}
 
 /** Whether a fresh allocation and a file write worked afterwards. */
 export const usableAfterText = (r: PressureResult) => (r.usableAfter === null ? "Not measured" : r.usableAfter ? "Yes" : "No");

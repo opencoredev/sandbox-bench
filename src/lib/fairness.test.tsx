@@ -10,7 +10,7 @@ import { completed, hasFairness, hasVerdict, readableReason, verdictNote, heldSh
 import type { FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
 import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 import { fairness } from "@/lib/fairness-data";
-import { addLaterRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
+import { addLaterRun, addNotRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
 
 // The like-for-like checks: the file's parser, the site-data script, the section and the exports. Run with `bun test`.
 
@@ -483,11 +483,24 @@ describe("state survival and memory pressure", () => {
   test("a last-poll figure reads as at least, a logged one as exact", () => {
     const by = (id: string) => completed(d.memoryPressure).find((e) => e.provider === id)!.result;
     assert.equal(reachedText(by("e2b")), "7.6 GiB (95% of 8 GiB)");
-    assert.equal(reachedText(by("modal")), "at least 640 MiB (8% of 8 GiB)");
+    assert.equal(reachedText(by("modal")), "at least 640 MiB (7% of 8 GiB)");
     assert.equal(pressureOutcomeText(by("freestyle")), "No verdict: the hog and its supervisor are gone with no status");
     assert.equal(scopeText(by("freestyle")), "Not determined");
     assert.match(pressureOutcomeText(by("modal")), /provider reported it gone/);
     assert.match(pressureOutcomeText(by("e2b")), /killed \(SIGKILL\)/);
+    assert.equal(reachedText(by("freestyle")), "at least 7.4 GiB (92% of 8 GiB)", "7616 MiB is 7.44 GiB and 92.97%, so the bound rounds down");
+    const f = fixture();
+    (pressureAt(f, 2).reached as object) = { evidence: "last-poll", mib: 6848, fraction: 6848 / 8192 };
+    assert.equal(reachedText(completed(parseFairness(f).memoryPressure).find((e) => e.provider === "freestyle")!.result), "at least 6.6 GiB (83% of 8 GiB)");
+  });
+
+  test("what the hog took down is judged from one canary, and a lost sandbox names no cause", () => {
+    const by = (id: string) => completed(d.memoryPressure).find((e) => e.provider === id)!.result;
+    assert.equal(scopeText(by("e2b")), "The hog was killed; the canary process stayed alive");
+    assert.equal(scopeText(by("modal")), "The provider reported the sandbox gone; the cause isn't known");
+    const t = text(renderToStaticMarkup(<FairnessSection data={d} />));
+    assert.doesNotMatch(t, /the rest kept running/);
+    assert.match(t, /Judged from one canary process, not every process in the sandbox/);
   });
 
   test("a harness \"no answer for N ms\" reads in minutes, or seconds under 90 s", () => {
@@ -549,7 +562,7 @@ describe("state survival and memory pressure", () => {
     const t = text(html);
     for (const s of ["Survives a pause", "Restart speed", "Memory runs out", "Survives a pause with memory intact", "How fast a killed process restarts", "What happens when memory runs out"]) assert.ok(t.includes(s), s);
     assert.ok(t.includes("No verdict: no heartbeat count across the hold"));
-    assert.ok(t.includes("at least 640 MiB (8% of 8 GiB)"));
+    assert.ok(t.includes("at least 640 MiB (7% of 8 GiB)"));
     assert.ok(t.includes("16.3 GiB (102% of 16 GiB), with 1 GiB swap"));
     assert.ok(t.includes("No result for Beam"));
     assert.match(t, /Luxor\s*: the boot id changed, but the original processes kept their memory\./);
@@ -560,10 +573,43 @@ describe("state survival and memory pressure", () => {
     assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > (order[i - 1] ?? 0))), `restart columns lowest first: ${order.join(",")}`);
   });
 
+  test("the C-build ARM note shows only on the charts that ran the C build", () => {
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    const at = html.indexOf("Survives a pause with memory intact");
+    assert.ok(at > 0);
+    assert.match(html.slice(0, at), /runs on ARM \(aarch64\)/);
+    assert.doesNotMatch(html.slice(at), /runs on ARM \(aarch64\)|ARM build of the same C source/);
+  });
+
+  test("the restart chart counts timed restarts out of attempts, and the pause note splits server and worker", () => {
+    const f = fixture();
+    stateAt(f, 0).restart = { samplesMs: [130, 160, 117], medianMs: 130, failures: 2, startsOnly: 0 };
+    const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
+    assert.match(t, /5 attempts · Median milliseconds of the timed restarts/);
+    assert.match(t, /3 of 5 timed/);
+    assert.doesNotMatch(t, /5 of 5 timed/, "only a bar with fewer timed restarts is tagged");
+    assert.match(t, /the server's process ID, start time, token and memory digest are checked; and, separately, the worker's process ID, start time and heartbeat/);
+    assert.doesNotMatch(t, /each process's ID, start time, token and memory digest/);
+  });
+
+  test("not-run providers are added per check, and only beside a machine another check names", () => {
+    const checks = { "security-probe": { run, entries: [{ provider: "boat", machine, status: "completed", reason: null, result: {} }] }, "state-survival": { run, entries: [] } };
+    addNotRun(checks, { check: "state-survival", provider: "boat", why: "our Boat account was busy with another benchmark run" });
+    assert.deepEqual(checks["state-survival"].entries, [{ provider: "boat", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null }]);
+    assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "boat", why: "x" }), /already in state-survival/);
+    assert.throws(() => addNotRun(checks, { check: "memory-pressure", provider: "boat", why: "x" }), /no --report for memory-pressure/);
+    assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "acme", why: "x" }), /no other check names its machine/);
+    const f = fixture();
+    f.checks["memory-pressure"].entries.push({ provider: "styne", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null } as never);
+    const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
+    assert.match(t, /Styne\s*: not run \(our Boat account was busy with another benchmark run\)/);
+    assert.doesNotMatch(t, /Styne\s*: no result/);
+  });
+
   test("results.json, results.md and llms.txt carry both checks", () => {
     const json = fairnessData(d);
     assert.equal(json.stateSurvival?.results.find((r) => r.provider === "freestyle")?.summary, "No verdict: no heartbeat count across the hold");
-    assert.equal(json.memoryPressure?.results.find((r) => r.provider === "modal")?.held, "at least 640 MiB (8% of 8 GiB)");
+    assert.equal(json.memoryPressure?.results.find((r) => r.provider === "modal")?.held, "at least 640 MiB (7% of 8 GiB)");
     assert.deepEqual(json.stateSurvival?.noResult.map((m) => m.provider), ["beam"]);
     const md = fairnessMarkdown(d).join("\n");
     assert.match(md, /## Survives a pause with memory intact/);
@@ -572,5 +618,11 @@ describe("state survival and memory pressure", () => {
     const llms = fairnessLlms(d);
     assert.match(llms, /Restart after a kill \(median, lowest first\):\n1\. Styne: 59 ms/);
     assert.match(llms, /Survives a pause, Beam: no result/);
+    for (const out of [md, llms, JSON.stringify(json)]) {
+      assert.match(out, /The pause and memory checks cover 8 providers so far/);
+      assert.doesNotMatch(out, /every provider's same-machine sandbox/);
+    }
+    assert.match(md + llms + JSON.stringify(json), /both processes confirmed gone with the file intact, where a changed boot ID alone is not enough/);
+    assert.doesNotMatch(md + llms + JSON.stringify(json), /processes gone or a new boot ID/);
   });
 });
