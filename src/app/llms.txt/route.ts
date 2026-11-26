@@ -1,5 +1,6 @@
 import { llmsTxt } from "@/lib/agent-data";
 import { providerName } from "@/lib/providers";
+import { useCasesMarkdown } from "@/lib/use-cases";
 import { alternativesPages, alternativesPath, comparePages, comparePath, forProvidersPath, providerPages, providerPath, providersPath } from "@/lib/seo/pages";
 
 export const dynamic = "force-static";
@@ -25,5 +26,5 @@ ${alternativesPages.map((id) => `- [${providerName(id)} alternatives](${alternat
 `;
 
 export function GET() {
-  return new Response(`${llmsTxt()}${pages}`, { headers: { "content-type": "text/plain; charset=utf-8" } });
+  return new Response(`${llmsTxt()}\n${useCasesMarkdown("##").join("\n")}${pages}`, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }
