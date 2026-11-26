@@ -135,6 +135,13 @@ export const advertised = {
     source: "https://buddy.works/docs/sandboxes/configuration.md",
     note: "Buddy's default is its 2x4 size: 2 vCPU and 4 GB of RAM, in decimal GB, so 3.73 GiB inside, and a 50 GB disk, of which 45.5 GiB is usable. On the same-machine track it ran its 4x8 size: 4 vCPU and 8 GB, 7.45 GiB inside, which is why it shows as machine differs there; Buddy has no 8 GiB size.",
   },
+  archil: {
+    vcpu: 1,
+    memoryGiB: 2,
+    diskGiB: null,
+    source: "https://docs.archil.com/api-reference/sandboxes/create-sandbox.md",
+    note: "Archil's default sandbox is 1 vCPU and 2048 MiB on its node:24-bookworm image; the 4 vCPU, 8 GB size is asked for as 4 vCPU and 8192 MiB. Archil has no disk setting: the root disk is about 1 TB and fixed.",
+  },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {
     vcpu: 1,

@@ -66,7 +66,18 @@ export interface RoundTrip {
   firstByteMs: number | null;
 }
 
+/**
+ * A provider whose rows come from its own batches instead of the file's
+ * `batchId`: the commit they ran on and the batch ids per location, in the
+ * file's location order.
+ */
+export interface ProviderBatches {
+  commit: string;
+  batches: readonly { region: RegionId; runs: readonly [string, ...string[]] }[];
+}
+
 export interface RegionalData {
+  /** The batch every row comes from, except a provider listed in `providerBatches`. */
   batchId: string;
   commit: string;
   track: TrackId;
@@ -80,6 +91,8 @@ export interface RegionalData {
   rtt: readonly RoundTrip[];
   /** Providers with at least one regional result, in the site's provider order. */
   providers: readonly ProviderId[];
+  /** Providers whose rows come from their own batches; empty when every row is from `batchId`. */
+  providerBatches: Partial<Record<ProviderId, ProviderBatches>>;
 }
 
 // A small hand-written parser: the site has no schema library, and this is its only untyped input.
@@ -208,6 +221,23 @@ export function parseRegional(raw: unknown): RegionalData {
     return [{ region, provider, tcpMs: nullable(nonNegative)(r.tcpMs, `rtt[${i}].tcpMs`), firstByteMs: nullable(nonNegative)(r.firstByteMs, `rtt[${i}].firstByteMs`) }];
   });
 
+  const providerBatches: Partial<Record<ProviderId, ProviderBatches>> = {};
+  for (const [provider, v] of Object.entries(nullable(obj)(root.providerBatches, "providerBatches") ?? {})) {
+    const path = `providerBatches.${provider}`;
+    const p = obj(v, path);
+    const commit = str(p.commit, `${path}.commit`);
+    const byRegion = obj(p.batches, `${path}.batches`);
+    for (const region of Object.keys(byRegion)) if (!known.has(region)) fail(`${path}.batches.${region}`, "a region listed in regions");
+    const batches = regions.flatMap((r) => {
+      if (!(r.id in byRegion)) return [];
+      const runs = arr(byRegion[r.id], `${path}.batches.${r.id}`).map((id, i) => str(id, `${path}.batches.${r.id}[${i}]`));
+      const [first, ...rest] = runs;
+      return first === undefined ? fail(`${path}.batches.${r.id}`, "a list of at least one batch id") : [{ region: r.id, runs: [first, ...rest] as const }];
+    });
+    if (batches.length === 0) fail(`${path}.batches`, "batch ids for at least one region");
+    if (isProviderId(provider)) providerBatches[provider] = { commit, batches };
+  }
+
   const measured = new Set<ProviderId>(rows.map((r) => r.provider));
   return {
     batchId: str(root.batchId, "batchId"),
@@ -221,10 +251,30 @@ export function parseRegional(raw: unknown): RegionalData {
     rows,
     rtt,
     providers: Object.keys(providerInfo).filter(isProviderId).filter((id) => measured.has(id)),
+    providerBatches,
   };
 }
 
 export const regional: RegionalData = parseRegional(regionalExport);
+
+/** Providers with their own batches, in the site's provider order. */
+export const ownBatchProviders = (data: Pick<RegionalData, "providerBatches">) => Object.keys(providerInfo).filter(isProviderId).filter((id) => data.providerBatches[id] !== undefined);
+
+const andList = (items: readonly string[]) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`);
+
+/**
+ * "commit 1f1de78: EU-Central sbxar-…-b1 and sbxar-…-b2; US-East …", the
+ * batches behind one provider's rows, all locations or one. Null when the
+ * provider has no batches of its own there.
+ */
+export function providerBatchesText(data: Pick<RegionalData, "providerBatches" | "regions">, provider: ProviderId, only?: RegionId): string | null {
+  const own = data.providerBatches[provider];
+  if (!own) return null;
+  const shown = own.batches.filter((b) => only === undefined || b.region === only);
+  if (shown.length === 0) return null;
+  const label = (id: RegionId) => data.regions.find((r) => r.id === id)?.label ?? id;
+  return `commit ${own.commit.slice(0, 7)}: ${shown.map((b) => `${label(b.region)} ${andList(b.runs)}`).join("; ")}`;
+}
 
 export const rowOf = (data: RegionalData, provider: ProviderId, metric: string) => data.rows.find((r) => r.provider === provider && r.metric === metric);
 

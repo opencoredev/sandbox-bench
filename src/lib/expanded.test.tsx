@@ -5,7 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import expandedFile from "@/data/expanded.json";
 import { ExpandedBenchmarks } from "@/components/expanded-benchmarks";
-import { expandedProviders, hasExpanded, parseExpanded } from "@/lib/expanded";
+import { expandedProviders, hasExpanded, ownRun, ownRunsText, parseExpanded } from "@/lib/expanded";
+import { agentData, agentMarkdown } from "@/lib/agent-data";
 import { formatShort, formatValue, unitName } from "@/lib/format";
 
 // The expanded benchmarks: parsing the sweep's export, ordering best first, units, and showing nothing until there are results. Run with `bun test`.
@@ -134,5 +135,77 @@ describe("section", () => {
     assert.match(sqlite, /No result for .*Modal/);
     assert.ok(html.includes("fresh random seed"));
     assert.ok(html.includes("5 runs per provider and test"));
+  });
+});
+
+// Modal's sqlite and spawn values come from its own two runs; everyone else's from the sweep's runId.
+const withOwnRuns = {
+  ...fixture,
+  providerRuns: {
+    modal: [
+      { id: "modal-run-a", startedAt: "2026-11-23T22:57:38.230Z", sdkCommit: "aaaaaaa", metrics: ["npm-build", "fs-create"] },
+      { id: "modal-run-b", startedAt: "2026-11-24T00:12:06.287Z", sdkCommit: "bbbbbbb", metrics: ["spawn"] },
+    ],
+    "not-a-provider": [{ id: "x", startedAt: "2026-11-24T00:00:00Z", sdkCommit: "c", metrics: ["spawn"] }],
+  },
+};
+
+describe("provider runs", () => {
+  test("an export without providerRuns parses as before, every value from the sweep", () => {
+    const e = parseExpanded(fixture);
+    assert.deepEqual(e.providerRuns, {});
+    assert.equal(ownRun(e, "e2b", "npm-build"), null);
+    assert.equal(ownRunsText(e, e.groups.flatMap((g) => g.metrics), "e2b"), null);
+  });
+
+  test("each of a provider's values is attributed to the run that produced it; unknown providers are dropped", () => {
+    const e = parseExpanded(withOwnRuns);
+    assert.deepEqual(Object.keys(e.providerRuns), ["modal"]);
+    assert.equal(ownRun(e, "modal", "npm-build")?.id, "modal-run-a");
+    assert.equal(ownRun(e, "modal", "spawn")?.id, "modal-run-b");
+    assert.equal(ownRun(e, "e2b", "spawn"), null, "a provider without its own runs stays on the sweep");
+    const runtime = e.groups.find((g) => g.category === "runtime")?.metrics ?? [];
+    assert.equal(ownRunsText(e, runtime, "modal"), "from its own run modal-run-b on Nov 24 (UTC), commit bbbbbbb, not expanded-2026-11-21T09-00-00-000Z");
+    const all = e.groups.flatMap((g) => g.metrics);
+    assert.equal(
+      ownRunsText(e, all, "modal"),
+      "from its own runs, not expanded-2026-11-21T09-00-00-000Z: Test spawn from run modal-run-b on Nov 24 (UTC), commit bbbbbbb; the rest from run modal-run-a on Nov 23 (UTC), commit aaaaaaa",
+    );
+  });
+
+  test("a provider run that misses, repeats or invents a test stops the build", () => {
+    const runs = (metrics: readonly string[][]) => ({
+      ...fixture,
+      providerRuns: { modal: metrics.map((m, i) => ({ id: `r${i}`, startedAt: "2026-11-23T00:00:00Z", sdkCommit: "c", metrics: m })) },
+    });
+    assert.throws(() => parseExpanded(runs([["npm-build", "fs-create"]])), /has a value in spawn but no run lists it/);
+    assert.throws(() => parseExpanded(runs([["npm-build", "fs-create", "spawn"], ["spawn"]])), /lists spawn in more than one run/);
+    assert.throws(() => parseExpanded(runs([["npm-build", "fs-create", "spawn", "gpu-test"]])), /lists gpu-test, which metrics does not have/);
+    assert.throws(() => parseExpanded({ ...fixture, providerRuns: { modal: [{ id: "r", startedAt: "soon", sdkCommit: "c", metrics: ["spawn"] }] } }), /not a date/);
+  });
+
+  test("the chart names a provider's own runs in the notes and its hover cards, and leaves other providers alone", () => {
+    const html = renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(withOwnRuns)} />);
+    assert.ok(html.includes("for every provider not named below"));
+    assert.match(html, /: from its own run modal-run-b on Nov 24 \(UTC\), commit bbbbbbb, not expanded-2026-11-21T09-00-00-000Z\./);
+    assert.match(html, /aria-label="Modal: Median [^"]*, Own run Nov 24 \(UTC\), commit bbbbbbb"/);
+    assert.doesNotMatch(html, /aria-label="E2B: [^"]*Own run/);
+    const plain = renderToStaticMarkup(<ExpandedBenchmarks data={parseExpanded(fixture)} />);
+    assert.doesNotMatch(plain, /Own run|not named below/);
+  });
+
+  test("the checked-in data credits Archil's runs: 23 tests from Nov 23 and stdout streaming from the Nov 24 rerun", () => {
+    const e = parseExpanded(expandedFile);
+    const runs = e.providerRuns.archil ?? [];
+    assert.deepEqual(runs.map((r) => [r.sdkCommit, r.metrics.length]), [["a9954ea", 23], ["de32eb5", 1]]);
+    assert.equal(ownRun(e, "archil", "runtime-stdout-stream")?.sdkCommit, "de32eb5");
+    const results = agentData().expandedBenchmarks;
+    assert.ok(results, "results.json has expanded benchmarks");
+    assert.deepEqual(Object.keys(results.providerRuns ?? {}), ["archil"]);
+    const tests = results.categories.flatMap((c) => c.tests);
+    const stream = tests.find((t) => t.id === "runtime-stdout-stream")?.values ?? [];
+    assert.equal(stream.find((v) => v.provider === "archil")?.run?.sdkCommit, "de32eb5");
+    assert.ok(stream.filter((v) => v.provider !== "archil").every((v) => v.run === undefined), "other providers carry no run field");
+    assert.match(agentMarkdown(), /Archil: from its own runs, not expanded-cloud-2026-11-21: stdout streaming from run expanded-2026-11-24T00-12-06-287Z \(rerun on SDK 1\.3\.1 after we fixed a bug in our Archil adapter\) on Nov 24 \(UTC\), commit de32eb5/);
   });
 });

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { detailText } from "@/components/hover-card";
 import { HoverCardOnDemand } from "@/components/hover-card-on-demand";
@@ -182,7 +182,7 @@ const Card = ({ column, action, className, style }: { column: Column; action: Ac
  * second way in for the pointer only, so keyboards and screen readers meet the
  * link once; under a bar that opens a breakdown, it is the page's own link.
  */
-function ColumnLabel({ column, still, own, bar }: { column: Column; still: boolean; own: boolean; bar: Action }) {
+function ColumnLabel({ column, still, own, bar, tag }: { column: Column; still: boolean; own: boolean; bar: Action; tag: boolean }) {
   const page = providerPageOf(pageId(column.provider));
   const content = (
     <>
@@ -222,7 +222,7 @@ function ColumnLabel({ column, still, own, bar }: { column: Column; still: boole
           {content}
         </span>
       )}
-      {column.tag ? <span aria-hidden className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
+      {tag && column.tag ? <span aria-hidden className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-7">{column.tag}</span> : null}
       {column.note ? <span aria-hidden className="mt-0.5 block text-xxs leading-tight text-balance text-neutral-8">{column.note}</span> : null}
     </span>
   );
@@ -233,7 +233,22 @@ function ColumnLabel({ column, still, own, bar }: { column: Column; still: boole
  * Analysis draws them: value on top, name underneath. Flat marks in the
  * provider's colour, rounded at the data end and square on the baseline.
  */
-function Vertical({ columns, max, still = false, linked = false, highlight }: { columns: readonly Column[]; max: number; still?: boolean; linked?: boolean; highlight?: ProviderId }) {
+function Vertical({
+  columns,
+  max,
+  still = false,
+  linked = false,
+  highlight,
+  tagNote,
+}: {
+  columns: readonly Column[];
+  max: number;
+  still?: boolean;
+  linked?: boolean;
+  highlight?: ProviderId;
+  /** Said under the chart in place of each column's tag (see Columns). */
+  tagNote?: ReactNode;
+}) {
   return (
     <>
       {/* A compact chart's names run diagonally to the left of their columns, so it leaves room on the left. */}
@@ -287,9 +302,10 @@ function Vertical({ columns, max, still = false, linked = false, highlight }: { 
       </div>
       <div className={`flex pt-2.5 ${still ? "ml-8 h-[104px]" : ""}`}>
         {columns.map((column) => (
-          <ColumnLabel key={column.provider} column={column} still={still} own={emphasis(column, highlight).own} bar={actionOf(column, still, linked)} />
+          <ColumnLabel key={column.provider} column={column} still={still} own={emphasis(column, highlight).own} bar={actionOf(column, still, linked)} tag={tagNote === undefined} />
         ))}
       </div>
+      {tagNote}
     </>
   );
 }
@@ -378,6 +394,7 @@ export function Columns({
   linked = false,
   highlight,
   max: fixedMax,
+  tagNote,
 }: {
   columns: readonly Column[];
   label: string;
@@ -388,20 +405,27 @@ export function Columns({
   highlight?: ProviderId;
   /** A fixed end for the axis, such as 100 for a percentage, instead of one fitted to the values. */
   max?: number;
+  /**
+   * Where set, the wide (column) view drops each column's tag from under its
+   * name and shows this note under the chart instead: a compact chart's names
+   * are slanted, and a tag under one crosses the next. The bar view keeps each
+   * tag beside its value. Unset, every chart draws as before.
+   */
+  tagNote?: ReactNode;
 }) {
   // A chart with extra CPU tier rows draws twice, each on its own scale, so hidden tiers never flatten the default view.
   if (columns.some((c) => isExtraTier(c.provider)))
     return (
       <>
         <div data-tier-view="one">
-          <Chart columns={columns.filter((c) => !isExtraTier(c.provider))} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} />
+          <Chart columns={columns.filter((c) => !isExtraTier(c.provider))} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} tagNote={tagNote} />
         </div>
         <div data-tier-view="all">
-          <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} />
+          <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} tagNote={tagNote} />
         </div>
       </>
     );
-  return <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} />;
+  return <Chart columns={columns} label={label} compact={compact} linked={linked} highlight={highlight} fixedMax={fixedMax} tagNote={tagNote} />;
 }
 
 function Chart({
@@ -411,6 +435,7 @@ function Chart({
   linked,
   highlight,
   fixedMax,
+  tagNote,
 }: {
   columns: readonly Column[];
   label: string;
@@ -418,6 +443,7 @@ function Chart({
   linked: boolean;
   highlight: ProviderId | undefined;
   fixedMax: number | undefined;
+  tagNote: ReactNode | undefined;
 }) {
   const max = fixedMax ?? axisMax(columns);
   const cut = columns.some((c) => total(c) > max);
@@ -430,7 +456,7 @@ function Chart({
         <Horizontal columns={columns} max={max} still={compact} linked={linked} highlight={highlight} />
       </div>
       <div className="hidden @min-[566px]:block">
-        <Vertical columns={columns} max={max} still={compact} linked={linked} highlight={highlight} />
+        <Vertical columns={columns} max={max} still={compact} linked={linked} highlight={highlight} tagNote={tagNote} />
       </div>
     </figure>
   );

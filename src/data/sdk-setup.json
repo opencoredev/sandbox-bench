@@ -20,7 +20,8 @@
     "maritime": 0.3,
     "styne": 0.2,
     "buddy": 0.3,
-    "microsandbox": 0.5
+    "microsandbox": 0.5,
+    "archil": 0.2
   },
   "runs": {
     "baseten": {
@@ -50,6 +51,11 @@
     "microsandbox": {
       "sdkCommit": "afdf664",
       "date": "Nov 25, 2026"
+    },
+    "archil": {
+      "sdkCommit": "1f1de78",
+      "date": "Nov 23, 2026",
+      "runId": "sbx57-mwtux8wi"
     }
   }
 }

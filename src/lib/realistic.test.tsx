@@ -433,22 +433,22 @@ describe("statuses and billing", () => {
   });
 
   test("tags use the cost charts' words: kind, then statuses, then qualifiers", () => {
-    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" as const }, eligible, flags, estimatedPart: null });
+    const row = (kind: "billed" | "metered" | "estimate", eligible: boolean, flags: string[]) => ({ provider: "upstash" as const, cost: { kind, usdPerCompleted: 1, wholeMachineUsdPerCompleted: null, wholeMachineBound: "exact" as const }, eligible, flags, estimatedPart: null });
     assert.equal(statusTag({ ...row("billed", true, []), estimatedPart: { usd: 0.1, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
     assert.equal(statusTag(row("billed", true, [])), "billed, verified");
     assert.equal(statusTag(row("metered", false, ["unsettled (5 attempts)", meter])), "metered, unsettled, unreconciled");
     assert.equal(statusTag(row("estimate", false, ["unverified estimate: x"])), "estimate");
     assert.equal(statusTag(row("metered", false, [meter, "wrong machine size: 15.6 GiB memory"])), "metered, unreconciled, wrong size");
-    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), r.estimatedPart ? /^compute (verified \((billed|metered), (settled|reconciled)\)|billed|metered).*; disk estimated/ : /^(billed|metered|estimate)\b/);
+    for (const r of realistic.rows.filter((x) => x.cost !== null)) assert.match(statusTag(r), r.estimatedPart ? /^compute (verified \((billed|metered|usage cost), (settled|reconciled)\)|billed|metered|usage cost).*; disk estimated/ : /^(billed|metered|estimate|usage cost)\b/);
   });
 
   test("held-open statuses read into the same words", () => {
     assert.deepEqual(holdStatuses("settled"), []);
     assert.deepEqual(holdStatuses("unsettled; metered, unreconciled (provisional)"), ["unsettled", "unreconciled"]);
-    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: null }), "billed, verified");
-    assert.equal(holdTag({ costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
-    assert.equal(holdTag({ costKind: "billed", statuses: ["unsettled"], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute billed, unsettled; disk estimated");
-    assert.equal(holdTag({ costKind: "metered", statuses: ["unreconciled"], estimatedPart: null }), "metered, unreconciled");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: [], estimatedPart: null }), "billed, verified");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: [], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute verified (billed, settled); disk estimated");
+    assert.equal(holdTag({ provider: "upstash", costKind: "billed", statuses: ["unsettled"], estimatedPart: { usd: 0.001, labels: ["disk at list price"] } }), "compute billed, unsettled; disk estimated");
+    assert.equal(holdTag({ provider: "upstash", costKind: "metered", statuses: ["unreconciled"], estimatedPart: null }), "metered, unreconciled");
     assert.equal(holdStatuses("refunded"), null);
   });
 
@@ -710,7 +710,7 @@ describe("exports", () => {
         assert.ok(w.pick.lowerNotCounted.every((r) => r.whyNotCounted.length > 0));
       }
     assert.ok(d.idle.providers.length > 0);
-    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute)\b.*, /);
+    for (const g of d.idle.providers) for (const w of g.waits) assert.match(w.status, /^(billed|metered|estimate|compute|usage cost)\b.*, /);
   });
 
   // The code review's finding: a share rounded to 3 decimals read 0.40% in the export against 0.42% on the page.
@@ -833,7 +833,7 @@ describe("final review", () => {
   test("the trace panel's cost carries its kind and status", () => {
     const priced = providersOf(tracks["same-spec"]).filter((p) => p.costText !== null);
     assert.ok(priced.length > 0);
-    for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate)/);
+    for (const p of priced) assert.match(p.costTag ?? "", /^(billed|metered|estimate|usage cost)/);
   });
 });
 
@@ -1038,7 +1038,8 @@ describe("page", () => {
     // behind Styne's 56s: the tile crowns Styne alone, and the three behind it still tie.
     const timed = taskTimes(tracks["same-spec"], "fix-and-test").timed.map((t) => ({ provider: t.provider, seconds: t.medianWallS }));
     assert.deepEqual(leaders(timed), { provider: "styne", tied: [], value: "56s" });
-    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne")), { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
+    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne")), { provider: "archil", tied: [], value: "64s" });
+    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne" && t.provider !== "archil")), { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     const fix = html.slice(html.indexOf("Fastest fix and test"), html.indexOf("Fastest build"));
     assert.match(fix, /56s/);

@@ -122,6 +122,57 @@ const estimateSources: Partial<Record<ProviderId, { tag: string; why: string }>>
   },
 };
 
+/**
+ * Why a billed cost is unsettled, when the general reason (the provider
+ * hasn't settled it) would be wrong. Applies only while the export says
+ * unsettled, so a settled re-run drops it on its own.
+ */
+const unsettledWhy: Partial<Record<ProviderId, string>> = {
+  archil:
+    "Archil drops a deleted sandbox's metadata record (its status and end time) within about half an hour, so we can't read the end time back to confirm the charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run",
+};
+
+/**
+ * Billed figures that are the provider's own reported usage cost, read per
+ * sandbox, not a charge from its bill. Wherever the figure is labelled it says
+ * so instead of "bill". Applies only to a billed export, so a cost read from a
+ * real bill later is labelled as billed again.
+ */
+const usageCostSources: Partial<Record<ProviderId, string>> = {
+  archil: "Archil's per-sandbox usage API",
+};
+
+export const isUsageCost = (id: ProviderId, c: Pick<Priced, "kind">) => c.kind === "billed" && usageCostSources[id] !== undefined;
+
+/**
+ * The value of `origin` on a usage cost in results.json: the amount comes from
+ * the provider's per-sandbox usage API, not its bill. `kind` stays "billed"
+ * there so existing readers keep working; `origin` is what tells them apart.
+ */
+export const usageCostOrigin = "usage-api";
+
+/** `{ origin: "usage-api" }` for a usage cost, nothing for any other cost, so other providers' exports are unchanged. */
+export const usageCostField = (id: ProviderId, c: Pick<Priced, "kind">) => (isUsageCost(id, c) ? { origin: usageCostOrigin } : {});
+
+/**
+ * What `origin: "usage-api"` means, for the exports' reading notes, naming the
+ * providers it applies to; null when none of `ids` has a usage cost.
+ */
+export function usageCostNote(ids: readonly ProviderId[]) {
+  const names = [...new Set(ids)].filter((id) => usageCostSources[id] !== undefined).map(providerName);
+  if (names.length === 0) return null;
+  return `\`origin: "${usageCostOrigin}"\` marks a usage cost (${names.join(", ")}): the amount the provider's per-sandbox usage API reports, not a charge from its bill. Its \`kind\` stays \`billed\` so existing readers keep working; read it as a usage cost, and as unsettled while its status says so.`;
+}
+
+/** "Billed", or "Usage cost" where a billed figure is the provider's reported usage cost. */
+export const costLabel = (id: ProviderId, c: Pick<Priced, "kind">) => (isUsageCost(id, c) ? "Usage cost" : costKinds[c.kind].label);
+
+/** Where a cost came from, in a phrase: "from its bill", or "from the usage cost Archil's per-sandbox usage API reports". */
+export const costSourceText = (id: ProviderId, c: Pick<Priced, "kind">) => {
+  const api = usageCostSources[id];
+  return api !== undefined && c.kind === "billed" ? `from the usage cost ${api} reports` : costKinds[c.kind].source;
+};
+
 /** Where a cost sits in the table above. A lower bound is checked first: no other status makes it comparable. */
 export function costStatus(id: ProviderId, c: Priced): CostStatus {
   if (isLowerBound(c))
@@ -132,7 +183,7 @@ export function costStatus(id: ProviderId, c: Priced): CostStatus {
     case "estimate":
       return { kind: "estimate", why: estimateSources[id]?.why ?? "our measured time at list price, not the provider's bill or meter" };
     case "billed":
-      return c.settled ? { kind: "verified" } : { kind: "unsettled", why: `${providerName(id)} has not settled this charge yet, so it can still change` };
+      return c.settled ? { kind: "verified" } : { kind: "unsettled", why: unsettledWhy[id] ?? `${providerName(id)} has not settled this charge yet, so it can still change` };
     case "metered":
       return { kind: "unreconciled", why: `${providerName(id)}'s usage records at its published rates haven't been checked against the charges it settled yet` };
     default: {
@@ -146,18 +197,40 @@ export const isEligible = (s: CostStatus) => costStatuses[s.kind].eligible;
 
 /**
  * "metered, unreconciled" or "billed, unsettled, provisional": a cost's kind
- * and every status it carries, in the eligibility table's words. An estimate
+ * and every status it carries, in the eligibility table's words. A
+ * provider-reported usage cost (Archil's) says "usage cost" for its kind. An estimate
  * is both a kind and a status, so it is said once. Shared by every chart and
  * export that labels a cost.
  */
-export function kindStatusText(kind: PricedKind, statuses: readonly CostStatusKind[]) {
+export function kindStatusText({ id, kind, statuses }: { id: ProviderId; kind: PricedKind; statuses: readonly CostStatusKind[] }) {
   const rest = [...new Set(statuses)].filter((k) => !(kind === "estimate" && k === "estimate"));
-  return [costKinds[kind].label, ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
+  return [costLabel(id, { kind }), ...rest.map((k) => costStatuses[k].label)].map((w) => w.toLowerCase()).join(", ");
 }
 
-/** "metered" or "estimate, lower bound": how a cost was priced, for labels beside a number. Whether it was checked against a bill isn't said. */
-export const costTag = (id: ProviderId, c: Priced, s: CostStatus) =>
-  s.kind === "estimate" ? (estimateSources[id]?.tag ?? "estimate") : s.kind === "lowerBound" ? kindStatusText(c.kind, [s.kind]) : costKinds[c.kind].label.toLowerCase();
+/**
+ * "metered", "estimate, lower bound" or "usage cost, unsettled": how a cost
+ * was priced, for labels beside a number. Whether it was checked against a
+ * bill isn't said, except that an unsettled amount says so.
+ */
+export function costTag(id: ProviderId, c: Priced, s: CostStatus) {
+  switch (s.kind) {
+    case "estimate":
+      return estimateSources[id]?.tag ?? "estimate";
+    case "lowerBound":
+      return kindStatusText({ id, kind: c.kind, statuses: [s.kind] });
+    case "unsettled":
+      // A provider-reported usage cost (Archil's) says beside the amount that it isn't settled, so
+      // it can't be read as a bill. Other providers' labels are unchanged.
+      return isUsageCost(id, c)
+        ? `${costLabel(id, c).toLowerCase()}, ${costStatuses.unsettled.label.toLowerCase()}`
+        : costLabel(id, c).toLowerCase();
+    default:
+      return costLabel(id, c).toLowerCase();
+  }
+}
+
+/** "usage cost, unsettled" beside a usage cost's amount on the cost charts and tables; null for every other provider, whose cells show the amount alone. */
+export const usageCostTag = (id: ProviderId, c: Priced, s: CostStatus) => (isUsageCost(id, c) ? costTag(id, c, s) : null);
 
 /** A provider's cost per task on a track, as every chart, page and export reads it. */
 export function taskCostOf(track: Pick<Track, "costs">, id: ProviderId): TaskCost | undefined {
@@ -236,6 +309,12 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     kind: "unconfirmed",
     evidence:
       "beam.cloud/pricing (checked Nov 20, 2026): the Spot tier bills $0.0063 per vCPU-hour and $0.00135 per GiB of RAM per hour, per millisecond while running, on spare capacity Beam can take back with 30 seconds' notice; disk not billed. No per-sandbox billing data we can read, so our data doesn't say whether the rates apply to the allocation or to use.",
+  },
+  archil: {
+    kind: "machine",
+    label: "bills the whole machine while it runs, not while it is paused or stopped",
+    evidence:
+      "docs.archil.com/administration/billing.md (checked Nov 21, 2026): compute bills the vCPUs and memory a running sandbox is allocated, sampled each minute, at $0.055 per vCPU-hour and $0.020 per GiB-hour; paused and stopped sandboxes accrue no compute. Its per-sandbox usage API reports those hours. Data on the root disk is billed as storage ($0.20 per GiB-month active) and egress at $0.07 per GB; neither is priced here. No per-start fee is stated. Plan minimums and credits are left out.",
   },
   maritime: {
     kind: "machine",
@@ -472,12 +551,39 @@ export const unpricedTasks = (track: Track) =>
   });
 
 /** One line on where a cost came from, for hover cards and agent files. */
-export const costBasis = (c: Priced) =>
-  `${costKinds[c.kind].label} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}${isLowerBound(c) ? ", a lower bound" : ""}`;
+export const costBasis = (id: ProviderId, c: Priced) =>
+  `${costLabel(id, c)} over ${c.n} ${c.n === 1 ? "task" : "tasks"}${c.confidence ? `, ${c.confidence} confidence` : ""}${isLowerBound(c) ? ", a lower bound" : ""}`;
 
 /** The second line of a hover card: what the amount is, without jargon. */
-export const costSource = (id: ProviderId, c: Priced) =>
-  `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}`;
+export function costSource(id: ProviderId, c: Priced) {
+  const from = isUsageCost(id, c)
+    ? `From the usage cost ${usageCostSources[id]} reports`
+    : `From ${providerName(id)}'s ${c.kind === "billed" ? "bill" : c.kind === "metered" ? "usage record" : "list price"}`;
+  const unsettled = isUsageCost(id, c) && costStatus(id, c).kind === "unsettled" ? ", unsettled" : "";
+  return `${from}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}${unsettled}`;
+}
+
+/**
+ * Why a provider's cost comes from a rerun of the cost suite, keyed by the
+ * rerun's id. A note shows only while the track's exclusions record the cost
+ * suite replaced from that run, so a later cost run drops it on its own.
+ */
+const costReruns: Partial<Record<ProviderId, { run: string; why: string }>> = {
+  archil: {
+    run: "sbxar-default-cost-r2",
+    why: "its cost comes from a second cost run on Nov 23, because one task in the first timed out after 180 s and cost per task needs all 10 tasks. The first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included",
+  },
+};
+
+/** The rerun notes for providers priced on this track, for the notes under its cost chart and the agent files. */
+export function costRerunNotes(track: Track) {
+  return pricedTasks(track).flatMap(({ id }) => {
+    const rerun = costReruns[id];
+    if (!rerun) return [];
+    const replaced = track.exclusions[id]?.replacements.some((r) => r.suite === "cost" && r.sourceRunIds.includes(rerun.run)) ?? false;
+    return replaced ? [{ id, why: rerun.why }] : [];
+  });
+}
 
 /** Providers whose figure is not straight from a bill, grouped by how it was priced, for the one note under a cost chart. */
 export function notFromBill(track: Track) {

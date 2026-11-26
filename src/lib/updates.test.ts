@@ -52,11 +52,14 @@ describe("Buddy's update", () => {
 
 describe("Buddy's update ranks", () => {
   // Every rank and denominator in the post, read back from the same standings the provider page shows, as the
-  // field stood on Nov 25 when the post went out: Microsandbox, added after it, is taken back out of each standing.
+  // field stood on Nov 25 when the post went out: Microsandbox and Archil, added after it, are taken back out of each standing.
   type Place = { rank: number; of: number };
   const placeText = (p: Place) => `${ordinal(p.rank)} of ${p.of}`;
-  const withoutLater = (buddy: Place, later: Place | null): Place => (later === null ? buddy : { rank: buddy.rank - (later.rank < buddy.rank ? 1 : 0), of: buddy.of - 1 });
-  const standing = (provider: "buddy" | "microsandbox", track: TrackId, id: string) => {
+  const withoutLater = (buddy: Place, ...later: (Place | null)[]): Place => {
+    const present = later.filter((l): l is Place => l !== null);
+    return { rank: buddy.rank - present.filter((l) => l.rank < buddy.rank).length, of: buddy.of - present.length };
+  };
+  const standing = (provider: "buddy" | "microsandbox" | "archil", track: TrackId, id: string) => {
     const t = providerResults(provider).tracks.find((x) => x.id === track);
     const s = t?.groups.flatMap((g) => g.rows).find((r) => r.id === id)?.standing;
     return s?.kind === "ranked" ? s : null;
@@ -64,9 +67,10 @@ describe("Buddy's update ranks", () => {
   const metric = (track: TrackId, id: string) => {
     const s = standing("buddy", track, id);
     assert.ok(s, `${track} ${id} is ranked`);
-    return withoutLater(s, standing("microsandbox", track, id));
+    return withoutLater(s, standing("microsandbox", track, id), standing("archil", track, id));
   };
-  const placedThen = (p: Place, later: { kind: string; rank?: number; of?: number }) => withoutLater(p, later.kind === "ranked" && later.rank !== undefined && later.of !== undefined ? { rank: later.rank, of: later.of } : null);
+  const placeOf = (later: { kind: string; rank?: number; of?: number }) => (later.kind === "ranked" && later.rank !== undefined && later.of !== undefined ? { rank: later.rank, of: later.of } : null);
+  const placedThen = (p: Place, ...later: { kind: string; rank?: number; of?: number }[]) => withoutLater(p, ...later.map(placeOf));
   const slowest = (track: TrackId, id: string) => {
     const s = metric(track, id);
     assert.equal(s.rank, s.of, `${track} ${id} is the slowest`);
@@ -88,11 +92,11 @@ describe("Buddy's update ranks", () => {
     const def = realTaskTime("default", "buddy", "fix-and-test");
     const same = realTaskTime("same-spec", "buddy", "fix-and-test");
     assert.ok(def.kind === "ranked" && same.kind === "ranked");
-    assert.ok(body.includes(`in 134 s (${placeText(placedThen(def, realTaskTime("default", "microsandbox", "fix-and-test")))}) and 96 s (${placeText(placedThen(same, realTaskTime("same-spec", "microsandbox", "fix-and-test")))})`));
-    const reliabilityOf = (provider: "buddy" | "microsandbox") => scorecard("default", provider).find((e) => e.category.id === "reliability")?.rank ?? null;
+    assert.ok(body.includes(`in 134 s (${placeText(placedThen(def, realTaskTime("default", "microsandbox", "fix-and-test"), realTaskTime("default", "archil", "fix-and-test")))}) and 96 s (${placeText(placedThen(same, realTaskTime("same-spec", "microsandbox", "fix-and-test"), realTaskTime("same-spec", "archil", "fix-and-test")))})`));
+    const reliabilityOf = (provider: "buddy" | "microsandbox" | "archil") => scorecard("default", provider).find((e) => e.category.id === "reliability")?.rank ?? null;
     const live = reliabilityOf("buddy");
     assert.ok(live);
-    const reliability = withoutLater(live, reliabilityOf("microsandbox"));
+    const reliability = withoutLater(live, reliabilityOf("microsandbox"), reliabilityOf("archil"));
     assert.ok(reliability.rank === reliability.of);
     assert.ok(body.includes(`That leaves Buddy last of ${reliability.of} in the default machine's Reliability column`));
     assert.ok(body.includes("never picked as Cheapest"));

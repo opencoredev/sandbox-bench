@@ -28,7 +28,7 @@ import { expanded } from "@/lib/expanded-data";
 import { hasStress } from "@/lib/stress";
 import { realtaskBurst } from "@/lib/realtask-burst-data";
 import { latestUpdates, updateDay } from "@/lib/updates";
-import { ChartHead, ComingNext, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
+import { ChartHead, ComingNext, CompactNotes, Footnotes, MetricChart, Who, sentence, trackFootnotes } from "@/components/metric-chart";
 import type { Notes } from "@/components/metric-chart";
 import { PauseChart, PausePart, hasPauseSplit } from "@/components/pause-chart";
 import { Reliability } from "@/components/reliability";
@@ -54,7 +54,7 @@ import { TraceWaterfall } from "@/components/trace-waterfall";
 import { PrivateCtaLabel } from "@/components/private-cta-label";
 import { SectionViews } from "@/components/section-views";
 import { excludedFor, notRun, notRunText } from "@/lib/agent-data";
-import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote } from "@/lib/cost";
+import { TASKS_PER_PRICE, costSource, hasTaskCosts, isLowerBound, pricedTasks, qualify, regionNote, usageCostTag } from "@/lib/cost";
 import { allProviders, hasResults, isPreview, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideSentence } from "@/lib/exclusions";
 import type { Provider, Track } from "@/lib/data";
@@ -67,6 +67,7 @@ import type { ProviderId } from "@/lib/providers";
 import { realistic } from "@/lib/realistic-data";
 import { advertised, measuredMemoryText } from "@/lib/sizes";
 import { ctaAttributes } from "@/lib/cta";
+import { sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
 
 // Reference: Artificial Analysis for structure (a floating header with the logo
 // and one bar of section links, a hero with the title on the left and a short
@@ -85,6 +86,15 @@ import { ctaAttributes } from "@/lib/cta";
 // Each entry: section id, nav label, and the tab a click opens, so "Start-up" lands on the cold start chart.
 // Speed first, in the order an agent meets it, then cost, then what explains the numbers.
 // Scores sit right under the title, so they have no item: one more would push the bar past 1440 px.
+/** " Archil's comes from its own run, sbx57-mwtux8wi (commit 1f1de78, Nov 23, 2026).", for each provider whose SDK setup figure has its own run; empty otherwise. */
+const ownSetupRuns = () =>
+  sdkSetupRunProviders
+    .flatMap((id) => {
+      const r = sdkSetupRuns[id];
+      return r ? [` ${providerName(id)}'s comes from its own ${sdkSetupRunText(r)}.`] : [];
+    })
+    .join("");
+
 const sections = [
   ["startup", "Start-up", "cold"],
   ["real-tasks", "Real tasks", "fix-and-test"],
@@ -223,11 +233,13 @@ function CostQuadrant({ track }: { track: Track }) {
   const replay = track.metric("tool-replay");
   // A lower bound has no place on a cost axis: the charge could sit anywhere above it.
   const bounded = pricedTasks(track).filter((t) => isLowerBound(t.cost));
-  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost }) => {
+  const points: ScatterPoint[] = pricedTasks(track).flatMap(({ id, cost, status }) => {
     if (isLowerBound(cost)) return [];
     const t = replay.values.find((v) => v.provider === id)?.p50 ?? null;
     const m = track.providers.find((p) => p.id === id)?.measuredAllocations[0];
-    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])] }];
+    // Only a provider-reported usage cost (Archil's) carries a tag; every other dot is as before.
+    const tag = usageCostTag(id, cost, status);
+    return t === null ? [] : [{ provider: id, x: t, y: cost.usd, detail: [costSource(id, cost), ...(m ? [`Ran on ${m.cpu} vCPU`] : [])], ...(tag === null ? {} : { tag }) }];
   });
   const machine = allocationNotes(track);
   const xs = points.map((p) => p.x);
@@ -258,6 +270,8 @@ function CostQuadrant({ track }: { track: Track }) {
         xTitle="Median time for 100 tool calls, seconds (log scale)"
         yTitle="Cost per 1,000 tasks (USD)"
       />
+      {/* Shown under the plot, not in the notes: "Archil: usage cost, unsettled." Nothing for a plot without a usage cost. */}
+      <CompactNotes items={points.flatMap((p) => (p.tag === undefined ? [] : [{ mark: undefined, id: p.provider, note: p.tag }]))} />
       <Footnotes
         items={[
           { text: "Time is the median from the main tests. Cost is from the separate cost run. Hover or focus a dot for its numbers." },
@@ -521,24 +535,24 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Cold start",
     line: "Timed from create() until a first command runs: the provider's own time.",
-    more: "The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. On the faster SDK it takes about 0.2 ms; the waterfall shows it beside each provider's time, from a separate run of 20 creates per provider.",
+    more: `The command is a bare true. Our SDK's setup after that point was never part of cold start or bursts. On the faster SDK it takes about 0.2 ms; the waterfall shows it beside each provider's time, from a separate run of 20 creates per provider.${ownSetupRuns()}`,
   },
   {
     term: "Runs",
     line: "100 runs per quick test, 30 per agent or snapshot test, and medians inside each other's 95% intervals count as tied.",
-    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Styne joined on Nov 23: every Styne result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots and bursts included, comes from its own runs, all on SDK commit a5c99d2 (benchmark harness 1e5683a on the default machine, 5afd423 on 4 vCPU). Microsandbox and its Shared CPU tier joined on Nov 25 UTC: every Microsandbox result, snapshots, bursts, SDK setup and the real tasks included, comes from their own runs, all on SDK commit 2248e8a with the benchmark harness at commit afdf664; Standard's 4 vCPU quick-task cost is from a rerun of the cost test that day. Buddy allows 5,000 API requests an hour per route, so its runs were spread across UTC hours: its 4 vCPU main tests ran as two halves of 50 and its 4 vCPU bursts of 25 one an hour. Runs that went past that limit, and a first 4 vCPU snapshot run that restored at the default size, are replaced; those charts say so. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
+    more: "Bursts run 3 times per size, each timed until every sandbox in it runs a command, and a size is published only when all three finished. Every chart, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278). Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them; that chart says so. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten joined later: its results come from its own runs on Nov 12 and 13 and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox joined on Nov 18: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit 6074f7b), each burst of 10 and 25 started a minute apart to stay inside Instabox's start rate (50 a minute on its Builder plan). Beam joined on Nov 18: its results come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots and bursts included, comes from its own runs (commit 619307b), each burst of 10 and 25 started a minute apart to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing, after a first run that sent them too fast; those charts say so. Styne joined on Nov 23: every Styne result, pause and resume, snapshots and bursts included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots and bursts included, comes from its own runs, all on SDK commit a5c99d2 (benchmark harness 1e5683a on the default machine, 5afd423 on 4 vCPU). Microsandbox and its Shared CPU tier joined on Nov 25 UTC: every Microsandbox result, snapshots, bursts, SDK setup and the real tasks included, comes from their own runs, all on SDK commit 2248e8a with the benchmark harness at commit afdf664; Standard's 4 vCPU quick-task cost is from a rerun of the cost test that day. Buddy allows 5,000 API requests an hour per route, so its runs were spread across UTC hours: its 4 vCPU main tests ran as two halves of 50 and its 4 vCPU bursts of 25 one an hour. Runs that went past that limit, and a first 4 vCPU snapshot run that restored at the default size, are replaced; those charts say so. Archil joined on Nov 23: its results, cost, By location (Frankfurt and Florida) and SDK setup included, come from its own runs that day (commit 1f1de78), through its official SDK, the disk npm package. Its default-machine cost comes from a second cost run that day, because one task in the first timed out after 180 s and cost per task needs all 10 tasks; the first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included. Its stress and expanded tests ran the same day on our stress harness (commit a9954ea). Its output streaming test ran again on Nov 24 (UTC) on SDK 1.3.1 (commit de32eb5): on 1.3.0 it failed because of a bug in our Archil adapter, since fixed. Its snapshot tests did not run, because our Archil adapter has no snapshots. Each chart shows its attempt count. Download speed is left out because the test host rate-limited several providers.",
   },
   {
     term: "Cost",
     line: "One task per sandbox, up to 10 per provider, priced from each provider's bill wherever it gives one.",
-    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox, Maritime and Microsandbox give a usage record, priced at their published rates. Freestyle, Luxor, Baseten, Beam, Styne and Buddy use our measured time at their list prices, Buddy's per started minute. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
+    more: "Both Upstash products, Superserve and Daytona give a per-sandbox charge. E2B, boxd, Instabox, Maritime and Microsandbox give a usage record, priced at their published rates. Archil's per-sandbox usage API reports a usage cost at its published rates, not yet settled. Freestyle, Luxor, Baseten, Beam, Styne and Buddy use our measured time at their list prices, Buddy's per started minute. Boat's cost is its usage at list price. Cheapest requires a provider bill or usage meter: it is the lowest exact billed or metered cost, and list-price estimates are shown on the chart but not picked. Credits and tax are left out. The main test sandboxes are not priced, because providers ran different mixes of tests in them.",
   },
   {
     term: "Failures",
-    line: "Only failures the provider caused count against it; ones caused by us are set aside.",
+    line: "A failure counts against the provider unless we classified that attempt as ours or the test's own policy excludes it; a failure whose cause is unconfirmed still counts.",
     more: (
       <>
-        That includes failures we can&apos;t pin on either side, such as our SDK timing out while waiting. Attempts blocked by our own plan limits were rerun. Set aside:
+        The list below gives each provider&apos;s set-aside attempts as a summary; a single attempt inside one test can also be set aside on that test&apos;s row, and a test&apos;s policy can exclude attempts, such as the TCP connect probe where a provider blocks its target. A similar timeout elsewhere can still count when we couldn&apos;t trace it to our side. Attempts blocked by our own plan limits were rerun. Set aside, by provider:
         <SetAside />
       </>
     ),
@@ -546,7 +560,7 @@ const methodRows: readonly { term: string; line: ReactNode; more: ReactNode }[] 
   {
     term: "Plan limits",
     line: "We used self-serve accounts, and a chart names any limit that changed its result.",
-    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads; our Beam account's 30 vCPU quota keeps its Same machine bursts from running. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. We will add results if a paid plan or quota increase lifts these.",
+    more: "Superserve raised our template limit, so it now runs Same machine at 4 vCPU. Boat raised our plan from 200 to 1,680 creates a day, so it now runs the full suite, bursts of 25 included. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so it runs Same machine and bursts of 25. Instabox ran on its Builder plan. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads; our Beam account's 30 vCPU quota keeps its Same machine bursts from running. Archil's network policy needs a paid plan. A paused Archil sandbox stays asleep until it is resumed, and a lifetime (timeoutMs) on Archil pauses it and can't be combined with public previews. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. We will add results if a paid plan or quota increase lifts these.",
   },
   {
     term: "Rows",
@@ -928,7 +942,7 @@ export default function Page() {
           </Section>
         ) : null}
 
-        <Section id="reliability" title="Reliability" lede="How often each provider failed, and why. Only failures the provider caused are counted; Method lists the ones we set aside.">
+        <Section id="reliability" title="Reliability" lede="How often each provider failed in the tests the chart counts, and why. In those tests a failure counts unless we classified that attempt as ours or the test's policy excludes it, even when its cause is unconfirmed; Method summarises the ones set aside. The failure details also show failures from probes the chart leaves out, such as the TCP connect probe.">
           <PerTrack>
             {(track) => (
               <Card>

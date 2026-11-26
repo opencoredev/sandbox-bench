@@ -34,6 +34,8 @@
  *     --parts scripts/realistic-parts/sbx-microsandbox-standard.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/shared/summary.json \
  *     --parts scripts/realistic-parts/sbx-microsandbox-shared.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-archil/summary.json \
+ *     --parts scripts/realistic-parts/sbx-archil.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
  *
