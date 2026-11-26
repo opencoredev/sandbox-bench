@@ -7,12 +7,14 @@
  *   bun scripts/sustained-cpu-site-data.ts \
  *     --report ~/agents/sustained-cpu-1125/sustained15m-20261125/sustained-cpu.json \
  *     --add ~/agents/sustained-cpu-1125/sustained15m-maritime-20261125/sustained-cpu.json \
+ *     --add ~/agents/rerun-archil-20261126/sustained15m-archil-20261126/sustained-cpu.json \
  *     --not-run baseten="our API key was rejected" \
  *     --out src/data/sustained-cpu.json
  *
  * The published file is the Nov 25 run at sandbox-sdk 072122c (15 providers),
  * with Maritime added from its own run that day at 27f304a (the same runner
- * code), and Baseten marked not run: our key was rejected before a sandbox started.
+ * code), Archil added from its own run on Nov 26 at 28ac0a4, and Baseten marked
+ * not run: our key was rejected before a sandbox started.
  *
  * What it changes on the way:
  * - The harness's points become the site's segments: a segment starts at its
