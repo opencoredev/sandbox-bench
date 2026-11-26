@@ -937,10 +937,9 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time. Shown on the chart, not picked as Cheapest.` }] : []),
     ...partial.flatMap((id) => partialEstimateLines([id]).map((text) => ({ lead: `${providerName(id)} estimate`, text: `${text} Shown on the chart, not picked as Cheapest.` }))),
-    ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time.` }] : []),
     ...computeAndMemoryOnlyIn(costed).map(({ id, source }) => ({
       lead: providerName(id),
-      text: `Its headline and held-open figures cover compute and memory only, ${source}. Disk storage and egress are not included, and no storage estimate is added.`,
+      text: `An exception to what a cost includes: its headline and held-open figures cover compute and memory only, ${source}. Disk storage and egress are not included, and no storage estimate is added.`,
     })),
     {
       lead: "Not counted",
@@ -980,9 +979,8 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time; list-price estimates are shown but not picked as cheapest.` : "",
     ...partialEstimateLines(partial),
-    estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time.` : "",
     ...computeAndMemoryOnlyIn(costed).map(
-      ({ id, source }) => `${providerName(id)}'s headline and held-open figures cover compute and memory only, ${source}; disk storage and egress are not included, and no storage estimate is added.`,
+      ({ id, source }) => `An exception to that scope: ${providerName(id)}'s headline and held-open figures cover compute and memory only, ${source}; disk storage and egress are not included, and no storage estimate is added.`,
     ),
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`

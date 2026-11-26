@@ -455,7 +455,7 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "Swap is compressed memory (zram), about half the RAM.",
       "No DMI, so the memory type is inferred from the chip. It runs as root, with no sudo.",
     ],
-    sameSpec: "The 4 vCPU, 8 GB size ran on the same CPU type with the same disk and outbound region, with about 7.8 GiB of memory visible.",
+    sameSpec: "The 4 vCPU, 8 GiB size ran on the same CPU type with the same disk and outbound region, with about 7.8 GiB of memory visible.",
   },
 };
 

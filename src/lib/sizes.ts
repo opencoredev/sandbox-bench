@@ -140,7 +140,7 @@ export const advertised = {
     memoryGiB: 2,
     diskGiB: null,
     source: "https://docs.archil.com/api-reference/sandboxes/create-sandbox.md",
-    note: "Archil's default sandbox is 1 vCPU and 2048 MiB on its node:24-bookworm image; the 4 vCPU, 8 GB size is asked for as 4 vCPU and 8192 MiB. Archil has no disk setting: the root disk is about 1 TB and fixed.",
+    note: "Archil's default sandbox is 1 vCPU and 2048 MiB on its node:24-bookworm image; the 4 vCPU, 8 GiB size is asked for as 4 vCPU and 8192 MiB. Archil has no disk setting: the root disk is about 1 TB and fixed.",
   },
   // Beam's CPU tiers ran on Same machine only, where every size is asked for; the default size is Beam's.
   "beam-shared": {

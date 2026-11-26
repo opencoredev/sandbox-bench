@@ -180,7 +180,7 @@ describe("item 4: realistic cost labels say usage cost for Archil", () => {
 // Both are said for Archil only.
 
 const archilScope =
-  "Archil's headline and held-open figures cover compute and memory only, the charges its usage API reports; disk storage and egress are not included, and no storage estimate is added.";
+  "An exception to that scope: Archil's headline and held-open figures cover compute and memory only, the charges its usage API reports; disk storage and egress are not included, and no storage estimate is added.";
 const withoutArchil = { rows: realistic.rows.filter((r) => r.provider !== "archil") };
 
 describe("item 3: the realistic cost scope says Archil's figures cover compute and memory only", () => {
@@ -189,13 +189,18 @@ describe("item 3: the realistic cost scope says Archil's figures cover compute a
     assert.ok(line.includes(` ${archilScope} `), line);
     assert.equal(line.replace(` ${archilScope}`, ""), scopeLine(withoutArchil));
     assert.doesNotMatch(scopeLine(withoutArchil), /Archil|compute and memory only/);
+    assert.equal(line.split("over the billed time").length - 1, 1, line);
+  });
+
+  test("the chart notes give the list-price estimate note once", () => {
+    assert.equal(scopeNotes(realistic).filter((n) => n.lead === "List-price estimates").length, 1);
   });
 
   test("the chart notes add one Archil note, and are otherwise the notes the other providers' data gives", () => {
     const notes = scopeNotes(realistic);
     const archil = notes.filter((n) => n.lead === "Archil");
     assert.deepEqual(archil, [
-      { lead: "Archil", text: "Its headline and held-open figures cover compute and memory only, the charges its usage API reports. Disk storage and egress are not included, and no storage estimate is added." },
+      { lead: "Archil", text: "An exception to what a cost includes: its headline and held-open figures cover compute and memory only, the charges its usage API reports. Disk storage and egress are not included, and no storage estimate is added." },
     ]);
     assert.deepEqual(
       notes.filter((n) => n.lead !== "Archil"),

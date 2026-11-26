@@ -380,7 +380,7 @@ describe("Buddy's provider page", () => {
   test("Buddy default allocation exports and disk chart helpers keep decimal GB and binary GiB distinct", () => {
     const data = agentData();
     assert.match(data.about, /4 vCPU, 8 GiB machine \(nearest size where a provider has no exact match/);
-    assert.match(data.about, /every provider-side failure in the published runs kept.*replaced earlier runs disclosed/);
+    assert.match(data.about, /every failure in the published runs counted unless we classified that attempt as ours or a test's own policy excludes it, one whose cause is unconfirmed included.*replaced earlier runs disclosed/);
     assert.match(data.whatATaskCosts.howToRead, /on the same-machine track, 4 vCPU and 8 GiB/);
     const defBuddy = data.tracks.default.providers.find((p) => p.id === "buddy");
     assert.ok(defBuddy);
