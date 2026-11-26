@@ -7,7 +7,7 @@ import type { TrackId } from "@/lib/data";
 import { trackInfo } from "@/lib/data";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { chartHref, margin, useCasesFor, weakestText } from "@/lib/use-cases";
+import { chartHref, leadText, useCasesFor, weakestText } from "@/lib/use-cases";
 import type { UseCaseResult } from "@/lib/use-cases";
 
 /** The section id, for the page and links. */
@@ -20,16 +20,19 @@ const Name = ({ id }: { id: ProviderId }) => (
 );
 
 const titleLink = "group focus-ring flex items-start justify-between gap-xs rounded-xs";
+const titleText = "font-brand text-m font-medium";
 
 /**
  * The card title opens the chart behind the pick. A pick from the other
  * track (sustained CPU ran on Same machine only) loads that track instead of
- * jumping within this one, where the section only says to switch.
+ * jumping within this one, where the section only says to switch. A card
+ * with no result has no chart to open, so its title is plain.
  */
 function ChartTitle({ r, track }: { r: UseCaseResult; track: TrackId }) {
+  if (!r.pick) return <span className={titleText}>{r.useCase.title}</span>;
   const text = (
     <>
-      <span className="font-brand text-m font-medium group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4">{r.useCase.title}</span>
+      <span className={`${titleText} group-hover:underline group-hover:decoration-neutral-6 group-hover:underline-offset-4`}>{r.useCase.title}</span>
       <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-neutral-7 group-hover:text-neutral-10" />
     </>
   );
@@ -45,7 +48,9 @@ function ChartTitle({ r, track }: { r: UseCaseResult; track: TrackId }) {
 }
 
 function UseCaseCard({ r, track }: { r: UseCaseResult; track: TrackId }) {
-  const { useCase, pick, tiedWith, next, weakest, caveat } = r;
+  const { useCase, pick, tiedWith, next, weakest, caveats, machine, skipped } = r;
+  const lead = pick && next ? leadText(pick, next, useCase.unit) : null;
+  const ahead = skipped.filter((s) => s.ahead);
   return (
     <li className="surface flex min-w-0 flex-col p-m">
       <h3>
@@ -72,14 +77,18 @@ function UseCaseCard({ r, track }: { r: UseCaseResult; track: TrackId }) {
                   <Name id={e.provider} /> ({e.display})
                 </span>
               ))}
-              {useCase.tie === "ci95" ? ", inside the 95% intervals" : ""}
             </p>
           ) : null}
-          {caveat ? (
-            <p className="mt-xxs font-mono text-xxs text-neutral-8" title={caveat.detail}>
-              {caveat.short}
+          {caveats.map(({ provider, caveat }) => (
+            <p key={provider} className="mt-xxs text-xxs text-pretty text-neutral-8">
+              {tiedWith.length > 0 ? (
+                <>
+                  <Name id={provider} />:{" "}
+                </>
+              ) : null}
+              {caveat.detail}.
             </p>
-          ) : null}
+          ))}
           <p className="mt-s text-xs text-pretty text-neutral-8">
             {useCase.measure}
             {pick.note ? `; ${pick.note}` : ""}.
@@ -89,17 +98,36 @@ function UseCaseCard({ r, track }: { r: UseCaseResult; track: TrackId }) {
               <>
                 <dt>Next</dt>
                 <dd className="min-w-0 text-pretty">
-                  <Name id={next.provider} /> {next.display} · {margin(pick, next, useCase.better)} behind
+                  <Name id={next.provider} /> {next.display}
+                  {lead ? ` · ${lead}` : ""}
+                </dd>
+              </>
+            ) : null}
+            {ahead.length > 0 ? (
+              <>
+                <dt>Not counted</dt>
+                <dd className="min-w-0 text-pretty">
+                  {ahead.map((s, i) => (
+                    <span key={s.provider}>
+                      {i > 0 ? "; " : ""}
+                      <Name id={s.provider} /> {s.why}
+                    </span>
+                  ))}
                 </dd>
               </>
             ) : null}
             {weakest ? (
               <>
                 <dt>Weakest</dt>
-                <dd className="min-w-0 text-pretty">{weakestText(weakest)}</dd>
+                <dd className="min-w-0 text-pretty">{weakestText(weakest, track)}</dd>
               </>
             ) : null}
           </dl>
+          {machine.map(({ provider, note }) => (
+            <p key={provider} className="mt-xs text-xxs text-pretty text-neutral-7">
+              <Name id={provider} /> {note}
+            </p>
+          ))}
         </>
       ) : (
         <p className="mt-s text-s text-neutral-7">No provider has a result yet.</p>

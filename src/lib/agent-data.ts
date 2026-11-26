@@ -201,8 +201,8 @@ const exclusionsByRun: Record<string, Partial<Record<string, Partial<Record<Prov
 
 export const excludedFor = (track: Track) => exclusionsByRun[track.generatedFrom] ?? {};
 
-/** Why a result is blank, so an agent never has to guess. */
-function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["values"][number] | undefined) {
+/** Why a result is blank, so an agent never has to guess. "measured" when it has a result. The Best for picks read it too. */
+export function statusOf(track: Track, id: string, provider: ProviderId, v: Metric["values"][number] | undefined) {
   const skipped = notRun[track.id][id]?.[provider];
   if (skipped && (!v || v.n === 0)) return skipped;
   if (track.metric(id).values.length === 0) return "coming-next-update: not collected in this release";
