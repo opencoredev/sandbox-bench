@@ -72,8 +72,8 @@ export function formatMoney(value: number, currency: string | null) {
 export const formatCount = (value: number) => value.toLocaleString("en-US");
 
 export function formatGiB(value: number) {
-  if (value < 1) return `${Math.round(value * 1024)} MB`;
-  return `${value < 10 ? value.toFixed(1).replace(/\.0$/, "") : Math.round(value)} GB`;
+  if (value < 1) return `${Math.round(value * 1024)} MiB`;
+  return `${value < 10 ? value.toFixed(1).replace(/\.0$/, "") : Math.round(value)} GiB`;
 }
 
 const shortDate = (d: Date, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: "UTC" });
