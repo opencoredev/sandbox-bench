@@ -1926,6 +1926,125 @@
         "sdkCommit": "afdf664cd181e22239e075f72dc8ee125ba334e2",
         "startedAt": "2026-11-25T19:36:11.495Z"
       }
+    },
+    {
+      "provider": "archil",
+      "tasks": [
+        {
+          "round": 1,
+          "wallS": 68.417,
+          "uploadS": 7.921,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 67.333,
+          "uploadS": 7.739,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 69.445,
+          "uploadS": 9.849,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 67.245,
+          "uploadS": 8.06,
+          "completed": true
+        },
+        {
+          "round": 1,
+          "wallS": 71.781,
+          "uploadS": 7.566,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 67.064,
+          "uploadS": 8.026,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 67.502,
+          "uploadS": 7.42,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 66.984,
+          "uploadS": 7.719,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 64.254,
+          "uploadS": 5.221,
+          "completed": true
+        },
+        {
+          "round": 2,
+          "wallS": 65.09,
+          "uploadS": 5.509,
+          "completed": true
+        }
+      ],
+      "medianWallS": 67.289,
+      "medianUploadS": 7.729,
+      "completed": 10,
+      "attempts": 10,
+      "roundAllDoneS": [
+        71.782,
+        67.503
+      ],
+      "burstRounds": [
+        {
+          "round": 1,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 71.782
+        },
+        {
+          "round": 2,
+          "size": 5,
+          "admitted": 5,
+          "allDoneS": 67.503
+        }
+      ],
+      "skippedBurstRounds": [],
+      "harnessFailures": [],
+      "solo": {
+        "tasks": [
+          {
+            "round": 1,
+            "wallS": 63.366,
+            "uploadS": 4.209,
+            "completed": true
+          },
+          {
+            "round": 2,
+            "wallS": 189.503,
+            "uploadS": 127.273,
+            "completed": true
+          }
+        ],
+        "completed": 2,
+        "attempts": 2
+      },
+      "soloMedianWallS": 126.434,
+      "soloMedianUploadS": 65.741,
+      "slowdown": null,
+      "slowdownWithoutUpload": null,
+      "slowdownWithheld": null,
+      "status": "ran",
+      "run": {
+        "id": "rtb-archil-1123",
+        "sdkCommit": "1f1de780ca8d334f3834ca388cf216ed515f254a",
+        "startedAt": "2026-11-23T22:59:54.953Z"
+      },
+      "changeNote": "One of Archil's two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other, so two tasks can't set its baseline; the other task alone took 63 s, about the same as each task at once"
     }
   ]
 }

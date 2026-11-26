@@ -22,7 +22,8 @@
       "styne",
       "buddy",
       "microsandbox",
-      "microsandbox-shared"
+      "microsandbox-shared",
+      "archil"
     ],
     "profiles": [
       "fix-and-test",
@@ -46,7 +47,8 @@
       "upstash-ephemeral",
       "vercel",
       "modal",
-      "instabox"
+      "instabox",
+      "archil"
     ],
     "notTested": [
       {

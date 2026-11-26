@@ -1,9 +1,9 @@
 import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
-import { ChartHead, Footnotes, NotOnChart } from "@/components/metric-chart";
+import { ChartHead, Footnotes, NotOnChart, Who, sentence } from "@/components/metric-chart";
 import { TabCard } from "@/components/tabs";
 import type { Tab } from "@/components/tabs";
-import { expandedProviders, groupHasValues, hasExpanded, hasValues } from "@/lib/expanded";
+import { expandedProviders, groupHasValues, hasExpanded, hasValues, ownRun, ownRunProviders, ownRunsText, runDate } from "@/lib/expanded";
 import type { Expanded, ExpandedGroup, ExpandedMetric } from "@/lib/expanded";
 import { formatCount, formatShort, formatValue, unitName } from "@/lib/format";
 import { providerColor } from "@/lib/providers";
@@ -14,20 +14,27 @@ export const expandedSection = "expanded";
 
 const betterText = (m: ExpandedMetric) => (m.better === "lower" ? "Lower is better" : "Higher is better");
 
-export function expandedColumns(m: ExpandedMetric): Column[] {
-  return m.values.map((v) => ({
-    provider: v.provider,
-    label: formatShort(v.median, m.unit),
-    segments: [{ value: v.median, color: providerColor(v.provider), fill: "solid" }],
-    detail: [
-      ["Median", formatValue(v.median, m.unit)],
-      ["Range", v.min === v.max ? formatValue(v.min, m.unit) : `${formatValue(v.min, m.unit)}–${formatValue(v.max, m.unit)}`],
-      ["Verified runs", formatCount(v.n)],
-    ],
-  }));
+/** Hover cards give the median, range and verified runs, and for a value from the provider's own run, that run's date and commit, and its reason when it has one. */
+export function expandedColumns(m: ExpandedMetric, data: Pick<Expanded, "providerRuns">): Column[] {
+  return m.values.map((v) => {
+    const run = ownRun(data, v.provider, m.id);
+    return {
+      provider: v.provider,
+      label: formatShort(v.median, m.unit),
+      segments: [{ value: v.median, color: providerColor(v.provider), fill: "solid" }],
+      detail: [
+        ["Median", formatValue(v.median, m.unit)],
+        ["Range", v.min === v.max ? formatValue(v.min, m.unit) : `${formatValue(v.min, m.unit)}–${formatValue(v.max, m.unit)}`],
+        ["Verified runs", formatCount(v.n)],
+        ...(run ? [["Own run", `${runDate(run)} (UTC), commit ${run.sdkCommit}`] as const] : []),
+        // Only a run with a reason (Archil's stdout streaming rerun) adds a line; every other card is as before.
+        ...(run?.reason ? [sentence(run.reason.replace(/^\w/, (c) => c.toUpperCase()))] : []),
+      ],
+    };
+  });
 }
 
-function MetricBlock({ metric, everyone }: { metric: ExpandedMetric; everyone: readonly ProviderId[] }) {
+function MetricBlock({ data, metric, everyone }: { data: Expanded; metric: ExpandedMetric; everyone: readonly ProviderId[] }) {
   const missing = everyone.filter((id) => !metric.values.some((v) => v.provider === id));
   return (
     <div className="min-w-0">
@@ -35,7 +42,7 @@ function MetricBlock({ metric, everyone }: { metric: ExpandedMetric; everyone: r
       {hasValues(metric) ? (
         <>
           {/* Four tests share a panel two by two, so each chart is the compact kind with its names set diagonally. */}
-          <Columns columns={expandedColumns(metric)} compact label={`${metric.label}: median ${unitName[metric.unit]} by provider`} />
+          <Columns columns={expandedColumns(metric, data)} compact label={`${metric.label}: median ${unitName[metric.unit]} by provider`} />
           <NotOnChart ids={missing} />
         </>
       ) : (
@@ -45,13 +52,22 @@ function MetricBlock({ metric, everyone }: { metric: ExpandedMetric; everyone: r
   );
 }
 
-function aboutRuns(data: Expanded) {
+/** The sweep's runs line, then one note per provider whose values here came from its own runs. */
+function aboutRuns(data: Expanded, group: ExpandedGroup) {
+  const own = ownRunProviders(data, group.metrics);
   const parts = [
     data.runs === null ? null : `${formatCount(data.runs)} runs per provider and test`,
     data.runId === null ? null : `run ${data.runId}`,
     data.generatedAt === null ? null : `exported ${new Date(data.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}`,
   ].filter((p) => p !== null);
-  return parts.length === 0 ? [] : [{ lead: "Runs", text: `${parts.join(", ")}. The card gives each provider's count of verified runs.` }];
+  const scope = own.length > 0 ? ", for every provider not named below" : "";
+  return [
+    ...(parts.length === 0 ? [] : [{ lead: "Runs", text: `${parts.join(", ")}${scope}. The card gives each provider's count of verified runs.` }]),
+    ...own.flatMap((id) => {
+      const text = ownRunsText(data, group.metrics, id);
+      return text === null ? [] : [{ text: <><Who id={id} />: {sentence(text)}</>, about: id }];
+    }),
+  ];
 }
 
 function GroupPanel({ data, group, everyone }: { data: Expanded; group: ExpandedGroup; everyone: readonly ProviderId[] }) {
@@ -59,7 +75,7 @@ function GroupPanel({ data, group, everyone }: { data: Expanded; group: Expanded
     <>
       <div className="grid gap-xl lg:grid-cols-2">
         {group.metrics.map((m) => (
-          <MetricBlock key={m.id} metric={m} everyone={everyone} />
+          <MetricBlock key={m.id} data={data} metric={m} everyone={everyone} />
         ))}
       </div>
       <Footnotes
@@ -70,7 +86,7 @@ function GroupPanel({ data, group, everyone }: { data: Expanded; group: Expanded
           },
           { lead: "Bars", text: "The median of each provider's verified runs. The card gives the fastest and slowest run as the range." },
           ...(missing(group, everyone) ? [{ text: "A provider with results elsewhere in these tests but none here had no verified run of that test." }] : []),
-          ...aboutRuns(data),
+          ...aboutRuns(data, group),
         ]}
       />
     </>

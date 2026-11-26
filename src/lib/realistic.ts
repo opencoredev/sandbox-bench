@@ -1,4 +1,4 @@
-import { billingBases, billingLabel, costStatuses, estimateNotCounted, formatPerThousand, kindStatusText } from "@/lib/cost";
+import { billingBases, billingLabel, costLabel, costStatuses, estimateNotCounted, formatPerThousand, isUsageCost, kindStatusText } from "@/lib/cost";
 import type { CostStatusKind } from "@/lib/cost";
 import { tracks } from "@/lib/data";
 import { isExtraTier, isPreemptible, isProviderId, providerName } from "@/lib/providers";
@@ -440,7 +440,7 @@ export const pilotBrief = (d: Pick<RealisticData, "coverage">) => `Pilot · ${d.
 export const laterLine = "The full 10-batch run and recorded agent sessions come later.";
 /** When the runs behind these numbers ran. Update it whenever a provider's runs are replaced. */
 export const runsLine =
-  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b). Beam's same-machine rows are from its 2026-11-20 Performance rerun (its first run was on 2026-11-18, 16:58 to 17:25 UTC), on the same machine only: its default sandbox, 1 CPU and 128 MiB, is too small for either task, and like Baseten it has no held-open run. Luxor's and Superserve's same-machine runs were repeated on 2026-11-18 (Luxor 21:53 to 22:14 UTC, Superserve 22:20 to 22:39 UTC) with 20 GB disks, after their first runs had too little free disk for the build (Superserve for both tasks); their default-machine rows are from the first runs. Styne ran on 2026-11-23 (19:36 to 20:01 UTC); like Baseten it has no held-open run, as its costs are list-price estimates. Maritime ran on 2026-11-24 (02:34 to 04:20 UTC), on the same harness commit as its main suite (619307b), metered from its per-sandbox usage records; it has no held-open run, as that usage leaves out the charge for a paused sandbox's disk. Buddy ran on 2026-11-25 (04:27 to 07:19 UTC), on harness commit 5afd423 and SDK commit a5c99d2, priced at its list price per started minute because it has no usage or billing API; like Baseten it has no held-open run.";
+  "Most providers ran on 2026-11-05 and 2026-11-06 UTC, Modal on 2026-11-09. boxd's, E2B's and Vercel's headline runs were repeated on 2026-11-16 (boxd 16:45 to 18:00 UTC, E2B 17:00 to 17:25 UTC, Vercel 14:02 to 15:03 UTC) with nothing else on each account, so their meters could be checked against the providers' settled charges; their held-open runs are from 2026-11-05 and 2026-11-06 UTC (Vercel's from 2026-11-09). Baseten ran on 2026-11-17 (05:44 to 06:54 UTC), with the build's workspace on an 8 GiB volume because Baseten keeps a sandbox's files in its memory; it has no held-open run, as its costs are list-price estimates. Instabox ran on 2026-11-18, its headline runs 14:40 to 15:18 UTC and its held-open runs 14:40 to 18:27 UTC, on the same harness commit as its main suite (6074f7b). Beam's same-machine rows are from its 2026-11-20 Performance rerun (its first run was on 2026-11-18, 16:58 to 17:25 UTC), on the same machine only: its default sandbox, 1 CPU and 128 MiB, is too small for either task, and like Baseten it has no held-open run. Luxor's and Superserve's same-machine runs were repeated on 2026-11-18 (Luxor 21:53 to 22:14 UTC, Superserve 22:20 to 22:39 UTC) with 20 GB disks, after their first runs had too little free disk for the build (Superserve for both tasks); their default-machine rows are from the first runs. Styne ran on 2026-11-23 (19:36 to 20:01 UTC); like Baseten it has no held-open run, as its costs are list-price estimates. Maritime ran on 2026-11-24 (02:34 to 04:20 UTC), on the same harness commit as its main suite (619307b), metered from its per-sandbox usage records; it has no held-open run, as that usage leaves out the charge for a paused sandbox's disk. Buddy ran on 2026-11-25 (04:27 to 07:19 UTC), on harness commit 5afd423 and SDK commit a5c99d2, priced at its list price per started minute because it has no usage or billing API; like Baseten it has no held-open run. Archil ran on 2026-11-23, its headline runs 22:03 to 22:37 UTC and its held-open runs from 22:03 UTC to 01:46 UTC on 2026-11-24, on the same harness commit as its main suite (1f1de78). One of its three 60-minute held-open runs didn't finish: Archil refused the next command, which our adapter reads as the sandbox not running; Archil's own idle pause (its default idle timeout is 30 minutes) is the likely cause, and our Archil adapter never wakes a sandbox it didn't pause. Its build on the default machine, 1 vCPU and 2 GiB, didn't finish in any run: the install step was killed (exit 137) every time, which on 2 GiB points to running out of memory; on the same machine, 4 vCPU and 8 GiB, every build finished.";
 
 /** Why Vercel's headline costs are not verified, and what its held-open costs leave out. */
 export const vercelTransferLine =
@@ -550,20 +550,23 @@ const partWords = (p: EstimatedPart) => [...new Set(p.labels.map((l) => l.replac
  * reads "compute verified (billed, settled); disk estimated" and an unverified
  * one "compute billed, unsettled; disk estimated". The estimated part is only
  * added where the billing source leaves storage out, so that charge is compute.
+ * A provider-reported usage cost (Archil's) says "usage cost" where others say
+ * "billed", as on the quick-task cost chart (lib/cost.ts, isUsageCost).
  */
-export function kindStatusWithPart(kind: CostKind, statuses: readonly CostStatusKind[], part: EstimatedPart | null) {
-  if (!part || kind === "estimate") return kindStatusText(kind, statuses);
+export function kindStatusWithPart({ id, kind, statuses, part }: { id: ProviderId; kind: CostKind; statuses: readonly CostStatusKind[]; part: EstimatedPart | null }) {
+  if (!part || kind === "estimate") return kindStatusText({ id, kind, statuses });
   const verified = statuses.length === 1 && statuses[0] === "verified";
-  const compute = verified ? `compute verified (${kind === "billed" ? "billed, settled" : "metered, reconciled"})` : `compute ${kindStatusText(kind, statuses)}`;
+  const settled = kind === "billed" ? `${costLabel(id, { kind }).toLowerCase()}, settled` : "metered, reconciled";
+  const compute = verified ? `compute verified (${settled})` : `compute ${kindStatusText({ id, kind, statuses })}`;
   return `${compute}; ${partWords(part)} estimated`;
 }
 
-export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+export function statusTag(row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">): string {
   if (!row.cost) return "n/a";
   const flags = flagsOf(row);
   const statuses = row.eligible ? (["verified"] as const) : flags.flatMap((f) => (f.status ? [f.status] : []));
   const qualifiers = [...new Set(flags.flatMap((f) => (f.status ? [] : [f.short])))];
-  const base = kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+  const base = kindStatusWithPart({ id: row.provider, kind: row.cost.kind, statuses, part: row.estimatedPart });
   const rest = qualifiers.length || statuses.length || row.eligible ? qualifiers : ["not eligible"];
   return [base, ...rest].join(", ");
 }
@@ -573,11 +576,19 @@ export function statusTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" 
  * statusTag without the run qualifiers (wrong size, too many failures), which
  * notCountedWhy says apart. "n/a" without a cost.
  */
-export function billingTag(row: Pick<RealisticRow, "cost" | "eligible" | "flags" | "estimatedPart">): string {
+export function billingTag(row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">): string {
   if (!row.cost) return "n/a";
   const statuses = row.eligible ? (["verified"] as const) : flagsOf(row).flatMap((f) => (f.status ? [f.status] : []));
-  return kindStatusWithPart(row.cost.kind, statuses, row.estimatedPart);
+  return kindStatusWithPart({ id: row.provider, kind: row.cost.kind, statuses, part: row.estimatedPart });
 }
+
+/**
+ * "usage cost, unsettled" beside a realistic cost that is a provider-reported
+ * usage cost (Archil's), in billingTag's words, for the headline and ranked
+ * figures that quote it; null for every other provider, whose amounts show alone.
+ */
+export const rowUsageTag = (row: Pick<RealisticRow, "provider" | "cost" | "eligible" | "flags" | "estimatedPart">) =>
+  row.cost && isUsageCost(row.provider, row.cost) ? billingTag(row) : null;
 
 /** Why a row has no cost: never run, or run without a completed task. */
 export function noCostReason(row: RealisticRow): string {
@@ -778,17 +789,59 @@ export const resumeFailed = (p: Pick<IdlePoint, "completed" | "runs">) => p.runs
 export const isVerifiedHold = (p: Pick<HeldOpen, "statuses" | "costKind">) => p.costKind !== null && p.costKind !== "estimate" && p.statuses.length === 0;
 
 /** "billed, verified" or "metered, unsettled, unreconciled", in the cost charts' words. */
-export const holdTag = (p: Pick<HeldOpen, "statuses" | "costKind" | "estimatedPart">) =>
-  p.costKind === null ? "n/a" : kindStatusWithPart(p.costKind, isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], p.estimatedPart);
+export const holdTag = (p: Pick<HeldOpen, "provider" | "statuses" | "costKind" | "estimatedPart">) =>
+  p.costKind === null
+    ? "n/a"
+    : kindStatusWithPart({ id: p.provider, kind: p.costKind, statuses: isVerifiedHold(p) ? ["verified"] : p.statuses.length ? p.statuses : ["estimate"], part: p.estimatedPart });
+
+/**
+ * "usage cost, unsettled" beside a held-open amount that is a provider-reported
+ * usage cost (Archil's), in the words of the quick-task cost chart's tag
+ * (lib/cost.ts, usageCostTag); null for every other provider, whose amounts show alone.
+ */
+export const holdUsageTag = (p: Pick<HeldOpen, "provider" | "statuses" | "costKind" | "estimatedPart">) =>
+  p.costKind !== null && isUsageCost(p.provider, { kind: p.costKind }) ? holdTag(p) : null;
+
+/** Why a held-open run didn't complete, where the data's reason ("check-failed") doesn't say. */
+export interface IdleRefusal {
+  /** A few words, beside the "2 of 3" result. */
+  short: string;
+  /** A sentence for the notes and the agent files. */
+  text: string;
+}
+
+/**
+ * Refusals read from a wait's attempt log, keyed by provider and wait. Shown
+ * only while that wait still has an incomplete run, so a clean rerun drops it.
+ */
+const idleRefusals: Partial<Record<ProviderId, Partial<Record<IdleId, IdleRefusal>>>> = {
+  // provider-runs/sbx-archil/held-open/attempts.jsonl: the incomplete held-60 attempt's resume-status step failed with
+  // "Sandbox is paused or stopped ... Call box.resume() first", which our adapter says for any HTTP 409 from Archil;
+  // the attempt has no state after, so the pause is likely, not confirmed.
+  archil: {
+    "held-60": {
+      short: "1 command refused",
+      text: "In one of its three 1-hour runs Archil refused the command at the resume step; our adapter reads that refusal (HTTP 409) as the sandbox not running, and Archil's own idle pause is the likely cause. A paused Archil sandbox stays asleep until it is resumed, and the test doesn't resume it",
+    },
+  },
+};
+
+export const idleRefusal = (p: Pick<IdlePoint, "provider" | "idle" | "completed" | "runs">): IdleRefusal | null =>
+  p.completed < p.runs ? (idleRefusals[p.provider]?.[p.idle] ?? null) : null;
 
 /** "0.30%": the estimated part's share of the figure it sits in, said beside that figure, never as one range for every cost. */
 export const shareText = (part: number, total: number) => `${((part / total) * 100).toFixed(2)}%`;
 
-/** "$0.036 per 1,000 of it (0.30%) is disk added at list price, an estimate; the rest is billed compute.", or null. */
-export function estimatedPartText(kind: CostKind, part: EstimatedPart | null, total: number | null, unit: string) {
+/**
+ * "$0.036 per 1,000 of it (0.30%) is disk added at list price, an estimate; the
+ * rest is billed compute.", or null. For a usage cost (Archil's) the rest is
+ * "compute at the usage cost its usage API reports".
+ */
+export function estimatedPartText({ id, kind, part, total, unit }: { id: ProviderId; kind: CostKind; part: EstimatedPart | null; total: number | null; unit: string }) {
   if (!part || kind === "estimate") return null;
   const share = total ? ` (${shareText(part.usd, total)})` : "";
-  return `${perThousand(part.usd)} ${unit} of it${share} is ${partWords(part)} added at list price, an estimate; the rest is ${kind} compute.`;
+  const rest = isUsageCost(id, { kind }) ? "compute at the usage cost its usage API reports" : `${kind} compute`;
+  return `${perThousand(part.usd)} ${unit} of it${share} is ${partWords(part)} added at list price, an estimate; the rest is ${rest}.`;
 }
 
 export const idleLabel = (p: Pick<IdlePoint, "minutes">) => (p.minutes === 0 ? "No wait" : p.minutes === 60 ? "1 hour" : `${p.minutes} min`);
@@ -842,6 +895,25 @@ const partialEstimateLines = (ids: readonly ProviderId[]) =>
 export type Note = { lead: string; text: string };
 
 /**
+ * Providers whose realistic costs cover compute and memory only, with where
+ * those charges come from: the billing source reports nothing else, and the
+ * data adds no storage estimate for them. Said only for a provider with a cost
+ * and no estimated part, so a later disk estimate drops the sentence.
+ */
+const computeAndMemoryOnly: Partial<Record<ProviderId, string>> = {
+  archil: "the charges its usage API reports",
+};
+
+/** The compute-and-memory-only providers in the data, each with its source. */
+function computeAndMemoryOnlyIn(costed: readonly RealisticRow[]) {
+  const ids = [...new Set(costed.map((r) => r.provider))].filter((id) => !costed.some((r) => r.provider === id && r.estimatedPart !== null));
+  return ids.flatMap((id) => {
+    const source = computeAndMemoryOnly[id];
+    return source === undefined ? [] : [{ id, source }];
+  });
+}
+
+/**
  * The cost scope as short notes for the page, from the same data as
  * `scopeLine`: what a cost includes, where disk is added or unknown, which
  * costs are list-price estimates, and what isn't counted.
@@ -865,6 +937,10 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
     ...(unknown.length ? [{ lead: "Disk unknown", text: `For ${providerList(unknown)} it isn't known whether disk is billed, so none is added.` }] : []),
     ...(estimates.length ? [{ lead: "List-price estimates", text: `${providerList(estimates)}: the machine's list price over the billed time. Shown on the chart, not picked as Cheapest.` }] : []),
     ...partial.flatMap((id) => partialEstimateLines([id]).map((text) => ({ lead: `${providerName(id)} estimate`, text: `${text} Shown on the chart, not picked as Cheapest.` }))),
+    ...computeAndMemoryOnlyIn(costed).map(({ id, source }) => ({
+      lead: providerName(id),
+      text: `An exception to what a cost includes: its headline and held-open figures cover compute and memory only, ${source}. Disk storage and egress are not included, and no storage estimate is added.`,
+    })),
     {
       lead: "Not counted",
       text: transfer.length
@@ -876,7 +952,7 @@ export function scopeNotes(d: Pick<RealisticData, "rows">): Note[] {
 
 /** When the runs ran, as short notes for the page; `runsLine` has the exact times. */
 export const runNotes: Note[] = [
-  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18, Beam Nov 20, Styne Nov 23, Maritime Nov 24, Buddy Nov 25. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
+  { lead: "Run dates", text: "Most providers Nov 5–6, Modal Nov 9, Baseten Nov 17, Instabox Nov 18, Beam Nov 20, Styne and Archil Nov 23, Maritime Nov 24, Buddy Nov 25. Luxor and Superserve reran on the same machine on Nov 18 with 20 GB disks; their first runs had too little free disk." },
   { lead: "Reruns", text: "boxd, E2B and Vercel reran their headline runs on Nov 16 with nothing else on their accounts, to check their meters against their bills. Their held-open runs are from Nov 5–6 (Vercel's Nov 9)." },
 ];
 
@@ -903,6 +979,9 @@ export function scopeLine(d: Pick<RealisticData, "rows">): string {
     unknown.length ? `For ${providerList(unknown)} it isn't known whether the billing source includes disk, so nothing is added.` : "",
     estimates.length ? `${providerList(estimates)} ${plural(estimates, "is", "are")} priced at the machine's list price, disk included, over the billed time; list-price estimates are shown but not picked as cheapest.` : "",
     ...partialEstimateLines(partial),
+    ...computeAndMemoryOnlyIn(costed).map(
+      ({ id, source }) => `An exception to that scope: ${providerName(id)}'s headline and held-open figures cover compute and memory only, ${source}; disk storage and egress are not included, and no storage estimate is added.`,
+    ),
     transfer.length
       ? `Data transfer is counted only in ${providerList(transfer)}'s headline costs, because ${plural(transfer, "it bills", "they bill")} it; ${plural(transfer, "its", "their")} held-open costs leave it out and are understated. Retained snapshots after deletion, and data transfer for every other provider, are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.`
       : "Retained snapshots after deletion and data transfer are outside the task cost; this pilot doesn't measure them, so they aren't reported yet.",

@@ -25,7 +25,8 @@
         "styne",
         "buddy",
         "microsandbox",
-        "microsandbox-shared"
+        "microsandbox-shared",
+        "archil"
       ],
       "profiles": [
         "fix-and-test",
@@ -49,7 +50,8 @@
         "upstash-ephemeral",
         "vercel",
         "modal",
-        "instabox"
+        "instabox",
+        "archil"
       ],
       "notTested": [
         {
@@ -222,6 +224,13 @@
       "generatedAt": "2026-11-25T19:36:11.034Z",
       "providers": [
         "microsandbox-shared"
+      ]
+    },
+    {
+      "name": "provider-runs/sbx-archil",
+      "generatedAt": "2026-11-24T01:46:45.227Z",
+      "providers": [
+        "archil"
       ]
     }
   ],
@@ -1149,7 +1158,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000671296,
+        "usd": 6.71296e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1178,7 +1187,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000659722,
+        "usd": 6.59722e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1608,7 +1617,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000525463,
+        "usd": 5.25463e-05,
         "labels": [
           "disk at list price"
         ]
@@ -1637,7 +1646,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000516975,
+        "usd": 5.16975e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2087,7 +2096,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000364198,
+        "usd": 3.64198e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2116,7 +2125,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000347222,
+        "usd": 3.47222e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2777,7 +2786,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000455247,
+        "usd": 4.55247e-05,
         "labels": [
           "disk at list price"
         ]
@@ -2806,7 +2815,7 @@
       },
       "costNote": null,
       "estimatedPart": {
-        "usd": 0.0000439815,
+        "usd": 4.39815e-05,
         "labels": [
           "disk at list price"
         ]
@@ -3150,9 +3159,240 @@
         "unsettled (5 attempts)",
         "provisional: meter not reconciled with settled charges: no settled-charge reconciliation recorded for this provider"
       ]
+    },
+    {
+      "provider": "archil",
+      "profile": "build",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 0,
+      "incomplete": 5,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 5
+        }
+      ],
+      "prepare": null,
+      "medianWallS": null,
+      "medianCpuS": null,
+      "cost": null,
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "did not complete",
+        "5 incomplete runs (at most 1)",
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
+      "provider": "archil",
+      "profile": "build",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 106.198,
+      "medianCpuS": 200.993,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0139336,
+        "wholeMachineUsdPerCompleted": 0.0113578,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "default",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 155.937,
+      "medianCpuS": 143.834,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0050666,
+        "wholeMachineUsdPerCompleted": 0.00413778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "headline",
+      "attempts": 5,
+      "completed": 5,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 63.83,
+      "medianCpuS": 147.69,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.0088666,
+        "wholeMachineUsdPerCompleted": 0.00679778,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": [
+        "unsettled (5 attempts)"
+      ]
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-10",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 681.92,
+      "medianCpuS": 210.928,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.076,
+        "wholeMachineUsdPerCompleted": 0.0722352,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "held-60",
+      "attempts": 3,
+      "completed": 2,
+      "incomplete": 1,
+      "notRun": 0,
+      "reasons": [
+        {
+          "reason": "check-failed",
+          "runs": 1
+        }
+      ],
+      "prepare": null,
+      "medianWallS": 3682.81,
+      "medianCpuS": 209.977,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.494001,
+        "wholeMachineUsdPerCompleted": 0.582297,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
+    },
+    {
+      "provider": "archil",
+      "profile": "fix-and-test",
+      "track": "same-machine",
+      "variant": "zero-wait",
+      "attempts": 3,
+      "completed": 3,
+      "incomplete": 0,
+      "notRun": 0,
+      "reasons": [],
+      "prepare": null,
+      "medianWallS": 81.004,
+      "medianCpuS": 203.739,
+      "cost": {
+        "kind": "billed",
+        "usdPerCompleted": 0.012667,
+        "wholeMachineUsdPerCompleted": 0.00886667,
+        "wholeMachineBound": "exact"
+      },
+      "costNote": null,
+      "estimatedPart": null,
+      "eligible": false,
+      "flags": []
     }
   ],
   "heldOpen": [
+    {
+      "provider": "archil",
+      "idle": "zero-wait",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.012667,
+      "changeVsZeroWait": null,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 181,
+      "transitions": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-10",
+      "runs": 3,
+      "completed": 3,
+      "costKind": "billed",
+      "medianCostUsd": 0.076,
+      "changeVsZeroWait": 4.99984,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 190,
+      "transitions": []
+    },
+    {
+      "provider": "archil",
+      "idle": "held-60",
+      "runs": 3,
+      "completed": 2,
+      "costKind": "billed",
+      "medianCostUsd": 0.392667,
+      "changeVsZeroWait": 29.9992,
+      "status": "unsettled",
+      "statuses": [
+        "unsettled"
+      ],
+      "estimatedPart": null,
+      "medianWakeMs": 187,
+      "transitions": []
+    },
     {
       "provider": "boat",
       "idle": "zero-wait",
@@ -3448,7 +3688,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 0.0000432099,
+        "usd": 4.32099e-05,
         "labels": [
           "disk at list price"
         ]
@@ -3505,7 +3745,7 @@
       "status": "settled",
       "statuses": [],
       "estimatedPart": {
-        "usd": 0.0000455247,
+        "usd": 4.55247e-05,
         "labels": [
           "disk at list price"
         ]

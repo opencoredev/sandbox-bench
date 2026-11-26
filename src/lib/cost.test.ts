@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
 import { agentData, llmsTxt } from "@/lib/agent-data";
-import { costNotCountedWhy, costPick, costStatus, estimateNotCounted, costTag, isEligible, machineText, pricedTasks, taskCostOf, unpricedTasks, wholeMachine } from "@/lib/cost";
+import { costBasis, costLabel, costNotCountedWhy, costPick, costSource, costSourceText, costStatus, costTag, estimateNotCounted, isEligible, machineText, pricedTasks, taskCostOf, unpricedTasks, wholeMachine } from "@/lib/cost";
 import type { Priced } from "@/lib/cost";
 import { trackIds, tracks } from "@/lib/data";
 import type { TaskCost, Track } from "@/lib/data";
@@ -41,6 +41,30 @@ describe("cost status", () => {
     assert.ok(!isEligible(s));
     assert.equal(costTag("boat", cost("estimate", true), s), "estimate from docs");
     assert.match("why" in s ? s.why : "", /no settled-charge source for Boat/);
+  });
+});
+
+describe("usage cost", () => {
+  test("Archil's billed export is its reported usage cost, never called a bill, and says unsettled beside the amount", () => {
+    const c = cost("billed", false);
+    const s = costStatus("archil", c);
+    assert.equal(s.kind, "unsettled");
+    assert.equal(costLabel("archil", c), "Usage cost");
+    assert.equal(costTag("archil", c, s), "usage cost, unsettled");
+    assert.equal(costSource("archil", c), "From the usage cost Archil's per-sandbox usage API reports, 10 tasks, unsettled");
+    assert.equal(costSourceText("archil", c), "from the usage cost Archil's per-sandbox usage API reports");
+    assert.match(costBasis("archil", c), /^Usage cost over 10 tasks/);
+    assert.match("why" in s ? s.why : "", /metadata record \(its status and end time\).*keeps the usage record for 90 days/);
+  });
+
+  test("other providers keep their labels, an unsettled bill included", () => {
+    const daytona = cost("billed", false);
+    assert.equal(costTag("daytona", daytona, costStatus("daytona", daytona)), "billed");
+    assert.equal(costSource("daytona", daytona), "From Daytona's bill, 10 tasks");
+    const upstash = cost("billed", true);
+    assert.equal(costTag("upstash", upstash, costStatus("upstash", upstash)), "billed");
+    assert.equal(costSource("upstash", upstash), "From Upstash Box's bill, 10 tasks");
+    assert.equal(costSource("e2b", cost("metered", true)), "From E2B's usage record, 10 tasks");
   });
 });
 

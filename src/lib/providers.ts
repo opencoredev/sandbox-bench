@@ -16,9 +16,12 @@
  * 7.5 in normal vision and 5.7 under deuteranopia, and no blue left in sRGB keeps a wider gap from every other),
  * and Microsandbox's green (its purple is taken twice over, by Styne's violet and Freestyle's periwinkle, and no violet
  * left keeps ΔE ≥ 5.5 from both under colour-blind simulation; this one is 15.9 from its nearest in normal vision and 5.6
- * from Beam's coral under protanopia, the lowest pair on the page), with lightness spread so every pair stays apart under
+ * from Beam's coral under protanopia, the lowest pair on the page), and Archil's violet (its mark is black and white, as
+ * Instabox's is, and no in-gamut colour at 6:1 keeps ΔE ≥ 6.7 from every other, so it takes a deeper violet
+ * than Freestyle's, ΔE ≥ 7.8 from every other, at 5.7:1), with lightness spread so every pair stays apart under
  * protanopia and deuteranopia (OKLab ΔE ≥ 5.5; names and logos sit beside
- * every colour) and as 12px text on the card surface (≥ 6:1). E2B stays on
+ * every colour) and as 12px text on the card surface (WCAG contrast on Neutral 2, #202020: ≥ 6:1 for most,
+ * boxd 5.3, Upstash Ephemeral Box 5.5 and Archil 5.7). E2B stays on
  * the orange side of its red-orange accent, away from the red of failures.
  */
 export const providerInfo = {
@@ -46,6 +49,7 @@ export const providerInfo = {
   "beam-shared": { name: "Beam Shared", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Shared", brand: "beam" },
   "beam-spot": { name: "Beam Spot", color: "oklch(0.73 0.12 42)", short: "Beam", tag: "Spot", brand: "beam" },
   "microsandbox-shared": { name: "Microsandbox Shared", color: "oklch(0.7 0.23 142)", short: "Microsandbox", tag: "Shared", brand: "microsandbox" },
+  archil: { name: "Archil", color: "oklch(0.7 0.19 302)" },
 } as const satisfies Record<string, { name: string; color: string; short?: string; tag?: string; brand?: string; formerly?: string }>;
 
 export type ProviderId = keyof typeof providerInfo;

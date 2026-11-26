@@ -1,7 +1,8 @@
 import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
-import { costKinds, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
+import { costLabel, costSourceText, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
+import { failureNote } from "@/lib/failure-notes";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { hardware } from "@/lib/hardware";
@@ -133,10 +134,10 @@ export function providerTrack(trackId: TrackId, id: ProviderId) {
             perTask: qualify({ amount: formatTaskCost(cost.perTaskUsd), bound: costBound }),
             perThousand: qualify({ amount: formatPerThousand(cost.perTaskUsd), bound: costBound }),
             lowerBound: costBound === "lower",
-            label: costKinds[cost.kind].label,
+            label: costLabel(id, cost),
             tag: cost.tag,
             statusNote: cost.statusNote,
-            source: costKinds[cost.kind].source,
+            source: costSourceText(id, cost),
             basis: cost.basis,
           }
         : { kind: "none" as const, note: "note" in cost ? cost.note : "no cost data" },
@@ -293,6 +294,18 @@ const rankAmong = ({ own, values, better }: { own: number; values: readonly numb
 
 const measuredValue = (cell: ScoreCell) => (cell.kind === "scored" || cell.kind === "valued" ? cell.value : null);
 
+/** "usage cost, unsettled" on a provider-reported usage cost (Archil's), null on every other cell. */
+const costTagOf = (cell: ScoreCell) => (cell.kind === "valued" ? cell.tag : null);
+
+/** A usage cost (Archil's) covers compute and memory only: its usage API reports no storage or egress. */
+const scoped = (tag: string) => (tag.startsWith("usage cost") ? `${tag}, compute and memory only` : tag);
+
+/** " (usage cost, unsettled, compute and memory only)" after an amount, or nothing, so every other provider's sentence reads as before. */
+const tagged = (tag: string | null) => (tag === null ? "" : ` (${scoped(tag)})`);
+
+/** "usage cost, unsettled, compute and memory only; " ahead of a rank in parentheses, or nothing. */
+const tagFirst = (tag: string | null) => (tag === null ? "" : `${scoped(tag)}; `);
+
 export function scorecard(trackId: TrackId, id: ProviderId): ScorecardEntry[] {
   return trackScores(tracks[trackId]).map(({ category, scores }) => {
     const cell: ScoreCell = scores.find((s) => s.provider === id) ?? { kind: "not-measured", provider: id };
@@ -333,7 +346,8 @@ export function placings(t: ProviderTrack, id: ProviderId): Placed[] {
       case "real-tasks":
         return [{ id: "fix-and-test", label: "Real task: fix and test", value: e.cell.display, rank: e.rank, tied: false }];
       case "cost":
-        return [{ id: "fix-and-test-cost", label: "Fix and test cost, per 1,000", value: e.cell.display, rank: e.rank, tied: false }];
+        // A usage cost (Archil's) says so beside the amount; every other provider's label is unchanged.
+        return [{ id: "fix-and-test-cost", label: `Fix and test cost, per 1,000${tagged(costTagOf(e.cell))}`, value: e.cell.display, rank: e.rank, tied: false }];
       default:
         // Speed and Bursts are the cold start and burst rows of the results table, already listed. Reliability is
         // left out: most providers complete every run, so a rank among equals says nothing.
@@ -369,10 +383,10 @@ export function highlights(t: ProviderTrack, id: ProviderId, count = 3): { leads
 
 const entryOf = (card: readonly ScorecardEntry[], id: string) => card.find((e) => e.category.id === id);
 
-/** A scorecard entry's reading and rank, when it has both. */
-function reading(e: ScorecardEntry | undefined): { display: string; rank: Rank } | null {
+/** A scorecard entry's reading and rank, when it has both, with the words said beside it ("usage cost, unsettled") or null. */
+function reading(e: ScorecardEntry | undefined): { display: string; rank: Rank; tag: string | null } | null {
   if (!e || e.rank === null || (e.cell.kind !== "scored" && e.cell.kind !== "valued")) return null;
-  return { display: e.cell.display, rank: e.rank };
+  return { display: e.cell.display, rank: e.rank, tag: costTagOf(e.cell) };
 }
 
 /**
@@ -388,8 +402,8 @@ export function verdict(t: ProviderTrack, id: ProviderId): string {
   const cost = reading(entryOf(card, "cost"));
   const parts = [
     cold ? `starts a sandbox in ${cold.display} (${rankText(cold.rank)})` : null,
-    task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${rankText(cost.rank)} on cost)` : ""}` : null,
-    !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${rankText(cost.rank)})` : null,
+    task ? `finishes the fix and test task in ${task.display} (${rankText(task.rank)})${cost ? ` at ${cost.display} per 1,000 (${tagFirst(cost.tag)}${rankText(cost.rank)} on cost)` : ""}` : null,
+    !task && cost ? `costs ${cost.display} per 1,000 fix and test tasks (${tagFirst(cost.tag)}${rankText(cost.rank)})` : null,
   ].filter((x) => x !== null);
   if (parts.length === 0) return `${name} has no ranked cold start, real task or cost result on ${machineOf(t)} yet.`;
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
@@ -409,7 +423,7 @@ export function providerSummary(id: ProviderId): string {
   const parts = [
     cold ? `${cold.median} cold start (${ordinal(cold.rank)} of ${cold.of}${cold.tied ? ", tied" : ""})` : null,
     tool ? `${tool.median} ${tool.label.toLowerCase()}` : null,
-    task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000` : ""}` : null,
+    task ? `fix and test task in ${task.display}${cost ? ` for ${cost.display} per 1,000${tagged(cost.tag)}` : ""}` : null,
     !task && t.cost.kind === "priced" ? `${t.cost.perThousand} per 1,000 quick tasks (${t.cost.tag})` : null,
   ].filter((x) => x !== null);
   return `${r.name} sandbox on ${machineOf(t)}: ${parts.join(", ")}. Medians, p95s and 95% intervals.`;
@@ -455,7 +469,7 @@ function taskCostText(t: ProviderTrack, id: ProviderId): string {
   if (e?.cell.kind === "valued" && e.rank) {
     // Ranked with everyone, but a list-price estimate or a row on the wrong machine size still can't be the chart's "Cheapest" pick.
     const caveat = row.kind === "ranked" && row.notCounted.length > 0 ? `, though it can't be the cheapest pick (${row.notCounted.join("; ")})` : "";
-    return `${what} costs ${e.cell.display} per 1,000 completed, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
+    return `${what} costs ${e.cell.display} per 1,000 completed${tagged(e.cell.tag)}, ${ordinal(e.rank.rank)} cheapest of ${e.rank.of}${caveat}`;
   }
   if (row.kind === "ranked") return `${what} costs ${row.value} per 1,000 completed, not counted for the cheapest pick (${e?.cell.kind === "excluded" ? e.cell.why : row.notCounted.join("; ")})`;
   return `there is no fix and test cost (${row.why})`;
@@ -490,7 +504,11 @@ function reliabilityAnswer(id: ProviderId, r: ReturnType<typeof providerResults>
     const rel = t.reliability;
     if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
     const list = t.failures
-      .map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`)
+      .map((f) => {
+        // Archil's unconfirmed failure says so inside its parentheses; every other failure reads as before.
+        const note = failureNote({ provider: id, reason: f.reason });
+        return `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"}${note ? `; ${note}` : ""})`;
+      })
       .join("; ");
     const detail =
       t.failures.length === 0

@@ -4,6 +4,7 @@ import {
   billingBases,
   billingLabel,
   costBasis,
+  costLabel,
   costPick,
   costStatus,
   costNotCountedWhy,
@@ -13,6 +14,7 @@ import {
   isEligible,
   isLowerBound,
   isPriced,
+  isUsageCost,
   noPickLabel,
   noPickWhy,
   perTaskLifetimeNote,
@@ -25,6 +27,8 @@ import {
   regionNote,
   statusNote,
   taskCostOf,
+  usageCostField,
+  usageCostNote,
   wholeMachine,
   wholeMachineLabel,
   wholeMachineText,
@@ -32,6 +36,7 @@ import {
 import type { NotCounted, PricedTask } from "@/lib/cost";
 import { allProviders, hasResults, trackIds, trackInfo, tracks } from "@/lib/data";
 import { setAsideLines, setAsideSentence } from "@/lib/exclusions";
+import { failureNote, noteSentence } from "@/lib/failure-notes";
 import type { Metric, Provider, Track, TrackId } from "@/lib/data";
 import { formatPercent, formatValue } from "@/lib/format";
 import { chipBasisLabel, fingerprintDate, hardware, probeDate } from "@/lib/hardware";
@@ -51,6 +56,7 @@ import {
   idleGroups,
   idleLabel,
   idleOutcome,
+  idleRefusal,
   multipleNote,
   multipleText,
   resumeFailed,
@@ -80,7 +86,7 @@ import { regionFor } from "@/lib/plan-minimum";
 import { replacedFor, replacedRunText, replacedSentence } from "@/lib/replaced-runs";
 import { advertised, gbToGiB, sharedDisk, sizeOf, soldInDecimalGB } from "@/lib/sizes";
 import { successRate } from "@/lib/status";
-import { bestFirst, hasExpanded } from "@/lib/expanded";
+import { bestFirst, hasExpanded, ownRun, ownRunProviders, ownRunsText } from "@/lib/expanded";
 import type { Expanded } from "@/lib/expanded";
 import { expanded } from "@/lib/expanded-data";
 import { burstValue, highestFirst, survivalRanked, sustainedValue } from "@/lib/stress";
@@ -91,6 +97,8 @@ import { sustainedCpu } from "@/lib/sustained-cpu-data";
 import { hasFairness } from "@/lib/fairness";
 import { fairness } from "@/lib/fairness-data";
 import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
+import { ownBatchProviders, providerBatchesText, regional } from "@/lib/regions";
+import { sdkSetupRunProviders, sdkSetupRunText, sdkSetupRuns } from "@/lib/sdk-setup";
 
 /** The metrics agents get, in page order, grouped as on the page. */
 export const groups = [
@@ -114,18 +122,19 @@ const beamNoPause = "unsupported: Beam sandboxes have no pause and resume (Beam'
 const beamNoSnapshotDelete = "not-run: Beam sandboxes take memory snapshots, but Beam has no way to delete one, and our runs delete everything they make";
 const beamBurstQuota = (n: number) => `not-run: our Beam account's quota is 30 vCPU, and ${n} sandboxes at 4 vCPU need ${n * 4}`;
 const beamNoPage = "not-run: blocked on every run: on Beam's default 1 CPU and 128 MiB the dev server ran out of memory or its preview never answered, so there was no page to edit";
+const archilNoSnapshot = "not-run: our Archil adapter has no snapshots, so the snapshot tests didn't run";
 type NotRun = Record<TrackId, Partial<Record<string, Partial<Record<ProviderId, string>>>>>;
 const handNotRun: NotRun = {
   default: {
     "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
-    snapshot: { beam: beamNoSnapshotDelete },
-    "create-from-snapshot": { beam: beamNoSnapshotDelete },
+    snapshot: { beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
+    "create-from-snapshot": { beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
     "edit-loop": { beam: beamNoPage },
   },
   "same-spec": {
     "pause-resume": { "upstash-ephemeral": "unsupported: Upstash Ephemeral Box has no pause and resume", modal: modalNoPause, beam: beamNoPause },
-    snapshot: { superserve: superserveJoins, beam: beamNoSnapshotDelete },
-    "create-from-snapshot": { superserve: superserveJoins, beam: beamNoSnapshotDelete },
+    snapshot: { superserve: superserveJoins, beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
+    "create-from-snapshot": { superserve: superserveJoins, beam: beamNoSnapshotDelete, archil: archilNoSnapshot },
     "burst-10": {
       superserve: superserveJoins,
       beam: beamBurstQuota(10),
@@ -368,6 +377,16 @@ const realisticAbout =
 const realisticHowToRead =
   "Cost per completed task is the cost of every attempt, failed ones included, divided by the tasks that completed. Its kind is billed (the provider's charge), metered (the provider's usage meter at its rates) or estimate (our measured time at list price), and `billingStatus` says how far the cost was checked against the provider's bill (verified, unreconciled, provisional, unsettled, estimate); it is billing evidence only and doesn't affect the pick. `counted` and `whyNotCounted` say whether a row could be the pick. The pick is the cheapest billed or metered row with at most 1 incomplete run and, on the same-machine track, 4 vCPU and 8 GiB; a list-price estimate is shown but never picked, and billing status doesn't affect the pick. `billing` is the same evidence-backed billing model as the rest of this file; whole machine at list price is a counterfactual for providers that bill usage. Each workload and track has its own pick, and this pilot names no certified winner.";
 
+/** The realistic reading notes, plus what `origin: "usage-api"` means once a realistic cost is a usage cost. */
+function realisticHowToReadText() {
+  const ids = [
+    ...realistic.rows.flatMap((r) => (r.cost && isUsageCost(r.provider, r.cost) ? [r.provider] : [])),
+    ...idleGroups(realistic).flatMap((g) => (g.points.some((p) => p.costKind !== null && isUsageCost(g.provider, { kind: p.costKind })) ? [g.provider] : [])),
+  ];
+  const usage = usageCostNote(ids);
+  return usage === null ? realisticHowToRead : `${realisticHowToRead} ${usage}`;
+}
+
 const usd6 = (v: number | null) => (v === null ? null : Number(v.toPrecision(6)));
 
 function realisticRowData(row: RealisticRow, track: TrackId) {
@@ -387,6 +406,7 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     costPerCompletedUsd: usd6(row.cost?.usdPerCompleted ?? null),
     per1000CompletedUsd: usd6(row.cost ? row.cost.usdPerCompleted * TASKS_PER_PRICE : null),
     kind: row.cost?.kind ?? null,
+    ...(row.cost ? usageCostField(row.provider, row.cost) : {}),
     counted: row.cost !== null && isCounted(row),
     whyNotCounted: notCountedWhy(row),
     // Billing evidence only; the pick doesn't read it.
@@ -398,7 +418,7 @@ function realisticRowData(row: RealisticRow, track: TrackId) {
     wholeMachineCounterfactual: isCounterfactual(row.provider),
     billing,
     ...(row.costNote ? { costNote: row.costNote } : {}),
-    ...estimatedPartData(row.cost?.kind ?? null, row.estimatedPart, row.cost?.usdPerCompleted ?? null, "per1000CompletedUsd"),
+    ...estimatedPartData({ id: row.provider, kind: row.cost?.kind ?? null, part: row.estimatedPart, total: row.cost?.usdPerCompleted ?? null, key: "per1000CompletedUsd" }),
     ...regionData(row.provider, track),
   };
 }
@@ -410,8 +430,20 @@ function regionData(id: ProviderId, track: TrackId) {
 }
 
 /** The part of a cost we added at list price, per 1,000, with what it is; nothing when none was added. */
-function estimatedPartData(kind: CostKind | null, part: RealisticRow["estimatedPart"], total: number | null, key: "per1000CompletedUsd" | "medianPer1000Usd") {
-  const note = kind ? estimatedPartText(kind, part, total, "per 1,000") : null;
+function estimatedPartData({
+  id,
+  kind,
+  part,
+  total,
+  key,
+}: {
+  id: ProviderId;
+  kind: CostKind | null;
+  part: RealisticRow["estimatedPart"];
+  total: number | null;
+  key: "per1000CompletedUsd" | "medianPer1000Usd";
+}) {
+  const note = kind ? estimatedPartText({ id, kind, part, total, unit: "per 1,000" }) : null;
   return part && note ? { estimatedPart: { [key]: usd6(part.usd * TASKS_PER_PRICE), shareOfTotal: total ? Number((part.usd / total).toPrecision(6)) : null, what: part.labels, note } } : {};
 }
 
@@ -425,6 +457,7 @@ const pickRow = (r: Costed) => ({
   provider: r.provider,
   per1000CompletedUsd: usd6(r.cost.usdPerCompleted * TASKS_PER_PRICE),
   kind: r.cost.kind,
+  ...usageCostField(r.provider, r.cost),
   whyNotCounted: notCountedWhy(r),
 });
 
@@ -453,6 +486,12 @@ function realisticProfile(id: TrackId, profile: ProfileId) {
   };
 }
 
+/** Why a wait lost a run, where its attempt log says (Archil's 1 hour); nothing for any other wait, so other providers' exports are unchanged. */
+function refusalField(p: Parameters<typeof idleRefusal>[0]) {
+  const r = idleRefusal(p);
+  return r === null ? {} : { incompleteWhy: `${r.text}.` };
+}
+
 /** The realistic workloads as plain data: definitions, the pilot label, per track and workload the pick and every provider, and the idle test. */
 export function realisticData() {
   return {
@@ -463,7 +502,7 @@ export function realisticData() {
     runDates: runsLine,
     about: realisticAbout,
     costScope: scopeLine(realistic),
-    howToRead: realisticHowToRead,
+    howToRead: realisticHowToReadText(),
     source: { generatedAt: realistic.generatedAt, runs: realistic.sources.map((s) => ({ name: s.name, generatedAt: s.generatedAt, providers: s.providers })), eurToUsd: realistic.fx },
     workloads: profileIds.map((profile) => {
       const w = realistic.workloads?.[profile] ?? null;
@@ -485,14 +524,16 @@ export function realisticData() {
           medianCostUsd: usd6(p.medianCostUsd),
           per1000Usd: usd6(p.medianCostUsd === null ? null : p.medianCostUsd * TASKS_PER_PRICE),
           kind: p.costKind,
+          ...(p.costKind === null ? {} : usageCostField(g.provider, { kind: p.costKind })),
           status: holdTag(p),
           changeVsNoWait: changeText(p),
           vsNoWait: multipleText(p),
           ...(resumeFailed(p) ? { resumeFailed: true, note: "No run resumed, so this figure is what the failed runs cost, not a price for leaving work open." } : {}),
+          ...refusalField(p),
           medianWakeMs: p.medianWakeMs,
           stateChanges: p.transitions,
           stoppedWhileIdle: p.stopped,
-          ...estimatedPartData(p.costKind, p.estimatedPart, p.medianCostUsd, "medianPer1000Usd"),
+          ...estimatedPartData({ id: g.provider, kind: p.costKind, part: p.estimatedPart, total: p.medianCostUsd, key: "medianPer1000Usd" }),
         })),
       })),
     },
@@ -544,6 +585,7 @@ function realisticMarkdown() {
     "",
     ...d.idle.providers.flatMap((g) => (g.outcome ? [`${g.name}: ${g.outcome}.`, ""] : [])),
     ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("estimatedPart" in w && w.estimatedPart ? [`${g.name}, ${idleLabel(w)}: ${w.estimatedPart.note.replace("per 1,000", "per 1,000 (median)")}`, ""] : []))),
+    ...d.idle.providers.flatMap((g) => g.waits.flatMap((w) => ("incompleteWhy" in w && w.incompleteWhy ? [`${g.name}, ${idleLabel(w)}: ${w.incompleteWhy}`, ""] : []))),
     ...d.idle.notTested.flatMap((n) => [`Not in the idle test: ${n.name}, because ${n.reason}.`, ""]),
   );
   return lines;
@@ -662,13 +704,15 @@ function costOf(track: Track, id: ProviderId) {
         confidence: c.confidence,
         tasks: c.n,
         source: c.source,
-        basis: costBasis(c),
+        basis: costBasis(id, c),
         settled: c.settled,
         // Billing evidence only; the cost pick doesn't read it.
         billingStatus: s.kind,
         billingVerified: isEligible(s),
         statusNote: statusNote(s),
         tag: costTag(id, c, s),
+        // `origin: "usage-api"` on a provider-reported usage cost (Archil's) only; `kind` stays as exported.
+        ...usageCostField(id, c),
       };
     }
     case "none":
@@ -724,18 +768,34 @@ function stressData(s: StressData) {
 const expandedAbout =
   "Expanded benchmarks: real work inside each sandbox from a fresh random seed per run, with the output checked against the seed before the result counts, so cached or hardcoded answers fail. median, min and max are over a provider's verified runs (n), in `unit`; `better` says which direction wins; values are sorted best first. Not split by track.";
 
+const providerRunsAbout =
+  " `runId` names the sweep; a value with `run` came instead from that provider's own run (id, startedAt, sdkCommit), and `providerRuns` lists each such provider's runs and the tests each produced, with a `reason` where a run was made apart from the rest.";
+
+/** Whether any provider's values came from its own runs, so the field and its note appear only then. */
+const hasProviderRuns = (e: Expanded) => Object.keys(e.providerRuns).length > 0;
+
 /** The expanded benchmarks as plain data, by category, best first. */
 function expandedData(e: Expanded) {
   return {
-    about: expandedAbout,
+    about: hasProviderRuns(e) ? `${expandedAbout}${providerRunsAbout}` : expandedAbout,
     scenarioCount: e.scenarioCount,
     generatedAt: e.generatedAt,
     runId: e.runId,
     runsPerProvider: e.runs,
+    // A run's `reason` is written only where it has one (Archil's stdout streaming rerun).
+    ...(hasProviderRuns(e)
+      ? { providerRuns: Object.fromEntries(Object.entries(e.providerRuns).map(([id, runs]) => [id, runs?.map(({ reason, ...r }) => (reason === null ? r : { ...r, reason }))])) }
+      : {}),
     categories: e.groups.map((g) => ({
       id: g.category,
       label: g.label,
-      tests: g.metrics.map((m) => ({ ...m, values: bestFirst(m.values, m.better).map((v) => ({ name: providerName(v.provider), ...v })) })),
+      tests: g.metrics.map((m) => ({
+        ...m,
+        values: bestFirst(m.values, m.better).map((v) => {
+          const run = ownRun(e, v.provider, m.id);
+          return { name: providerName(v.provider), ...v, ...(run ? { run: { id: run.id, startedAt: run.startedAt, sdkCommit: run.sdkCommit } } : {}) };
+        }),
+      })),
     })),
   };
 }
@@ -745,6 +805,47 @@ function tierFacts(id: ProviderId) {
   const t = tierOf(id);
   if (!t) return null;
   return { name: t.name, cpu: t.cpu, preemptible: t.preemptible, ratesUsd: t.rates, firstTier: !isExtraTier(id), promise: t.promise };
+}
+
+/**
+ * Per provider, its own runs behind its By location rows and its SDK setup
+ * figure, where they are not the shared batch and run. Only providers with
+ * one of them appear; empty when none has.
+ */
+function runProvenance() {
+  const ids = [...new Set([...ownBatchProviders(regional), ...sdkSetupRunProviders])];
+  return Object.fromEntries(
+    ids.map((id) => {
+      const own = regional.providerBatches[id];
+      const setup = sdkSetupRuns[id];
+      return [
+        id,
+        {
+          ...(own ? { byLocation: { commit: own.commit, batches: Object.fromEntries(own.batches.map((b) => [b.region, b.runs])) } } : {}),
+          ...(setup ? { sdkSetup: { runId: setup.runId, sdkCommit: setup.sdkCommit, date: setup.date } } : {}),
+        },
+      ];
+    }),
+  );
+}
+
+/** results.md's lines for runProvenance, one per provider; empty when no provider has its own runs. */
+function runProvenanceMarkdown() {
+  const ids = Object.keys(runProvenance()).filter(isProviderId);
+  if (ids.length === 0) return [];
+  return [
+    "## Own runs for By location and SDK setup",
+    "",
+    "These providers' By location rows or SDK setup figures come from their own runs, named here:",
+    "",
+    ...ids.map((id) => {
+      const batches = providerBatchesText(regional, id);
+      const setup = sdkSetupRuns[id];
+      const parts = [...(batches ? [`By location from its own batches, ${batches}.`] : []), ...(setup ? [`SDK setup from ${sdkSetupRunText(setup)}.`] : [])];
+      return `- ${providerName(id)}: ${parts.join(" ")}`;
+    }),
+    "",
+  ];
 }
 
 /** One track as plain data. */
@@ -797,7 +898,11 @@ function trackData(track: Track) {
         },
         pause: pauseData(track, p),
         reliability: { attempts: rel.attempts, succeeded: rel.succeeded, successRate: rel.rate === null ? null : Math.round(rel.rate * 1e5) / 1e5 },
-        failures: p.failureReasons,
+        // A note only on Archil's unconfirmed failure, so every other provider's failures export as before.
+        failures: p.failureReasons.map((f) => {
+          const note = failureNote({ provider: p.id, reason: f.reason });
+          return note ? { ...f, note: noteSentence(note) } : f;
+        }),
         setAside: p.ourFailures,
         replacedRuns: replacedFor(p.id, track.id),
       };
@@ -816,7 +921,7 @@ function trackData(track: Track) {
 }
 
 const about =
-  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: a 4 vCPU, 8 GiB machine (nearest size where a provider has no exact match, marked as machine differs; the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every provider-side failure in the published runs kept, failures caused by our own code set aside, and replaced earlier runs disclosed beside the results.";
+  "Sandbox bench: cloud sandbox providers for AI agents, timed through one SDK (Sandbox SDK, built by us; 0.2.0 is public on npm and the 1.0 used here will be published soon) from one server in Florida, US, on two tracks: a 4 vCPU, 8 GiB machine (nearest size where a provider has no exact match, marked as machine differs; the fair comparison, and the one the site opens on), and each provider's default machine. Medians, p95s and 95% confidence intervals per provider; every failure in the published runs counted unless we classified that attempt as ours or a test's own policy excludes it, one whose cause is unconfirmed included, and replaced earlier runs disclosed beside the results.";
 
 const howToRead =
   "Pick a track first: `tracks[\"same-spec\"]` asks every provider for 4 vCPU and 8 GiB, so prefer it for comparisons; `tracks.default` compares each provider's default sandbox, so sizes differ. In same-spec, `allocation.equalSpec: false` means the machine measured inside was not 4 vCPU, 8 GiB, so compare that provider with care. median and p95 are in `unit`; `better` says which direction wins; results are sorted best first. attempts counts every try, failed included. A null median means the provider does not support the test, every attempt failed, or the result is excluded (see `status`). Cold start is the provider's own time, create() until the first command; Our SDK's setup after create is not included; on the faster SDK it measured 0.1 to 0.5 ms median per provider (20 creates each, separate run). `costPerTask.billingStatus` and `costPerTask.billingVerified` say how far a cost was checked against the provider's bill; they don't affect the cost pick. `costPerTask.kind` is billed (provider charge), metered (provider usage at published rates) or estimate (list price, where billing gives no amount); the quick task is one sandbox that is created, runs the 100-call tool replay and is deleted, from a separate cost run (real workloads are in `whatATaskCosts`): never compare them as if they were the same kind without saying so. The cost pick (`costPick`) is the cheapest exact cost from a provider bill or usage meter (kind billed or metered): a list-price estimate is shown but never picked; in same-spec only a provider that measured 4 vCPU and 8 GiB counts; and each cheaper cost that can't count is in `lowerNotCounted` with `whyNotCounted`. `billing` says what each provider bills on, or that its billing basis is not confirmed. `wholeMachineAtListPrice` is the hourly list price of the allocation (its `allocation.diskGiB` when a tier bills its root disk), a counterfactual for providers that bill usage; it has no per-task figure until the harness exports each task's sandbox lifetime. A row is one product on one CPU tier: `provider` names the company, and `cpuTier` (null for a provider that sells one tier) names the tier, its CPU class (dedicated, shared or spot), whether the provider can stop it mid-task, and its list rates. `cpuCaveat` (null when there is none) says when a row's CPU is burstable, shared or spot, as the page says it beside a winner: `short` for a label, `detail` for a sentence. Beam's Shared and Spot tiers are their own rows (beam-shared, beam-spot), measured on same-spec only with the quick tests and the real tasks; snapshots, pause and bursts of sandboxes were not run on them by design. Rank providers against each other on each one's first tier (`cpuTier.firstTier`), and compare a provider's tiers with each other; a preemptible tier is never the cost pick.";
@@ -829,7 +934,20 @@ function howToReadQualifiers() {
   const region = trackIds.some((id) => tracks[id].providers.some((p) => regionNote(p) !== null))
     ? " `price.regionMultiplier` is the pinned region's price multiplier, already included in every price and cost for that provider."
     : "";
-  return `${lower}${region}`;
+  const usage = usageCostNote(
+    trackIds.flatMap((id) =>
+      tracks[id].providers.flatMap((p) => {
+        const c = taskCostOf(tracks[id], p.id);
+        return c && isPriced(c) && isUsageCost(p.id, c) ? [p.id] : [];
+      }),
+    ),
+  );
+  const own = Object.keys(runProvenance()).filter(isProviderId);
+  const provenance =
+    own.length > 0
+      ? ` \`runProvenance\`, keyed by provider (${own.map(providerName).join(", ")}), names a provider's own runs where they replace the shared ones: \`byLocation\` the commit and batch ids per caller location behind its By location rows, and \`sdkSetup\` the run id, commit and date behind its SDK setup figure. Other providers' run notes name their own runs.`
+      : "";
+  return `${lower}${region}${usage === null ? "" : ` ${usage}`}${provenance}`;
 }
 
 const howToReadText = () => `${howToRead}${howToReadQualifiers()}`;
@@ -918,6 +1036,7 @@ export function agentData() {
     commonSize: commonSize.label,
     comingNextUpdate: ["Snapshot and restore", "Bursts of 10 and 25", "The same-machine (4 vCPU, 8 GiB) track"],
     tracks: Object.fromEntries(trackIds.map((id) => [id, trackData(tracks[id])])),
+    ...(Object.keys(runProvenance()).length > 0 ? { runProvenance: runProvenance() } : {}),
     ...(hasExpanded(expanded) ? { expandedBenchmarks: expandedData(expanded) } : {}),
     ...(hasSustainedCpu(sustainedCpu) ? { sustainedCpu: sustainedCpuData(sustainedCpu) } : {}),
     ...(hasFairness(fairness) ? { likeForLike: fairnessData(fairness) } : {}),
@@ -925,6 +1044,18 @@ export function agentData() {
 }
 
 const cell = (v: number | null, m: Pick<Metric, "unit">) => (v === null ? "n/a" : formatValue(v, m.unit));
+
+/** results.md's "Cost kind" cell: billed, metered or estimate, "usage cost" for a provider-reported usage cost (Archil's), "none" without a cost. */
+function costKindCell(track: Track, id: ProviderId) {
+  const c = taskCostOf(track, id);
+  return c && isPriced(c) ? costLabel(id, c).toLowerCase() : "none";
+}
+
+/** "; cause unconfirmed: …" inside a results.md failure's parentheses: Archil's unconfirmed failure only, "" for every other. */
+const noteOf = (id: ProviderId, f: { reason: string }) => {
+  const note = failureNote({ provider: id, reason: f.reason });
+  return note ? `; ${note}` : "";
+};
 
 function trackMarkdown(id: TrackId) {
   const track = tracks[id];
@@ -951,7 +1082,7 @@ function trackMarkdown(id: TrackId) {
     "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ...d.providers.map(
       (p) =>
-        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? (p.outboundIpLocation ? `${p.outboundIpLocation} (outbound IP)` : "not reported")} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${p.costPerTask.kind} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
+        `| ${p.name} | ${p.allocation.requested.text} | ${p.allocation.measuredText ?? "not measured"} | ${p.allocation.equalSpec ? "yes" : "no"} | ${p.ranIn ?? (p.outboundIpLocation ? `${p.outboundIpLocation} (outbound IP)` : "not reported")} | ${costCells(track, p.id).perTask} | ${costCells(track, p.id).perThousand} | ${costKindCell(track, p.id)} | ${"billingStatus" in p.costPerTask ? (p.costPerTask.billingStatus === "estimate" || p.costPerTask.billingStatus === "lowerBound" ? p.costPerTask.tag : p.costPerTask.billingStatus) : "n/a"} | ${p.billing.label} | ${p.wholeMachineAtListPrice.perHourUsd === null ? "n/a" : `${"bound" in p.wholeMachineAtListPrice ? "≥ " : ""}$${p.wholeMachineAtListPrice.perHourUsd}${p.wholeMachineAtListPrice.counterfactual ? " (counterfactual)" : ""}`} | ${p.reliability.successRate === null ? "n/a" : `${(p.reliability.successRate * 100).toFixed(2)}%`} |`,
     ),
     "",
     ...d.providers.flatMap((p) => ("regionNote" in p.price && p.price.regionNote ? [`Price note on ${p.name}: ${p.price.regionNote}.`, ""] : [])),
@@ -984,7 +1115,7 @@ function trackMarkdown(id: TrackId) {
   }
   lines.push("## What failed", "");
   for (const p of d.providers) {
-    const counted = p.failures.length === 0 ? "no failures counted against the provider." : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")})`).join("; ")}.`;
+    const counted = p.failures.length === 0 ? "no failures counted against the provider." : `${p.failures.map((f) => `${f.reason}${typeof f.status === "number" ? ` (HTTP ${f.status})` : ""}${f.code ? ` [${f.code}]` : ""}${f.stage ? ` during ${f.stage}` : ""}: ${f.runs} runs, ${f.count} failed tests (${f.kind}; ${f.tests.join(", ")}${noteOf(p.id, f)})`).join("; ")}.`;
     const aside = p.setAside.map((f) => ` Set aside, not counted: ${f.reason} (${f.runs} runs, ${f.count} failed tests).`).join("");
     const replaced = replacedSentence(p.id, id);
     lines.push(`- ${p.name}: ${counted}${aside}${replaced ? ` ${replaced}` : ""}`);
@@ -1048,6 +1179,11 @@ function expandedMarkdown(e: Expanded) {
   for (const g of e.groups) {
     if (!g.metrics.some((m) => m.values.length > 0)) continue;
     lines.push(`## ${g.label}`, "");
+    const own = ownRunProviders(e, g.metrics).flatMap((id) => {
+      const text = ownRunsText(e, g.metrics, id);
+      return text === null ? [] : [`${providerName(id)}: ${text}.`];
+    });
+    if (own.length > 0) lines.push(...own, "");
     for (const m of g.metrics) {
       lines.push(`### ${m.label}`, "", `${m.description} Median, ${m.better} is better.`, "");
       if (m.values.length === 0) {
@@ -1087,6 +1223,7 @@ export function agentMarkdown() {
     "",
     "The quick task is: create a sandbox, run the 100-call tool replay, delete it, priced from a separate cost run. Prices cover compute only; disk, transfer, subscriptions and credits are excluded. boxd bills in euros, converted at the ECB rate.",
     "",
+    ...runProvenanceMarkdown(),
     ...trackIds.flatMap(trackMarkdown),
     ...(hasSustainedCpu(sustainedCpu) ? sustainedCpuMarkdown(sustainedCpu) : []),
     ...(hasFairness(fairness) ? fairnessMarkdown(fairness) : []),
@@ -1182,7 +1319,7 @@ ${realisticLlms()}${hasSustainedCpu(sustainedCpu) ? sustainedCpuLlms(sustainedCp
 ${picks.join("\n")}
 ## Coming in the next update
 
-Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs (commit 619307b), its costs metered from its per-sandbox usage records (GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}) at its published rates. Its sandboxes' traffic leaves from Hetzner in Falkenstein, Germany and Helsinki, Finland. Each Maritime burst of 10 and 25 started a minute apart, to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing: the first runs sent creates faster than that rate and got HTTP 429, so they are replaced and their failures, 6 besides the 429s, aren't counted. Styne joined on Nov 23: every Styne result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs, all on SDK commit a5c99d2; the benchmark harness was at commit 1e5683a for the default machine's runs and 5afd423 for the 4 vCPU runs, the real tasks and Real tasks 5 at once (5afd423 passes Buddy's size when restoring a snapshot). Microsandbox and its Shared CPU tier joined on Nov 25 UTC: every Microsandbox result, snapshots, bursts, SDK setup and the real tasks included, comes from their own runs, all on SDK commit 2248e8a with the benchmark harness at commit afdf664; Standard's 4 vCPU quick-task cost is from a rerun of the cost test that day. Buddy has no usage or billing API, so its costs are its list price ($0.00024 per CPU-minute and per GB-minute, billed per started minute, storage left out) on our measured sandbox lifetime: estimates, not verified or settled bills. ${buddyPickLine()} Its sandboxes' traffic leaves from Hivelocity in New York City. Buddy allows 5,000 API requests an hour per route, resetting on the UTC hour, and our SDK checks a new sandbox's status every 200 ms, so its 4 vCPU main tests ran as two halves of 50 in separate UTC hours and its 4 vCPU bursts of 25 one an hour. Its first default-machine burst run and first 4 vCPU main run got HTTP 429 past that limit, and its first 4 vCPU snapshot run restored at the default 2 vCPU size; all three are replaced and their failures aren't counted. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact billed or metered cost; list-price estimates are shown on the chart but not picked, and on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts. Freestyle, Luxor, Baseten, Beam, Styne and Buddy costs use their list prices on our measured sandbox lifetime; Styne has no per-sandbox billing data, as its usage API reports daily account totals.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Failures caused by our own code are set aside, not counted.${setAsideSummary()}
+Any snapshot or burst a chart marks as coming. Every result, cold start, SDK setup, snapshots, bursts and cost included, comes from the runs on our faster SDK (commit 1185278); Superserve now runs the same-machine track at 4 vCPU. Pause and resume are from the previous run (SDK a2316c3), because the new main runs skipped them. boxd is the exception: every boxd result, pause and resume included, comes from a full re-run on its New York region on Nov 19 (commit 5a8bdda, boxd SDK 0.3.2), except its cost per task, which is from its Nov 4 New York run (commit d8844f0). Baseten is also an exception: its results come from its own runs on Nov 12 and 13 (SDK setup Nov 13, commit 9e2a752) and its resume from a separate run on Nov 17, because Baseten has no pause call and its sandboxes go on standby by themselves. Instabox is the third exception: every Instabox result, pause and resume, snapshots and bursts included, comes from its own runs on Nov 18 (commit 6074f7b), on its Builder plan; each burst started a minute apart, to stay inside Instabox's start rate (50 a minute on Builder). Beam joined on Nov 18: its results, SDK setup included, come from its own runs that day (commit 69d48ed). Maritime joined on Nov 23 and 24 UTC: every Maritime result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs (commit 619307b), its costs metered from its per-sandbox usage records (GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}) at its published rates. Its sandboxes' traffic leaves from Hetzner in Falkenstein, Germany and Helsinki, Finland. Each Maritime burst of 10 and 25 started a minute apart, to stay inside Maritime's create rate (30 a minute per API key). Its bursts and its 4 vCPU main tests are from reruns on Nov 24 with that spacing: the first runs sent creates faster than that rate and got HTTP 429, so they are replaced and their failures, 6 besides the 429s, aren't counted. Styne joined on Nov 23: every Styne result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs that day (commit cd2e6e1). Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less after sustained account load), drops to 16% per vCPU when credit runs out, and replenishes credit while staying under baseline; our longest Styne real task took 131 s. Buddy joined on Nov 25 UTC: every Buddy result, pause and resume, snapshots, bursts and SDK setup included, comes from its own runs, all on SDK commit a5c99d2; the benchmark harness was at commit 1e5683a for the default machine's runs and 5afd423 for the 4 vCPU runs, the real tasks and Real tasks 5 at once (5afd423 passes Buddy's size when restoring a snapshot). Microsandbox and its Shared CPU tier joined on Nov 25 UTC: every Microsandbox result, snapshots, bursts, SDK setup and the real tasks included, comes from their own runs, all on SDK commit 2248e8a with the benchmark harness at commit afdf664; Standard's 4 vCPU quick-task cost is from a rerun of the cost test that day. Buddy has no usage or billing API, so its costs are its list price ($0.00024 per CPU-minute and per GB-minute, billed per started minute, storage left out) on our measured sandbox lifetime: estimates, not verified or settled bills. ${buddyPickLine()} Its sandboxes' traffic leaves from Hivelocity in New York City. Buddy allows 5,000 API requests an hour per route, resetting on the UTC hour, and our SDK checks a new sandbox's status every 200 ms, so its 4 vCPU main tests ran as two halves of 50 in separate UTC hours and its 4 vCPU bursts of 25 one an hour. Its first default-machine burst run and first 4 vCPU main run got HTTP 429 past that limit, and its first 4 vCPU snapshot run restored at the default 2 vCPU size; all three are replaced and their failures aren't counted. Daytona was re-collected on Oct 22 after its account quota was raised from 10 vCPU / 10 GiB; earlier Daytona numbers were limited by that quota. Upstash appears twice because Box (long-lived, can pause) and Ephemeral Box (short-lived, for one-off agent jobs) are separate products. A provider gets another row only for a product it sells separately or a CPU tier it prices separately, never for a size, region or setting of the same product, and at most four rows; Beam Shared and Beam Spot are Beam's CPU tiers, and Beam is ranked on Performance, the tier a new account gets. Ephemeral Box has no pause, so it has no pause result. Baseten has no pause call: its sandboxes go on standby by themselves about 15 s after their last request, keeping memory and processes, so only Baseten's resume is timed, from a separate run, and it is never ranked as a pause + resume total. Baseten's API has no snapshots yet, and Baseten's outbound network is IPv6-only for now, so a raw IPv4 address can't be reached; Baseten's snapshot tests and the TCP-connect probe show as not available yet, not as failures. Instabox blocks outbound HTTPS to public DNS resolvers, including 1.1.1.1:443, the TCP-connect probe's target, so its probe shows as not available yet too; other port 443 traffic works. Baseten raised our account's limits from 4 GB per sandbox and 10 sandboxes at once, so Baseten runs the same-machine track and bursts of 25. Beam sandboxes have no pause call, and Beam keeps memory snapshots but has no way to delete one, so its pause and snapshot tests did not run. Beam's default sandbox is 1 CPU and 128 MiB, too little memory for our dev server, Python install and realistic workloads, which show as failures or too small on the default track. Our Beam account's 30 vCPU quota can't hold 10 sandboxes at 4 vCPU, so Beam has no same-machine bursts. Cheapest is the lowest exact billed or metered cost; list-price estimates are shown on the chart but not picked, and on the same-machine track only a provider that measured 4 vCPU and 8 GiB counts. Archil joined on Nov 23: its results, pause and resume, bursts, cost, By location (Frankfurt and Florida) and SDK setup included, come from its own runs that day (commit 1f1de78), through its official SDK, the disk npm package. Its stress and expanded tests ran the same day on our stress harness (sandbox-sdk branch archil-bench-10x, commit a9954ea). Its output streaming test ran again on Nov 24 (UTC) on SDK 1.3.1 (commit de32eb5): on 1.3.0 it failed because of a bug in our Archil adapter, since fixed. Archil's one same-machine dev server failure, "Process termination could not be confirmed.", is still counted, but its cause is unconfirmed: the same error came from that bug in our Archil adapter, fixed in SDK 1.3.1, so this failure may be ours. Archil's default-machine cost per task comes from a second cost run that day, because one task in the first timed out after 180 s and cost per task needs all 10 tasks; the first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included. Archil's costs are the usage cost its per-sandbox usage API reports, shown as unsettled: Archil drops a deleted sandbox's metadata record (its status and end time) within about half an hour, so we can't read the end time back to confirm a charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run. Our Archil adapter has no snapshots, so Archil's snapshot tests did not run. Archil's pause keeps memory and processes, and a paused Archil sandbox stays asleep until it is resumed: Archil pauses an idle sandbox after 30 minutes, and our SDK never wakes one by itself. A lifetime (timeoutMs) on Archil pauses the sandbox when it runs out, so it can't be combined with public previews, whose traffic wakes the sandbox. Archil's network policy needs a paid plan. Freestyle, Luxor, Baseten, Beam, Styne and Buddy costs use their list prices on our measured sandbox lifetime; Styne has no per-sandbox billing data, as its usage API reports daily account totals.${qualifierNotes()} ${billingSummary()} ${wholeMachineLabel}: ${perTaskLifetimeNote} A burst size is published only when all three bursts finished. Attempts we classified as ours, or a test's policy excludes, are set aside, not counted; a similar timeout elsewhere can still count when we couldn't trace it to our side. Every other failure counts, one whose cause is unconfirmed included. Our-side reruns are noted below.${setAsideSummary()}
 
 ## Data
 

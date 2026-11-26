@@ -15,6 +15,8 @@
  *     --add ~/agents/realtask-burst/runs/rtb-buddy-1124/realtask-burst-buddy.json \
  *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox.json \
  *     --add ~/agents/realtask-burst/runs/rtb-microsandbox-1124/realtask-burst-microsandbox-shared.json \
+ *     --add ~/agents/realtask-burst/runs/rtb-archil-1123/realtask-burst-archil.json \
+ *     --hold-change archil="One of Archil's two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other, so two tasks can't set its baseline; the other task alone took 63 s, about the same as each task at once" \
  *     --out src/data/realtask-burst.json
  *
  * Maritime was added on 2026-11-24 from its own run (rtb-maritime-1123, started
@@ -30,6 +32,11 @@
  * 5afd423: harness commit 5afd423, SDK commit a5c99d2. The run file's
  * sdkCommit field records that checkout, 5afd423); every other
  * provider's entry, Maritime's included, is unchanged.
+ *
+ * Archil was added on 2026-11-26 the same way, from its own run
+ * (rtb-archil-1123, started 22:59 UTC on Nov 23, sandbox-sdk 1f1de78, the same
+ * plan), with its change held: one of its two tasks alone spent 127 s on the
+ * toolchain upload.
  *
  * What it changes on the way:
  * - Failure reasons become plain words: the harness's JSON detail is reduced to

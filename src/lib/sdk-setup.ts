@@ -14,3 +14,36 @@ for (const [id, value] of Object.entries(raw.medianMs)) if (isProviderId(id)) ms
 export const sdkSetup = { commit: raw.sdkCommit, date: raw.date, creates: raw.createsPerProvider, ms };
 
 export const sdkSetupFor = (track: TrackId, provider: ProviderId): number | undefined => (track === "default" ? sdkSetup.ms[provider] : undefined);
+
+/** A provider whose SDK setup figure comes from its own named run, not the shared one at `sdkSetup.commit`. */
+export interface SdkSetupRun {
+  runId: string;
+  sdkCommit: string;
+  date: string;
+}
+
+/**
+ * A `runs` entry may name its run (`runId`); one without names only a commit
+ * and date, which the page's run notes already say, so it is left out here.
+ */
+export function parseSdkSetupRuns(runs: { readonly [id: string]: unknown }): Partial<Record<ProviderId, SdkSetupRun>> {
+  const out: Partial<Record<ProviderId, SdkSetupRun>> = {};
+  for (const [id, v] of Object.entries(runs)) {
+    if (!isProviderId(id) || typeof v !== "object" || v === null) continue;
+    const runId = "runId" in v ? v.runId : undefined;
+    if (runId === undefined) continue;
+    const sdkCommit = "sdkCommit" in v ? v.sdkCommit : undefined;
+    const date = "date" in v ? v.date : undefined;
+    if (typeof runId !== "string" || typeof sdkCommit !== "string" || typeof date !== "string") throw new Error(`sdk-setup.json: runs.${id} should have string runId, sdkCommit and date`);
+    out[id] = { runId, sdkCommit, date };
+  }
+  return out;
+}
+
+export const sdkSetupRuns = parseSdkSetupRuns(raw.runs);
+
+/** Providers with their own SDK setup run, in the data's order. */
+export const sdkSetupRunProviders = Object.keys(sdkSetupRuns).filter(isProviderId);
+
+/** "run sbx57-mwtux8wi (commit 1f1de78, Nov 23, 2026)". */
+export const sdkSetupRunText = (r: SdkSetupRun) => `run ${r.runId} (commit ${r.sdkCommit}, ${r.date})`;

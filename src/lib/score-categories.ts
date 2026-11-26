@@ -4,7 +4,7 @@ import type { Track } from "@/lib/data";
 import { formatValue } from "@/lib/format";
 import { isExtraTier } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
-import { headlineRows, notCountedWhy, perThousand, runTrackOf } from "@/lib/realistic";
+import { headlineRows, notCountedWhy, perThousand, rowUsageTag, runTrackOf } from "@/lib/realistic";
 import type { Costed } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import type { RealisticData } from "@/lib/realistic";
@@ -135,7 +135,14 @@ export const scoreCategories = [
     // Every cost the chart draws, except a row with more than one failed run, which the chart itself flags as not
     // comparable. A row on the wrong machine size keeps its dollars here, marked by the row's machine footnote as
     // in the other columns; it still can't be the chart's "Cheapest" pick (isCounted, taskPick).
-    read: (track) => costRows(track).flatMap((r) => (hasFailedRuns(r) ? [] : [{ provider: r.provider, value: r.cost.usdPerCompleted }])),
+    // A provider-reported usage cost (Archil's) carries its tag, "usage cost, unsettled", to every cell and sentence
+    // that quotes it; every other reading has none.
+    read: (track) =>
+      costRows(track).flatMap((r) => {
+        if (hasFailedRuns(r)) return [];
+        const tag = rowUsageTag(r);
+        return [{ provider: r.provider, value: r.cost.usdPerCompleted, ...(tag === null ? {} : { tag }) }];
+      }),
     exclude: (track) => costRows(track).flatMap((r) => (hasFailedRuns(r) ? [{ provider: r.provider, why: notCountedWhy(r).join("; ") }] : [])),
     format: perThousand,
   },
@@ -149,17 +156,18 @@ export type ScoreCategoryId = (typeof scoreCategories)[number]["id"];
  */
 export type ScoreCell =
   | (Extract<Score, { kind: "scored" }> & { display: string })
-  | { kind: "valued"; provider: ProviderId; value: number; display: string }
+  /** `tag`: words said beside the value, "usage cost, unsettled" on a provider-reported usage cost (Archil's); null for every other provider. */
+  | { kind: "valued"; provider: ProviderId; value: number; display: string; tag: string | null }
   | Exclude<Score, { kind: "scored" }>;
 
-function toCell(score: Score, category: ScoreCategory, shown: ReadonlyMap<ProviderId, string>): ScoreCell {
+function toCell({ score, category, shown, tags }: { score: Score; category: ScoreCategory; shown: ReadonlyMap<ProviderId, string>; tags: ReadonlyMap<ProviderId, string> }): ScoreCell {
   if (score.kind !== "scored") return score;
   const display = shown.get(score.provider) ?? category.format(score.value);
   switch (category.shows) {
     case "score":
       return { ...score, display };
     case "value":
-      return { kind: "valued", provider: score.provider, value: score.value, display };
+      return { kind: "valued", provider: score.provider, value: score.value, display, tag: tags.get(score.provider) ?? null };
     default: {
       const _exhaustive: never = category.shows;
       return _exhaustive;
@@ -179,9 +187,11 @@ export function trackScores(track: Track, categories: readonly ScoreCategory[] =
     // A reading's own display wins over the category's format; with a reading listed twice, the first counts, as in scoreReadings.
     const shown = new Map<ProviderId, string>();
     for (const r of readings) if (r.display !== undefined && !shown.has(r.provider)) shown.set(r.provider, r.display);
+    const tags = new Map<ProviderId, string>();
+    for (const r of readings) if (r.tag !== undefined && !tags.has(r.provider)) tags.set(r.provider, r.tag);
     return {
       category,
-      scores: scoreReadings({ providers, readings, excluded: counted(category.exclude?.(track) ?? []), better: category.better }).map((s) => toCell(s, category, shown)),
+      scores: scoreReadings({ providers, readings, excluded: counted(category.exclude?.(track) ?? []), better: category.better }).map((score) => toCell({ score, category, shown, tags })),
     };
   });
 }

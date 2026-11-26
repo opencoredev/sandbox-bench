@@ -39,6 +39,21 @@ export interface Update {
 
 export const updates = [
   {
+    slug: "archil-added",
+    date: "2026-11-26",
+    title: "Archil added",
+    text: "Archil on both machines, with real tasks, bursts, locations, stress and expanded tests. Fix and test in 64 s on the same machine, 2nd of 19, and the fastest preview URL first byte.",
+    body: [
+      "Archil joined on both tracks, from its own runs that began on Nov 23 UTC: the real tasks and the held-open test, pause and resume, bursts of 10 and 25, the quick task's cost, calls from Frankfurt and Florida, SDK setup, the stress tests, the expanded benchmarks and Fix and test 5 at once. Its expanded output streaming test is from a rerun on Nov 24 UTC on SDK 1.3.1, after we fixed a bug in our Archil adapter. Its snapshot tests didn't run, because our Archil adapter has no snapshots.",
+      "On the same 4 vCPU, 8 GiB machine it finished Fix and test in 64 s, 2nd of 19 behind Styne's 56 s, at $8.87 per 1,000 (usage cost, unsettled, compute and memory only). On its default machine, 1 vCPU and 2 GiB, the build never finished: its install step was killed (exit 137) in every run. One of its three 60-minute held-open runs didn't finish: Archil refused a command, which our adapter reads as the sandbox not running; Archil's own idle pause is the likely cause, and our adapter doesn't wake a sandbox it didn't pause.",
+      "Its preview URL answered in 0.14 s, the fastest on the default machine and level with Styne on the same machine. Its pip install took 2.9 s on both machines, 2nd behind Styne.",
+      "Its quick-task cost on Default machines comes from a second cost run, because one task in the first timed out after 180 s and cost per task needs all 10 tasks. The first cost run is left out of the cost figure; Archil's main results count their own failures, one tool replay that timed out starting included. Archil's costs are the usage cost its per-sandbox usage API reports, shown as unsettled: Archil drops a deleted sandbox's metadata record, its status and end time, within about half an hour, so we can't read the end time back to confirm a charge is final. Archil keeps the usage record for 90 days, and we read it right after each cost run.",
+      "Its ratio at 5 at once to one task alone is held back: one of its two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other, so two tasks can't set its baseline.",
+    ],
+    charts: { kind: "provider", provider: "archil" },
+    home: { section: "agent", tab: "preview-first-byte", label: "Tool calls" },
+  },
+  {
     slug: "microsandbox-added",
     date: "2026-11-25",
     title: "Microsandbox added, with its Shared CPU tier",

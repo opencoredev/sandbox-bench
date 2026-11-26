@@ -4,8 +4,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Columns } from "@/components/columns";
+import type { Column } from "@/components/columns";
 import { TierTable, tieredWithData } from "@/components/cpu-tiers";
 import { NoCostResults, costColumns } from "@/components/cost";
+import { failureLine } from "@/components/failure-list";
 import { ComingNext, CompactNotes, Footnotes, MetricChart } from "@/components/metric-chart";
 import { ProviderLogo } from "@/components/provider-logo";
 import { RealTaskHeadline } from "@/components/real-tasks";
@@ -96,6 +98,16 @@ function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: str
 }
 
 /**
+ * A compact cost chart's tags as a note under its column view, as the home
+ * page's compact charts say them: "Archil: usage cost, unsettled." A tag
+ * under a slanted name would cross the next names. Nothing when no column has
+ * a tag, so every other chart draws as before.
+ */
+const TagNote = ({ columns }: { columns: readonly Column[] }) => (
+  <CompactNotes items={columns.flatMap((c) => (c.tag === undefined ? [] : [{ mark: undefined, id: c.provider, note: c.tag }]))} />
+);
+
+/**
  * Fix and test's cost per 1,000 completed tasks, every costed provider, with
  * the home page chart's notes: who can't be the cheapest pick and why (such as
  * boxd's larger machine), and why the others have no cost.
@@ -103,9 +115,10 @@ function ChartCard({ anchor, marker, title, sub, href, children }: { anchor: str
 function TaskCostChart({ id, track }: { id: ProviderPageId; track: Track }) {
   const { costed, uncosted } = headlineRows(realistic, runTrackOf[track.id], "fix-and-test");
   if (costed.length === 0) return <ComingNext compact>No fix and test costs on this track yet.</ComingNext>;
+  const columns = taskCostColumns(costed, track.id);
   return (
     <>
-      <Columns columns={taskCostColumns(costed, track.id)} label="Fix and test: cost per 1,000 completed tasks by provider" compact linked highlight={id} />
+      <Columns columns={columns} label="Fix and test: cost per 1,000 completed tasks by provider" compact linked highlight={id} tagNote={<TagNote columns={columns} />} />
       <CompactNotes
         items={[
           ...costed.flatMap((r) => {
@@ -126,7 +139,7 @@ function QuickCostChart({ id, track }: { id: ProviderPageId; track: Track }) {
   const machine = allocationNotes(track);
   return (
     <>
-      <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked highlight={id} />
+      <Columns columns={columns} label="Cost per 1,000 tasks by provider" compact linked highlight={id} tagNote={<TagNote columns={columns} />} />
       <CompactNotes items={[...marks].map(([pid, mark]) => ({ mark, id: pid, note: machine[pid] ?? "" }))} />
     </>
   );
@@ -409,6 +422,8 @@ function ScoreTile({ id, t, e }: { id: ProviderPageId; t: ProviderTrack; e: Scor
         <>
           <span className="mt-m font-brand text-xxl leading-none font-medium tabular-nums text-neutral-10">{c.display}</span>
           <span className="mt-s block text-xs text-neutral-7">Per 1,000 completed tasks</span>
+          {/* Only a usage cost (Archil's) has a tag; every other tile reads as before. */}
+          {c.tag === null ? null : <span className="block text-xs text-neutral-7">{capital(c.tag)}</span>}
           <span className="mt-auto flex items-baseline justify-between gap-s pt-s">
             <span className="text-s text-neutral-8">{e.category.better === "lower" ? "Cheapest first" : "Highest first"}</span>
             {rank}
@@ -481,7 +496,7 @@ function SpecCard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           </span>
         </Row>
         <Row term={`Failures counted against ${name}`}>
-          {t.failures.length === 0 ? "None." : t.failures.map((f) => `${f.reason} (${f.count} ${f.count === 1 ? "failure" : "failures"})`).join("; ")}
+          {failureLine({ provider: id, failures: t.failures, unit: { one: "failure", many: "failures" }, none: "None." })}
         </Row>
       </dl>
       <Footnotes items={notes} />
