@@ -175,7 +175,7 @@ describe("item 4: realistic cost labels say usage cost for Archil", () => {
 });
 
 // Archil's realistic figures are compute and memory charges from its usage API, with no storage
-// estimate added, and in one of its three 1-hour held-open runs Archil refused a command, which our adapter
+// estimate added, and in two of its three 1-hour held-open runs Archil refused a command, which our adapter
 // reads as the sandbox not running; an idle pause is likely (its attempt log; the data says only "check-failed").
 // Both are said for Archil only.
 
@@ -226,27 +226,27 @@ describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-
   // Each provider's bars, up to the line under the grid, so the last block holds no table or notes.
   const blocks = html.slice(0, html.indexOf("Not in this test:")).split('<div class="flex min-w-0 flex-col gap-xs">').slice(1);
   const archilBlock = blocks.find((b) => b.includes(">Archil<")) ?? "";
-  const refusal = "1 command refused";
+  const refusal = "2 commands refused";
 
-  test("each Archil bar has its amount and the tag under it, and the 1-hour bar the refusal beside 2 of 3 done", () => {
+  test("each Archil bar has its amount and the tag under it, and the 1-hour bar the refusal beside 1 of 3 done", () => {
     const bars = archilBlock.split('role="listitem"').slice(1);
     assert.equal(bars.length, 3);
-    for (const [bar, amount] of bars.map((b, i) => [b, ["$12.67", "$76.00", "$393"][i]] as const)) {
+    for (const [bar, amount] of bars.map((b, i) => [b, ["$19.00", "$76.00", "$203"][i]] as const)) {
       assert.ok(bar.includes(`>${amount}</span>`), amount);
       assert.ok(bar.includes(`col-span-full -mt-0.5 text-right text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
       assert.ok(bar.includes(`${amount} per 1,000, ${usageTag}`), `${amount} aria-label`);
     }
-    assert.match(bars[2] ?? "", /2 of 3 done<\/span><span class="text-neutral-7"> \(1 command refused\)<\/span>/);
+    assert.match(bars[2] ?? "", /1 of 3 done<\/span><span class="text-neutral-7"> \(2 commands refused\)<\/span>/);
     for (const bar of bars.slice(0, 2)) assert.ok(!bar.includes("refused"));
   });
 
-  test("Archil's table rows put the tag under each amount and the refusal under 2 of 3", () => {
+  test("Archil's table rows put the tag under each amount and the refusal under 1 of 3", () => {
     const rows = html.split("<tr").filter((r) => r.includes(">Archil<") && r.includes("<td"));
     assert.equal(rows.length, 3);
-    for (const [row, amount] of rows.map((r, i) => [r, ["$12.67", "$76.00", "$393"][i]] as const))
+    for (const [row, amount] of rows.map((r, i) => [r, ["$19.00", "$76.00", "$203"][i]] as const))
       assert.ok(row.includes(`${amount}<span class="block font-sans text-xxs leading-tight text-neutral-7">${usageTag}</span>`), amount);
-    assert.ok(rows[2]?.includes(`2 of 3<span class="block font-sans text-xxs leading-tight text-neutral-7">${refusal}</span>`));
-    assert.ok(html.includes("Archil, 1 hour: </span>In one of its three 1-hour runs Archil refused the command at the resume step; our adapter reads that refusal (HTTP 409) as the sandbox not running, and Archil&#x27;s own idle pause is the likely cause"));
+    assert.ok(rows[2]?.includes(`1 of 3<span class="block font-sans text-xxs leading-tight text-neutral-7">${refusal}</span>`));
+    assert.ok(html.includes("Archil, 1 hour: </span>In two of its three 1-hour runs Archil refused the command at the resume step; our adapter reads that refusal (HTTP 409) as the sandbox not running, and Archil&#x27;s own idle pause is the likely cause"));
   });
 
   test("no other provider's bar or table row gains a tag or a refusal", () => {
@@ -280,6 +280,6 @@ describe("item 4: the held-open chart tags Archil's usage cost and says why a 1-
       withWhy.map(({ provider, w }) => [provider, w.minutes]),
       [["archil", 60]],
     );
-    assert.equal(agentMarkdown().split("Archil, 1 hour: In one of its three 1-hour runs Archil refused the command").length - 1, 1);
+    assert.equal(agentMarkdown().split("Archil, 1 hour: In two of its three 1-hour runs Archil refused the command").length - 1, 1);
   });
 });

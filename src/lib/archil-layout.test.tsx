@@ -127,15 +127,18 @@ describe("item 1: a compact chart's tag goes under the chart on the wide view", 
   });
 });
 
-describe("item 2: Five at once withholds Archil's ratio with its reason, as it does Boat's", () => {
+describe("item 2: Five at once withholds a held ratio with its reason, as it does Boat's", () => {
   const html = renderToStaticMarkup(<RealtaskBurstChart data={realtaskBurst} />);
   const ran = realtaskBurst.providers.flatMap((p) => (p.status === "ran" && p.medianWallS !== null ? [p] : []));
 
-  test("Archil has no ratio, and its footnote gives the reason", () => {
+  test("Boat has no ratio and its footnote gives the reason; Archil's rerun shows its ratio", () => {
+    const boat = ran.find((p) => p.provider === "boat");
+    assert.ok(boat);
+    assert.equal(boat.slowdown, null);
+    assert.ok(text(html).includes("Boat's two tasks alone took 168 and 203 s"));
     const archil = ran.find((p) => p.provider === "archil");
-    assert.ok(archil);
-    assert.equal(archil.slowdown, null);
-    assert.ok(text(html).includes("One of Archil's two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other"));
+    assert.equal(archil?.slowdown?.toFixed(2), "1.07");
+    assert.ok(!text(html).includes("127 s uploading the toolchain"));
   });
 
   test("every measured ratio still shows", () => {

@@ -44,8 +44,8 @@ describe("item 1: Archil's real-task cost bars carry the usage-cost tag", () => 
         }
       });
 
-  test("the tagged amounts include $8.87 and $5.07", () => {
-    assert.ok(amounts.has("$8.87") && amounts.has("$5.07"), [...amounts].join(", "));
+  test("the tagged amounts include $16.47 and $4.75", () => {
+    assert.ok(amounts.has("$16.47") && amounts.has("$4.75"), [...amounts].join(", "));
   });
 
   test("the phone rows say the tag beside Archil's price and nowhere else", () => {
@@ -64,8 +64,8 @@ describe("item 1: Archil's real-task cost bars carry the usage-cost tag", () => 
 
   test("the headline chart says the tag in its notes and its bar's accessible label", () => {
     const html = renderToStaticMarkup(<TaskCostHeadline track={tracks["same-spec"]} />);
-    assert.ok(html.includes("$8.87") && html.includes(usageTag));
-    assert.ok(html.includes(`aria-label="Archil: Per 1,000 completed $8.87 (${usageTag}), Completed`));
+    assert.ok(html.includes("$16.47") && html.includes(usageTag));
+    assert.ok(html.includes(`aria-label="Archil: Per 1,000 completed $16.47 (${usageTag}), Completed`));
     // The compact chart's names are slanted, so the tag goes in the notes under it, not under the column.
     assert.match(html, /Archil(<\/[a-z]+>)+: usage cost, unsettled\./, "the note under the chart");
     assert.ok(!html.includes(`>${usageTag}</span>`), "no tag under a compact column");

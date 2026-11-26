@@ -33,10 +33,10 @@ function pageTexts(id: ProviderId) {
 }
 
 describe("item 1: Archil's headline and ranked fix and test cost carries its status", () => {
-  test("the meta summary says usage cost, unsettled beside $8.87", () => {
+  test("the meta summary says usage cost, unsettled beside $16.47", () => {
     assert.equal(
       providerSummary("archil"),
-      "Archil sandbox on the same 4 vCPU, 8 GiB machine: 0.67 s cold start (7th of 19), 22 s agent tool replay, fix and test task in 64 s for $8.87 per 1,000 (usage cost, unsettled, compute and memory only). Medians, p95s and 95% intervals.",
+      "Archil sandbox on the same 4 vCPU, 8 GiB machine: 0.67 s cold start (7th of 19), 23 s agent tool replay, fix and test task in 67 s for $16.47 per 1,000 (usage cost, unsettled, compute and memory only). Medians, p95s and 95% intervals.",
     );
   });
 
@@ -61,9 +61,9 @@ describe("item 1: Archil's headline and ranked fix and test cost carries its sta
     assert.ok(placed.length > 0 && placed.every((p) => p.label === `Fix and test cost, per 1,000 (${usageTag}, compute and memory only)`));
   });
 
-  test("the update quotes $8.87 with its status", () => {
+  test("the update quotes $16.47 with its status", () => {
     const u = updates.find((x) => x.slug === "archil-added");
-    assert.ok(u?.body.some((p) => p.includes(`$8.87 per 1,000 (${usageTag}, compute and memory only)`)));
+    assert.ok(u?.body.some((p) => p.includes(`$16.47 per 1,000 (${usageTag}, compute and memory only)`)));
   });
 
   test("no other provider's cost cell, home score cell or page sentence gains a tag", () => {

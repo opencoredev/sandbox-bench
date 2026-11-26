@@ -1932,85 +1932,85 @@
       "tasks": [
         {
           "round": 1,
-          "wallS": 68.417,
-          "uploadS": 7.921,
+          "wallS": 67.081,
+          "uploadS": 8.378,
           "completed": true
         },
         {
           "round": 1,
-          "wallS": 67.333,
-          "uploadS": 7.739,
+          "wallS": 68.412,
+          "uploadS": 9.346,
           "completed": true
         },
         {
           "round": 1,
-          "wallS": 69.445,
-          "uploadS": 9.849,
+          "wallS": 66.797,
+          "uploadS": 6.463,
           "completed": true
         },
         {
           "round": 1,
-          "wallS": 67.245,
-          "uploadS": 8.06,
+          "wallS": 64.849,
+          "uploadS": 6.416,
           "completed": true
         },
         {
           "round": 1,
-          "wallS": 71.781,
-          "uploadS": 7.566,
+          "wallS": 67.388,
+          "uploadS": 6.515,
           "completed": true
         },
         {
           "round": 2,
-          "wallS": 67.064,
-          "uploadS": 8.026,
+          "wallS": 68.43,
+          "uploadS": 6.77,
           "completed": true
         },
         {
           "round": 2,
-          "wallS": 67.502,
-          "uploadS": 7.42,
+          "wallS": 68.39,
+          "uploadS": 8.655,
           "completed": true
         },
         {
           "round": 2,
-          "wallS": 66.984,
-          "uploadS": 7.719,
+          "wallS": 66.896,
+          "uploadS": 8.266,
           "completed": true
         },
         {
           "round": 2,
-          "wallS": 64.254,
-          "uploadS": 5.221,
+          "wallS": 64.728,
+          "uploadS": 5.495,
           "completed": true
         },
         {
           "round": 2,
-          "wallS": 65.09,
-          "uploadS": 5.509,
+          "wallS": 66.709,
+          "uploadS": 6.965,
           "completed": true
         }
       ],
-      "medianWallS": 67.289,
-      "medianUploadS": 7.729,
+      "medianWallS": 66.989,
+      "medianUploadS": 6.868,
       "completed": 10,
       "attempts": 10,
       "roundAllDoneS": [
-        71.782,
-        67.503
+        68.412,
+        68.431
       ],
       "burstRounds": [
         {
           "round": 1,
           "size": 5,
           "admitted": 5,
-          "allDoneS": 71.782
+          "allDoneS": 68.412
         },
         {
           "round": 2,
           "size": 5,
           "admitted": 5,
-          "allDoneS": 67.503
+          "allDoneS": 68.431
         }
       ],
       "skippedBurstRounds": [],
@@ -2019,32 +2019,31 @@
         "tasks": [
           {
             "round": 1,
-            "wallS": 63.366,
-            "uploadS": 4.209,
+            "wallS": 62.634,
+            "uploadS": 3.409,
             "completed": true
           },
           {
             "round": 2,
-            "wallS": 189.503,
-            "uploadS": 127.273,
+            "wallS": 62.322,
+            "uploadS": 3.607,
             "completed": true
           }
         ],
         "completed": 2,
         "attempts": 2
       },
-      "soloMedianWallS": 126.434,
-      "soloMedianUploadS": 65.741,
-      "slowdown": null,
-      "slowdownWithoutUpload": null,
+      "soloMedianWallS": 62.478,
+      "soloMedianUploadS": 3.508,
+      "slowdown": 1.072,
+      "slowdownWithoutUpload": 1.009,
       "slowdownWithheld": null,
       "status": "ran",
       "run": {
-        "id": "rtb-archil-1123",
-        "sdkCommit": "1f1de780ca8d334f3834ca388cf216ed515f254a",
-        "startedAt": "2026-11-23T22:59:54.953Z"
-      },
-      "changeNote": "One of Archil's two tasks alone spent 127 s uploading the toolchain from our machine, against 4 s for the other, so two tasks can't set its baseline; the other task alone took 63 s, about the same as each task at once"
+        "id": "rtb-archil-1126",
+        "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+        "startedAt": "2026-11-26T20:23:11.342Z"
+      }
     }
   ]
 }
