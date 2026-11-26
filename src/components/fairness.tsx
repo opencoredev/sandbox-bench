@@ -5,24 +5,36 @@ import type { Column } from "@/components/columns";
 import { ChartHead, Footnotes, NotOnChart, Who, sentence } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
 import { TabCard } from "@/components/tabs";
-import { formatShort } from "@/lib/format";
+import { formatShort, formatValue } from "@/lib/format";
 import {
   completed,
   cpuLine,
+  gibText,
+  hasVerdict,
   iopsText,
   isolationText,
   memoryOutcomeText,
   mibpsText,
+  msText,
   notCompleted,
+  OVERSHOOT,
   opsText,
   percentText,
   heldShare,
+  pressureOutcomeText,
   rankBy,
+  reachedText,
   runsAsText,
+  scopeText,
+  servingText,
+  stateVerdicts,
+  suspendText,
+  verdictNote,
   uptimeText,
+  usableAfterText,
   vulnerableText,
 } from "@/lib/fairness";
-import type { BurstResult, CheckData, Completed, CpuNativeResult, DiskResult, FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
+import type { BurstResult, CheckData, Completed, CpuNativeResult, DiskResult, FairnessData, MemoryResult, PressureResult, SecurityResult, StateResult } from "@/lib/fairness";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -392,7 +404,207 @@ export function IsolationTable({ data }: { data: FairnessData }) {
   );
 }
 
-/** The four like-for-like checks, Same machine only. Nothing until one has a result. */
+// ---------------------------------------------------------------------------
+// Pause and resume, and restart speed (state-survival)
+
+/** Verdicts first, best kept state first; then no verdict, then not tested. */
+const suspendOrder = (r: StateResult) => {
+  const s = r.suspend;
+  if (s.kind === "unsupported") return 7;
+  if (s.kind === "failed") return 6;
+  return stateVerdicts.indexOf(s.verdict);
+};
+
+/** The check's own note on a verdict, such as a changed boot ID it weighed against the processes. */
+const verdictMark = (e: Completed<StateResult>) => verdictNote(e.result) ?? undefined;
+
+const resumeText = (r: StateResult) => (r.suspend.kind === "measured" ? `pause ${msText(r.suspend.pauseMs)}, resume ${msText(r.suspend.resumeMs)}, first command ${msText(r.suspend.firstCommandMs)}` : null);
+
+const dim = (r: StateResult) => (hasVerdict(r) ? "" : "text-neutral-7");
+
+function PauseSurvival({ data, check }: { data: FairnessData; check: CheckData<StateResult> }) {
+  const rows = [...completed(check)].sort((a, b) => suspendOrder(a.result) - suspendOrder(b.result) || a.provider.localeCompare(b.provider));
+  const marks = marksFor(data, rows, verdictMark);
+  const cell = "px-m py-1.5 align-top";
+  const sup = (id: ProviderId) => (marks.get(id) ? <sup className="ml-0.5 text-neutral-7">{marks.get(id)?.mark}</sup> : null);
+  return (
+    <>
+      <ChartHead title="Survives a pause with memory intact" sub="A server holding 32 MiB in memory, a worker beating once a second and a 16 MiB file · Paused, held 60 s, resumed · Then checked against the start" />
+      <ul className="flex flex-col gap-s sm:hidden">
+        {rows.map((e) => (
+          <li key={e.provider} className="text-s">
+            <p className="font-medium" style={{ color: providerColor(e.provider) }}>
+              <ProviderName id={e.provider} />
+              {sup(e.provider)}
+            </p>
+            <p className={dim(e.result)}>{suspendText(e.result)}</p>
+            {e.result.suspend.kind === "measured" ? (
+              <p className="text-xs text-neutral-7">
+                Serving again after {servingText(e.result)} · {resumeText(e.result)}
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <div className="relative hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[640px] border-collapse text-left text-xs">
+          <thead>
+            <tr className="text-xs text-neutral-7">
+              {["Provider", "After a 60 s pause", "Serving again", "Pause, resume and first command"].map((h) => (
+                <th key={h} scope="col" className="px-m py-xs font-normal">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((e) => (
+              <tr key={e.provider}>
+                <th scope="row" className={`${cell} font-medium whitespace-nowrap`} style={{ color: providerColor(e.provider) }}>
+                  <ProviderName id={e.provider} />
+                  {sup(e.provider)}
+                </th>
+                <td className={`${cell} ${dim(e.result)}`}>{suspendText(e.result)}</td>
+                <td className={`${cell} font-mono tabular-nums`}>{servingText(e.result) ?? <span className="font-sans text-neutral-7">–</span>}</td>
+                <td className={`${cell} font-mono tabular-nums`}>{resumeText(e.result) ?? <span className="font-sans text-neutral-7">–</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Missing check={check} />
+      <Footnotes
+        items={[
+          ...markNotes(marks),
+          ...missingNotes(check),
+          { lead: "Why", text: "An agent that sleeps while it waits wants its dev server, its shell state and its files back as they were. A provider can freeze the sandbox's memory, keep it running, or bring back only the disk; this says which, from what the sandbox shows afterwards." },
+          { lead: "Work", text: "In a fresh directory: a 16 MiB random file, an HTTP server holding a random token and 32 MiB of random bytes, and a shell worker counting a heartbeat every second, both started detached as an agent's dev server would be. Then the provider's pause, 60 seconds, and its resume. Afterwards the file's hash, the boot ID, and each process's ID, start time, token and memory digest are compared with the start." },
+          { lead: "Verdicts", text: "Memory intact: the same server and worker came back, and the worker missed at least 80% of the hold's heartbeats, so it was frozen. Kept running: the same, but it missed at most 20%. Files kept, processes gone: both processes confirmed gone with the file intact. Files lost: the file or its directory is gone or changed. The original server answering with its random token and memory counts for more than a changed boot ID, which a restored checkpoint can also show; such a verdict carries a note." },
+          { lead: "No verdict", text: "When the evidence fits none of those, or a pause, resume or first command didn't complete, there is no verdict. That settles nothing about the provider; the reason is shown." },
+          { lead: "Serving again", text: "From the resume returning until the original server answered. When it was gone, it was started again, and the time is the first command plus that restart, which leaves out the check's own reads (about)." },
+          { lead: "Not tested", text: "Our SDK adapter has no pause for these providers. Stopping and starting a sandbox has no portable SDK call, so that isn't tested here." },
+          runNote(check),
+        ]}
+      />
+    </>
+  );
+}
+
+function RestartSpeed({ data, check }: { data: FairnessData; check: CheckData<StateResult> }) {
+  const timed = completed(check).flatMap((e) => (e.result.restart.medianMs === null ? [] : [{ ...e, medianMs: e.result.restart.medianMs }]));
+  const rows = [...timed].sort((a, b) => a.medianMs - b.medianMs || a.provider.localeCompare(b.provider));
+  const marks = marksFor(data, rows);
+  const columns: Column[] = rows.map((e) => ({
+    provider: e.provider,
+    label: formatValue(e.medianMs, "ms"),
+    mark: marks.get(e.provider)?.mark,
+    ...(e.result.restart.failures > 0 ? { tag: `${e.result.restart.failures} failed` } : {}),
+    segments: solid(e.provider, e.medianMs),
+    detail: [
+      ["Median", formatValue(e.medianMs, "ms")],
+      ["Each restart", e.result.restart.samplesMs.map((s) => formatValue(s, "ms")).join(", ")],
+      ...(e.result.restart.failures > 0 ? [["Failed", String(e.result.restart.failures)] as const] : []),
+      ...(e.result.restart.startsOnly > 0 ? [["Starts, not timed", String(e.result.restart.startsOnly)] as const] : []),
+    ],
+  }));
+  const untimed = completed(check).filter((e) => e.result.restart.medianMs === null);
+  return (
+    <>
+      <ChartHead title="How fast a killed process restarts" sub="A server killed with SIGKILL and started again in the same sandbox, 5 times · Median milliseconds from the kill until the new one answers, timed in the guest · Lower is better" />
+      <Columns columns={columns} label="How fast a killed process restarts: median milliseconds by provider" />
+      <Missing check={check} />
+      <NotOnChart ids={untimed.map((e) => e.provider)} lead="No restart timed for" />
+      <Footnotes
+        items={[
+          ...markNotes(marks),
+          ...missingNotes(check),
+          ...untimed.map((e) => ({ text: <><Who id={e.provider} />: no restart was timed ({e.result.restart.failures} failed, {e.result.restart.startsOnly} found no server to kill).</>, about: e.provider })),
+          { lead: "Why", text: "When an agent's dev server crashes, or the agent restarts it after a change, this is how long the sandbox takes to have it serving again." },
+          { lead: "Work", text: "The same small HTTP server each time, in the runtime the image ships. The guest kills it with SIGKILL, starts it again, and times until the new process answers on its port with its own launch nonce, so the host's round trip isn't in the figure. A trial that found no server to kill is a start, not a restart, and is left out of the median." },
+          { lead: "One run", text: "Each bar is one sandbox's median of 5 restarts, from a single run per provider; the hover card lists every restart. Figures can move between runs, so read small gaps as noise." },
+          { lead: "What it isn't", text: "A process restart inside a running sandbox, not the sandbox itself stopped and started, which has no portable SDK call." },
+          runNote(check),
+        ]}
+      />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// When memory runs out (memory-pressure)
+
+const pressureOrder = ["reached-target", "process-killed", "refused", "sandbox-restarted", "sandbox-lost", "inconclusive"] as const;
+
+const heldText = (r: PressureResult) => `${reachedText(r)}${r.swapTotalGiB ? `, with ${gibText(r.swapTotalGiB)} swap` : ""}`;
+
+function MemoryPressure({ data, check }: { data: FairnessData; check: CheckData<PressureResult> }) {
+  const rows = [...completed(check)].sort((a, b) => pressureOrder.indexOf(a.result.outcome.kind) - pressureOrder.indexOf(b.result.outcome.kind) || (b.result.reached?.fraction ?? 0) - (a.result.reached?.fraction ?? 0) || a.provider.localeCompare(b.provider));
+  const marks = marksFor(data, rows);
+  const cell = "px-m py-1.5 align-top";
+  const sup = (id: ProviderId) => (marks.get(id) ? <sup className="ml-0.5 text-neutral-7">{marks.get(id)?.mark}</sup> : null);
+  const quiet = (r: PressureResult) => (r.outcome.kind === "inconclusive" ? "text-neutral-7" : "");
+  return (
+    <>
+      <ChartHead title="What happens when memory runs out" sub={`One process allocates memory that doesn't compress, 64 MiB at a time, up to ${OVERSHOOT}× the advertised memory (12 GiB of 8 GiB) · What stopped it, how much it held, and what else it took down`} />
+      <ul className="flex flex-col gap-s sm:hidden">
+        {rows.map((e) => (
+          <li key={e.provider} className="text-s">
+            <p className="font-medium" style={{ color: providerColor(e.provider) }}>
+              <ProviderName id={e.provider} />
+              {sup(e.provider)}
+            </p>
+            <p className={quiet(e.result)}>{pressureOutcomeText(e.result)}</p>
+            <p className="text-xs text-neutral-7">
+              Held {heldText(e.result)} · {scopeText(e.result)} · Usable after: {usableAfterText(e.result)}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="relative hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[720px] border-collapse text-left text-xs">
+          <thead>
+            <tr className="text-xs text-neutral-7">
+              {["Provider", "What happened", "Held before it", "What it took down", "Usable after"].map((h) => (
+                <th key={h} scope="col" className="px-m py-xs font-normal">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((e) => (
+              <tr key={e.provider}>
+                <th scope="row" className={`${cell} font-medium whitespace-nowrap`} style={{ color: providerColor(e.provider) }}>
+                  <ProviderName id={e.provider} />
+                  {sup(e.provider)}
+                </th>
+                <td className={`${cell} ${quiet(e.result)}`}>{pressureOutcomeText(e.result)}</td>
+                <td className={`${cell} tabular-nums`}>{heldText(e.result)}</td>
+                <td className={cell}>{scopeText(e.result)}</td>
+                <td className={cell}>{usableAfterText(e.result)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Missing check={check} />
+      <Footnotes
+        items={[
+          ...markNotes(marks),
+          ...missingNotes(check),
+          { lead: "Why", text: "A build or a test suite that runs out of memory should lose one process, not the whole sandbox, and the sandbox should work afterwards. This shows what each provider does when a process asks for more than the sandbox has." },
+          { lead: "Work", text: `A detached process, the hog, allocates random bytes 64 MiB at a time, logging each chunk, up to ${OVERSHOOT} times the provider's advertised memory, while a shell above it records how it exits and a canary process writes the time every second. The host polls every 2 seconds and waits through silences. Afterwards: is the boot ID the same, is the canary still the same live process, and do a fresh 256 MiB allocation and a file write succeed.` },
+          { lead: "What happened", text: "Only evidence counts: an exit status the shell recorded (killed is SIGKILL), the process's own refusal, a new boot ID, or the provider's own lookup saying the sandbox is gone. Anything else has no verdict, with the reason, and settles nothing about the provider." },
+          { lead: "Held", text: "Exact when read from the process's whole log; \"at least\" when it is the last progress seen before the process or the sandbox went away. Memory past 100% of the advertised size came from swap or from no limit at that size." },
+          { lead: "Took down", text: "Only the process: the canary was the same live process with a fresh beat. Other processes stopped too: the canary was gone. The whole sandbox: it rebooted or ended. Not determined otherwise." },
+          runNote(check),
+        ]}
+      />
+    </>
+  );
+}
+
+/** The like-for-like checks, Same machine only. Nothing until one has a result. */
 export function FairnessSection({ data }: { data: FairnessData }) {
   const tabs = [
     ...(data.cpuNative && completed(data.cpuNative).length > 0
@@ -409,6 +621,13 @@ export function FairnessSection({ data }: { data: FairnessData }) {
       : []),
     ...(data.cpuBurst && completed(data.cpuBurst).length > 0 ? [{ id: "ten", label: "10 at once", content: <Burst data={data} check={data.cpuBurst} /> }] : []),
     ...(data.memoryHonesty && completed(data.memoryHonesty).length > 0 ? [{ id: "limits", label: "CPUs and memory", content: <Limits data={data} check={data.memoryHonesty} /> }] : []),
+    ...(data.stateSurvival && completed(data.stateSurvival).length > 0
+      ? [
+          { id: "pause", label: "Survives a pause", content: <PauseSurvival data={data} check={data.stateSurvival} /> },
+          ...(completed(data.stateSurvival).some((e) => e.result.restart.medianMs !== null) ? [{ id: "restart", label: "Restart speed", content: <RestartSpeed data={data} check={data.stateSurvival} /> }] : []),
+        ]
+      : []),
+    ...(data.memoryPressure && completed(data.memoryPressure).length > 0 ? [{ id: "memory-out", label: "Memory runs out", content: <MemoryPressure data={data} check={data.memoryPressure} /> }] : []),
   ];
   if (tabs.length === 0) return null;
   return <TabCard label="Like-for-like checks" section={fairnessSection} tabs={tabs} />;

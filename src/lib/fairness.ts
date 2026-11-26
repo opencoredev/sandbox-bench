@@ -1,9 +1,9 @@
-import { formatShort } from "@/lib/format";
+import { formatShort, formatValue } from "@/lib/format";
 import { isProviderId } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 /**
- * Like-for-like checks: five tests that run the same code, the same way, on
+ * Like-for-like checks: seven tests that run the same code, the same way, on
  * every provider's 4 vCPU, 8 GB sandbox, so a result reflects the machine and
  * not the image, a cache, burst credit or what the sandbox reports about
  * itself. They are not there to catch anyone out: each removes one difference
@@ -20,6 +20,11 @@ import type { ProviderId } from "@/lib/providers";
  * - security-probe: read-only facts from a fresh sandbox: isolation layer,
  *   kernel flags, CPU vulnerabilities as the kernel reports them, the CPU,
  *   the user, and how long the guest had been up.
+ * - state-survival: a server and a worker started detached, then paused for
+ *   60 s and resumed, to see whether their memory and the files survived;
+ *   and how fast a killed server starts again in the same sandbox.
+ * - memory-pressure: one process allocates up to 1.5 times the advertised
+ *   memory, and what stopped it, how far it got and what else it took down.
  *
  * This is the site's model of `src/data/fairness.json`, built by
  * scripts/fairness-site-data.ts from the harness's reports (`bun bench
@@ -27,9 +32,9 @@ import type { ProviderId } from "@/lib/providers";
  * build) and the rules the section and the agent files share.
  */
 
-export const SCHEMA = "fairness-site.v1";
+export const SCHEMA = "fairness-site.v2";
 
-export const checkIds = ["cpu-native", "disk-real", "cpu-burst-10", "memory-honesty", "security-probe"] as const;
+export const checkIds = ["cpu-native", "disk-real", "cpu-burst-10", "memory-honesty", "security-probe", "state-survival", "memory-pressure"] as const;
 export type CheckId = (typeof checkIds)[number];
 
 export interface FairnessRun {
@@ -159,6 +164,83 @@ export interface SecurityResult {
   bootedBeforeCreateS: number | null;
 }
 
+export const stateVerdicts = ["in-ram", "kept-running", "cold-restart", "files-lost", "inconclusive"] as const;
+export type StateVerdict = (typeof stateVerdicts)[number];
+
+export const pauseStages = ["pause", "resume", "first-command"] as const;
+
+/**
+ * What a pause, a 60-second hold and a resume did. "unsupported": our SDK adapter has no pause for
+ * the provider. "failed": a step didn't complete, which settles nothing about what survives.
+ */
+export type SuspendOutcome =
+  | { kind: "unsupported" }
+  | { kind: "failed"; stage: (typeof pauseStages)[number]; error: string }
+  | {
+      kind: "measured";
+      verdict: StateVerdict;
+      /** Inconclusive: why the evidence wasn't enough for a verdict. Another verdict: a note on its evidence, or null. */
+      reason: string | null;
+      holdMs: number;
+      pauseMs: number;
+      resumeMs: number;
+      /** From resume returning to the first command answering. */
+      firstCommandMs: number;
+      /** Observed: from resume returning to the original server answering; null when it didn't. */
+      servingMs: number | null;
+      /** The server was confirmed gone, started again and answered. */
+      serverRestarted: boolean;
+      /** Composed, for a server started again: the first command plus its guest-timed restart. */
+      coldServeMs: number | null;
+      bootSame: boolean | null;
+    };
+
+export interface StateResult {
+  /** A server killed with SIGKILL and started again, timed in the guest from the kill to the new one answering. */
+  restart: {
+    /** Median of `samplesMs`; null when no restart was timed. */
+    medianMs: number | null;
+    samplesMs: readonly number[];
+    failures: number;
+    /** Trials that found no previous server to kill: starts, not restarts, so not in the median. */
+    startsOnly: number;
+  };
+  suspend: SuspendOutcome;
+}
+
+/**
+ * What stopped the hog. Only a recorded exit status, a new boot ID or the provider's own lookup is
+ * an outcome; "inconclusive" claims nothing about the provider.
+ */
+export type PressureOutcome =
+  | { kind: "reached-target" }
+  | { kind: "process-killed" }
+  | { kind: "refused"; reason: string }
+  | { kind: "sandbox-restarted" }
+  | { kind: "sandbox-lost" }
+  | { kind: "inconclusive"; reason: string };
+
+export const pressureScopes = ["process", "collateral", "sandbox"] as const;
+
+export interface PressureResult {
+  /** The provider's same-machine memory. */
+  advertisedMiB: number;
+  /** 1.5 times `advertisedMiB`. */
+  targetMiB: number;
+  /**
+   * The most the hog was seen holding: `log` is exact, from its whole log; `last-poll` is a lower
+   * bound from the last progress seen. Null when nothing was observed.
+   */
+  reached: { evidence: "log" | "last-poll"; mib: number; fraction: number } | null;
+  outcome: PressureOutcome;
+  /** The hog alone, other processes too, or the whole sandbox; null when not determined. */
+  scope: (typeof pressureScopes)[number] | null;
+  /** A fresh allocation and a file write succeeded afterwards; null when not measured. */
+  usableAfter: boolean | null;
+  /** Swap the guest reported before the hog started; null when unreadable. */
+  swapTotalGiB: number | null;
+}
+
 export interface CheckData<R> {
   run: FairnessRun;
   entries: readonly Entry<R>[];
@@ -177,6 +259,8 @@ export interface FairnessData {
   cpuBurst: CheckData<BurstResult> | null;
   memoryHonesty: CheckData<MemoryResult> | null;
   securityProbe: CheckData<SecurityResult> | null;
+  stateSurvival: CheckData<StateResult> | null;
+  memoryPressure: CheckData<PressureResult> | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -440,6 +524,125 @@ function parseSecurity(o: Json, path: string): SecurityResult {
   };
 }
 
+/** A harness reason in reader's words: "no answer for 242146 ms" reads "the sandbox didn't answer for about 4 min" (seconds under 90 s). */
+export const readableReason = (reason: string) =>
+  reason.replace(/\bno answer for (\d+) ms\b/g, (_, ms: string) => {
+    const s = Number(ms) / 1000;
+    return `the sandbox didn't answer for about ${s < 90 ? `${Math.round(s)} s` : `${Math.round(s / 60)} min`}`;
+  });
+
+/** The hold the page names: 60 seconds. */
+export const HOLD_MS = 60_000;
+
+function parseSuspend(v: unknown, path: string): SuspendOutcome {
+  const o = obj(v, path);
+  const kind = oneOf(["unsupported", "failed", "measured"] as const, o.kind, `${path}.kind`);
+  switch (kind) {
+    case "unsupported":
+      return { kind };
+    case "failed":
+      return { kind, stage: oneOf(pauseStages, o.stage, `${path}.stage`), error: readableReason(str(o.error, `${path}.error`)) };
+    case "measured": {
+      const verdict = oneOf(stateVerdicts, o.verdict, `${path}.verdict`);
+      const raw = orNull(str)(o.reason, `${path}.reason`);
+      const reason = raw === null ? null : readableReason(raw);
+      if (verdict === "inconclusive" && reason === null) fail(`${path}.reason`, "must say why the verdict is inconclusive");
+      if (o.holdMs !== HOLD_MS) fail(`${path}.holdMs`, `must be ${HOLD_MS}, as the chart says`);
+      const servingMs = orNull(nonNegative)(o.servingMs, `${path}.servingMs`);
+      const coldServeMs = orNull(nonNegative)(o.coldServeMs, `${path}.coldServeMs`);
+      const serverRestarted = bool(o.serverRestarted, `${path}.serverRestarted`);
+      if (serverRestarted !== (coldServeMs !== null)) fail(`${path}.coldServeMs`, "must be set exactly when the server was started again");
+      if (servingMs !== null && coldServeMs !== null) fail(`${path}.servingMs`, "can't be set beside coldServeMs: the original server answered or a new one did");
+      return {
+        kind,
+        verdict,
+        reason,
+        holdMs: HOLD_MS,
+        pauseMs: nonNegative(o.pauseMs, `${path}.pauseMs`),
+        resumeMs: nonNegative(o.resumeMs, `${path}.resumeMs`),
+        firstCommandMs: nonNegative(o.firstCommandMs, `${path}.firstCommandMs`),
+        servingMs,
+        serverRestarted,
+        coldServeMs,
+        bootSame: orNull(bool)(o.bootSame, `${path}.bootSame`),
+      };
+    }
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+const medianOf = (xs: readonly number[]) => {
+  const sorted = [...xs].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1 ? (sorted[mid] ?? 0) : ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2;
+};
+
+function parseState(o: Json, path: string): StateResult {
+  const r = obj(o.restart, `${path}.restart`);
+  const samplesMs = arr(r.samplesMs, `${path}.restart.samplesMs`).map((s, i) => positive(s, `${path}.restart.samplesMs[${i}]`));
+  const medianMs = orNull(positive)(r.medianMs, `${path}.restart.medianMs`);
+  if ((medianMs === null) !== (samplesMs.length === 0)) fail(`${path}.restart.medianMs`, "must be null exactly when no restart was timed");
+  if (medianMs !== null && Math.abs(medianMs - medianOf(samplesMs)) > 0.05) fail(`${path}.restart.medianMs`, `is ${medianMs}, not the median of its samples`);
+  return {
+    restart: { medianMs, samplesMs, failures: wholeNonNegative(r.failures, `${path}.restart.failures`), startsOnly: wholeNonNegative(r.startsOnly, `${path}.restart.startsOnly`) },
+    suspend: parseSuspend(o.suspend, `${path}.suspend`),
+  };
+}
+
+/** The hog's target as a multiple of the advertised memory, as the chart says. */
+export const OVERSHOOT = 1.5;
+
+function parsePressureOutcome(v: unknown, path: string): PressureOutcome {
+  const o = obj(v, path);
+  const kind = oneOf(["reached-target", "process-killed", "refused", "sandbox-restarted", "sandbox-lost", "inconclusive"] as const, o.kind, `${path}.kind`);
+  switch (kind) {
+    case "reached-target":
+    case "process-killed":
+    case "sandbox-restarted":
+    case "sandbox-lost":
+      return { kind };
+    case "refused":
+    case "inconclusive":
+      return { kind, reason: readableReason(str(o.reason, `${path}.reason`)) };
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+function parsePressure(o: Json, path: string): PressureResult {
+  const advertisedMiB = positive(o.advertisedMiB, `${path}.advertisedMiB`);
+  const targetMiB = positive(o.targetMiB, `${path}.targetMiB`);
+  if (targetMiB !== advertisedMiB * OVERSHOOT) fail(`${path}.targetMiB`, `must be ${OVERSHOOT} × advertisedMiB, as the chart says`);
+  const reached = o.reached === null ? null : obj(o.reached, `${path}.reached`);
+  const outcome = parsePressureOutcome(o.outcome, `${path}.outcome`);
+  const scope = o.scope === null ? null : oneOf(pressureScopes, o.scope, `${path}.scope`);
+  if ((outcome.kind === "sandbox-lost" || outcome.kind === "sandbox-restarted") && scope !== "sandbox") fail(`${path}.scope`, `must be sandbox for ${outcome.kind}`);
+  const parsedReached =
+    reached === null
+      ? null
+      : {
+          evidence: oneOf(["log", "last-poll"] as const, reached.evidence, `${path}.reached.evidence`),
+          mib: nonNegative(reached.mib, `${path}.reached.mib`),
+          fraction: nonNegative(reached.fraction, `${path}.reached.fraction`),
+        };
+  if (parsedReached && Math.abs(parsedReached.fraction - parsedReached.mib / advertisedMiB) > 0.0005 + 1e-9) fail(`${path}.reached.fraction`, `is ${parsedReached.fraction} but its figures give ${(parsedReached.mib / advertisedMiB).toFixed(3)}`);
+  if (outcome.kind === "reached-target" && (parsedReached?.evidence !== "log" || parsedReached.mib < targetMiB)) fail(`${path}.reached`, "must log the whole target for reached-target");
+  return {
+    advertisedMiB,
+    targetMiB,
+    reached: parsedReached,
+    outcome,
+    scope,
+    usableAfter: orNull(bool)(o.usableAfter, `${path}.usableAfter`),
+    swapTotalGiB: orNull(nonNegative)(o.swapTotalGiB, `${path}.swapTotalGiB`),
+  };
+}
+
 function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: string) => R): Entry<R> {
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
@@ -506,7 +709,11 @@ export function parseFairness(raw: unknown): FairnessData {
     cpuBurst: parseCheck(checks["cpu-burst-10"], "checks.cpu-burst-10", parseBurst),
     memoryHonesty: parseCheck(checks["memory-honesty"], "checks.memory-honesty", parseMemory),
     securityProbe: parseCheck(checks["security-probe"], "checks.security-probe", parseSecurity),
+    stateSurvival: parseCheck(checks["state-survival"], "checks.state-survival", parseState),
+    memoryPressure: parseCheck(checks["memory-pressure"], "checks.memory-pressure", parsePressure),
   };
+  // The hog's advertised memory is the size the provider's sandbox asked for.
+  for (const e of completed(data.memoryPressure)) if (e.result.advertisedMiB !== e.machine.memoryGiB * 1024) fail(`checks.memory-pressure ${e.provider}`, `advertises ${e.result.advertisedMiB} MiB, not its machine's ${e.machine.memoryGiB} GiB`);
   // A disk under gVisor, by the security probe, can't be marked comparable.
   const gvisor = new Set(completed(data.securityProbe).filter((e) => e.result.isolation === "gvisor").map((e) => e.provider));
   for (const e of completed(data.diskReal)) if (gvisor.has(e.provider) && e.result.comparable) fail(`checks.disk-real ${e.provider}`, "runs under gVisor, so its disk can't be comparable");
@@ -526,7 +733,7 @@ export const notCompleted = <R>(check: CheckData<R> | null) =>
 
 /** Whether any check has an entry; the section shows nothing until one does. */
 export const hasFairness = (d: FairnessData) =>
-  [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe].some((c) => c !== null && c.entries.length > 0);
+  [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe, d.stateSurvival, d.memoryPressure].some((c) => c !== null && c.entries.length > 0);
 
 /** Highest first by `value`, ties by provider id. */
 export const rankBy = <R>(entries: readonly Completed<R>[], value: (r: R) => number) =>
@@ -635,3 +842,98 @@ export function memoryOutcomeText(r: MemoryResult): string {
     }
   }
 }
+
+/** "640 MiB" under a GiB, else "7.6 GiB". */
+export const mibText = (mib: number) => (mib < 1024 ? `${Math.round(mib)} MiB` : gibText(mib / 1024));
+
+/** "59.1 ms", "495 ms", "1.1 s", "18 s". */
+export const msText = (ms: number) => (ms < 1000 ? formatValue(ms, "ms") : formatValue(ms / 1000, "s"));
+
+/** No verdict, in words that never read as the provider's failure. */
+const noVerdict = (why: string) => `No verdict: ${why}`;
+
+const stageText: Record<(typeof pauseStages)[number], string> = { pause: "the pause", resume: "the resume", "first-command": "the first command after resume" };
+
+/** What a pause and resume did, in a few words; a verdict's own note is shown beside it, not here. */
+export function suspendText(r: StateResult): string {
+  const s = r.suspend;
+  switch (s.kind) {
+    case "unsupported":
+      return "Not tested: our SDK adapter has no pause for it";
+    case "failed":
+      return noVerdict(`${stageText[s.stage]} didn't complete (${s.error})`);
+    case "measured":
+      switch (s.verdict) {
+        case "in-ram":
+          return "Memory and processes intact, frozen during the pause";
+        case "kept-running":
+          return "Kept running through the pause, memory and processes intact";
+        case "cold-restart":
+          return s.bootSame === false ? "Booted again: files kept, running processes gone" : "Files kept, running processes gone";
+        case "files-lost":
+          return "Files lost";
+        case "inconclusive":
+          return noVerdict(s.reason ?? "the evidence didn't settle it");
+        default: {
+          const _exhaustive: never = s.verdict;
+          return _exhaustive;
+        }
+      }
+    default: {
+      const _exhaustive: never = s;
+      return _exhaustive;
+    }
+  }
+}
+
+/** The note the check gave a verdict other than inconclusive, such as a changed boot ID it weighed; null otherwise. */
+export const verdictNote = (r: StateResult) => (r.suspend.kind === "measured" && r.suspend.verdict !== "inconclusive" ? r.suspend.reason : null);
+
+/** Whether the pause settled what survives: a measured verdict other than inconclusive. */
+export const hasVerdict = (r: StateResult) => r.suspend.kind === "measured" && r.suspend.verdict !== "inconclusive";
+
+/** Time from resume until the server served again: observed, or composed for one started again. */
+export function servingText(r: StateResult): string | null {
+  const s = r.suspend;
+  if (s.kind !== "measured") return null;
+  if (s.servingMs !== null) return msText(s.servingMs);
+  if (s.coldServeMs !== null) return `about ${msText(s.coldServeMs)}, started again`;
+  return "didn't serve again";
+}
+
+/** How far the hog got: exact from its log, "at least" from the last poll. */
+export function reachedText(r: PressureResult): string {
+  if (r.reached === null) return "nothing observed";
+  const held = `${mibText(r.reached.mib)} (${percentText(r.reached.fraction)} of ${mibText(r.advertisedMiB)})`;
+  return r.reached.evidence === "log" ? held : `at least ${held}`;
+}
+
+/** What stopped the hog, in a few words. */
+export function pressureOutcomeText(r: PressureResult): string {
+  const o = r.outcome;
+  switch (o.kind) {
+    case "reached-target":
+      return `Held all ${mibText(r.targetMiB)}, ${OVERSHOOT}× the advertised memory`;
+    case "process-killed":
+      return "The process was killed (SIGKILL)";
+    case "refused":
+      return `The allocation was refused (${o.reason})`;
+    case "sandbox-restarted":
+      return "The sandbox rebooted";
+    case "sandbox-lost":
+      return "The sandbox ended: the provider reported it gone";
+    case "inconclusive":
+      return noVerdict(o.reason);
+    default: {
+      const _exhaustive: never = o;
+      return _exhaustive;
+    }
+  }
+}
+
+/** What else the hog took down. */
+export const scopeText = (r: PressureResult) =>
+  r.scope === "process" ? "Only the process: the rest kept running" : r.scope === "collateral" ? "Other processes stopped too" : r.scope === "sandbox" ? "The whole sandbox" : "Not determined";
+
+/** Whether a fresh allocation and a file write worked afterwards. */
+export const usableAfterText = (r: PressureResult) => (r.usableAfter === null ? "Not measured" : r.usableAfter ? "Yes" : "No");

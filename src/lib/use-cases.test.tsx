@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { UseCases } from "@/components/use-cases";
 import { trackIds, tracks } from "@/lib/data";
+import { completed } from "@/lib/fairness";
+import { fairness } from "@/lib/fairness-data";
 import type { Metric, Track } from "@/lib/data";
 import { isExtraTier } from "@/lib/providers";
 import { pickFor, runTrackOf } from "@/lib/realistic";
@@ -191,3 +193,39 @@ describe("rules", () => {
     assert.equal(leadText({ value: 1 }, { value: 1.0001 }, "s"), "under 1% longer");
   });
 });
+
+describe("revival: restart speed beside the resume pick", () => {
+  test("ranks the state-survival restart medians, lowest first, on the same machine on both tracks", () => {
+    const timed = completed(fairness.stateSurvival)
+      .filter((e) => !isExtraTier(e.provider) && e.result.restart.medianMs !== null)
+      .sort((a, b) => (a.result.restart.medianMs ?? 0) - (b.result.restart.medianMs ?? 0));
+    assert.ok(timed.length > 0, "the published file has restart timings");
+    for (const id of trackIds) {
+      const card = useCasesFor(id).find((r) => r.useCase.id === "revival");
+      const second = card?.second;
+      assert.ok(second, "the revival card has a second measure");
+      assert.equal(second.from, "same-spec");
+      assert.equal(second.measure.unit, "ms");
+      assert.equal(second.pick?.provider, timed[0]?.provider);
+      assert.equal(second.pick?.value, timed[0]?.result.restart.medianMs);
+      const values = second.ranked.map((e) => e.value);
+      assert.deepEqual(values, [...values].sort((a, b) => a - b));
+      assert.equal(card.pick, card.ranked[0], "the resume pick is unchanged by the second measure");
+      assert.doesNotMatch(card.useCase.gap ?? "", /isn't measured yet/);
+    }
+    assert.ok(useCaseList.filter((u) => u.second).every((u) => u.id === "revival"), "only the revival card has a second measure");
+  });
+
+  test("the card, the JSON and the Markdown show restart speed", () => {
+    const html = renderToStaticMarkup(<UseCases track="same-spec" />);
+    assert.match(html, /Restart speed/);
+    assert.match(html, /A killed server started again, until it answers/);
+    const json = useCasesData().tracks["same-spec"].useCases.find((u) => u.id === "revival");
+    assert.equal(json?.second?.unit, "ms");
+    assert.equal(json?.second?.chart, "/#like-for-like/restart");
+    assert.equal(json?.second?.ranked[0]?.rank, 1);
+    assert.match(useCasesMarkdown("#").join("\n"), /Restart speed \(A killed server started again, until it answers\): \S/);
+    assert.equal(leadText({ value: 59.1 }, { value: 86.8 }, "ms"), "1.5× as long");
+  });
+});
+

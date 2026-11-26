@@ -8,6 +8,7 @@
  *     --report ~/agents/fairness-bench/runs/<run>/cpu-native/cpu-native.json \
  *     --report .../disk-real.json --report .../cpu-burst-10.json \
  *     --report .../memory-honesty.json --report .../security-probe.json \
+ *     --report .../state-survival.json --report .../memory-pressure.json \
  *     --add ~/agents/fairness-bench/runs/maritime/<check>/<check>.json ... \
  *     --out src/data/fairness.json
  *
@@ -16,8 +17,14 @@
  * (072122c), then --add Maritime's own run of all five (Nov 24, 27f304a,
  * the same runner code as 072122c), then --add Archil's own run of all five
  * (Nov 26, 28ac0a4) from
- * ~/agents/rerun-archil-20261126/fairness/<check>/<check>.json, with Baseten
- * and Superserve not run:
+ * ~/agents/rerun-archil-20261126/fairness/<check>/<check>.json, then --report
+ * the full Nov 26 runs of state-survival (2b2acec) from
+ * ~/agents/new-scenarios/full/state2/state-survival.json and memory-pressure
+ * (33b875f) from ~/agents/new-scenarios/full/mem/memory-pressure.json, then
+ * --add Archil's own run of both (Nov 26, 2b2acec) from
+ * ~/agents/new-scenarios/full/state-archil/state-survival.json and
+ * ~/agents/new-scenarios/full/mem-archil/memory-pressure.json, with
+ * Baseten and Superserve not run:
  *
  *     --not-run baseten="our API key was rejected" \
  *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)"
@@ -216,6 +223,52 @@ function memoryHonesty(r: Json) {
   };
 }
 
+function stateSurvival(r: Json) {
+  const restart = obj(r.restart, "restart");
+  const s = obj(r.suspend, "suspend");
+  return {
+    restart: {
+      medianMs: numOrNull(restart.medianMs, "restart.medianMs"),
+      samplesMs: list(restart.samplesMs, "restart.samplesMs").map((v) => num(v, "restart.samplesMs[]")),
+      failures: restart.failures,
+      startsOnly: restart.startsOnly,
+    },
+    suspend:
+      s.kind === "measured"
+        ? {
+            kind: s.kind,
+            verdict: s.verdict,
+            reason: typeof s.reason === "string" ? plainReason(s.reason) : null,
+            holdMs: s.holdMs,
+            pauseMs: s.pauseMs,
+            resumeMs: s.resumeMs,
+            firstCommandMs: s.firstCommandMs,
+            servingMs: s.servingMs,
+            serverRestarted: s.serverRestarted,
+            coldServeMs: s.coldServeMs,
+            bootSame: s.bootSame,
+          }
+        : s.kind === "failed"
+          ? { kind: s.kind, stage: s.stage, error: plainReason(String(s.error)) }
+          : { kind: s.kind },
+  };
+}
+
+function memoryPressure(r: Json) {
+  const outcome = obj(r.outcome, "outcome");
+  const kind = outcome.kind;
+  const limits = obj(r.limits, "limits");
+  return {
+    advertisedMiB: r.advertisedMiB,
+    targetMiB: r.targetMiB,
+    reached: r.reachedEvidence === "none" ? null : { evidence: r.reachedEvidence, mib: r.reachedMiB, fraction: r.reachedFraction },
+    outcome: kind === "refused" || kind === "inconclusive" ? { kind, reason: plainReason(String(outcome.reason)) } : { kind },
+    scope: r.scope,
+    usableAfter: r.usableAfter,
+    swapTotalGiB: limits.swapTotalGiB ?? null,
+  };
+}
+
 function securityProbe(r: Json) {
   const isolation = obj(r.isolation, "isolation");
   const cpu = obj(r.cpu, "cpu");
@@ -252,6 +305,8 @@ const convert: Record<CheckId, (r: Json) => Json> = {
   "cpu-burst-10": cpuBurst,
   "memory-honesty": memoryHonesty,
   "security-probe": securityProbe,
+  "state-survival": stateSurvival,
+  "memory-pressure": memoryPressure,
 };
 
 /**
