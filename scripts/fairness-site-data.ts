@@ -14,7 +14,10 @@
  * The published file: --report r4's security-probe, memory-honesty and
  * disk-real (sandbox-sdk c6163c6) and r6's cpu-native and cpu-burst-10
  * (072122c), then --add Maritime's own run of all five (Nov 24, 27f304a,
- * the same runner code as 072122c), with Baseten and Superserve not run:
+ * the same runner code as 072122c), then --add Archil's own run of all five
+ * (Nov 26, 28ac0a4) from
+ * ~/agents/rerun-archil-20261126/fairness/<check>/<check>.json, with Baseten
+ * and Superserve not run:
  *
  *     --not-run baseten="our API key was rejected" \
  *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)"

@@ -1,6 +1,6 @@
 {
   "schema": "sustained-cpu.v1",
-  "generatedAt": "2026-11-25T05:18:49.769Z",
+  "generatedAt": "2026-11-26T18:59:23.288Z",
   "track": "same-machine",
   "targetDurationS": 900,
   "segmentDurationS": 30,
@@ -3356,6 +3356,233 @@
       "first3MinOps": 40617953,
       "last3MinOps": 40918213,
       "retention": 1.0074
+    },
+    {
+      "provider": "archil",
+      "run": {
+        "id": "sustained15m-archil-20261126",
+        "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
+        "startedAt": "2026-11-26T18:43:59.917Z"
+      },
+      "status": "completed",
+      "stopReason": null,
+      "guestVcpus": 4,
+      "durationS": 910.529,
+      "segments": [
+        {
+          "index": 0,
+          "startS": 0.224,
+          "durationS": 30.01,
+          "opsPerS": 101038176,
+          "checksumVerified": true
+        },
+        {
+          "index": 1,
+          "startS": 30.503,
+          "durationS": 30.017,
+          "opsPerS": 104385499,
+          "checksumVerified": true
+        },
+        {
+          "index": 2,
+          "startS": 60.825,
+          "durationS": 30.019,
+          "opsPerS": 103368798,
+          "checksumVerified": true
+        },
+        {
+          "index": 3,
+          "startS": 91.392,
+          "durationS": 30.02,
+          "opsPerS": 104464217,
+          "checksumVerified": true
+        },
+        {
+          "index": 4,
+          "startS": 121.692,
+          "durationS": 30.011,
+          "opsPerS": 104236766,
+          "checksumVerified": true
+        },
+        {
+          "index": 5,
+          "startS": 151.965,
+          "durationS": 30.014,
+          "opsPerS": 102483243,
+          "checksumVerified": true
+        },
+        {
+          "index": 6,
+          "startS": 182.278,
+          "durationS": 30.007,
+          "opsPerS": 102954443,
+          "checksumVerified": true
+        },
+        {
+          "index": 7,
+          "startS": 212.589,
+          "durationS": 30.019,
+          "opsPerS": 104371468,
+          "checksumVerified": true
+        },
+        {
+          "index": 8,
+          "startS": 242.862,
+          "durationS": 30.021,
+          "opsPerS": 104034483,
+          "checksumVerified": true
+        },
+        {
+          "index": 9,
+          "startS": 273.191,
+          "durationS": 30.016,
+          "opsPerS": 104185842,
+          "checksumVerified": true
+        },
+        {
+          "index": 10,
+          "startS": 303.52,
+          "durationS": 30.016,
+          "opsPerS": 103801016,
+          "checksumVerified": true
+        },
+        {
+          "index": 11,
+          "startS": 333.797,
+          "durationS": 30.019,
+          "opsPerS": 101613709,
+          "checksumVerified": true
+        },
+        {
+          "index": 12,
+          "startS": 364.203,
+          "durationS": 30.012,
+          "opsPerS": 104173782,
+          "checksumVerified": true
+        },
+        {
+          "index": 13,
+          "startS": 394.494,
+          "durationS": 30.012,
+          "opsPerS": 103762514,
+          "checksumVerified": true
+        },
+        {
+          "index": 14,
+          "startS": 424.77,
+          "durationS": 30.007,
+          "opsPerS": 102713608,
+          "checksumVerified": true
+        },
+        {
+          "index": 15,
+          "startS": 455.199,
+          "durationS": 30.02,
+          "opsPerS": 101978266,
+          "checksumVerified": true
+        },
+        {
+          "index": 16,
+          "startS": 485.53,
+          "durationS": 30.018,
+          "opsPerS": 105476496,
+          "checksumVerified": true
+        },
+        {
+          "index": 17,
+          "startS": 516.394,
+          "durationS": 30.015,
+          "opsPerS": 104061883,
+          "checksumVerified": true
+        },
+        {
+          "index": 18,
+          "startS": 546.777,
+          "durationS": 30,
+          "opsPerS": 102656463,
+          "checksumVerified": true
+        },
+        {
+          "index": 19,
+          "startS": 577.027,
+          "durationS": 30.019,
+          "opsPerS": 104007551,
+          "checksumVerified": true
+        },
+        {
+          "index": 20,
+          "startS": 607.35,
+          "durationS": 30.021,
+          "opsPerS": 103941351,
+          "checksumVerified": true
+        },
+        {
+          "index": 21,
+          "startS": 637.641,
+          "durationS": 30.013,
+          "opsPerS": 100058556,
+          "checksumVerified": true
+        },
+        {
+          "index": 22,
+          "startS": 667.921,
+          "durationS": 30.017,
+          "opsPerS": 102597293,
+          "checksumVerified": true
+        },
+        {
+          "index": 23,
+          "startS": 698.324,
+          "durationS": 30.02,
+          "opsPerS": 103799278,
+          "checksumVerified": true
+        },
+        {
+          "index": 24,
+          "startS": 728.892,
+          "durationS": 30.015,
+          "opsPerS": 103830820,
+          "checksumVerified": true
+        },
+        {
+          "index": 25,
+          "startS": 759.247,
+          "durationS": 30.015,
+          "opsPerS": 103783336,
+          "checksumVerified": true
+        },
+        {
+          "index": 26,
+          "startS": 789.559,
+          "durationS": 30.012,
+          "opsPerS": 104308451,
+          "checksumVerified": true
+        },
+        {
+          "index": 27,
+          "startS": 819.878,
+          "durationS": 30.009,
+          "opsPerS": 103672182,
+          "checksumVerified": true
+        },
+        {
+          "index": 28,
+          "startS": 850.175,
+          "durationS": 30.01,
+          "opsPerS": 104476303,
+          "checksumVerified": true
+        },
+        {
+          "index": 29,
+          "startS": 880.515,
+          "durationS": 30.014,
+          "opsPerS": 103485866,
+          "checksumVerified": true
+        }
+      ],
+      "first3MinOps": 103329450,
+      "last3MinOps": 103926160,
+      "retention": 1.0058
     }
   ]
 }
