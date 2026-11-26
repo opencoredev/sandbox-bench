@@ -43,6 +43,7 @@ import { forProvidersPath, updatePath, updatesPath } from "@/lib/seo/pages";
 import { independenceTitle, privateOffer, privateSummary, privateTitle } from "@/lib/private-benchmarks";
 import { SectionLinks, SectionMenu } from "@/components/section-nav";
 import { Scores, scoresSection } from "@/components/scores";
+import { UseCases, useCasesSection } from "@/components/use-cases";
 import { SpecSheet } from "@/components/spec-sheet";
 import { StatStrip } from "@/components/stat-strip";
 import { Card, TabCard } from "@/components/tabs";
@@ -655,6 +656,14 @@ export default function Page() {
           <PerTrack>{(track) => <Scores track={track} />}</PerTrack>
         </Section>
 
+        <Section
+          id={useCasesSection}
+          title="Best for"
+          lede="Which provider leads for each kind of job, computed from the charts below each time the data changes. Each card names the measure, the next provider and where the pick ranks worst."
+        >
+          <PerTrack>{(track) => <UseCases track={track.id} />}</PerTrack>
+        </Section>
+
         <div className="pt-xxl">
           <PerTrack>{(track) => <Headlines track={track} />}</PerTrack>
         </div>
@@ -1068,7 +1077,7 @@ export default function Page() {
           <span aria-hidden className="hidden sm:inline">·</span>
           <span>
             Data for both tracks:{" "}
-            {["llms.txt", "results.json", "results.md"].map((f, i) => (
+            {["llms.txt", "results.json", "results.md", "use-cases.json"].map((f, i) => (
               <span key={f}>
                 {i > 0 ? " · " : ""}
                 <a {...ctaAttributes({ cta: "data_download", placement: "home_footer" })} className="focus-ring -my-xs inline-block rounded-xs py-xs underline decoration-dotted underline-offset-4 hover:text-neutral-10" href={f}>
