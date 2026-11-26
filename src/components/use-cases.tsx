@@ -130,7 +130,22 @@ function UseCaseCard({ r, track }: { r: UseCaseResult; track: TrackId }) {
           ))}
         </>
       ) : (
-        <p className="mt-s text-s text-neutral-7">No provider has a result yet.</p>
+        <p className="mt-s text-s text-pretty text-neutral-7">
+          {skipped.length > 0 ? (
+            <>
+              No eligible result. Not counted:{" "}
+              {skipped.map((s, i) => (
+                <span key={s.provider}>
+                  {i > 0 ? "; " : ""}
+                  <Name id={s.provider} /> {s.why}
+                </span>
+              ))}
+              .
+            </>
+          ) : (
+            "No provider has a result yet."
+          )}
+        </p>
       )}
       {useCase.onlyOn && useCase.onlyOn !== track ? <p className="mt-auto pt-s text-xxs text-pretty text-neutral-7">From {trackInfo[useCase.onlyOn].label}, the only track it ran on.</p> : null}
       {useCase.gap ? <p className="mt-auto pt-s text-xxs text-pretty text-neutral-7">{useCase.gap}</p> : null}
