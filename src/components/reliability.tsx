@@ -4,7 +4,6 @@ import type { Column } from "@/components/columns";
 import { ChartHead } from "@/components/metric-chart";
 import { ProviderName } from "@/components/provider-name";
 import type { Provider, Track } from "@/lib/data";
-import { failureNote, noteSentence } from "@/lib/failure-notes";
 import { formatCount } from "@/lib/format";
 import { isExtraTier, providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
@@ -32,15 +31,12 @@ export function causeText(f: Failure) {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-const Cause = ({ f, provider }: { f: Failure; provider: ProviderId }) => {
+const Cause = ({ f }: { f: Failure }) => {
   const cause = causeText(f);
-  // Archil's unconfirmed failure only; every other row's markup is as before.
-  const note = failureNote({ provider, reason: f.reason });
   return (
     <>
       {plain(f.reason)}
       {cause ? <span className="mt-0.5 block font-mono text-xxs text-neutral-7">{cause}</span> : null}
-      {note ? <span className="mt-0.5 block text-xxs text-neutral-7">{noteSentence(note)}</span> : null}
     </>
   );
 };
@@ -107,7 +103,7 @@ export function Reliability({ track }: { track: Track }) {
                     <ul className="mt-1.5 flex flex-col gap-xs">
                       {p.failureReasons.map((f) => (
                         <li key={f.reason} className="text-s">
-                          <span className="font-mono tabular-nums">{f.runs}×</span> <Cause f={f} provider={p.id} />
+                          <span className="font-mono tabular-nums">{f.runs}×</span> <Cause f={f} />
                           <span className="block text-xs text-neutral-7">
                             {f.tests.length > 3 ? `${f.tests.length} tests` : f.tests.join(", ")}
                           </span>
@@ -137,7 +133,7 @@ export function Reliability({ track }: { track: Track }) {
                   </th>
                   <td className="px-m py-1.5 align-top font-mono tabular-nums">{f.runs}</td>
                   <td className="px-m py-1.5 align-top">
-                    <Cause f={f} provider={p.id} />
+                    <Cause f={f} />
                   </td>
                   <td className="px-m py-1.5 align-top text-neutral-7">
                     {f.tests.length > 3 ? `${f.tests.length} tests` : f.tests.join(", ")}

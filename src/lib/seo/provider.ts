@@ -2,7 +2,6 @@ import { agentData, groups, llmsTxt, notRunText } from "@/lib/agent-data";
 import { costLabel, costSourceText, formatPerThousand, formatTaskCost, qualify } from "@/lib/cost";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
-import { failureNote } from "@/lib/failure-notes";
 import { formatCount, formatPercent, formatValue, ordinal } from "@/lib/format";
 import type { Unit } from "@/lib/format";
 import { hardware } from "@/lib/hardware";
@@ -504,11 +503,7 @@ function reliabilityAnswer(id: ProviderId, r: ReturnType<typeof providerResults>
     const rel = t.reliability;
     if (rel.successRate === null || rel.attempts === 0) return "no attempts were recorded";
     const list = t.failures
-      .map((f) => {
-        // Archil's unconfirmed failure says so inside its parentheses; every other failure reads as before.
-        const note = failureNote({ provider: id, reason: f.reason });
-        return `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"}${note ? `; ${note}` : ""})`;
-      })
+      .map((f) => `${f.reason.replace(/\.$/, "")} (${f.count} ${f.count === 1 ? "failure" : "failures"})`)
       .join("; ");
     const detail =
       t.failures.length === 0

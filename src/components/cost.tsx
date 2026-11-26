@@ -5,7 +5,6 @@ import {
   billingBases,
   billingLabel,
   costPick,
-  costRerunNotes,
   costSource,
   hasTaskCosts,
   hourlyText,
@@ -236,7 +235,6 @@ export function CostPerTaskChart({ track }: { track: Track }) {
           ...(showsLowerBound(track)
             ? [{ text: "A lower bound (≥) counts only the resources requested, and the provider also bills use above them, so the charge can be higher. It is listed after every exact cost and is never called cheapest." }]
             : []),
-          ...costRerunNotes(track).map(({ id, why }) => ({ text: <><Who id={id} />: {sentence(why)}</> })),
           { text: <>{wholeMachineLabel}: {perTaskLifetimeNote} For a provider that bills usage it is a counterfactual, not what it charges.</> },
           ...track.providers.flatMap((p) => {
             const note = regionNote(p);

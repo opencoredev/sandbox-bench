@@ -7,7 +7,6 @@ import { Columns } from "@/components/columns";
 import type { Column } from "@/components/columns";
 import { TierTable, tieredWithData } from "@/components/cpu-tiers";
 import { NoCostResults, costColumns } from "@/components/cost";
-import { failureLine } from "@/components/failure-list";
 import { ComingNext, CompactNotes, Footnotes, MetricChart } from "@/components/metric-chart";
 import { ProviderLogo } from "@/components/provider-logo";
 import { RealTaskHeadline } from "@/components/real-tasks";
@@ -496,7 +495,7 @@ function SpecCard({ id, t }: { id: ProviderPageId; t: ProviderTrack }) {
           </span>
         </Row>
         <Row term={`Failures counted against ${name}`}>
-          {failureLine({ provider: id, failures: t.failures, unit: { one: "failure", many: "failures" }, none: "None." })}
+          {t.failures.length === 0 ? "None." : t.failures.map((f) => `${f.reason} (${f.count} ${f.count === 1 ? "failure" : "failures"})`).join("; ")}
         </Row>
       </dl>
       <Footnotes items={notes} />

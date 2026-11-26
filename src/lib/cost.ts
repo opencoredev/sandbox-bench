@@ -563,28 +563,6 @@ export function costSource(id: ProviderId, c: Priced) {
   return `${from}, ${c.n} ${c.n === 1 ? "task" : "tasks"}${isLowerBound(c) ? ", a lower bound" : ""}${unsettled}`;
 }
 
-/**
- * Why a provider's cost comes from a rerun of the cost suite, keyed by the
- * rerun's id. A note shows only while the track's exclusions record the cost
- * suite replaced from that run, so a later cost run drops it on its own.
- */
-const costReruns: Partial<Record<ProviderId, { run: string; why: string }>> = {
-  archil: {
-    run: "sbxar-default-cost-r2",
-    why: "its cost comes from a second cost run on Nov 23, because one task in the first timed out after 180 s and cost per task needs all 10 tasks. The first cost run is left out of the cost figure. Archil's main results count their own failures, one tool replay that timed out starting included",
-  },
-};
-
-/** The rerun notes for providers priced on this track, for the notes under its cost chart and the agent files. */
-export function costRerunNotes(track: Track) {
-  return pricedTasks(track).flatMap(({ id }) => {
-    const rerun = costReruns[id];
-    if (!rerun) return [];
-    const replaced = track.exclusions[id]?.replacements.some((r) => r.suite === "cost" && r.sourceRunIds.includes(rerun.run)) ?? false;
-    return replaced ? [{ id, why: rerun.why }] : [];
-  });
-}
-
 /** Providers whose figure is not straight from a bill, grouped by how it was priced, for the one note under a cost chart. */
 export function notFromBill(track: Track) {
   const kinds = ["metered", "estimate"] as const satisfies readonly PricedKind[];

@@ -34,7 +34,7 @@
  *     --parts scripts/realistic-parts/sbx-microsandbox-standard.json \
  *     --summary ~/agents/realistic-workloads/provider-runs/sbx-microsandbox/shared/summary.json \
  *     --parts scripts/realistic-parts/sbx-microsandbox-shared.json \
- *     --summary ~/agents/realistic-workloads/provider-runs/sbx-archil/summary.json \
+ *     --summary ~/agents/realistic-workloads/provider-runs/sbx-archil-1126/summary.json \
  *     --parts scripts/realistic-parts/sbx-archil.json \
  *     --attempts ~/agents/realistic-workloads/provider-runs/sbx-verify/sbx100-headline/attempts.jsonl \
  *     --manifest ~/agents/realistic-workloads/manifest.json
@@ -118,6 +118,13 @@
  * not run. As for Buddy, the eight Microsandbox rows from this command's output were
  * placed into the committed file's order, last in each profile and track group;
  * every other row and held-open entry keeps its place and bytes.
+ *
+ * Rebuilt on 2026-11-26 with Archil's rows from its rerun (sbx-archil-1126:
+ * headline runs 19:38 to 20:21 UTC and held-open runs 19:38 to 23:22 UTC on
+ * Nov 26, sandbox-sdk 28ac0a4) in place of its first runs (sbx-archil, Nov 23,
+ * 1f1de78). Archil's seven rows, three held-open entries and its source took the
+ * places of the old ones in the committed file's order; every other row,
+ * held-open entry and source keeps its place and bytes.
  *
  * Adding a provider run later: add the provider to scripts/realistic-coverage.json
  * (headline, and idle or notTested with why), then run the same command with one

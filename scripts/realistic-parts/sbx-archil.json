@@ -1,8 +1,8 @@
 {
   "schema": "realistic-estimated-parts/2",
-  "summarySha256": "90ec621581d68f528a29b0e39cf13121531a1b9642f9d8c6a440c42d85106c64",
+  "summarySha256": "254a597d7db3a45e8196f17eee57856169af7b913ad423d1549de274bca182cb",
   "harness": {
-    "commit": "1f1de78"
+    "commit": "28ac0a4"
   },
   "rows": [
     {
@@ -10,7 +10,7 @@
       "profile": "fix-and-test",
       "track": "default",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.0050666,
+      "totalPerCompletedUSD": 0.00475,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -28,7 +28,7 @@
       "profile": "build",
       "track": "same-machine",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.013933599999999999,
+      "totalPerCompletedUSD": 0.0164668,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -37,7 +37,7 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "headline",
-      "totalPerCompletedUSD": 0.008866599999999999,
+      "totalPerCompletedUSD": 0.0164666,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -46,7 +46,7 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "zero-wait",
-      "totalPerCompletedUSD": 0.012667,
+      "totalPerCompletedUSD": 0.019,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -55,7 +55,7 @@
       "profile": "fix-and-test",
       "track": "same-machine",
       "variant": "held-60",
-      "totalPerCompletedUSD": 0.4940005,
+      "totalPerCompletedUSD": 0.7980010000000001,
       "estimatedPerCompletedUSD": 0,
       "estimatedLabels": []
     },
@@ -73,14 +73,14 @@
     {
       "provider": "archil",
       "idle": "zero-wait",
-      "medianTotalUSD": 0.012667,
+      "medianTotalUSD": 0.019,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },
     {
       "provider": "archil",
       "idle": "held-60",
-      "medianTotalUSD": 0.392667,
+      "medianTotalUSD": 0.202667,
       "medianEstimatedUSD": 0,
       "estimatedLabels": []
     },

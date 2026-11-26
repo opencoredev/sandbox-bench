@@ -422,7 +422,7 @@ describe("Buddy's provider page", () => {
     assert.equal(overMem.mismatches.length, 1);
     assert.equal(advertisedCapacityText("buddy", "diskGiB", 46.6), "50 GB (46.6 GiB)");
     assert.equal(measuredDiskText("buddy", 45.534), "45.5 GiB");
-    assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GB");
+    assert.equal(advertisedCapacityText("maritime", "diskGiB", 12), "12 GiB");
   });
 
   test("results.json and results.md carry Buddy's replaced runs beside its published reliability", () => {

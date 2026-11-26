@@ -1038,7 +1038,7 @@ describe("page", () => {
     // behind Styne's 56s: the tile crowns Styne alone, and the three behind it still tie.
     const timed = taskTimes(tracks["same-spec"], "fix-and-test").timed.map((t) => ({ provider: t.provider, seconds: t.medianWallS }));
     assert.deepEqual(leaders(timed), { provider: "styne", tied: [], value: "56s" });
-    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne")), { provider: "archil", tied: [], value: "64s" });
+    assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne")), { provider: "archil", tied: [], value: "67s" });
     assert.deepEqual(leaders(timed.filter((t) => t.provider !== "styne" && t.provider !== "archil")), { provider: "superserve", tied: ["tenki", "instabox"], value: "82s" });
     const html = renderToStaticMarkup(<StatStrip track={tracks["same-spec"]} />);
     const fix = html.slice(html.indexOf("Fastest fix and test"), html.indexOf("Fastest build"));

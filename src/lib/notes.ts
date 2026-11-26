@@ -12,7 +12,7 @@ export type Notes = Partial<Record<ProviderId, string>>;
  * depend on the data are computed from it.
  */
 
-/** "4 vCPU, 8 GB". */
+/** "4 vCPU, 8 GiB". */
 export const formatCompute = (a: Pick<Allocation, "cpu" | "memoryGiB">) => `${a.cpu} vCPU, ${formatGiB(a.memoryGiB)}`;
 
 /** What we measured inside, collapsing the small RAM differences between sandboxes. */
@@ -32,8 +32,8 @@ export function measuredText(p: Provider) {
 export function requestedText(p: Provider) {
   const r = p.requestedAllocation;
   const size = r.compute
-    ? soldInDecimalGB(p.id) && r.size !== null
-      ? `${r.compute.cpu} vCPU, ${r.compute.memoryGiB} GiB`
+    ? soldInDecimalGB(p.id)
+      ? `${r.compute.cpu} vCPU, ${r.compute.memoryGiB} ${r.size === null ? "GB" : "GiB"}`
       : formatCompute(r.compute)
     : null;
   const preset = typeof r.size === "string" ? `"${r.size}"` : null;
