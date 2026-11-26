@@ -27,7 +27,7 @@ export function pauseOf(track: Track, p: Provider): PauseResult {
   if (p.standbyResume && !standby) throw new Error(`${p.id} has a standby resume but no autoStandby note`);
   if (standby) return p.standbyResume ? { kind: "standby", resume: p.standbyResume.resume, idleS: p.standbyResume.idleS, n: p.standbyResume.n, note: standby } : { kind: "none" };
   if (p.pauseSplit) return { kind: "split", ...p.pauseSplit };
-  const total = track.metric("pause-resume").values.find((v) => v.provider === p.id)?.p50 ?? null;
+  const total = track.findMetric("pause-resume")?.values.find((v) => v.provider === p.id)?.p50 ?? null;
   return total === null ? { kind: "none" } : { kind: "total", total };
 }
 

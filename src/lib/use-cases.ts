@@ -182,13 +182,14 @@ const PER = 1000;
 function costReading(track: Track): Reading {
   const costed = firstTier(headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed);
   const p = taskPick(costed);
-  const counted = new Set(p.kind === "picked" ? p.counted : []);
+  const picked = p.kind === "picked";
+  const counted = new Set(picked ? p.counted : []);
   return {
     entries: bestFirst(
       costed.filter((r) => counted.has(r.provider)).map((r) => ({ provider: r.provider, value: r.cost.usdPerCompleted * PER, display: perThousand(r.cost.usdPerCompleted), ci95: null, note: billingTag(r) })),
       "lower",
     ),
-    skipped: p.kind === "empty" ? [] : p.lower.map((r) => ({ provider: r.provider, why: `${perThousand(r.cost.usdPerCompleted)} per 1,000: ${notCountedWhy(r).join("; ")}`, ahead: true })),
+    skipped: p.kind === "empty" ? [] : p.lower.map((r) => ({ provider: r.provider, why: `${perThousand(r.cost.usdPerCompleted)} per 1,000: ${notCountedWhy(r).join("; ")}`, ahead: picked })),
   };
 }
 
@@ -331,14 +332,26 @@ export function isTie(a: Comparable, b: Comparable, rule: TieRule): boolean {
 }
 
 /**
- * A provider's place among entries sorted best first: one more than the
- * entries ahead of it that it doesn't tie with under the rule, so a tie
- * shares the better place, as on the provider pages. Null when it has no entry.
+ * A provider's place among entries sorted best first. Under `shown`, equal
+ * printed values share the better place. Under `ci95` it is the position by
+ * median, as on the provider pages: interval ties aren't transitive, so they
+ * are reported against the pick (`tiedWith`), never folded into places.
+ * Null when it has no entry.
  */
 export function placeOf(entries: readonly (Comparable & Pick<Entry, "provider">)[], provider: ProviderId, rule: TieRule): number | null {
   const at = entries.findIndex((e) => e.provider === provider);
   const mine = entries[at];
-  return mine ? 1 + entries.slice(0, at).filter((e) => !isTie(e, mine, rule)).length : null;
+  if (!mine) return null;
+  switch (rule) {
+    case "ci95":
+      return at + 1;
+    case "shown":
+      return entries.findIndex((e) => e.display === mine.display) + 1;
+    default: {
+      const _exhaustive: never = rule;
+      return _exhaustive;
+    }
+  }
 }
 
 /**
@@ -348,7 +361,7 @@ export function placeOf(entries: readonly (Comparable & Pick<Entry, "provider">)
  */
 export function leadText(pick: Pick<Entry, "value">, next: Pick<Entry, "value">, unit: UseCaseUnit): string | null {
   if (!(pick.value > 0 && next.value > 0)) return null;
-  const pct = (r: number) => `${Math.max(1, Math.round(r * 100))}%`;
+  const pct = (r: number) => (r * 100 < 1 ? "under 1%" : `${Math.round(r * 100)}%`);
   switch (unit) {
     case "s": {
       const r = next.value / pick.value;
@@ -460,7 +473,7 @@ const rules = [
   "Each use case reads one measure, named in `measure` in `unit`, from the chart at `chart`. Values are in that unit: seconds, operations per second, or US dollars per 1,000 completed tasks.",
   "Providers are ranked on the CPU tier a new account gets; cheaper or spot tiers are compared under CPU tiers instead.",
   "`tie: ci95`: medians inside each other's 95% intervals are tied; a reading without an interval ties only on the same printed value. `tie: shown`: there is no interval, so only the same printed value ties.",
-  "`rank` is one more than the providers ahead that it doesn't tie with, so tied providers share the better place.",
+  "`rank` is the position by median under `tie: ci95` (interval ties aren't transitive, so only ties with the pick are reported, in `tiedWith`); under `tie: shown` equal printed values share the better place.",
   "Real task picks allow at most one incomplete run. The cheapest needs a cost from the provider's own bill or usage meter; cheaper costs that can't count are in `notCounted` with why, and `note` carries each cost's billing status.",
   "`weakest` is where the pick ranks lowest among the other use cases, by rank over the number ranked; its `track` is the track that ranking comes from.",
   "`onlyOn` names the one track a measure ran on; every track then shows that track's pick.",
@@ -517,7 +530,7 @@ export function useCasesMarkdown(level: "#" | "##") {
       `${sub} ${trackInfo[id].label}`,
       "",
       ...useCasesFor(id).map((r) => {
-        if (!r.pick) return `- ${r.useCase.title}: no provider has a result yet.`;
+        if (!r.pick) return r.skipped.length ? `- ${r.useCase.title}: no eligible result. Not counted: ${r.skipped.map((s) => `${providerName(s.provider)} ${s.why}`).join("; ")}.` : `- ${r.useCase.title}: no provider has a result yet.`;
         const only = r.useCase.onlyOn && r.useCase.onlyOn !== id ? `, ${trackInfo[r.useCase.onlyOn].label} only` : "";
         const ahead = r.skipped.filter((s) => s.ahead);
         const parts = [

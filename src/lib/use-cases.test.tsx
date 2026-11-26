@@ -90,7 +90,8 @@ describe("use cases on the published data", () => {
         assert.ok(c.source.startsWith("src/data/") && !c.source.includes("<track>"));
         assert.equal(c.ranked[0]?.rank, 1);
         assert.equal(c.pick?.provider, c.ranked[0]?.provider);
-        for (const t of c.tiedWith) assert.equal(c.ranked.find((e) => e.provider === t)?.rank, 1, "a tie shares first place");
+        if (c.tie === "shown") for (const t of c.tiedWith) assert.equal(c.ranked.find((e) => e.provider === t)?.rank, 1, "a printed tie shares first place");
+        if (c.tie === "ci95") assert.deepEqual(c.ranked.map((e) => e.rank), c.ranked.map((_, i) => i + 1), "interval ties keep median positions");
       }
     }
     assert.doesNotThrow(() => JSON.parse(JSON.stringify(d)));
@@ -132,6 +133,12 @@ describe("picks follow the data", () => {
     assert.equal(useCase("cold-start").read(withMetric(track, "cold", measured)).entries[0]?.provider, first.provider);
   });
 
+  test("resume readings survive a track without the pause + resume total", () => {
+    const before = useCase("revival").read(track).entries.map((e) => e.provider);
+    assert.ok(before.length > 0);
+    assert.deepEqual(useCase("revival").read(withMetric(track, "pause-resume", null)).entries.map((e) => e.provider), before);
+  });
+
   test("a track without the metric has no entries rather than an error", () => {
     assert.deepEqual(useCase("cold-start").read(withMetric(track, "cold", null)), { entries: [], skipped: [] });
     assert.deepEqual(useCase("cold-start").read(withMetric(track, "cold", { ...cold, values: [] })).entries, []);
@@ -159,8 +166,10 @@ describe("rules", () => {
       { provider: "boxd" as const, ...e(0.115, "0.12 s", [0.105, 0.13]) },
       { provider: "e2b" as const, ...e(0.5, "0.50 s", [0.48, 0.52]) },
     ];
-    assert.equal(placeOf(entries, "boxd", "ci95"), 1);
+    assert.equal(placeOf(entries, "boxd", "ci95"), 2, "interval ties keep the median position");
     assert.equal(placeOf(entries, "boxd", "shown"), 2);
+    const printedTie = entries.map((x) => (x.provider === "boxd" ? { ...x, display: "0.11 s" } : x));
+    assert.equal(placeOf(printedTie, "boxd", "shown"), 1, "equal printed values share a place");
     assert.equal(placeOf(entries, "e2b", "ci95"), 3);
     assert.equal(placeOf(entries, "modal", "ci95"), null);
   });
@@ -179,5 +188,6 @@ describe("rules", () => {
     assert.equal(leadText({ value: 0.76 }, { value: 0.95 }, "usd-per-1000-tasks"), "1.3× the cost");
     assert.equal(leadText({ value: 85 }, { value: 76 }, "ops/s"), "11% lower");
     assert.equal(leadText({ value: 0 }, { value: 0.38 }, "s"), null);
+    assert.equal(leadText({ value: 1 }, { value: 1.0001 }, "s"), "under 1% longer");
   });
 });
