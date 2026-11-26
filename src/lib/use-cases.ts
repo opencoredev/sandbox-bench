@@ -1,15 +1,15 @@
 import { realTasksSection, taskTimes } from "@/components/real-tasks";
 import { taskCostSection } from "@/components/realistic";
 import { sustainedCpuSection } from "@/components/sustained-cpu";
-import { agentData } from "@/lib/agent-data";
+import { statusOf } from "@/lib/agent-data";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
-import { autoStandby } from "@/lib/notes";
+import { allocationNotes, autoStandby } from "@/lib/notes";
 import { pauses } from "@/lib/pause";
 import { cpuCaveat, isExtraTier, providerName } from "@/lib/providers";
 import type { CpuCaveat, ProviderId } from "@/lib/providers";
-import { completedText, headlineRows, notCountedWhy, perThousand, runTrackOf, taskPick } from "@/lib/realistic";
+import { billingTag, completedText, headlineRows, notCountedWhy, perThousand, runTrackOf, taskPick } from "@/lib/realistic";
 import type { ProfileId } from "@/lib/realistic";
 import { realistic } from "@/lib/realistic-data";
 import type { Better } from "@/lib/score";
@@ -25,11 +25,15 @@ import { linkedTrack } from "@/lib/tracks";
  * title, measure and chart are fixed, its provider never is.
  */
 
+/** What a value counts, for agents: seconds, operations per second, or US dollars per 1,000 completed tasks. */
+export type UseCaseUnit = "s" | "ops/s" | "usd-per-1000-tasks";
+
 /** One provider's reading on a use case's measure. */
 export interface Entry {
   provider: ProviderId;
+  /** In the use case's unit. */
   value: number;
-  /** The reading as its chart prints it: "0.20 s", "$0.76", "85M/s". */
+  /** The reading as its chart prints it: "0.20 s", "$0.76", "84.7M ops/s". */
   display: string;
   /** The 95% interval of a median, where the chart has one; ties use it. */
   ci95: readonly [number, number] | null;
@@ -37,10 +41,11 @@ export interface Entry {
   note: string | null;
 }
 
-/** A provider the chart shows but the pick leaves out, by the chart's own rule. */
+/** A provider the chart shows but the pick leaves out, by the chart's own rule. `ahead`: its reading is better than the pick's. */
 export interface Skipped {
   provider: ProviderId;
   why: string;
+  ahead: boolean;
 }
 
 /** How a tie is called: medians inside each other's 95% intervals, or the same printed value where there is no interval. */
@@ -59,6 +64,7 @@ export interface UseCase {
   forWhat: string;
   /** The number behind the pick. */
   measure: string;
+  unit: UseCaseUnit;
   better: Better;
   tie: TieRule;
   /** The data file in src/data the reading comes from; <track> stands for the track's id. */
@@ -72,8 +78,6 @@ export interface UseCase {
   read: (track: Track) => Reading;
 }
 
-const published = agentData().tracks;
-
 /** Best first by value, then by id so equal readings keep a fixed order. */
 const bestFirst = (entries: Entry[], better: Better) =>
   entries.sort((a, b) => (better === "lower" ? a.value - b.value : b.value - a.value) || a.provider.localeCompare(b.provider));
@@ -84,23 +88,24 @@ const firstTier = <T extends { provider: ProviderId }>(rows: readonly T[]) => ro
 const excludedPrefix = "excluded: ";
 
 /**
- * Medians of one main-suite metric, with each provider's status taken from
- * the published results, so a result the results file leaves out of rankings
- * (excluded, unsupported, failed) never becomes a pick. Raw medians, as the chart prints them.
+ * Medians of one main-suite metric from the track given, with each
+ * provider's status from the results file's own rule (statusOf), so a result
+ * it leaves out of rankings (excluded, unsupported, failed) never becomes a
+ * pick. A track without the metric has no entries. Raw medians, as the chart prints them.
  */
 const metricReading =
   (id: string) =>
   (track: Track): Reading => {
     const m = track.findMetric(id);
-    const results = firstTier(published[track.id].metrics.find((x) => x.id === id)?.results ?? []);
     if (!m) return { entries: [], skipped: [] };
-    const entries = results.flatMap((r) => {
-      const v = m.values.find((x) => x.provider === r.provider);
-      if (r.status !== "measured" || !v || v.p50 === null) return [];
+    const rows = firstTier(track.providers.map((p) => ({ provider: p.id, v: m.values.find((x) => x.provider === p.id) })));
+    const withStatus = rows.map((r) => ({ ...r, status: statusOf(track, id, r.provider, r.v) }));
+    const entries = withStatus.flatMap(({ provider, v, status }) => {
+      if (status !== "measured" || !v || v.p50 === null) return [];
       const ci95 = v.ciLow === null || v.ciHigh === null ? null : ([v.ciLow, v.ciHigh] as const);
-      return [{ provider: r.provider, value: v.p50, display: formatValue(v.p50, m.unit), ci95, note: v.failures > 0 ? `${v.failures} of ${v.n + v.failures} attempts failed` : null }];
+      return [{ provider, value: v.p50, display: formatValue(v.p50, m.unit), ci95, note: v.failures > 0 ? `${v.failures} of ${v.n + v.failures} attempts failed` : null }];
     });
-    const skipped = results.flatMap((r) => (r.status.startsWith(excludedPrefix) ? [{ provider: r.provider, why: r.status.slice(excludedPrefix.length) }] : []));
+    const skipped = withStatus.flatMap(({ provider, status }) => (status.startsWith(excludedPrefix) ? [{ provider, why: status.slice(excludedPrefix.length), ahead: false }] : []));
     return { entries: bestFirst(entries, m.better), skipped };
   };
 
@@ -121,7 +126,7 @@ const taskReading =
       ),
       skipped: rows
         .filter((r) => r.incomplete > MAX_INCOMPLETE)
-        .map((r) => ({ provider: r.provider, why: `only ${completedText(r)} runs completed, and a pick allows at most ${MAX_INCOMPLETE} incomplete` })),
+        .map((r) => ({ provider: r.provider, why: `only ${completedText(r)} runs completed, and a pick allows at most ${MAX_INCOMPLETE} incomplete`, ahead: false })),
     };
   };
 
@@ -133,7 +138,7 @@ function sustainedReading(): Reading {
       firstTier(ranked).map((p) => ({ provider: p.provider, value: p.last3MinOps, display: opsText(p.last3MinOps), ci95: null, note: `${retentionText(p.retention)} of its rate in minutes 0–3` })),
       "higher",
     ),
-    skipped: firstTier(missing).flatMap((m) => (m.notRun ? [] : [{ provider: m.provider, why: m.why }])),
+    skipped: firstTier(missing).flatMap((m) => (m.notRun ? [] : [{ provider: m.provider, why: m.why, ahead: false }])),
   };
 }
 
@@ -161,25 +166,29 @@ function resumeReading(track: Track): Reading {
     }
   });
   const skipped = rows.flatMap(({ provider, r }) =>
-    r.kind === "restart" ? [{ provider, why: "stop and start restarts the sandbox, which isn't a pause" }] : r.kind === "none" && !autoStandby[provider] ? [{ provider, why: "no pause support" }] : [],
+    r.kind === "restart" ? [{ provider, why: "stop and start restarts the sandbox, which isn't a pause", ahead: false }] : r.kind === "none" && !autoStandby[provider] ? [{ provider, why: "no pause support", ahead: false }] : [],
   );
   return { entries: bestFirst(entries, "lower"), skipped };
 }
 
-/** Where a counted cost comes from. */
-const costBasis = { billed: "from the provider's own bill", metered: "from the provider's usage meter", estimate: "a list-price estimate" } as const;
+/** Per completed task to per 1,000, the unit the cost chart prints. */
+const PER = 1000;
 
-/** Fix and test cost per 1,000 completed tasks, by the cost chart's Cheapest rule: only billed or metered costs count. */
+/**
+ * Fix and test cost per 1,000 completed tasks, by the cost chart's Cheapest
+ * rule: only billed or metered costs count. Each carries its billing status
+ * ("metered, unreconciled"), and every cheaper cost that can't count is listed with why.
+ */
 function costReading(track: Track): Reading {
   const costed = firstTier(headlineRows(realistic, runTrackOf[track.id], "fix-and-test").costed);
   const p = taskPick(costed);
   const counted = new Set(p.kind === "picked" ? p.counted : []);
   return {
     entries: bestFirst(
-      costed.filter((r) => counted.has(r.provider)).map((r) => ({ provider: r.provider, value: r.cost.usdPerCompleted, display: perThousand(r.cost.usdPerCompleted), ci95: null, note: costBasis[r.cost.kind] })),
+      costed.filter((r) => counted.has(r.provider)).map((r) => ({ provider: r.provider, value: r.cost.usdPerCompleted * PER, display: perThousand(r.cost.usdPerCompleted), ci95: null, note: billingTag(r) })),
       "lower",
     ),
-    skipped: p.kind === "empty" ? [] : p.lower.map((r) => ({ provider: r.provider, why: `${perThousand(r.cost.usdPerCompleted)} per 1,000, but ${notCountedWhy(r).join("; ")}` })),
+    skipped: p.kind === "empty" ? [] : p.lower.map((r) => ({ provider: r.provider, why: `${perThousand(r.cost.usdPerCompleted)} per 1,000: ${notCountedWhy(r).join("; ")}`, ahead: true })),
   };
 }
 
@@ -190,6 +199,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Long-running tasks",
     forWhat: "Agents that keep the CPU busy for many minutes",
     measure: "CPU work per second in minutes 12–15 of a 15-minute run",
+    unit: "ops/s",
     better: "higher",
     tie: "shown",
     source: "sustained-cpu.json",
@@ -203,6 +213,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Short, bursty tasks",
     forWhat: "Fanning out many short-lived sandboxes at once",
     measure: "25 sandboxes started at once, until the last runs a command",
+    unit: "s",
     better: "lower",
     tie: "ci95",
     source: "benchmark.<track>.json",
@@ -216,6 +227,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Revival: pause and resume",
     forWhat: "Agents that sleep while they wait, then pick up where they left off",
     measure: "Resume after a pause, until a command runs",
+    unit: "s",
     better: "lower",
     tie: "shown",
     source: "benchmark.<track>.json",
@@ -229,6 +241,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Cheapest real task",
     forWhat: "Many coding tasks on a budget",
     measure: "Fix and test, cost per 1,000 completed tasks",
+    unit: "usd-per-1000-tasks",
     better: "lower",
     tie: "shown",
     source: "realistic.json",
@@ -242,6 +255,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Fastest cold start",
     forWhat: "A person or an agent waiting on a fresh sandbox",
     measure: "create() until a first command runs",
+    unit: "s",
     better: "lower",
     tie: "ci95",
     source: "benchmark.<track>.json",
@@ -255,6 +269,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Agent tool loops",
     forWhat: "Chatty agents that make hundreds of small calls",
     measure: "100 tool calls in a row: write, read, edit, list, grep, test",
+    unit: "s",
     better: "lower",
     tie: "ci95",
     source: "benchmark.<track>.json",
@@ -265,9 +280,10 @@ export const useCaseList: readonly UseCase[] = [
   },
   {
     id: "builds",
-    title: "Heavy builds",
-    forWhat: "Production builds and other CPU, disk and network-heavy jobs",
+    title: "Production builds",
+    forWhat: "Builds of a few minutes that load CPU, disk and network",
     measure: "Jitsi Meet production build, create to confirmed delete",
+    unit: "s",
     better: "lower",
     tie: "shown",
     source: "realistic.json",
@@ -281,6 +297,7 @@ export const useCaseList: readonly UseCase[] = [
     title: "Starting from a snapshot",
     forWhat: "Many sandboxes from one prepared state",
     measure: "New sandbox from a snapshot, until a command runs",
+    unit: "s",
     better: "lower",
     tie: "ci95",
     source: "benchmark.<track>.json",
@@ -291,11 +308,19 @@ export const useCaseList: readonly UseCase[] = [
   },
 ];
 
-/** Whether two readings tie under a rule: inside each other's 95% intervals, or the same printed value. */
-export function isTie(a: Pick<Entry, "value" | "display" | "ci95">, b: Pick<Entry, "value" | "display" | "ci95">, rule: TieRule): boolean {
+type Comparable = Pick<Entry, "value" | "display" | "ci95">;
+
+/** Whether two readings tie by intervals: both have one and each median sits inside the other's. */
+const intervalTie = (a: Comparable, b: Comparable) => a.ci95 !== null && b.ci95 !== null && a.value >= b.ci95[0] && a.value <= b.ci95[1] && b.value >= a.ci95[0] && b.value <= a.ci95[1];
+
+/**
+ * Whether two readings tie under a rule. `ci95` uses the intervals when both
+ * readings have one, else falls back to the same printed value; `shown` uses the printed value.
+ */
+export function isTie(a: Comparable, b: Comparable, rule: TieRule): boolean {
   switch (rule) {
     case "ci95":
-      return a.ci95 !== null && b.ci95 !== null ? a.value >= b.ci95[0] && a.value <= b.ci95[1] && b.value >= a.ci95[0] && b.value <= a.ci95[1] : a.display === b.display;
+      return a.ci95 !== null && b.ci95 !== null ? intervalTie(a, b) : a.display === b.display;
     case "shown":
       return a.display === b.display;
     default: {
@@ -305,24 +330,50 @@ export function isTie(a: Pick<Entry, "value" | "display" | "ci95">, b: Pick<Entr
   }
 }
 
-/** A provider's place among entries sorted best first, sharing the place with any that print the same value: 1-based, or null when it has none. */
-export function placeOf(entries: readonly Pick<Entry, "provider" | "display">[], provider: ProviderId): number | null {
-  const mine = entries.find((e) => e.provider === provider);
-  return mine ? entries.findIndex((e) => e.display === mine.display) + 1 : null;
+/**
+ * A provider's place among entries sorted best first: one more than the
+ * entries ahead of it that it doesn't tie with under the rule, so a tie
+ * shares the better place, as on the provider pages. Null when it has no entry.
+ */
+export function placeOf(entries: readonly (Comparable & Pick<Entry, "provider">)[], provider: ProviderId, rule: TieRule): number | null {
+  const at = entries.findIndex((e) => e.provider === provider);
+  const mine = entries[at];
+  return mine ? 1 + entries.slice(0, at).filter((e) => !isTie(e, mine, rule)).length : null;
 }
 
-/** "1.9×", or a percentage when the lead is under 10%. */
-export function margin(pick: Pick<Entry, "value">, next: Pick<Entry, "value">, better: Better) {
-  const ratio = better === "lower" ? next.value / pick.value : pick.value / next.value;
-  return ratio < 1.1 ? `${Math.max(1, Math.round((ratio - 1) * 100))}%` : `${ratio.toFixed(1)}×`;
+/**
+ * How the next reading compares with the pick's, in the unit's own words:
+ * "1.9× as long", "8% more", "10% lower". Null when either is zero or
+ * negative, where a ratio means nothing.
+ */
+export function leadText(pick: Pick<Entry, "value">, next: Pick<Entry, "value">, unit: UseCaseUnit): string | null {
+  if (!(pick.value > 0 && next.value > 0)) return null;
+  const pct = (r: number) => `${Math.max(1, Math.round(r * 100))}%`;
+  switch (unit) {
+    case "s": {
+      const r = next.value / pick.value;
+      return r < 1.1 ? `${pct(r - 1)} longer` : `${r.toFixed(1)}× as long`;
+    }
+    case "usd-per-1000-tasks": {
+      const r = next.value / pick.value;
+      return r < 1.1 ? `${pct(r - 1)} more` : `${r.toFixed(1)}× the cost`;
+    }
+    case "ops/s":
+      return `${pct(1 - next.value / pick.value)} lower`;
+    default: {
+      const _exhaustive: never = unit;
+      return _exhaustive;
+    }
+  }
 }
 
-/** Where a pick ranks worst among the other use cases on the same track. */
+/** Where a pick ranks worst among the other use cases on the same track, and the track that ranking comes from. */
 export interface Weakest {
   useCase: string;
   title: string;
   rank: number;
   of: number;
+  track: TrackId;
 }
 
 /** One use case computed for one track. */
@@ -337,19 +388,27 @@ export interface UseCaseResult {
   /** The best reading after the pick and its ties. */
   next: Entry | null;
   skipped: readonly Skipped[];
-  /** What the pick measured and by how much it leads, in a sentence or two. */
+  /** What the pick measured and how the next compares, in a sentence or two. */
   reason: string | null;
-  caveat: CpuCaveat | null;
+  /** The CPU caveat of the pick and of each tied leader. */
+  caveats: readonly { provider: ProviderId; caveat: CpuCaveat }[];
+  /** Why a shown provider's machine differs from the track's, from the chart's own notes. */
+  machine: readonly { provider: ProviderId; note: string }[];
   weakest: Weakest | null;
 }
 
+/** How a tie was called: intervals only when every tied reading has one. */
+const tieWords = (u: UseCase, pick: Entry, tied: readonly Entry[]) => (u.tie === "ci95" && [pick, ...tied].every((e) => e.ci95 !== null) ? "inside the 95% intervals" : "at the value shown");
+
 function reasonFor(u: UseCase, pick: Entry, tiedWith: readonly Entry[], next: Entry | null) {
   const head = `${providerName(pick.provider)}: ${pick.display}${pick.note ? `; ${pick.note}` : ""}.`;
-  if (tiedWith.length > 0) return `${head} Tied with ${tiedWith.map((e) => `${providerName(e.provider)} (${e.display})`).join(", ")}${u.tie === "ci95" ? " inside the 95% intervals" : " at the value shown"}.`;
-  return next ? `${head} Ahead of the next, ${providerName(next.provider)} (${next.display}), by ${margin(pick, next, u.better)}.` : `${head} The only provider with a result.`;
+  if (tiedWith.length > 0) return `${head} Tied with ${tiedWith.map((e) => `${providerName(e.provider)} (${e.display})`).join(", ")} ${tieWords(u, pick, tiedWith)}.`;
+  if (!next) return `${head} The only provider with a result.`;
+  const lead = leadText(pick, next, u.unit);
+  return `${head} Next is ${providerName(next.provider)} at ${next.display}${lead ? `, ${lead}` : ""}.`;
 }
 
-/** Ranks a pick's weakest spot by rank over the number ranked, so 14th of 15 is weaker than 3rd of 4. */
+/** The lowest rank over the number ranked, so 14th of 15 is weaker than 3rd of 4. */
 export function weakestOf(places: readonly Weakest[]): Weakest | null {
   return places.reduce<Weakest | null>((w, p) => (w === null || p.rank / p.of > w.rank / w.of ? p : w), null);
 }
@@ -362,14 +421,27 @@ export function useCasesFor(trackId: TrackId): UseCaseResult[] {
     const [pick = null, ...rest] = entries;
     const tiedWith = pick ? rest.filter((e) => isTie(pick, e, useCase.tie)) : [];
     const next = rest.find((e) => !tiedWith.includes(e)) ?? null;
-    return { useCase, from, ranked: entries, pick, tiedWith, next, skipped, reason: pick ? reasonFor(useCase, pick, tiedWith, next) : null, caveat: pick ? cpuCaveat(pick.provider) : null };
+    const leaders = pick ? [pick, ...tiedWith] : [];
+    const notes = allocationNotes(tracks[from]);
+    return {
+      useCase,
+      from,
+      ranked: entries,
+      pick,
+      tiedWith,
+      next,
+      skipped,
+      reason: pick ? reasonFor(useCase, pick, tiedWith, next) : null,
+      caveats: leaders.flatMap((e) => { const caveat = cpuCaveat(e.provider); return caveat ? [{ provider: e.provider, caveat }] : []; }),
+      machine: [...leaders, ...(next ? [next] : [])].flatMap((e) => { const note = notes[e.provider]; return note ? [{ provider: e.provider, note }] : []; }),
+    };
   });
   return base.map((b) => {
     const { pick } = b;
     if (!pick) return { ...b, weakest: null };
     const places = base.flatMap((o) => {
-      const rank = o === b ? null : placeOf(o.ranked, pick.provider);
-      return rank === null || rank === 1 ? [] : [{ useCase: o.useCase.id, title: o.useCase.title, rank, of: o.ranked.length }];
+      const rank = o === b ? null : placeOf(o.ranked, pick.provider, o.useCase.tie);
+      return rank === null || rank === 1 ? [] : [{ useCase: o.useCase.id, title: o.useCase.title, rank, of: o.ranked.length, track: o.from }];
     });
     return { ...b, weakest: weakestOf(places) };
   });
@@ -378,19 +450,21 @@ export function useCasesFor(trackId: TrackId): UseCaseResult[] {
 /** The page link a card's chart opens on: the landing track needs no query. */
 export const chartHref = (r: Pick<UseCaseResult, "useCase" | "from">) => `/${r.from === linkedTrack ? `?track=${r.from}` : ""}#${r.useCase.chart.section}/${r.useCase.chart.tab}`;
 
-/** "Long-running tasks: 14th of 15". */
-export const weakestText = (w: Weakest) => `${w.title}: ${ordinal(w.rank)} of ${w.of}`;
+/** "Long-running tasks, 15th of 15", with the track when it isn't the one being read. */
+export const weakestText = (w: Weakest, track: TrackId) => `${w.title}, ${ordinal(w.rank)} of ${w.of}${w.track === track ? "" : ` (on ${trackInfo[w.track].short})`}`;
 
 export const useCasesAbout =
   "Which provider leads for each kind of job, computed from this site's benchmark data by fixed rules each time the data changes. A pick is the best reading on one measure among providers on the CPU tier a new account gets; no provider paid for or chose a pick.";
 
 const rules = [
-  "Each use case reads one measure, named in `measure`, from the chart at `chart`.",
+  "Each use case reads one measure, named in `measure` in `unit`, from the chart at `chart`. Values are in that unit: seconds, operations per second, or US dollars per 1,000 completed tasks.",
   "Providers are ranked on the CPU tier a new account gets; cheaper or spot tiers are compared under CPU tiers instead.",
-  "`tie: ci95`: medians inside each other's 95% intervals are tied. `tie: shown`: there is no interval, so only the same printed value ties.",
-  "Real task picks allow at most one incomplete run. The cheapest needs a cost from the provider's own bill or usage meter; cheaper costs that can't count are in `notCounted` with why.",
-  "`weakest` is where the pick ranks lowest among the other use cases on the same track, by rank over the number ranked.",
+  "`tie: ci95`: medians inside each other's 95% intervals are tied; a reading without an interval ties only on the same printed value. `tie: shown`: there is no interval, so only the same printed value ties.",
+  "`rank` is one more than the providers ahead that it doesn't tie with, so tied providers share the better place.",
+  "Real task picks allow at most one incomplete run. The cheapest needs a cost from the provider's own bill or usage meter; cheaper costs that can't count are in `notCounted` with why, and `note` carries each cost's billing status.",
+  "`weakest` is where the pick ranks lowest among the other use cases, by rank over the number ranked; its `track` is the track that ranking comes from.",
   "`onlyOn` names the one track a measure ran on; every track then shows that track's pick.",
+  "`machineNotes` say when a shown provider ran a machine other than the track's.",
 ];
 
 /** The use cases as plain data for agents: both tracks, every ranked provider, and why any was left out. */
@@ -409,6 +483,7 @@ export function useCasesData() {
             title: r.useCase.title,
             for: r.useCase.forWhat,
             measure: r.useCase.measure,
+            unit: r.useCase.unit,
             better: r.useCase.better,
             tie: r.useCase.tie,
             onlyOn: r.useCase.onlyOn,
@@ -417,11 +492,12 @@ export function useCasesData() {
             pick: r.pick ? { provider: r.pick.provider, name: providerName(r.pick.provider), value: r.pick.value, display: r.pick.display } : null,
             tiedWith: r.tiedWith.map((e) => e.provider),
             reason: r.reason,
-            cpuCaveat: r.caveat?.detail ?? null,
+            cpuCaveats: r.caveats.map((c) => ({ provider: c.provider, caveat: c.caveat.detail })),
+            machineNotes: r.machine,
             weakest: r.weakest,
             gap: r.useCase.gap,
-            ranked: r.ranked.map((e) => ({ rank: placeOf(r.ranked, e.provider), provider: e.provider, name: providerName(e.provider), value: e.value, display: e.display, ci95: e.ci95, note: e.note })),
-            notCounted: r.skipped.map((s) => ({ provider: s.provider, name: providerName(s.provider), why: s.why })),
+            ranked: r.ranked.map((e) => ({ rank: placeOf(r.ranked, e.provider, r.useCase.tie), provider: e.provider, name: providerName(e.provider), value: e.value, display: e.display, ci95: e.ci95, note: e.note })),
+            notCounted: r.skipped.map((s) => ({ provider: s.provider, name: providerName(s.provider), why: s.why, betterThanPick: s.ahead })),
           })),
         },
       ]),
@@ -443,7 +519,16 @@ export function useCasesMarkdown(level: "#" | "##") {
       ...useCasesFor(id).map((r) => {
         if (!r.pick) return `- ${r.useCase.title}: no provider has a result yet.`;
         const only = r.useCase.onlyOn && r.useCase.onlyOn !== id ? `, ${trackInfo[r.useCase.onlyOn].label} only` : "";
-        const parts = [r.reason, r.caveat ? `${r.caveat.detail}.` : null, r.weakest ? `Weakest elsewhere: ${weakestText(r.weakest)}.` : null, r.useCase.gap, `Chart: ${chartHref(r)}`];
+        const ahead = r.skipped.filter((s) => s.ahead);
+        const parts = [
+          r.reason,
+          ...r.caveats.map((c) => `${providerName(c.provider)}: ${c.caveat.detail}.`),
+          ...r.machine.map((m) => `${providerName(m.provider)} ${m.note}`),
+          ahead.length ? `Not counted: ${ahead.map((s) => `${providerName(s.provider)} ${s.why}`).join("; ")}.` : null,
+          r.weakest ? `Weakest elsewhere: ${weakestText(r.weakest, id)}.` : null,
+          r.useCase.gap,
+          `Chart: ${chartHref(r)}`,
+        ];
         return `- ${r.useCase.title} (${r.useCase.measure}${only}): ${parts.filter((x) => x !== null).join(" ")}`;
       }),
       "",
