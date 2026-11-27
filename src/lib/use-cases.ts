@@ -1,8 +1,11 @@
+import { fairnessSection } from "@/components/fairness";
 import { realTasksSection, taskTimes } from "@/components/real-tasks";
 import { taskCostSection } from "@/components/realistic";
 import { sustainedCpuSection } from "@/components/sustained-cpu";
 import { statusOf } from "@/lib/agent-data";
 import { trackIds, trackInfo, tracks } from "@/lib/data";
+import { completed } from "@/lib/fairness";
+import { fairness } from "@/lib/fairness-data";
 import type { Track, TrackId } from "@/lib/data";
 import { formatValue, ordinal } from "@/lib/format";
 import { allocationNotes, autoStandby } from "@/lib/notes";
@@ -25,8 +28,8 @@ import { linkedTrack } from "@/lib/tracks";
  * title, measure and chart are fixed, its provider never is.
  */
 
-/** What a value counts, for agents: seconds, operations per second, or US dollars per 1,000 completed tasks. */
-export type UseCaseUnit = "s" | "ops/s" | "usd-per-1000-tasks";
+/** What a value counts, for agents: seconds, milliseconds, operations per second, or US dollars per 1,000 completed tasks. */
+export type UseCaseUnit = "s" | "ms" | "ops/s" | "usd-per-1000-tasks";
 
 /** One provider's reading on a use case's measure. */
 export interface Entry {
@@ -57,6 +60,19 @@ interface Reading {
   skipped: Skipped[];
 }
 
+/** A second measure a card shows beside its pick, with its own leader. It never changes the pick or anyone's weakest spot. */
+export interface SecondMeasure {
+  /** A few words: "Restart speed". */
+  label: string;
+  measure: string;
+  unit: UseCaseUnit;
+  better: Better;
+  source: string;
+  chart: { section: string; tab: string };
+  onlyOn: TrackId | null;
+  read: (track: Track) => Reading;
+}
+
 export interface UseCase {
   id: string;
   title: string;
@@ -76,6 +92,8 @@ export interface UseCase {
   /** What the measure leaves out that the title might suggest. */
   gap: string | null;
   read: (track: Track) => Reading;
+  /** Only the cards that show a second measure set it. */
+  second?: SecondMeasure;
 }
 
 /** Best first by value, then by id so equal readings keep a fixed order. */
@@ -171,6 +189,26 @@ function resumeReading(track: Track): Reading {
   return { entries: bestFirst(entries, "lower"), skipped };
 }
 
+/**
+ * Median time for a server killed with SIGKILL to answer again in the same sandbox, from the
+ * like-for-like state-survival check (same machine only).
+ */
+function restartReading(): Reading {
+  const rows = firstTier(completed(fairness.stateSurvival));
+  return {
+    entries: bestFirst(
+      rows.flatMap((e) => {
+        const { medianMs, samplesMs, failures } = e.result.restart;
+        if (medianMs === null) return [];
+        const parts = [`one sandbox's median of ${samplesMs.length} timed restarts, one run`, failures > 0 ? `${failures} failed` : null, e.machine.sameSize ? null : `on ${e.machine.cpu} vCPU, ${e.machine.memoryGiB} GiB`].filter((x) => x !== null);
+        return [{ provider: e.provider, value: medianMs, display: formatValue(medianMs, "ms"), ci95: null, note: parts.join(", ") }];
+      }),
+      "lower",
+    ),
+    skipped: rows.flatMap((e) => (e.result.restart.medianMs === null ? [{ provider: e.provider, why: "no restart was timed", ahead: false }] : [])),
+  };
+}
+
 /** Per completed task to per 1,000, the unit the cost chart prints. */
 const PER = 1000;
 
@@ -234,8 +272,18 @@ export const useCaseList: readonly UseCase[] = [
     source: "benchmark.<track>.json",
     chart: { section: "state", tab: "resume" },
     onlyOn: null,
-    gap: "Restart speed after a crash or a stop isn't measured yet, so this ranks resume after a pause only.",
+    gap: "The pick ranks resume after a pause only. Restart speed is a process killed and started again in a running sandbox; a whole sandbox stopped and started has no portable SDK call and isn't measured.",
     read: resumeReading,
+    second: {
+      label: "Restart speed",
+      measure: "A killed server started again, until it answers",
+      unit: "ms",
+      better: "lower",
+      source: "fairness.json",
+      chart: { section: fairnessSection, tab: "restart" },
+      onlyOn: "same-spec",
+      read: restartReading,
+    },
   },
   {
     id: "cheapest-task",
@@ -363,7 +411,8 @@ export function leadText(pick: Pick<Entry, "value">, next: Pick<Entry, "value">,
   if (!(pick.value > 0 && next.value > 0)) return null;
   const pct = (r: number) => (r * 100 < 1 ? "under 1%" : `${Math.round(r * 100)}%`);
   switch (unit) {
-    case "s": {
+    case "s":
+    case "ms": {
       const r = next.value / pick.value;
       return r < 1.1 ? `${pct(r - 1)} longer` : `${r.toFixed(1)}× as long`;
     }
@@ -408,6 +457,26 @@ export interface UseCaseResult {
   /** Why a shown provider's machine differs from the track's, from the chart's own notes. */
   machine: readonly { provider: ProviderId; note: string }[];
   weakest: Weakest | null;
+  /** The card's second measure, read on its own: its leader, any tied with it, and the next. */
+  second: SecondResult | null;
+}
+
+export interface SecondResult {
+  measure: SecondMeasure;
+  from: TrackId;
+  ranked: readonly Entry[];
+  pick: Entry | null;
+  tiedWith: readonly Entry[];
+  next: Entry | null;
+}
+
+/** A second measure ranked on its own track, ties at the printed value. */
+function secondFor(measure: SecondMeasure, trackId: TrackId): SecondResult {
+  const from = measure.onlyOn ?? trackId;
+  const { entries } = measure.read(tracks[from]);
+  const [pick = null, ...rest] = entries;
+  const tiedWith = pick ? rest.filter((e) => isTie(pick, e, "shown")) : [];
+  return { measure, from, ranked: entries, pick, tiedWith, next: rest.find((e) => !tiedWith.includes(e)) ?? null };
 }
 
 /** How a tie was called: intervals only when every tied reading has one. */
@@ -447,6 +516,7 @@ export function useCasesFor(trackId: TrackId): UseCaseResult[] {
       reason: pick ? reasonFor(useCase, pick, tiedWith, next) : null,
       caveats: leaders.flatMap((e) => { const caveat = cpuCaveat(e.provider); return caveat ? [{ provider: e.provider, caveat }] : []; }),
       machine: [...leaders, ...(next ? [next] : [])].flatMap((e) => { const note = notes[e.provider]; return note ? [{ provider: e.provider, note }] : []; }),
+      second: useCase.second ? secondFor(useCase.second, trackId) : null,
     };
   });
   return base.map((b) => {
@@ -470,7 +540,8 @@ export const useCasesAbout =
   "Which provider leads for each kind of job, computed from this site's benchmark data by fixed rules each time the data changes. A pick is the best reading on one measure among providers on the CPU tier a new account gets; no provider paid for or chose a pick.";
 
 const rules = [
-  "Each use case reads one measure, named in `measure` in `unit`, from the chart at `chart`. Values are in that unit: seconds, operations per second, or US dollars per 1,000 completed tasks.",
+  "Each use case reads one measure, named in `measure` in `unit`, from the chart at `chart`. Values are in that unit: seconds, milliseconds, operations per second, or US dollars per 1,000 completed tasks.",
+  "`second`, where set, is another measure the card shows with its own leader (ties at the printed value); it never changes the pick, its rank or anyone's `weakest`.",
   "Providers are ranked on the CPU tier a new account gets; cheaper or spot tiers are compared under CPU tiers instead.",
   "`tie: ci95`: medians inside each other's 95% intervals are tied; a reading without an interval ties only on the same printed value. `tie: shown`: there is no interval, so only the same printed value ties.",
   "`rank` is the position by median under `tie: ci95` (interval ties aren't transitive, so only ties with the pick are reported, in `tiedWith`); under `tie: shown` equal printed values share the better place.",
@@ -509,6 +580,20 @@ export function useCasesData() {
             machineNotes: r.machine,
             weakest: r.weakest,
             gap: r.useCase.gap,
+            second: r.second
+              ? {
+                  label: r.second.measure.label,
+                  measure: r.second.measure.measure,
+                  unit: r.second.measure.unit,
+                  better: r.second.measure.better,
+                  onlyOn: r.second.measure.onlyOn,
+                  source: `src/data/${r.second.measure.source}`,
+                  chart: `/${r.second.from === linkedTrack ? `?track=${r.second.from}` : ""}#${r.second.measure.chart.section}/${r.second.measure.chart.tab}`,
+                  pick: r.second.pick ? { provider: r.second.pick.provider, name: providerName(r.second.pick.provider), value: r.second.pick.value, display: r.second.pick.display } : null,
+                  tiedWith: r.second.tiedWith.map((e) => e.provider),
+                  ranked: r.second.ranked.map((e) => ({ rank: placeOf(r.second?.ranked ?? [], e.provider, "shown"), provider: e.provider, name: providerName(e.provider), value: e.value, display: e.display, note: e.note })),
+                }
+              : null,
             ranked: r.ranked.map((e) => ({ rank: placeOf(r.ranked, e.provider, r.useCase.tie), provider: e.provider, name: providerName(e.provider), value: e.value, display: e.display, ci95: e.ci95, note: e.note })),
             notCounted: r.skipped.map((s) => ({ provider: s.provider, name: providerName(s.provider), why: s.why, betterThanPick: s.ahead })),
           })),
@@ -516,6 +601,15 @@ export function useCasesData() {
       ]),
     ),
   };
+}
+
+/** "Restart speed: Styne 59.1 ms (median of 5 restarts); next Upstash 86.8 ms, 47% longer." */
+function secondText(s: SecondResult): string {
+  if (!s.pick) return `${s.measure.label}: no provider has a result yet.`;
+  const lead = s.next ? leadText(s.pick, s.next, s.measure.unit) : null;
+  const tied = s.tiedWith.length ? `, tied with ${s.tiedWith.map((e) => providerName(e.provider)).join(", ")}` : "";
+  const next = s.next ? `; next ${providerName(s.next.provider)} ${s.next.display}${lead ? `, ${lead}` : ""}` : "";
+  return `${s.measure.label} (${s.measure.measure}): ${providerName(s.pick.provider)} ${s.pick.display}${s.pick.note ? ` (${s.pick.note})` : ""}${tied}${next}.`;
 }
 
 /** The use cases as Markdown, one list per track, for llms.txt and results.md. */
@@ -539,6 +633,7 @@ export function useCasesMarkdown(level: "#" | "##") {
           ...r.machine.map((m) => `${providerName(m.provider)} ${m.note}`),
           ahead.length ? `Not counted: ${ahead.map((s) => `${providerName(s.provider)} ${s.why}`).join("; ")}.` : null,
           r.weakest ? `Weakest elsewhere: ${weakestText(r.weakest, id)}.` : null,
+          r.second ? secondText(r.second) : null,
           r.useCase.gap,
           `Chart: ${chartHref(r)}`,
         ];

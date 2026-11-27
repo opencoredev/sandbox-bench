@@ -1,6 +1,6 @@
 {
-  "schema": "fairness-site.v1",
-  "generatedAt": "2026-11-26T18:46:01.794Z",
+  "schema": "fairness-site.v2",
+  "generatedAt": "2026-11-26T23:50:28.087Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -4127,6 +4127,931 @@
             "sdkCommit": "28ac0a495cc237252784dd928d20b0bdfe3960f3",
             "startedAt": "2026-11-26T18:39:53.078Z"
           }
+        }
+      ]
+    },
+    "state-survival": {
+      "run": {
+        "id": "full-state2-20261126",
+        "sdkCommit": "2b2acec4530abcfe34ed45e4131ae513a67b2d6c",
+        "startedAt": "2026-11-26T22:11:12.755Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 99.1,
+              "samplesMs": [
+                100.3,
+                99.1,
+                98,
+                107.4,
+                98.5
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 947,
+              "resumeMs": 766,
+              "firstCommandMs": 121,
+              "servingMs": 310,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 99.3,
+              "samplesMs": [
+                102.5,
+                97.8,
+                97.7,
+                101.4,
+                99.3
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "unsupported"
+            }
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 86.8,
+              "samplesMs": [
+                86.8,
+                87.7,
+                85.6,
+                86.1,
+                87.8
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "cold-restart",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 329,
+              "resumeMs": 309,
+              "firstCommandMs": 137,
+              "servingMs": null,
+              "serverRestarted": true,
+              "coldServeMs": 223,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 85.9,
+              "samplesMs": [
+                85.5,
+                86,
+                88,
+                85.9,
+                85.5
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "unsupported"
+            }
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 160,
+              "samplesMs": [
+                174.6,
+                183,
+                160,
+                136,
+                101.4
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 139,
+              "resumeMs": 138,
+              "firstCommandMs": 246,
+              "servingMs": 532,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 138.4,
+              "samplesMs": [
+                141.8,
+                148.4,
+                131.6,
+                138.4,
+                127.2
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 342,
+              "resumeMs": 275,
+              "firstCommandMs": 202,
+              "servingMs": 387,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 72.8,
+              "samplesMs": [
+                89.5,
+                67.9,
+                83.9,
+                72.8,
+                70.5
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": "the boot id changed, but the original processes kept their memory",
+              "holdMs": 60000,
+              "pauseMs": 1677,
+              "resumeMs": 1307,
+              "firstCommandMs": 126,
+              "servingMs": 345,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": false
+            }
+          }
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 269.6,
+              "samplesMs": [
+                270.6,
+                275.6,
+                263.5,
+                260.9,
+                269.6
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "cold-restart",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 2190,
+              "resumeMs": 723,
+              "firstCommandMs": 306,
+              "servingMs": null,
+              "serverRestarted": true,
+              "coldServeMs": 582,
+              "bootSame": false
+            }
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 117.4,
+              "samplesMs": [
+                118.9,
+                117.4,
+                112.7,
+                120.2,
+                113.5
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "unsupported"
+            }
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 84,
+              "samplesMs": [
+                103.5,
+                99.4,
+                76.2,
+                84,
+                73.3
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 212,
+              "resumeMs": 8711,
+              "firstCommandMs": 180,
+              "servingMs": 385,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 968.9,
+              "samplesMs": [
+                585.6,
+                968.9,
+                1503.6,
+                1466.5,
+                514.8
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 13919,
+              "resumeMs": 319,
+              "firstCommandMs": 204,
+              "servingMs": 1030,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 130.2,
+              "samplesMs": [
+                130.2,
+                127.6,
+                121.2,
+                130.3,
+                130.7
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "unsupported"
+            }
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 60.1,
+              "samplesMs": [
+                59,
+                68.8,
+                60.1,
+                60.5,
+                59.8
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 58,
+              "resumeMs": 49,
+              "firstCommandMs": 71,
+              "servingMs": 172,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 116.9,
+              "samplesMs": [
+                125,
+                73.4,
+                116.9,
+                71.1,
+                258
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "measured",
+              "verdict": "in-ram",
+              "reason": null,
+              "holdMs": 60000,
+              "pauseMs": 1634,
+              "resumeMs": 522,
+              "firstCommandMs": 231,
+              "servingMs": 539,
+              "serverRestarted": false,
+              "coldServeMs": null,
+              "bootSame": true
+            }
+          },
+          "run": {
+            "id": "full-state-archil-20261126",
+            "sdkCommit": "2b2acec4530abcfe34ed45e4131ae513a67b2d6c",
+            "startedAt": "2026-11-26T23:24:22.526Z"
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our API key was rejected",
+          "result": null
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our account wasn't eligible for billing (HTTP 402)",
+          "result": null
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our Boat account was busy with another benchmark run",
+          "result": null
+        }
+      ]
+    },
+    "memory-pressure": {
+      "run": {
+        "id": "full-mem-20261126",
+        "sdkCommit": "33b875f26f605d9ee8fccfda0c26b8252473bfba",
+        "startedAt": "2026-11-26T21:32:12.843Z"
+      },
+      "entries": [
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 7744,
+              "fraction": 0.945
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 8064,
+              "fraction": 0.984
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 8128,
+              "fraction": 0.992
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 8128,
+              "fraction": 0.992
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 16384,
+            "targetMiB": 24576,
+            "reached": {
+              "evidence": "log",
+              "mib": 16640,
+              "fraction": 1.016
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 1
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "last-poll",
+              "mib": 7616,
+              "fraction": 0.93
+            },
+            "outcome": {
+              "kind": "inconclusive",
+              "reason": "the hog and its supervisor are gone with no status"
+            },
+            "scope": null,
+            "usableAfter": null,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "last-poll",
+              "mib": 7616,
+              "fraction": 0.93
+            },
+            "outcome": {
+              "kind": "inconclusive",
+              "reason": "the hog and its supervisor are gone with no status"
+            },
+            "scope": null,
+            "usableAfter": null,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 8128,
+              "fraction": 0.992
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "last-poll",
+              "mib": 640,
+              "fraction": 0.078
+            },
+            "outcome": {
+              "kind": "sandbox-lost"
+            },
+            "scope": "sandbox",
+            "usableAfter": false,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 11264,
+              "fraction": 1.375
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 4
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 7744,
+              "fraction": 0.945
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 8128,
+              "fraction": 0.992
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 7744,
+              "fraction": 0.945
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 0
+          }
+        },
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "last-poll",
+              "mib": 6848,
+              "fraction": 0.836
+            },
+            "outcome": {
+              "kind": "inconclusive",
+              "reason": "no answer for 242146 ms"
+            },
+            "scope": null,
+            "usableAfter": null,
+            "swapTotalGiB": 3.88
+          },
+          "run": {
+            "id": "full-mem-archil-20261126",
+            "sdkCommit": "2b2acec4530abcfe34ed45e4131ae513a67b2d6c",
+            "startedAt": "2026-11-26T23:24:22.526Z"
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our API key was rejected",
+          "result": null
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our account wasn't eligible for billing (HTTP 402)",
+          "result": null
+        },
+        {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our Boat account was busy with another benchmark run",
+          "result": null
         }
       ]
     }

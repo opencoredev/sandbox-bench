@@ -6,11 +6,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import raw from "@/data/fairness.json";
 import { FairnessSection, IsolationTable } from "@/components/fairness";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
-import { completed, hasFairness, heldShare, memoryOutcomeText, parseFairness, uptimeText } from "@/lib/fairness";
+import { completed, hasFairness, hasVerdict, readableReason, verdictNote, heldShare, memoryOutcomeText, parseFairness, pressureOutcomeText, reachedText, SCHEMA, scopeText, servingText, suspendText, uptimeText } from "@/lib/fairness";
 import type { FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
 import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 import { fairness } from "@/lib/fairness-data";
-import { addLaterRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
+import { addLaterRun, addNotRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
 
 // The like-for-like checks: the file's parser, the site-data script, the section and the exports. Run with `bun test`.
 
@@ -77,8 +77,42 @@ const security = (isolation: string, extra: object = {}) => ({
   ...extra,
 });
 
+const measured = (verdict: string, extra: object = {}) => ({
+  kind: "measured",
+  verdict,
+  reason: null,
+  holdMs: 60_000,
+  pauseMs: 300,
+  resumeMs: 400,
+  firstCommandMs: 150,
+  servingMs: 450,
+  serverRestarted: false,
+  coldServeMs: null,
+  bootSame: true,
+  ...extra,
+});
+
+const state = (samplesMs: number[], suspend: object) => {
+  const sorted = [...samplesMs].sort((a, b) => a - b);
+  return { restart: { medianMs: sorted.length ? sorted[Math.floor(sorted.length / 2)] : null, samplesMs, failures: 0, startsOnly: 0 }, suspend };
+};
+
+const pressure = (outcome: object, reached: { evidence: string; mib: number } | null, extra: object = {}) => {
+  const advertisedMiB = (extra as { advertisedMiB?: number }).advertisedMiB ?? 8192;
+  return {
+    advertisedMiB,
+    targetMiB: advertisedMiB * 1.5,
+    reached: reached === null ? null : { ...reached, fraction: Number((reached.mib / advertisedMiB).toFixed(3)) },
+    outcome,
+    scope: "process",
+    usableAfter: true,
+    swapTotalGiB: 0,
+    ...extra,
+  };
+};
+
 const fixture = () => ({
-  schema: "fairness-site.v1",
+  schema: SCHEMA,
   generatedAt: "2026-11-24T06:00:00.000Z",
   track: "same-machine",
   arch: { e2b: "x86_64", upstash: "aarch64", styne: "x86_64" },
@@ -115,6 +149,27 @@ const fixture = () => ({
         { provider: "modal", machine, status: "completed", reason: null, result: security("gvisor", { vulnerabilityFiles: 0 }) },
       ],
     },
+    "state-survival": {
+      run,
+      entries: [
+        { provider: "e2b", machine, status: "completed", reason: null, result: state([130, 160, 117, 122, 113], measured("in-ram")) },
+        { provider: "upstash", machine, status: "completed", reason: null, result: state([86, 92, 87, 88, 87.6], measured("cold-restart", { servingMs: null, serverRestarted: true, coldServeMs: 220 })) },
+        { provider: "tenki", machine, status: "completed", reason: null, result: state([101, 87, 68, 92, 88], measured("in-ram", { bootSame: false, servingMs: 358, reason: "the boot id changed, but the original processes kept their memory" })) },
+        { provider: "daytona", machine, status: "completed", reason: null, result: state([101, 102, 100, 105, 98], { kind: "unsupported" }) },
+        { provider: "freestyle", machine, status: "completed", reason: null, result: state([161, 175, 136, 168, 122], measured("inconclusive", { reason: "no heartbeat count across the hold" })) },
+        { provider: "styne", machine, status: "completed", reason: null, result: state([57, 65, 59, 56, 61], { kind: "failed", stage: "resume", error: "resume timed out after 300 s" }) },
+        { provider: "beam", machine, status: "failed", reason: "Process cancellation could not be confirmed", result: null },
+      ],
+    },
+    "memory-pressure": {
+      run,
+      entries: [
+        { provider: "e2b", machine, status: "completed", reason: null, result: pressure({ kind: "process-killed" }, { evidence: "log", mib: 7744 }) },
+        { provider: "modal", machine, status: "completed", reason: null, result: pressure({ kind: "sandbox-lost" }, { evidence: "last-poll", mib: 640 }, { scope: "sandbox", usableAfter: false }) },
+        { provider: "freestyle", machine, status: "completed", reason: null, result: pressure({ kind: "inconclusive", reason: "the hog and its supervisor are gone with no status" }, { evidence: "last-poll", mib: 7616 }, { scope: null, usableAfter: null }) },
+        { provider: "boxd", machine: big, status: "completed", reason: null, result: pressure({ kind: "process-killed" }, { evidence: "log", mib: 16640 }, { advertisedMiB: 16384, swapTotalGiB: 1 }) },
+      ],
+    },
   },
 });
 
@@ -130,7 +185,7 @@ describe("parse", () => {
     const d = parsed();
     assert.equal(hasFairness(d), true);
     assert.equal(completed(d.cpuNative).length, 3);
-    const empty = parseFairness({ schema: "fairness-site.v1", generatedAt: "2026-11-24T00:00:00.000Z", track: "same-machine", arch: {}, checks: {} });
+    const empty = parseFairness({ schema: SCHEMA, generatedAt: "2026-11-24T00:00:00.000Z", track: "same-machine", arch: {}, checks: {} });
     assert.equal(hasFairness(empty), false);
     assert.equal(renderToStaticMarkup(<FairnessSection data={empty} />), "");
   });
@@ -377,5 +432,213 @@ describe("exports", () => {
     assert.equal("likeForLike" in agentData(), has);
     assert.equal(agentMarkdown().includes("# Like-for-like checks"), has);
     assert.equal(llmsTxt().includes("## Like-for-like checks"), has);
+  });
+});
+
+describe("state survival and memory pressure", () => {
+  const d = parsed();
+  const report = (check: string, providers: object[]) => ({ schema: "fairness.v1", check, track: "same-machine", generatedAt: "x", run, providers });
+  const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
+  const broken = (change: (f: ReturnType<typeof fixture>) => void) => {
+    const f = fixture();
+    change(f);
+    return () => parseFairness(f);
+  };
+  const stateAt = (f: ReturnType<typeof fixture>, i: number) => f.checks["state-survival"].entries[i]!.result as unknown as Record<string, Record<string, unknown>>;
+  const pressureAt = (f: ReturnType<typeof fixture>, i: number) => f.checks["memory-pressure"].entries[i]!.result as unknown as Record<string, unknown>;
+
+  test("both checks parse, and contradictions stop the build", () => {
+    assert.equal(completed(d.stateSurvival).length, 6);
+    assert.equal(completed(d.memoryPressure).length, 4);
+    assert.throws(broken((f) => (stateAt(f, 0).restart!.medianMs = 999)), /not the median/);
+    assert.throws(broken((f) => (stateAt(f, 0).restart!.samplesMs = [])), /no restart was timed/);
+    assert.throws(broken((f) => (stateAt(f, 4).suspend!.reason = null)), /must say why the verdict is inconclusive/);
+    assert.throws(broken((f) => (stateAt(f, 0).suspend!.holdMs = 30_000)), /60000/);
+    assert.throws(broken((f) => (stateAt(f, 1).suspend!.coldServeMs = null)), /started again/);
+    assert.throws(broken((f) => (stateAt(f, 0).suspend!.verdict = "survived")), /verdict/);
+    assert.throws(broken((f) => (pressureAt(f, 0).targetMiB = 16384)), /1.5/);
+    assert.throws(broken((f) => ((pressureAt(f, 0).reached as { fraction: number }).fraction = 0.5)), /fraction/);
+    assert.throws(broken((f) => (pressureAt(f, 1).scope = "process")), /must be sandbox for sandbox-lost/);
+    assert.throws(broken((f) => (f.checks["memory-pressure"].entries[3]!.machine = machine)), /advertises 16384 MiB, not its machine's 8 GiB/);
+    assert.throws(broken((f) => (pressureAt(f, 0).outcome = { kind: "reached-target" })), /whole target/);
+    assert.throws(broken((f) => (f.checks["memory-pressure"].entries[0]!.provider = "acme")), /not a known provider: acme/);
+  });
+
+  test("an inconclusive or failed pause is no verdict, never the provider's failure", () => {
+    const by = (id: string) => completed(d.stateSurvival).find((e) => e.provider === id)!.result;
+    assert.equal(suspendText(by("e2b")), "Memory and processes intact, frozen during the pause");
+    assert.equal(suspendText(by("upstash")), "Files kept, running processes gone");
+    assert.equal(suspendText(by("tenki")), "Memory and processes intact, frozen during the pause");
+    assert.equal(verdictNote(by("tenki")), "the boot id changed, but the original server kept its memory and the same worker came back", "the harness's words name what was checked");
+    assert.equal(verdictNote(by("freestyle")), null, "an inconclusive reason is no verdict, not a note");
+    assert.match(suspendText(by("daytona")), /^Not tested: our SDK adapter has no pause/);
+    assert.equal(suspendText(by("freestyle")), "No verdict: no heartbeat count across the hold");
+    assert.equal(suspendText(by("styne")), "No verdict: the resume didn't complete (resume timed out after 300 s)");
+    for (const id of ["freestyle", "styne", "daytona"]) assert.equal(hasVerdict(by(id)), false);
+    assert.equal(servingText(by("e2b")), "450 ms");
+    assert.equal(servingText(by("upstash")), "about 220 ms, started again");
+    assert.equal(servingText(by("daytona")), null);
+  });
+
+  test("a last-poll figure reads as at least, a logged one as exact", () => {
+    const by = (id: string) => completed(d.memoryPressure).find((e) => e.provider === id)!.result;
+    assert.equal(reachedText(by("e2b")), "7.6 GiB (95% of 8 GiB)");
+    assert.equal(reachedText(by("modal")), "at least 640 MiB (7% of 8 GiB)");
+    assert.equal(pressureOutcomeText(by("freestyle")), "No verdict: the hog and its supervisor are gone with no status");
+    assert.equal(scopeText(by("freestyle")), "Not determined");
+    assert.match(pressureOutcomeText(by("modal")), /provider reported it gone/);
+    assert.match(pressureOutcomeText(by("e2b")), /killed \(SIGKILL\)/);
+    assert.equal(reachedText(by("freestyle")), "at least 7.4 GiB (92% of 8 GiB)", "7616 MiB is 7.44 GiB and 92.97%, so the bound rounds down");
+    const f = fixture();
+    (pressureAt(f, 2).reached as object) = { evidence: "last-poll", mib: 6848, fraction: 6848 / 8192 };
+    assert.equal(reachedText(completed(parseFairness(f).memoryPressure).find((e) => e.provider === "freestyle")!.result), "at least 6.6 GiB (83% of 8 GiB)");
+  });
+
+  test("what the hog took down is judged from one canary, and a lost sandbox names no cause", () => {
+    const by = (id: string) => completed(d.memoryPressure).find((e) => e.provider === id)!.result;
+    assert.equal(scopeText(by("e2b")), "The canary process stayed alive");
+    assert.equal(scopeText(by("modal")), "The provider reported the sandbox gone; the cause isn't known");
+    const t = text(renderToStaticMarkup(<FairnessSection data={d} />));
+    assert.doesNotMatch(t, /the rest kept running/);
+    assert.match(t, /Judged from one canary process, not every process in the sandbox/);
+  });
+
+  test("a refused allocation with the canary alive never reads as a kill", () => {
+    const f = fixture();
+    pressureAt(f, 0).outcome = { kind: "refused", reason: "malloc failed" };
+    const refused = completed(parseFairness(f).memoryPressure).find((e) => e.provider === "e2b")!.result;
+    assert.equal(refused.scope, "process");
+    assert.equal(pressureOutcomeText(refused), "The allocation was refused (malloc failed)");
+    assert.equal(scopeText(refused), "The canary process stayed alive");
+    const all = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />)) + fairnessMarkdown(parseFairness(f)).join("\n") + fairnessLlms(parseFairness(f));
+    assert.doesNotMatch(all, /hog was killed/i, "a refusal never reads as a kill");
+  });
+
+  test("a harness \"no answer for N ms\" reads in minutes, or seconds under 90 s", () => {
+    assert.equal(readableReason("no answer for 242146 ms"), "the sandbox didn't answer for about 4 min");
+    assert.equal(readableReason("no answer for 45000 ms"), "the sandbox didn't answer for about 45 s");
+    assert.equal(readableReason("no answer for 89400 ms"), "the sandbox didn't answer for about 89 s");
+    assert.equal(readableReason("the hog and its supervisor are gone with no status"), "the hog and its supervisor are gone with no status");
+    const f = fixture();
+    (f.checks["memory-pressure"].entries[2]!.result as unknown as { outcome: object }).outcome = { kind: "inconclusive", reason: "no answer for 242146 ms" };
+    const freestyle = completed(parseFairness(f).memoryPressure).find((e) => e.provider === "freestyle")!.result;
+    assert.equal(pressureOutcomeText(freestyle), "No verdict: the sandbox didn't answer for about 4 min");
+  });
+
+  test("the site-data script keeps only the figures the page uses, scrubbed", () => {
+    const raw = {
+      runtime: "node",
+      workdir: "/home/leo/sandbox/attempt-610c6d1847fc",
+      fileMiB: 16,
+      setupMs: 900,
+      restart: { samplesMs: [130, 160, 117], medianMs: 130, failures: 0, startsOnly: 0 },
+      suspend: { ...measured("inconclusive", { reason: "pid file /home/leo/x unreadable" }), filesystem: true, worker: { same: true }, server: { answered: true } },
+      stopStart: { kind: "not-run", reason: "no portable call" },
+    };
+    const { check, data } = checkFromReport(report("state-survival", [{ provider: "e2b", status: "completed", reason: null, machine, sandboxes: [{ id: "sb-01M8604F365C5Q09VVMZWH58H2" }], result: raw }]));
+    assert.equal(check, "state-survival");
+    const out = JSON.stringify(data);
+    assert.doesNotMatch(out, /\/home\/leo|610c6d1847fc|01M8604F|workdir|worker|stopStart|setupMs/);
+    assert.match(out, /pid file <path> unreadable/);
+    const hog = {
+      runtime: "node",
+      limits: { memTotalGiB: 7.8, memLimitGiB: null, swapTotalGiB: 4, overcommit: 0 },
+      advertisedMiB: 8192,
+      targetMiB: 12288,
+      reachedMiB: 640,
+      reachedEvidence: "last-poll",
+      reachedFraction: 0.078,
+      progress: [{ mib: 512, ms: 900 }],
+      outcome: { kind: "sandbox-lost", detail: "modal:native-exact-get: terminal" },
+      scope: "sandbox",
+      usableAfter: false,
+      health: { answered: false },
+      maxPollGapMs: 17982,
+    };
+    const mem = checkFromReport(report("memory-pressure", [{ provider: "modal", status: "completed", reason: null, machine, result: hog }]));
+    assert.deepEqual((mem.data.entries as { result: unknown }[])[0]!.result, {
+      advertisedMiB: 8192,
+      targetMiB: 12288,
+      reached: { evidence: "last-poll", mib: 640, fraction: 0.078 },
+      outcome: { kind: "sandbox-lost" },
+      scope: "sandbox",
+      usableAfter: false,
+      swapTotalGiB: 4,
+    });
+    assert.throws(() => checkFromReport({ ...report("memory-pressure", []), track: "default" }), /same-machine/);
+  });
+
+  test("the section draws a pause table, a restart chart lowest first and a memory table", () => {
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    const t = text(html);
+    for (const s of ["Survives a pause", "Restart speed", "Memory runs out", "Survives a pause with memory intact", "How fast a killed process restarts", "What happens when memory runs out"]) assert.ok(t.includes(s), s);
+    assert.ok(t.includes("No verdict: no heartbeat count across the hold"));
+    assert.ok(t.includes("at least 640 MiB (7% of 8 GiB)"));
+    assert.ok(t.includes("16.3 GiB (102% of 16 GiB), with 1 GiB swap"));
+    assert.ok(t.includes("No result for Beam"));
+    assert.match(t, /Luxor\s*: the boot id changed, but the original server kept its memory and the same worker came back\./);
+    assert.doesNotMatch(t, /original processes kept their memory/);
+    assert.doesNotMatch(t, /New boot ID, yet/);
+    assert.doesNotMatch(t, /Freestyle: failed|Styne: failed|\b(cheat|gaming|fake|lying)\b/i);
+    const restart = html.slice(html.indexOf("How fast a killed process restarts"));
+    const order = ["Styne", "Upstash Box", "Luxor", "Daytona", "E2B", "Freestyle"].map((n) => restart.indexOf(`>${n}<`));
+    assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > (order[i - 1] ?? 0))), `restart columns lowest first: ${order.join(",")}`);
+  });
+
+  test("the C-build ARM note shows only on the charts that ran the C build", () => {
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    const at = html.indexOf("Survives a pause with memory intact");
+    assert.ok(at > 0);
+    assert.match(html.slice(0, at), /runs on ARM \(aarch64\)/);
+    assert.doesNotMatch(html.slice(at), /runs on ARM \(aarch64\)|ARM build of the same C source/);
+  });
+
+  test("the restart chart counts timed restarts out of attempts, and the pause note splits server and worker", () => {
+    const f = fixture();
+    stateAt(f, 0).restart = { samplesMs: [130, 160, 117], medianMs: 130, failures: 2, startsOnly: 0 };
+    const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
+    assert.match(t, /5 attempts · Median milliseconds of the timed restarts/);
+    assert.match(t, /3 of 5 timed/);
+    assert.doesNotMatch(t, /5 of 5 timed/, "only a bar with fewer timed restarts is tagged");
+    assert.match(t, /the server's process ID, start time, token and memory digest are checked; and, separately, the worker's process ID, start time and heartbeat/);
+    assert.doesNotMatch(t, /each process's ID, start time, token and memory digest/);
+  });
+
+  test("not-run providers are added per check, and only beside a machine another check names", () => {
+    const checks = { "security-probe": { run, entries: [{ provider: "boat", machine, status: "completed", reason: null, result: {} }] }, "state-survival": { run, entries: [] } };
+    addNotRun(checks, { check: "state-survival", provider: "boat", why: "our Boat account was busy with another benchmark run" });
+    assert.deepEqual(checks["state-survival"].entries, [{ provider: "boat", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null }]);
+    assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "boat", why: "x" }), /already in state-survival/);
+    assert.throws(() => addNotRun(checks, { check: "memory-pressure", provider: "boat", why: "x" }), /no --report for memory-pressure/);
+    assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "acme", why: "x" }), /no other check names its machine/);
+    const scrubbed = { "security-probe": checks["security-probe"], "memory-pressure": { run, entries: [] as object[] } };
+    addNotRun(scrubbed, { check: "memory-pressure", provider: "boat", why: "key at /home/leo/.config/boat/key.json   was\n rejected" });
+    assert.equal((scrubbed["memory-pressure"].entries[0] as { reason: string }).reason, "key at <path> was rejected", "the reason is scrubbed like every other");
+    const f = fixture();
+    f.checks["memory-pressure"].entries.push({ provider: "styne", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null } as never);
+    const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
+    assert.match(t, /Styne\s*: not run \(our Boat account was busy with another benchmark run\)/);
+    assert.doesNotMatch(t, /Styne\s*: no result/);
+  });
+
+  test("results.json, results.md and llms.txt carry both checks", () => {
+    const json = fairnessData(d);
+    assert.equal(json.stateSurvival?.results.find((r) => r.provider === "freestyle")?.summary, "No verdict: no heartbeat count across the hold");
+    assert.equal(json.memoryPressure?.results.find((r) => r.provider === "modal")?.held, "at least 640 MiB (7% of 8 GiB)");
+    assert.deepEqual(json.stateSurvival?.noResult.map((m) => m.provider), ["beam"]);
+    const md = fairnessMarkdown(d).join("\n");
+    assert.match(md, /## Survives a pause with memory intact/);
+    assert.match(md, /\| Upstash Box \| Files kept, running processes gone \| about 220 ms, started again \| 88 ms \|/);
+    assert.match(md, /## What happens when memory runs out/);
+    const llms = fairnessLlms(d);
+    assert.match(llms, /Restart after a kill \(median, lowest first\):\n1\. Styne: 59 ms/);
+    assert.match(llms, /Survives a pause, Beam: no result/);
+    for (const out of [md, llms, JSON.stringify(json)]) {
+      assert.match(out, /the pause ran on 5 providers \(our SDK adapter has no pause for 1 more\), restart speed on 6 and memory pressure on 4/);
+      assert.match(out, /A provider listed for a check without a result is in that check's `noResult`, with why; providers not listed for a check weren't run in it/);
+      assert.doesNotMatch(out, /every provider's same-machine sandbox|each provider's same-machine sandbox|the rest are listed/);
+    }
+    assert.match(md + llms + JSON.stringify(json), /both processes confirmed gone with the file intact, where a changed boot ID alone is not enough/);
+    assert.doesNotMatch(md + llms + JSON.stringify(json), /processes gone or a new boot ID/);
   });
 });

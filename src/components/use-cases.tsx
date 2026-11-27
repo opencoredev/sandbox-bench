@@ -8,7 +8,7 @@ import { trackInfo } from "@/lib/data";
 import { providerColor } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 import { chartHref, leadText, useCasesFor, weakestText } from "@/lib/use-cases";
-import type { UseCaseResult } from "@/lib/use-cases";
+import type { SecondResult, UseCaseResult } from "@/lib/use-cases";
 
 /** The section id, for the page and links. */
 export const useCasesSection = "best-for";
@@ -44,6 +44,51 @@ function ChartTitle({ r, track }: { r: UseCaseResult; track: TrackId }) {
     <a href={chartHref(r)} className={titleLink}>
       {text}
     </a>
+  );
+}
+
+/** A card's second measure under its pick: its own leader and the next, which never move the pick. */
+function SecondReading({ s, track }: { s: SecondResult; track: TrackId }) {
+  const { measure, pick, tiedWith, next } = s;
+  if (!pick) return null;
+  const lead = next ? leadText(pick, next, measure.unit) : null;
+  return (
+    <div className="mt-s border-t border-neutral-3 pt-s">
+      <p className="text-xs text-neutral-7">
+        {measure.label}
+        {s.from === track ? "" : ` · ${trackInfo[s.from].label}`}
+      </p>
+      <p className="mt-xxs flex min-w-0 items-center gap-xs text-s font-medium" style={{ color: providerColor(pick.provider) }}>
+        <span className="min-w-0 truncate">
+          <ProviderName id={pick.provider} />
+        </span>
+        <span className="ml-auto shrink-0 font-mono text-s text-neutral-10 tabular-nums">{pick.display}</span>
+      </p>
+      {tiedWith.length > 0 ? (
+        <p className="mt-xxs text-xs text-pretty text-neutral-8">
+          Tied with{" "}
+          {tiedWith.map((e, i) => (
+            <span key={e.provider}>
+              {i === 0 ? "" : i === tiedWith.length - 1 ? " and " : ", "}
+              <Name id={e.provider} /> ({e.display})
+            </span>
+          ))}
+        </p>
+      ) : null}
+      <p className="mt-xxs text-xs text-pretty text-neutral-8">
+        {measure.measure}
+        {pick.note ? `; ${pick.note}` : ""}.
+      </p>
+      {next ? (
+        <dl className="mt-xs grid grid-cols-[auto_minmax(0,1fr)] gap-x-s gap-y-xxs text-xs text-neutral-7">
+          <dt>Next</dt>
+          <dd className="min-w-0 text-pretty">
+            <Name id={next.provider} /> {next.display}
+            {lead ? ` · ${lead}` : ""}
+          </dd>
+        </dl>
+      ) : null}
+    </div>
   );
 }
 
@@ -147,6 +192,7 @@ function UseCaseCard({ r, track }: { r: UseCaseResult; track: TrackId }) {
           )}
         </p>
       )}
+      {r.second ? <SecondReading s={r.second} track={track} /> : null}
       {useCase.onlyOn && useCase.onlyOn !== track ? <p className="mt-auto pt-s text-xxs text-pretty text-neutral-7">From {trackInfo[useCase.onlyOn].label}, the only track it ran on.</p> : null}
       {useCase.gap ? <p className="mt-auto pt-s text-xxs text-pretty text-neutral-7">{useCase.gap}</p> : null}
     </li>
