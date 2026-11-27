@@ -407,7 +407,7 @@ export function addNotRun(checks: Json, at: { check: CheckId; provider: string; 
     .flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => obj(e, "entry")))
     .find((e) => e.provider === at.provider)?.machine;
   if (machine === undefined) throw new Error(`--not-run-in ${at.check}:${at.provider}: no other check names its machine`);
-  into.entries = [...entries, { provider: at.provider, machine, status: "not-run", reason: at.why, result: null }];
+  into.entries = [...entries, { provider: at.provider, machine, status: "not-run", reason: plainReason(at.why), result: null }];
 }
 
 /** Appends a later run's providers to a check already built, each carrying that run. */

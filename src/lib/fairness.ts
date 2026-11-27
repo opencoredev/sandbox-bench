@@ -524,9 +524,13 @@ function parseSecurity(o: Json, path: string): SecurityResult {
   };
 }
 
-/** A harness reason in reader's words: "no answer for 242146 ms" reads "the sandbox didn't answer for about 4 min" (seconds under 90 s). */
+/**
+ * A harness reason in reader's words: "no answer for 242146 ms" reads "the sandbox didn't answer for
+ * about 4 min" (seconds under 90 s), and "the original processes kept their memory" names what was
+ * checked: the server's memory digest and the worker's identity and heartbeat.
+ */
 export const readableReason = (reason: string) =>
-  reason.replace(/\bno answer for (\d+) ms\b/g, (_, ms: string) => {
+  reason.replace(/\bthe original processes kept their memory\b/g, "the original server kept its memory and the same worker came back").replace(/\bno answer for (\d+) ms\b/g, (_, ms: string) => {
     const s = Number(ms) / 1000;
     return `the sandbox didn't answer for about ${s < 90 ? `${Math.round(s)} s` : `${Math.round(s / 60)} min`}`;
   });
@@ -735,8 +739,19 @@ export const notCompleted = <R>(check: CheckData<R> | null) =>
 export const hasFairness = (d: FairnessData) =>
   [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe, d.stateSurvival, d.memoryPressure].some((c) => c !== null && c.entries.length > 0);
 
-/** How many providers have a result in either new check (pause survival, memory pressure). */
-export const newScenarioProviders = (d: FairnessData) => new Set([...completed(d.stateSurvival), ...completed(d.memoryPressure)].map((e) => e.provider)).size;
+/** How many providers each newer scenario covers: a pause tried, a pause our SDK adapter lacks, restart speed, memory pressure. */
+export function newScenarioCoverage(d: FairnessData) {
+  const state = completed(d.stateSurvival);
+  const noPause = state.filter((e) => e.result.suspend.kind === "unsupported").length;
+  return { pause: state.length - noPause, noPause, restart: state.length, memory: completed(d.memoryPressure).length };
+}
+
+/** The newer scenarios' coverage in words, from the data. */
+export function newScenarioCoverageText(d: FairnessData) {
+  const c = newScenarioCoverage(d);
+  const noPause = c.noPause > 0 ? ` (our SDK adapter has no pause for ${c.noPause} more)` : "";
+  return `the pause ran on ${c.pause} providers${noPause}, restart speed on ${c.restart} and memory pressure on ${c.memory}`;
+}
 
 /** Highest first by `value`, ties by provider id. */
 export const rankBy = <R>(entries: readonly Completed<R>[], value: (r: R) => number) =>
@@ -937,11 +952,11 @@ export function pressureOutcomeText(r: PressureResult): string {
   }
 }
 
-/** What else the hog took down, as far as the canary process shows; a lost sandbox claims no cause. */
+/** What else the hog took down, as far as the canary process shows; how the hog stopped is the outcome's, and a lost sandbox claims no cause. */
 export function scopeText(r: PressureResult): string {
   switch (r.scope) {
     case "process":
-      return "The hog was killed; the canary process stayed alive";
+      return "The canary process stayed alive";
     case "collateral":
       return "The canary process was gone too";
     case "sandbox":

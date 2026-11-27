@@ -469,7 +469,7 @@ describe("state survival and memory pressure", () => {
     assert.equal(suspendText(by("e2b")), "Memory and processes intact, frozen during the pause");
     assert.equal(suspendText(by("upstash")), "Files kept, running processes gone");
     assert.equal(suspendText(by("tenki")), "Memory and processes intact, frozen during the pause");
-    assert.equal(verdictNote(by("tenki")), "the boot id changed, but the original processes kept their memory");
+    assert.equal(verdictNote(by("tenki")), "the boot id changed, but the original server kept its memory and the same worker came back", "the harness's words name what was checked");
     assert.equal(verdictNote(by("freestyle")), null, "an inconclusive reason is no verdict, not a note");
     assert.match(suspendText(by("daytona")), /^Not tested: our SDK adapter has no pause/);
     assert.equal(suspendText(by("freestyle")), "No verdict: no heartbeat count across the hold");
@@ -496,11 +496,22 @@ describe("state survival and memory pressure", () => {
 
   test("what the hog took down is judged from one canary, and a lost sandbox names no cause", () => {
     const by = (id: string) => completed(d.memoryPressure).find((e) => e.provider === id)!.result;
-    assert.equal(scopeText(by("e2b")), "The hog was killed; the canary process stayed alive");
+    assert.equal(scopeText(by("e2b")), "The canary process stayed alive");
     assert.equal(scopeText(by("modal")), "The provider reported the sandbox gone; the cause isn't known");
     const t = text(renderToStaticMarkup(<FairnessSection data={d} />));
     assert.doesNotMatch(t, /the rest kept running/);
     assert.match(t, /Judged from one canary process, not every process in the sandbox/);
+  });
+
+  test("a refused allocation with the canary alive never reads as a kill", () => {
+    const f = fixture();
+    pressureAt(f, 0).outcome = { kind: "refused", reason: "malloc failed" };
+    const refused = completed(parseFairness(f).memoryPressure).find((e) => e.provider === "e2b")!.result;
+    assert.equal(refused.scope, "process");
+    assert.equal(pressureOutcomeText(refused), "The allocation was refused (malloc failed)");
+    assert.equal(scopeText(refused), "The canary process stayed alive");
+    const all = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />)) + fairnessMarkdown(parseFairness(f)).join("\n") + fairnessLlms(parseFairness(f));
+    assert.doesNotMatch(all, /hog was killed/i, "a refusal never reads as a kill");
   });
 
   test("a harness \"no answer for N ms\" reads in minutes, or seconds under 90 s", () => {
@@ -565,7 +576,8 @@ describe("state survival and memory pressure", () => {
     assert.ok(t.includes("at least 640 MiB (7% of 8 GiB)"));
     assert.ok(t.includes("16.3 GiB (102% of 16 GiB), with 1 GiB swap"));
     assert.ok(t.includes("No result for Beam"));
-    assert.match(t, /Luxor\s*: the boot id changed, but the original processes kept their memory\./);
+    assert.match(t, /Luxor\s*: the boot id changed, but the original server kept its memory and the same worker came back\./);
+    assert.doesNotMatch(t, /original processes kept their memory/);
     assert.doesNotMatch(t, /New boot ID, yet/);
     assert.doesNotMatch(t, /Freestyle: failed|Styne: failed|\b(cheat|gaming|fake|lying)\b/i);
     const restart = html.slice(html.indexOf("How fast a killed process restarts"));
@@ -599,6 +611,9 @@ describe("state survival and memory pressure", () => {
     assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "boat", why: "x" }), /already in state-survival/);
     assert.throws(() => addNotRun(checks, { check: "memory-pressure", provider: "boat", why: "x" }), /no --report for memory-pressure/);
     assert.throws(() => addNotRun(checks, { check: "state-survival", provider: "acme", why: "x" }), /no other check names its machine/);
+    const scrubbed = { "security-probe": checks["security-probe"], "memory-pressure": { run, entries: [] as object[] } };
+    addNotRun(scrubbed, { check: "memory-pressure", provider: "boat", why: "key at /home/leo/.config/boat/key.json   was\n rejected" });
+    assert.equal((scrubbed["memory-pressure"].entries[0] as { reason: string }).reason, "key at <path> was rejected", "the reason is scrubbed like every other");
     const f = fixture();
     f.checks["memory-pressure"].entries.push({ provider: "styne", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null } as never);
     const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
@@ -619,8 +634,9 @@ describe("state survival and memory pressure", () => {
     assert.match(llms, /Restart after a kill \(median, lowest first\):\n1\. Styne: 59 ms/);
     assert.match(llms, /Survives a pause, Beam: no result/);
     for (const out of [md, llms, JSON.stringify(json)]) {
-      assert.match(out, /The pause and memory checks cover 8 providers so far/);
-      assert.doesNotMatch(out, /every provider's same-machine sandbox/);
+      assert.match(out, /the pause ran on 5 providers \(our SDK adapter has no pause for 1 more\), restart speed on 6 and memory pressure on 4/);
+      assert.match(out, /A provider listed for a check without a result is in that check's `noResult`, with why; providers not listed for a check weren't run in it/);
+      assert.doesNotMatch(out, /every provider's same-machine sandbox|each provider's same-machine sandbox|the rest are listed/);
     }
     assert.match(md + llms + JSON.stringify(json), /both processes confirmed gone with the file intact, where a changed boot ID alone is not enough/);
     assert.doesNotMatch(md + llms + JSON.stringify(json), /processes gone or a new boot ID/);
