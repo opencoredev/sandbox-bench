@@ -745,6 +745,9 @@ describe("Docker and services", () => {
     assert.match(t, /Beam\s*: with Docker, failed at the image pull in 3 of 3: “failed to register layer: unshare: operation not permitted”/);
     assert.match(t, /Daytona\s*: Docker needed vfs storage, the fallback our harness uses when a daemon can't use overlay storage; vfs copies every image layer in full, so of its 45\.8 s with Docker, getting a daemon took 17\.1 s and the image pull 24\.0 s \(medians\)\./);
     assert.match(t, /Modal\s*: ran on Modal's VM runtime \(runtime=vm\), the only Modal runtime that runs Docker/);
+    assert.match(t, /downloads Docker itself only when no daemon was already running there/);
+    assert.match(t, /the flags used by the daemon that answered/);
+    assert.doesNotMatch(t, /downloads Docker and its images|flags the daemon needed/);
     assert.match(t, /boxd\s*: asked for 4 vCPU, 16 GiB/);
     assert.doesNotMatch(t, /runs on ARM/);
   });
@@ -807,6 +810,14 @@ describe("Docker and services", () => {
       const parsedServices = parseFairness(f).services;
       assert.equal(completed(parsedServices).length, 2);
       assert.equal(completed(parsedServices).find((e) => e.provider === "beam")?.result.docker?.config, "no-bridge-vfs");
+    });
+
+    test("a failure line keeps no Compose project name or harness path", () => {
+      const leaky = attempts.map((a) => ({ ...a, outcome: { ...a.outcome, detail: "Pulling\nfailed to mount /var/lib/sbx-docker/tools-c5 for project sbx-beam-compose-1-8e6aa2 (sbx-sa5zhe4m3by3bcsa)\n" } }));
+      const data = servicesCheck(summary(), leaky, machines);
+      const beam = (data.entries as { provider: string; result: { compose: { failures: { detail: string }[] } } | null }[]).find((e) => e.provider === "beam");
+      assert.equal(beam?.result?.compose.failures[0]?.detail, "failed to mount <path> for project <name> (<name>)");
+      assert.doesNotMatch(JSON.stringify(data), /sbx-|\/var\/lib|8e6aa2|sa5zhe4m/);
     });
 
     test("refuses what the page has no words for, and a failure it can't quote", () => {

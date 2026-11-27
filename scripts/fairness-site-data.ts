@@ -134,13 +134,17 @@ function args() {
 }
 
 /**
- * Report text bound for the site, with anything private taken out: paths under a home directory or
- * /tmp, UUIDs, long hex or base64 IDs (sandbox, attempt and boot IDs), sandbox-style names, and
- * long numbers such as seeds. Then one line, at most 240 characters.
+ * Report text bound for the site, with anything private taken out: paths under a home directory,
+ * /root or /tmp, the services harness's own /var/lib/sbx-docker/... directories, UUIDs, long hex or
+ * base64 IDs (sandbox, attempt and boot IDs), sandbox-style names, the services harness's
+ * sbx-<attempt>-<random> Compose project names, and long numbers such as seeds. Then one line, at
+ * most 240 characters.
  */
 export function scrub(text: string): string {
   return text
     .replace(/\/(?:home|Users|root|tmp)\/[^\s'",;)]*/g, "<path>")
+    .replace(/\/var\/lib\/sbx-[^\s'",;)]*/g, "<path>")
+    .replace(/\bsbx-[A-Za-z0-9_.-]+/g, "<name>")
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>")
     .replace(/\b(?:sb|vm|bx|m|sdk|sandbox)[-_][A-Za-z0-9_-]{6,}\b/g, "<id>")
     .replace(/\b[0-9a-f]{12,}\b/gi, "<id>")
