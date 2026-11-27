@@ -9,7 +9,9 @@ import { formatShort, formatValue } from "@/lib/format";
 import {
   completed,
   cpuLine,
+  dockerStartText,
   gibText,
+  greenText,
   hasVerdict,
   iopsText,
   isolationText,
@@ -26,6 +28,10 @@ import {
   reachedText,
   runsAsText,
   scopeText,
+  secondsText,
+  serviceIsolationText,
+  servicesNotes,
+  servicesRanked,
   servingText,
   stateVerdicts,
   suspendText,
@@ -34,7 +40,7 @@ import {
   usableAfterText,
   vulnerableText,
 } from "@/lib/fairness";
-import type { BurstResult, CheckData, Completed, CpuNativeResult, DiskResult, FairnessData, MemoryResult, PressureResult, SecurityResult, StateResult } from "@/lib/fairness";
+import type { BurstResult, CheckData, Completed, CpuNativeResult, DiskResult, FairnessData, MemoryResult, PressureResult, SecurityResult, ServicePathResult, ServicesResult, StateResult } from "@/lib/fairness";
 import { providerColor, providerName } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
@@ -608,6 +614,118 @@ function MemoryPressure({ data, check }: { data: FairnessData; check: CheckData<
   );
 }
 
+// ---------------------------------------------------------------------------
+// Docker and services (services)
+
+const sText = secondsText;
+
+const servicesMark = (e: Completed<ServicesResult>) => {
+  const notes = servicesNotes(e.result);
+  return notes.length > 0 ? notes.map(sentence).join(" ") : undefined;
+};
+
+function servicesColumns(rows: ReturnType<typeof servicesRanked>, path: "compose" | "native", marks: ReturnType<typeof marksFor>): Column[] {
+  return rows.map((e) => {
+    const p: ServicePathResult = e.result[path];
+    return {
+      provider: e.provider,
+      label: sText(e.medianUpS),
+      mark: marks.get(e.provider)?.mark,
+      ...(p.green < p.attempts ? { tag: `${greenText(p)} green` } : {}),
+      segments: solid(e.provider, e.medianUpS),
+      detail: [
+        ["Median", `${sText(e.medianUpS)} of ${p.green} green attempts`],
+        ["Each green attempt", p.upS.map(sText).join(", ")],
+        ["Green", greenText(p)],
+        ...(p.medianDaemonS !== null ? [["Docker daemon ready (median)", sText(p.medianDaemonS)] as const] : []),
+        ...(p.medianPullS !== null ? [["Image pull (median)", sText(p.medianPullS)] as const] : []),
+        ...(p.medianToGreenS !== null ? [["Upload to all tests passing (median)", sText(p.medianToGreenS)] as const] : []),
+        ...(path === "compose" ? [["Docker", dockerStartText(e.result)] as const] : []),
+      ],
+    };
+  });
+}
+
+function Services({ data, check }: { data: FairnessData; check: CheckData<ServicesResult> }) {
+  const rows = [...completed(check)].sort((a, b) => a.provider.localeCompare(b.provider));
+  const marks = marksFor(data, rows, servicesMark, { cBuild: false });
+  const compose = servicesRanked(check, "compose");
+  const native = servicesRanked(check, "native");
+  const noGreen = (path: "compose" | "native") => rows.filter((e) => e.result[path].medianUpS === null).map((e) => e.provider);
+  const cell = "px-m py-1.5 align-top";
+  const sup = (id: ProviderId) => (marks.get(id) ? <sup className="ml-0.5 text-neutral-7">{marks.get(id)?.mark}</sup> : null);
+  const quiet = (p: ServicePathResult) => (p.green === 0 ? "text-neutral-7" : "");
+  return (
+    <>
+      <ChartHead title="Docker Compose: Postgres and Redis up" sub="A small API's 9 integration tests need Postgres 16 and Redis 7 · Docker started in the sandbox, both images pulled and started · Median seconds until both answer, over green attempts of 3 · Tag: green attempts, when not all · Lower is better" />
+      <Columns columns={servicesColumns(compose, "compose", marks)} label="Docker Compose: median seconds until Postgres and Redis answer, by provider" />
+      <NotOnChart ids={noGreen("compose")} lead="No green attempt with Docker:" />
+      <div className="mt-l">
+        <ChartHead title="Without Docker: Postgres and Redis up" sub="The same servers' own binaries uploaded and started directly, no Docker · Median seconds until both answer, over green attempts of 3 · A separate ranking: this path uploads from our runner, the Docker one downloads from the internet · Lower is better" />
+      </div>
+      <Columns columns={servicesColumns(native, "native", marks)} label="Without Docker: median seconds until Postgres and Redis answer, by provider" />
+      <NotOnChart ids={noGreen("native")} lead="No green attempt without Docker:" />
+      <div className="mt-l">
+        <ChartHead title="How Docker ran" sub="The daemon each provider's compose attempts used · Green: attempts where all 9 tests passed" />
+      </div>
+      <ul className="flex flex-col gap-s sm:hidden">
+        {rows.map((e) => (
+          <li key={e.provider} className="text-s">
+            <p className="font-medium" style={{ color: providerColor(e.provider) }}>
+              <ProviderName id={e.provider} />
+              {sup(e.provider)}
+            </p>
+            <p>{dockerStartText(e.result)}</p>
+            <p className="text-xs text-neutral-7">
+              {serviceIsolationText[e.result.isolation]} · With Docker: {greenText(e.result.compose)} green · Without Docker: {greenText(e.result.native)} green
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="relative hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[720px] border-collapse text-left text-xs">
+          <thead>
+            <tr className="text-xs text-neutral-7">
+              {["Provider", "Isolation", "Docker", "Green with Docker", "Green without Docker"].map((h) => (
+                <th key={h} scope="col" className="px-m py-xs font-normal">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((e) => (
+              <tr key={e.provider}>
+                <th scope="row" className={`${cell} font-medium whitespace-nowrap`} style={{ color: providerColor(e.provider) }}>
+                  <ProviderName id={e.provider} />
+                  {sup(e.provider)}
+                </th>
+                <td className={cell}>{serviceIsolationText[e.result.isolation]}</td>
+                <td className={cell}>{dockerStartText(e.result)}</td>
+                <td className={`${cell} tabular-nums ${quiet(e.result.compose)}`}>{greenText(e.result.compose)}</td>
+                <td className={`${cell} tabular-nums ${quiet(e.result.native)}`}>{greenText(e.result.native)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Missing check={check} />
+      <Footnotes
+        items={[
+          ...markNotes(marks),
+          ...missingNotes(check),
+          { lead: "Why", text: "A coding agent working on a real project has to run its integration tests, and those usually need a database and a cache. This shows whether they go green inside each provider's sandbox, with Docker or without it, and how long the services take to come up." },
+          { lead: "Work", text: "Every attempt is a fresh sandbox, deleted afterwards. Both ways upload the same pinned Node and the same small notes API, wait until Postgres answers SELECT 1 and Redis answers PING, then run its 9 tests, which must all pass. With Docker: get a Docker daemon (one already running in the sandbox, used only when it runs inside the sandbox itself; else our own static Docker, fetched by hash and started as root, trying its flags in turn), then docker compose pulls postgres:16 and redis:7, pinned by digest, and starts them. Without Docker: upload relocatable Postgres 16 and a static Redis 7, check their hashes, and start them directly." },
+          { lead: "Services up", text: "With Docker, from the first step toward a daemon (fetching Docker included when the image has none) until both services answer; without Docker, from the upload until they answer. Creating the sandbox isn't in it. The Docker path downloads Docker and its images from the internet inside the sandbox, while the no-Docker path uploads from our runner, so the two are ranked apart and never compared." },
+          { lead: "Docker", text: "The provider's Docker, already running: the image came with a daemon serving the socket from inside the sandbox. Our static Docker: the image had none, so we fetched Docker's static binaries and started the daemon as root. Iptables off, vfs storage and no bridge network are flags the daemon needed when its defaults failed in that sandbox." },
+          { lead: "Green", text: "All 9 tests passed. A median counts green attempts only; an attempt that didn't go green is listed with the stage it stopped at and the last line of its output." },
+          runNote(check),
+        ]}
+      />
+    </>
+  );
+}
+
 /** The like-for-like checks, Same machine only. Nothing until one has a result. */
 export function FairnessSection({ data }: { data: FairnessData }) {
   const tabs = [
@@ -632,6 +750,7 @@ export function FairnessSection({ data }: { data: FairnessData }) {
         ]
       : []),
     ...(data.memoryPressure && completed(data.memoryPressure).length > 0 ? [{ id: "memory-out", label: "Memory runs out", content: <MemoryPressure data={data} check={data.memoryPressure} /> }] : []),
+    ...(data.services && completed(data.services).length > 0 ? [{ id: "services", label: "Docker and services", content: <Services data={data} check={data.services} /> }] : []),
   ];
   if (tabs.length === 0) return null;
   return <TabCard label="Like-for-like checks" section={fairnessSection} tabs={tabs} />;

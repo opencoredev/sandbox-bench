@@ -23,9 +23,15 @@
  * (33b875f) from ~/agents/new-scenarios/full/mem/memory-pressure.json, then
  * --add Archil's own run of both (Nov 26, 2b2acec) from
  * ~/agents/new-scenarios/full/state-archil/state-survival.json and
- * ~/agents/new-scenarios/full/mem-archil/memory-pressure.json, with
- * Baseten and Superserve not run, and Baseten, Superserve and Boat listed as
- * not run in the two new checks, whose reports don't include them:
+ * ~/agents/new-scenarios/full/mem-archil/memory-pressure.json, then --add
+ * Boat's own run of both (Nov 27, ee24ded) from
+ * ~/agents/new-scenarios/full/state-boat/state-survival.json and
+ * ~/agents/new-scenarios/full/mem-boat/memory-pressure.json, then --report
+ * the Docker and services summary of run svc-full1 (Nov 27, ee24ded) from
+ * ~/agents/new-scenarios/full/services/svc-full1/services.json with
+ * --services-attempts ~/agents/new-scenarios/full/services/svc-full1/services-attempts.jsonl,
+ * with Baseten and Superserve not run, and listed as not run in the pause,
+ * memory and services checks, whose reports don't include them:
  *
  *     --not-run baseten="our API key was rejected" \
  *     --not-run superserve="our account wasn't eligible for billing (HTTP 402)" \
@@ -33,8 +39,8 @@
  *     --not-run-in memory-pressure:baseten="our API key was rejected" \
  *     --not-run-in state-survival:superserve="our account wasn't eligible for billing (HTTP 402)" \
  *     --not-run-in memory-pressure:superserve="our account wasn't eligible for billing (HTTP 402)" \
- *     --not-run-in state-survival:boat="our Boat account was busy with another benchmark run" \
- *     --not-run-in memory-pressure:boat="our Boat account was busy with another benchmark run"
+ *     --not-run-in services:baseten="our API key was rejected" \
+ *     --not-run-in services:superserve="our account wasn't eligible for billing (HTTP 402)"
  *
  * What it changes on the way:
  * - Each provider keeps only the figures the page and the agent files use;
@@ -57,6 +63,18 @@
  *   sandbox (or no sandboxes field), or none that failed, stops it, and so does
  *   a failure that reads as ours (see ourSide) without --not-run. These errors
  *   never echo the raw reason; it stays in the source report.
+ * - A --report that is the services summary (`bun bench services summary`,
+ *   schema 1, fixture services-api) becomes the `services` check, one entry
+ *   per provider with the machine its other checks asked for (the same
+ *   same-machine size table). A provider whose two paths are both unsupported
+ *   because our pinned artifacts don't exist for its CPU architecture is not
+ *   run, which is our limit, not the provider's. Each attempt that didn't go
+ *   green keeps its stage, the harness's reason, and the last line of its
+ *   output from --services-attempts FILE (the run's services-attempts.jsonl),
+ *   scrubbed. Run settings other than Modal's runtime=vm, other unsupported
+ *   rows, more than one run, a partial run, or rankings that differ from the
+ *   medians' order stop it. The runner location, placement, artifact hashes,
+ *   attempt and sandbox IDs never reach the site.
  * - --not-run-in check:provider="why" adds a not-run entry for a provider that
  *   has none in that check, with that why and the machine its other checks
  *   asked for, so a provider we didn't run there is listed, never missing. A
@@ -91,6 +109,7 @@ function args() {
   const notRun = new Map<string, string>();
   const notRunIn: { check: CheckId; provider: string; why: string }[] = [];
   let out: string | undefined;
+  let servicesAttempts: string | undefined;
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 2) {
     const [flag, value] = [argv[i], argv[i + 1]];
@@ -98,6 +117,7 @@ function args() {
     if (flag === "--report") reports.push(value);
     else if (flag === "--add") adds.push(value);
     else if (flag === "--out") out = value;
+    else if (flag === "--services-attempts") servicesAttempts = value;
     else if (flag === "--not-run") {
       const eq = value.indexOf("=");
       if (eq < 1) throw new Error("--not-run takes provider=why");
@@ -109,8 +129,8 @@ function args() {
       notRunIn.push({ check, provider: match[2] ?? "", why: match[3] ?? "" });
     } else throw new Error(`unknown flag ${flag}`);
   }
-  if (reports.length === 0 || !out) throw new Error('usage: --report FILE [--report FILE]... [--add FILE]... [--not-run provider="why"]... [--not-run-in check:provider="why"]... --out FILE');
-  return { reports, adds, notRun, notRunIn, out };
+  if (reports.length === 0 || !out) throw new Error('usage: --report FILE [--report FILE]... [--add FILE]... [--not-run provider="why"]... [--not-run-in check:provider="why"]... [--services-attempts FILE] --out FILE');
+  return { reports, adds, notRun, notRunIn, servicesAttempts, out };
 }
 
 /**
@@ -317,7 +337,9 @@ export function scrubDeep(value: unknown): unknown {
   return value;
 }
 
-const convert: Record<CheckId, (r: Json) => Json> = {
+type HarnessCheck = Exclude<CheckId, "services">;
+
+const convert: Record<HarnessCheck, (r: Json) => Json> = {
   "cpu-native": cpuNative,
   "disk-real": diskReal,
   "cpu-burst-10": cpuBurst,
@@ -331,11 +353,11 @@ const convert: Record<CheckId, (r: Json) => Json> = {
  * One harness report (`fairness.v1`) to the site's check: run plus one entry per provider. A
  * provider in `notRun` that didn't complete is not run, with its why.
  */
-export function checkFromReport(report: unknown, notRun: ReadonlyMap<string, string> = new Map()): { check: CheckId; data: Json } {
+export function checkFromReport(report: unknown, notRun: ReadonlyMap<string, string> = new Map()): { check: HarnessCheck; data: Json } {
   const o = obj(report, "report");
   if (o.schema !== "fairness.v1") throw new Error(`report schema must be fairness.v1, not ${String(o.schema)}`);
   if (o.track !== "same-machine") throw new Error("report track must be same-machine");
-  const check = checkIds.find((id) => id === o.check);
+  const check = (Object.keys(convert) as HarnessCheck[]).find((id) => id === o.check);
   if (!check) throw new Error(`unknown check ${String(o.check)}`);
   const run = obj(o.run, "run");
   const entries = list(o.providers, "providers").map((p) => {
@@ -410,6 +432,111 @@ export function addNotRun(checks: Json, at: { check: CheckId; provider: string; 
   into.entries = [...entries, { provider: at.provider, machine, status: "not-run", reason: plainReason(at.why), result: null }];
 }
 
+/** Whether a --report is the services summary (`bun bench services summary`, services.json) rather than a fairness.v1 report. */
+export const isServicesSummary = (report: unknown) => isJson(report) && report.schema === 1 && isJson(report.fixture) && report.fixture.name === "services-api";
+
+const isolationKind = (value: string) => (value === "gVisor" ? "gvisor" : value.startsWith("VM") ? "vm" : value.startsWith("container") ? "container" : undefined);
+
+/** One tally (`[{ value, count }]`) that must hold one value: every probe or attempt agreed. */
+function only(tally: unknown, what: string): { value: string; count: number } | null {
+  const rows = list(tally, what).map((t) => obj(t, what));
+  if (rows.length > 1) throw new Error(`${what} differs between attempts (${rows.map((r) => String(r.value)).join(", ")}); the site shows one value`);
+  const row = rows[0];
+  return row === undefined ? null : { value: String(row.value), count: num(row.count, `${what} count`) };
+}
+
+/**
+ * The services summary to the site's `services` check, one entry per provider with the machine its
+ * other checks asked for (the same same-machine size table). A provider whose two paths are both
+ * unsupported because our pinned artifacts don't exist for its architecture is not run: that is our
+ * limit, not the provider's. Each failure's last line of output comes from the run's attempt
+ * records (services-attempts.jsonl), scrubbed. Anything the page has no wording for stops it.
+ */
+export function servicesCheck(report: unknown, attempts: readonly unknown[], machines: ReadonlyMap<string, unknown>): Json {
+  const o = obj(report, "services");
+  const fixture = obj(o.fixture, "services fixture");
+  if (!String(fixture.postgres).startsWith("16.") || !String(fixture.redis).startsWith("7.") || fixture.tests !== 9) throw new Error("services fixture: the page says Postgres 16, Redis 7 and 9 tests");
+  if (JSON.stringify(o.tracks) !== JSON.stringify(["same-machine"])) throw new Error("services: tracks must be same-machine only");
+  const runs = list(o.runs, "services runs").map((r) => obj(r, "services run"));
+  const run = runs[0];
+  if (run === undefined || runs.length > 1) throw new Error("services: one run per summary");
+  if (o.partial !== null) throw new Error("services: a partial summary isn't published");
+  if (list(o.notRun, "services notRun").length > 0) throw new Error("services: notRun isn't handled yet; mark those providers with --not-run-in services:...");
+  const records = attempts.map((a) => obj(a, "services attempt"));
+  const detailOf = (f: Json, provider: string) => {
+    const record = records.find((r) => r.runId === f.runId && r.attemptId === f.attemptId);
+    if (!record) throw new Error(`services ${provider}: no attempt record for ${String(f.attemptId)}; pass --services-attempts with the run's services-attempts.jsonl`);
+    const outcome = obj(record.outcome, `services ${provider} outcome`);
+    const last = String(outcome.detail ?? "").split("\n").map((l) => l.trim()).filter(Boolean).at(-1);
+    return last === undefined ? null : plainReason(last);
+  };
+  const path = (v: unknown, provider: string, name: "compose" | "native") => {
+    const p = obj(v, `services ${provider} ${name}`);
+    if (p.status !== "measured" && p.status !== "failed") throw new Error(`services ${provider} ${name}: status ${String(p.status)} has no wording on the page`);
+    if (list(p.unsupported, "unsupported").length > 0) throw new Error(`services ${provider} ${name}: unsupported attempts in a ${String(p.status)} row have no wording on the page`);
+    const medians = obj(p.medians, "medians");
+    return {
+      attempts: p.attempts,
+      green: p.green,
+      upS: list(p.samples, "samples").map((s) => num(obj(s, "sample").servicesUpS, `services ${provider} ${name} servicesUpS`)),
+      medianUpS: medians.servicesUpS,
+      medianToGreenS: medians.readyToGreenS,
+      medianDaemonS: name === "compose" ? medians.daemonReadyS : null,
+      medianPullS: name === "compose" ? medians.imagePullS : null,
+      failures: list(p.failures, "failures").map((f) => {
+        const x = obj(f, "failure");
+        return { attempt: x.attempt, stage: x.stage, reason: plainReason(String(x.reason)), detail: detailOf(x, provider) };
+      }),
+    };
+  };
+  const entries = list(o.providers, "services providers").map((v) => {
+    const p = obj(v, "services provider");
+    const provider = String(p.provider);
+    const machine = machines.get(provider);
+    if (machine === undefined) throw new Error(`services ${provider}: no other check names its machine`);
+    if (p.track !== "same-machine") throw new Error(`services ${provider}: track must be same-machine`);
+    if (p.settings !== "" && !(provider === "modal" && p.settings === "runtime=vm")) throw new Error(`services ${provider}: setting ${String(p.settings)} has no wording on the page`);
+    const capability = obj(p.capability, `services ${provider} capability`);
+    const compose = obj(p.compose, `services ${provider} compose`);
+    const native = obj(p.native, `services ${provider} native`);
+    if (compose.status === "unsupported" || native.status === "unsupported") {
+      const arch = String(capability.arch);
+      const ours = (r: unknown) => typeof r === "string" && r.startsWith(`no pinned artifacts for ${arch}`);
+      if (arch === "x86_64" || !ours(compose.unsupportedReason) || !ours(native.unsupportedReason)) throw new Error(`services ${provider}: an unsupported row other than our missing ${arch} artifacts has no wording on the page`);
+      return { provider, machine, status: "not-run", reason: `our pinned test artifacts are x86_64 only, and its sandbox is ${arch}`, result: null };
+    }
+    const isolationTally = only(capability.isolation, `services ${provider} isolation`);
+    const isolation = isolationTally === null ? undefined : isolationKind(isolationTally.value);
+    if (isolation === undefined) throw new Error(`services ${provider}: isolation ${String(isolationTally?.value)} has no wording on the page`);
+    const started = only(capability.dockerMethods, `services ${provider} dockerMethods`);
+    const [method, config] = started === null ? [] : started.value.split("/");
+    return {
+      provider,
+      machine,
+      status: "completed",
+      reason: null,
+      result: scrubDeep({
+        runtime: p.settings === "runtime=vm" ? "vm" : null,
+        isolation,
+        docker: started === null ? null : { method, config, started: started.count },
+        compose: path(compose, provider, "compose"),
+        native: path(native, provider, "native"),
+      }),
+    };
+  });
+  // The summary's own rankings, so the page's order is the harness's.
+  const rankings = obj(o.rankings, "services rankings");
+  for (const name of ["compose", "native"] as const) {
+    const theirs = list(rankings[name], `rankings.${name}`).flatMap((t) => list(obj(t, "ranking").entries, "ranking entries").map((e) => String(obj(e, "ranking entry").provider)));
+    const ours = entries
+      .flatMap((e) => (isJson(e.result) && isJson(e.result[name]) && typeof e.result[name].medianUpS === "number" ? [{ provider: e.provider, up: e.result[name].medianUpS }] : []))
+      .sort((a, b) => a.up - b.up || a.provider.localeCompare(b.provider))
+      .map((e) => e.provider);
+    if (JSON.stringify(theirs) !== JSON.stringify(ours)) throw new Error(`services rankings.${name} (${theirs.join(", ")}) isn't the medians' order (${ours.join(", ")})`);
+  }
+  return { run: { id: run.id, sdkCommit: run.sdkCommit, startedAt: run.startedAt }, entries };
+}
+
 /** Appends a later run's providers to a check already built, each carrying that run. */
 export function addLaterRun(checks: Json, later: { check: CheckId; data: Json }, path: string) {
   const into = checks[later.check];
@@ -425,10 +552,17 @@ export function addLaterRun(checks: Json, later: { check: CheckId; data: Json },
 }
 
 function main() {
-  const { reports, adds, notRun, notRunIn, out } = args();
+  const { reports, adds, notRun, notRunIn, servicesAttempts, out } = args();
   const checks: Json = {};
+  let services: unknown;
   for (const path of reports) {
-    const { check, data } = checkFromReport(JSON.parse(readFileSync(path, "utf8")), notRun);
+    const report: unknown = JSON.parse(readFileSync(path, "utf8"));
+    if (isServicesSummary(report)) {
+      if (services !== undefined) throw new Error("two reports for services");
+      services = report;
+      continue;
+    }
+    const { check, data } = checkFromReport(report, notRun);
     if (check in checks) throw new Error(`two reports for ${check}`);
     checks[check] = data;
   }
@@ -436,6 +570,11 @@ function main() {
   const marked = new Set(Object.values(checks).flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => obj(e, "entry")).filter((e) => e.status === "not-run").map((e) => String(e.provider))));
   const unused = [...notRun.keys()].filter((id) => !marked.has(id));
   if (unused.length) throw new Error(`--not-run names providers with no entry that failed: ${unused.join(", ")}`);
+  if (services !== undefined) {
+    const machines = new Map(Object.values(checks).flatMap((c) => list(obj(c, "check").entries, "entries").map((e) => [String(obj(e, "entry").provider), obj(e, "entry").machine] as const)));
+    const attempts = servicesAttempts === undefined ? [] : readFileSync(servicesAttempts, "utf8").split("\n").filter((l) => l.trim()).map((l): unknown => JSON.parse(l));
+    checks.services = servicesCheck(services, attempts, machines);
+  } else if (servicesAttempts !== undefined) throw new Error("--services-attempts needs a services.json --report");
   for (const at of notRunIn) addNotRun(checks, at);
   markGvisorDisk(checks);
   const file = { schema: SCHEMA, generatedAt: new Date().toISOString(), track: "same-machine", arch: archFrom(checks), checks };
