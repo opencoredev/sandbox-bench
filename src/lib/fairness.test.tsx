@@ -6,11 +6,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import raw from "@/data/fairness.json";
 import { FairnessSection, IsolationTable } from "@/components/fairness";
 import { agentData, agentMarkdown, llmsTxt } from "@/lib/agent-data";
-import { completed, hasFairness, hasVerdict, readableReason, verdictNote, heldShare, memoryOutcomeText, parseFairness, pressureOutcomeText, reachedText, SCHEMA, scopeText, servingText, suspendText, uptimeText } from "@/lib/fairness";
+import { dockerStartText, servicesRanked, completed, hasFairness, hasVerdict, readableReason, verdictNote, heldShare, memoryOutcomeText, parseFairness, pressureOutcomeText, reachedText, SCHEMA, scopeText, servingText, suspendText, uptimeText } from "@/lib/fairness";
 import type { FairnessData, MemoryResult, SecurityResult } from "@/lib/fairness";
-import { fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
+import { fairnessAbout, fairnessData, fairnessLlms, fairnessMarkdown } from "@/lib/fairness-agent";
 import { fairness } from "@/lib/fairness-data";
-import { addLaterRun, addNotRun, archFrom, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
+import { addLaterRun, addNotRun, archFrom, servicesCheck, checkFromReport, gvisorDiskWhy, markGvisorDisk, plainReason } from "../../scripts/fairness-site-data";
 
 // The like-for-like checks: the file's parser, the site-data script, the section and the exports. Run with `bun test`.
 
@@ -640,5 +640,193 @@ describe("state survival and memory pressure", () => {
     }
     assert.match(md + llms + JSON.stringify(json), /both processes confirmed gone with the file intact, where a changed boot ID alone is not enough/);
     assert.doesNotMatch(md + llms + JSON.stringify(json), /processes gone or a new boot ID/);
+  });
+});
+
+describe("Docker and services", () => {
+  const median = (xs: number[]) => {
+    const s = [...xs].sort((a, b) => a - b);
+    const mid = Math.floor(s.length / 2);
+    return s.length === 0 ? null : s.length % 2 ? (s[mid] ?? 0) : ((s[mid - 1] ?? 0) + (s[mid] ?? 0)) / 2;
+  };
+  const svcPath = (upS: number[], extra: object = {}) => {
+    const m = median(upS);
+    return { attempts: 3, green: upS.length, upS, medianUpS: m, medianToGreenS: m === null ? null : m + 6, medianDaemonS: null, medianPullS: null, failures: [], ...extra };
+  };
+  const composePath = (upS: number[], extra: object = {}) => svcPath(upS, { medianDaemonS: upS.length ? 5 : null, medianPullS: upS.length ? 6 : null, ...extra });
+  const unshare = "failed to register layer: unshare: operation not permitted";
+  const pullFailed = [1, 2, 3].map((attempt) => ({ attempt, stage: "image-pull", reason: "image-pull exited 1", detail: unshare }));
+  const svc = (isolation: string, docker: object | null, compose: object, native: object, runtime: string | null = null) => ({ runtime, isolation, docker, compose, native });
+  const staticDocker = (config: string) => ({ method: "static-rootful", config, started: 3 });
+  const servicesData = () => ({
+    run: { id: "svc", sdkCommit: "ee24ded0000000", startedAt: "2026-11-27T00:25:19.628Z" },
+    entries: [
+      { provider: "e2b", machine, status: "completed", reason: null, result: svc("vm", staticDocker("default"), composePath([14, 17.3, 30.6]), svcPath([3.7, 3.6, 3.7])) },
+      { provider: "boxd", machine: big, status: "completed", reason: null, result: svc("container", { method: "preinstalled-running", config: "as-found", started: 3 }, composePath([8.4, 8.7, 8.4]), svcPath([5.6, 4.8, 4])) },
+      { provider: "daytona", machine, status: "completed", reason: null, result: svc("container", staticDocker("vfs"), composePath([45.8, 37.4, 49.1], { medianDaemonS: 17.1, medianPullS: 24 }), svcPath([4.5, 2.9, 3.5])) },
+      { provider: "beam", machine, status: "completed", reason: null, result: svc("gvisor", staticDocker("no-bridge-vfs"), composePath([], { failures: pullFailed }), svcPath([4.8, 3.8, 3.9])) },
+      { provider: "modal", machine, status: "completed", reason: null, result: svc("vm", staticDocker("no-iptables"), composePath([10.5, 10.7, 10.4]), svcPath([7.3, 3.3, 2.2]), "vm") },
+      { provider: "upstash", machine, status: "not-run", reason: "our pinned test artifacts are x86_64 only, and its sandbox is aarch64", result: null },
+    ],
+  });
+  const withServices = (change: (s: ReturnType<typeof servicesData>) => void = () => {}) => {
+    const f = fixture();
+    const s = servicesData();
+    change(s);
+    (f.checks as Record<string, unknown>).services = s;
+    return f;
+  };
+  const d = parseFairness(withServices());
+  const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, " ");
+  const at = (s: ReturnType<typeof servicesData>, i: number) => s.entries[i]!.result as unknown as Record<string, Record<string, unknown>>;
+
+  test("the committed file's services check parses, with Upstash not run on our side and Beam failed at the image pull", () => {
+    const real = fairness.services;
+    if (!real) throw new Error("the committed file has no services check");
+    assert.equal(completed(real).length, 13);
+    const entryOf = new Map(real.entries.map((x) => [x.provider as string, x]));
+    for (const id of ["upstash", "upstash-ephemeral"]) {
+      const e = entryOf.get(id);
+      assert.equal(e?.status, "not-run", id);
+      assert.match(e?.reason ?? "", /^our pinned test artifacts are x86_64 only/);
+    }
+    const beam = completed(real).find((e) => e.provider === "beam")!.result;
+    assert.equal(beam.isolation, "gvisor");
+    assert.equal(beam.compose.green, 0);
+    assert.deepEqual([...new Set(beam.compose.failures.map((f) => `${f.stage}: ${f.detail}`))], [`image-pull: ${unshare}`]);
+    assert.equal(beam.native.green, 3);
+    assert.equal(servicesRanked(real, "compose")[0]?.provider, "instabox");
+    assert.equal(servicesRanked(real, "native")[0]?.provider, "styne");
+    assert.ok(!servicesRanked(real, "compose").some((e) => e.provider === "beam"));
+    assert.ok(servicesRanked(real, "native").some((e) => e.provider === "beam"));
+    assert.doesNotMatch(JSON.stringify(real), /\/home|\/var\/|attemptId|runId|evo-|bx_|controlPlane|sha256/);
+  });
+
+  test("contradictions stop the build", () => {
+    assert.throws(() => parseFairness(withServices((s) => (at(s, 0).compose!.medianUpS = 9))), /not the median of upS/);
+    assert.throws(() => parseFairness(withServices((s) => (at(s, 0).native!.upS = [3]))), /one time per green attempt/);
+    assert.throws(() => parseFairness(withServices((s) => (at(s, 3).compose!.failures = []))), /every attempt that didn't go green/);
+    assert.throws(() => parseFairness(withServices((s) => ((at(s, 0) as Record<string, unknown>).runtime = "vm"))), /only Modal has a runtime/);
+    assert.throws(() => parseFairness(withServices((s) => ((at(s, 0) as Record<string, unknown>).docker = { method: "static-rootful", config: "default", started: 2 }))), /can't exceed the attempts whose daemon started/);
+    assert.throws(() => parseFairness(withServices((s) => ((at(s, 1) as Record<string, unknown>).docker = { method: "preinstalled-running", config: "default", started: 3 }))), /as-found exactly/);
+    assert.throws(() => parseFairness(withServices((s) => (at(s, 0).native!.medianPullS = 2))), /no daemon or image pull without Docker/);
+  });
+
+  test("the two ways are ranked apart, and a provider with no green attempt sits off that chart only", () => {
+    assert.deepEqual(servicesRanked(d.services, "compose").map((e) => e.provider), ["boxd", "modal", "e2b", "daytona"]);
+    assert.deepEqual(servicesRanked(d.services, "native").map((e) => e.provider), ["modal", "daytona", "e2b", "beam", "boxd"]);
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    const from = html.indexOf("Docker Compose: Postgres and Redis up");
+    const between = html.indexOf("Without Docker: Postgres and Redis up");
+    const table = html.indexOf("How Docker ran");
+    assert.ok(from > 0 && between > from && table > between);
+    const composeChart = html.slice(from, html.indexOf("No green attempt with Docker", from));
+    const order = ["boxd", "Modal", "E2B", "Daytona"].map((n) => composeChart.indexOf(`>${n}<`));
+    assert.ok(order.every((x, i) => x > 0 && (i === 0 || x > (order[i - 1] ?? 0))), `compose lowest first: ${order.join(",")}`);
+    assert.doesNotMatch(composeChart, />Beam</);
+    const nativeChart = html.slice(between, table);
+    const nativeOrder = ["Modal", "Daytona", "E2B", "Beam", "boxd"].map((n) => nativeChart.indexOf(`>${n}<`));
+    assert.ok(nativeOrder.every((x, i) => x > 0 && (i === 0 || x > (nativeOrder[i - 1] ?? 0))), `no-Docker lowest first: ${nativeOrder.join(",")}`);
+    const t = text(html);
+    assert.match(t, /No green attempt with Docker: Beam/);
+    assert.doesNotMatch(t, /No green attempt without Docker/);
+  });
+
+  test("the page says how Docker ran, and words each limit as it was", () => {
+    const html = renderToStaticMarkup(<FairnessSection data={d} />);
+    const t = text(html.slice(html.indexOf("Docker Compose: Postgres and Redis up")));
+    const by = (id: string) => completed(d.services).find((e) => e.provider === id)!.result;
+    assert.equal(dockerStartText(by("boxd")), "The provider's Docker, already running in the sandbox");
+    assert.equal(dockerStartText(by("e2b")), "Our static Docker, started as root");
+    assert.equal(dockerStartText(by("beam")), "Our static Docker, started as root, no bridge network, iptables off, vfs storage");
+    assert.match(t, /Upstash Box\s*: not run \(our pinned test artifacts are x86_64 only, and its sandbox is aarch64\)/);
+    assert.match(t, /Not run: Upstash Box/);
+    assert.doesNotMatch(t, /Upstash Box\s*: (no result|failed)/);
+    assert.match(t, /Beam\s*: with Docker, failed at the image pull in 3 of 3: “failed to register layer: unshare: operation not permitted”/);
+    assert.match(t, /Daytona\s*: Docker needed vfs storage, the fallback our harness uses when a daemon can't use overlay storage; vfs copies every image layer in full, so of its 45\.8 s with Docker, getting a daemon took 17\.1 s and the image pull 24\.0 s \(medians\)\./);
+    assert.match(t, /Modal\s*: ran on Modal's VM runtime \(runtime=vm\), the only Modal runtime that runs Docker/);
+    assert.match(t, /downloads Docker itself only when no daemon was already running there/);
+    assert.match(t, /the flags used by the daemon that answered/);
+    assert.doesNotMatch(t, /downloads Docker and its images|flags the daemon needed/);
+    assert.match(t, /boxd\s*: asked for 4 vCPU, 16 GiB/);
+    assert.doesNotMatch(t, /runs on ARM/);
+  });
+
+  test("results.json, results.md and llms.txt carry the check, rankings apart", () => {
+    const json = fairnessData(d);
+    assert.deepEqual(json.services?.rankings.compose?.map((r) => r.provider), ["boxd", "modal", "e2b", "daytona"]);
+    assert.deepEqual(json.services?.rankings.native?.map((r) => r.provider), ["modal", "daytona", "e2b", "beam", "boxd"]);
+    assert.deepEqual(json.services?.noResult.map((m) => [m.provider, m.status]), [["upstash", "not-run"]]);
+    assert.equal(json.services?.results.find((r) => r.provider === "beam")?.compose.failures[0]?.detail, unshare);
+    const md = fairnessMarkdown(d).join("\n");
+    assert.match(md, /## Docker and services inside the sandbox/);
+    assert.match(md, /\| Beam \| gVisor \| Our static Docker, started as root, no bridge network, iptables off, vfs storage \| 0 of 3 \| – \| 3 of 3 \| 3\.9 s \|/);
+    const llms = fairnessLlms(d);
+    assert.match(llms, /Postgres and Redis up with Docker Compose \(median, lowest first; ranked apart from the no-Docker list\):\n1\. boxd: 8\.4 s\n2\. Modal: 10\.5 s/);
+    assert.match(llms, /Postgres and Redis up without Docker \(median, lowest first\):\n1\. Modal: 3\.3 s/);
+    assert.match(llms, /- Docker and services, Upstash Box: not run \(our pinned test artifacts are x86_64 only, and its sandbox is aarch64\)/);
+    assert.match(fairnessAbout(d), /Eight checks/);
+    assert.match(fairnessAbout(d), /memory pressure on 4 and Docker and services on 5/);
+  });
+
+  describe("site-data script", () => {
+    const sample = (servicesUpS: number, i: number) => ({ runId: "svc", attempt: i + 1, attemptId: `a-${i}`, servicesUpS });
+    const path = (status: string, ups: number[], extra: object = {}) => {
+      const m = median(ups);
+      return { status, unsupportedReason: null, attempts: 3, green: ups.length, failures: [], unsupported: [], cleanupUnconfirmed: [], samples: ups.map(sample), medians: { servicesUpS: m, readyToGreenS: m === null ? null : m + 6, daemonReadyS: m === null ? null : 5, imagePullS: m === null ? null : 6 }, ...extra };
+    };
+    const arm = "no pinned artifacts for aarch64: Node 22.23.5, the no-Docker bundle (Postgres 16, Redis 7) and Docker's static binaries are pinned for x86_64 only, so neither path can run here";
+    const capability = (isolation: string, arch: string, dockerMethods: object[]) => ({ isolation: [{ value: isolation, count: 6 }], arch, dockerMethods });
+    const beamFailures = [1, 2, 3].map((attempt) => ({ runId: "svc", attempt, attemptId: `beam-compose-${attempt}`, stage: "image-pull", reason: "image-pull exited 1" }));
+    const summary = (change: (s: Record<string, unknown> & { providers: Record<string, unknown>[] }) => void = () => {}) => {
+      const s = {
+        schema: 1,
+        runs: [{ id: "svc", sdkCommit: "ee24ded0000000", startedAt: "2026-11-27T00:25:19.628Z", location: "evo-1", settings: { modal: "runtime=vm" }, artifacts: { node: "c54118104acc524633b5abe106bbf44a" } }],
+        tracks: ["same-machine"],
+        fixture: { name: "services-api", postgres: "16.16", redis: "7.4.12", tests: 9 },
+        partial: null,
+        notRun: [],
+        providers: [
+          { provider: "e2b", track: "same-machine", settings: "", capability: capability("VM (kvm)", "x86_64", [{ value: "static-rootful/default", count: 3 }]), compose: path("measured", [14, 17.3, 30.6]), native: path("measured", [3.7, 3.6, 3.7]) },
+          { provider: "beam", track: "same-machine", settings: "", capability: capability("gVisor", "x86_64", [{ value: "static-rootful/no-bridge-vfs", count: 3 }]), compose: path("failed", [], { failures: beamFailures }), native: path("measured", [4.8, 3.8, 3.9]) },
+          { provider: "upstash", track: "same-machine", settings: "", capability: capability("container (dockerenv)", "aarch64", []), compose: path("unsupported", [], { unsupportedReason: arm }), native: path("unsupported", [], { unsupportedReason: arm }) },
+        ],
+        rankings: { compose: [{ track: "same-machine", entries: [{ provider: "e2b" }] }], native: [{ track: "same-machine", entries: [{ provider: "e2b" }, { provider: "beam" }] }] },
+      };
+      change(s);
+      return s;
+    };
+    const attempts = [1, 2, 3].map((n) => ({ runId: "svc", attemptId: `beam-compose-${n}`, sandboxIds: ["bx_t7rs43jb"], outcome: { kind: "failed", stage: "image-pull", detail: ` Image postgres:16@sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f Pulling \nfailed to register layer: unshare: operation not permitted in /home/leo/.cache/x\n` } }));
+    const machines = new Map<string, unknown>([["e2b", machine], ["beam", machine], ["upstash", machine], ["modal", machine]]);
+
+    test("converts the summary: our missing ARM artifacts are not run, a failure quotes its last line scrubbed, and nothing private stays", () => {
+      const data = servicesCheck(summary(), attempts, machines);
+      const entries = data.entries as { provider: string; status: string; reason: string | null; result: { compose: { failures: { detail: string }[] } } | null }[];
+      assert.deepEqual(entries.find((e) => e.provider === "upstash"), { provider: "upstash", machine, status: "not-run", reason: "our pinned test artifacts are x86_64 only, and its sandbox is aarch64", result: null });
+      assert.equal(entries.find((e) => e.provider === "beam")?.result?.compose.failures[0]?.detail, "failed to register layer: unshare: operation not permitted in <path>");
+      assert.doesNotMatch(JSON.stringify(data), /evo-1|bx_|attemptId|runId|location|sha256|\/home/);
+      const f = fixture();
+      (f.checks as Record<string, unknown>).services = data;
+      const parsedServices = parseFairness(f).services;
+      assert.equal(completed(parsedServices).length, 2);
+      assert.equal(completed(parsedServices).find((e) => e.provider === "beam")?.result.docker?.config, "no-bridge-vfs");
+    });
+
+    test("a failure line keeps no Compose project name or harness path", () => {
+      const leaky = attempts.map((a) => ({ ...a, outcome: { ...a.outcome, detail: "Pulling\nfailed to mount /var/lib/sbx-docker/tools-c5 for project sbx-beam-compose-1-8e6aa2 (sbx-sa5zhe4m3by3bcsa)\n" } }));
+      const data = servicesCheck(summary(), leaky, machines);
+      const beam = (data.entries as { provider: string; result: { compose: { failures: { detail: string }[] } } | null }[]).find((e) => e.provider === "beam");
+      assert.equal(beam?.result?.compose.failures[0]?.detail, "failed to mount <path> for project <name> (<name>)");
+      assert.doesNotMatch(JSON.stringify(data), /sbx-|\/var\/lib|8e6aa2|sa5zhe4m/);
+    });
+
+    test("refuses what the page has no words for, and a failure it can't quote", () => {
+      assert.throws(() => servicesCheck(summary(), [], machines), /pass --services-attempts/);
+      assert.throws(() => servicesCheck(summary((s) => (s.providers[0]!.settings = "runtime=gvisor")), attempts, machines), /no wording on the page/);
+      assert.throws(() => servicesCheck(summary((s) => (s.providers[0]!.compose = path("unsupported", [], { unsupportedReason: "no daemon" }))), attempts, machines), /unsupported row other than our missing/);
+      assert.throws(() => servicesCheck(summary((s) => ((s.rankings as { native: { entries: object[] }[] }).native[0]!.entries.reverse())), attempts, machines), /isn't the medians' order/);
+      assert.throws(() => servicesCheck(summary(), attempts, new Map([["e2b", machine]])), /no other check names its machine/);
+      assert.throws(() => servicesCheck(summary((s) => (s.fixture = { name: "services-api", postgres: "17.1", redis: "7.4.12", tests: 9 })), attempts, machines), /Postgres 16/);
+    });
   });
 });

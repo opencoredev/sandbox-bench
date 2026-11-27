@@ -3,7 +3,7 @@ import { isProviderId } from "@/lib/providers";
 import type { ProviderId } from "@/lib/providers";
 
 /**
- * Like-for-like checks: seven tests that run the same code, the same way, on
+ * Like-for-like checks: eight tests that run the same code, the same way, on
  * every provider's 4 vCPU, 8 GB sandbox, so a result reflects the machine and
  * not the image, a cache, burst credit or what the sandbox reports about
  * itself. They are not there to catch anyone out: each removes one difference
@@ -25,6 +25,9 @@ import type { ProviderId } from "@/lib/providers";
  *   and how fast a killed server starts again in the same sandbox.
  * - memory-pressure: one process allocates up to 1.5 times the advertised
  *   memory, and what stopped it, how far it got and what else it took down.
+ * - services: a project's real integration tests against Postgres 16 and
+ *   Redis 7, run inside the sandbox two ways: Docker Compose, and the same
+ *   servers started without Docker. Each way is ranked on its own.
  *
  * This is the site's model of `src/data/fairness.json`, built by
  * scripts/fairness-site-data.ts from the harness's reports (`bun bench
@@ -34,7 +37,7 @@ import type { ProviderId } from "@/lib/providers";
 
 export const SCHEMA = "fairness-site.v2";
 
-export const checkIds = ["cpu-native", "disk-real", "cpu-burst-10", "memory-honesty", "security-probe", "state-survival", "memory-pressure"] as const;
+export const checkIds = ["cpu-native", "disk-real", "cpu-burst-10", "memory-honesty", "security-probe", "state-survival", "memory-pressure", "services"] as const;
 export type CheckId = (typeof checkIds)[number];
 
 export interface FairnessRun {
@@ -241,6 +244,48 @@ export interface PressureResult {
   swapTotalGiB: number | null;
 }
 
+/** Where a services attempt stopped, in the harness's order. */
+export const serviceStages = ["create", "probe", "upload", "toolchain", "daemon", "image-pull", "services-start", "services-ready", "tests", "timeout"] as const;
+export type ServiceStage = (typeof serviceStages)[number];
+
+/** How the Docker daemon a compose attempt used came to run: the provider's own, already running, or our pinned static build started as root. */
+export const dockerMethods = ["preinstalled-running", "static-rootful"] as const;
+export type DockerMethod = (typeof dockerMethods)[number];
+
+/** The daemon's flags: as found, Docker's defaults, iptables off, vfs storage instead of overlay, or no bridge network. */
+export const daemonConfigs = ["as-found", "default", "no-iptables", "vfs", "no-iptables-vfs", "no-bridge-vfs"] as const;
+export type DaemonConfig = (typeof daemonConfigs)[number];
+
+export const serviceIsolations = ["vm", "container", "gvisor"] as const;
+
+/** One way to get the services up (with Docker Compose, or without Docker), over its attempts. */
+export interface ServicePathResult {
+  attempts: number;
+  /** Attempts that passed all the fixture's tests. */
+  green: number;
+  /** Seconds until Postgres and Redis both answered, for each green attempt. */
+  upS: readonly number[];
+  /** Median of `upS`; null with no green attempt. */
+  medianUpS: number | null;
+  /** Median seconds from the first upload to every test passing, over green attempts. */
+  medianToGreenS: number | null;
+  /** With Docker only: median seconds to a daemon answering, and for the image pull. */
+  medianDaemonS: number | null;
+  medianPullS: number | null;
+  /** Attempts that didn't go green: the stage they stopped at, the harness's reason, and the last line of its output. */
+  failures: readonly { attempt: number; stage: ServiceStage; reason: string; detail: string | null }[];
+}
+
+export interface ServicesResult {
+  /** Modal's runtime for this run; null elsewhere. Modal runs Docker only on its VM runtime. */
+  runtime: "vm" | null;
+  isolation: (typeof serviceIsolations)[number];
+  /** The daemon the compose attempts started, and in how many; null when none started. */
+  docker: { method: DockerMethod; config: DaemonConfig; started: number } | null;
+  compose: ServicePathResult;
+  native: ServicePathResult;
+}
+
 export interface CheckData<R> {
   run: FairnessRun;
   entries: readonly Entry<R>[];
@@ -261,6 +306,7 @@ export interface FairnessData {
   securityProbe: CheckData<SecurityResult> | null;
   stateSurvival: CheckData<StateResult> | null;
   memoryPressure: CheckData<PressureResult> | null;
+  services: CheckData<ServicesResult> | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -647,6 +693,46 @@ function parsePressure(o: Json, path: string): PressureResult {
   };
 }
 
+function parseServicePath(v: unknown, path: string, compose: boolean): ServicePathResult {
+  const o = obj(v, path);
+  const attempts = whole(o.attempts, `${path}.attempts`);
+  if (attempts < 1) fail(`${path}.attempts`, "must be at least 1");
+  const green = wholeNonNegative(o.green, `${path}.green`);
+  if (green > attempts) fail(`${path}.green`, `is more than its ${attempts} attempts`);
+  const upS = arr(o.upS, `${path}.upS`).map((s, i) => positive(s, `${path}.upS[${i}]`));
+  if (upS.length !== green) fail(`${path}.upS`, `must hold one time per green attempt (${green})`);
+  const medianUpS = orNull(positive)(o.medianUpS, `${path}.medianUpS`);
+  if ((medianUpS === null) !== (green === 0)) fail(`${path}.medianUpS`, "must be null exactly when no attempt went green");
+  if (medianUpS !== null && Math.abs(medianUpS - medianOf(upS)) > 0.0005) fail(`${path}.medianUpS`, `is ${medianUpS}, not the median of upS`);
+  const medians = (["medianToGreenS", "medianDaemonS", "medianPullS"] as const).map((k) => orNull(positive)(o[k], `${path}.${k}`));
+  const [medianToGreenS = null, medianDaemonS = null, medianPullS = null] = medians;
+  if ((medianToGreenS === null) !== (green === 0)) fail(`${path}.medianToGreenS`, "must be null exactly when no attempt went green");
+  if (!compose && (medianDaemonS !== null || medianPullS !== null)) fail(path, "has no daemon or image pull without Docker");
+  const failures = arr(o.failures, `${path}.failures`).map((f, i) => {
+    const at = `${path}.failures[${i}]`;
+    const x = obj(f, at);
+    return { attempt: whole(x.attempt, `${at}.attempt`), stage: oneOf(serviceStages, x.stage, `${at}.stage`), reason: str(x.reason, `${at}.reason`), detail: orNull(str)(x.detail, `${at}.detail`) };
+  });
+  if (failures.length !== attempts - green) fail(`${path}.failures`, `must list every attempt that didn't go green (${attempts - green})`);
+  return { attempts, green, upS, medianUpS, medianToGreenS, medianDaemonS, medianPullS, failures };
+}
+
+function parseServices(o: Json, path: string): ServicesResult {
+  const compose = parseServicePath(o.compose, `${path}.compose`, true);
+  const d = o.docker === null ? null : obj(o.docker, `${path}.docker`);
+  const docker = d === null ? null : { method: oneOf(dockerMethods, d.method, `${path}.docker.method`), config: oneOf(daemonConfigs, d.config, `${path}.docker.config`), started: whole(d.started, `${path}.docker.started`) };
+  if (docker && (docker.started < 1 || docker.started > compose.attempts)) fail(`${path}.docker.started`, `must be 1 to its ${compose.attempts} compose attempts`);
+  if (docker && (docker.method === "preinstalled-running") !== (docker.config === "as-found")) fail(`${path}.docker.config`, "is as-found exactly for a daemon already running");
+  if (compose.green > (docker?.started ?? 0)) fail(`${path}.compose.green`, "can't exceed the attempts whose daemon started");
+  return {
+    runtime: o.runtime === null ? null : oneOf(["vm"] as const, o.runtime, `${path}.runtime`),
+    isolation: oneOf(serviceIsolations, o.isolation, `${path}.isolation`),
+    docker,
+    compose,
+    native: parseServicePath(o.native, `${path}.native`, false),
+  };
+}
+
 function parseEntry<R>(v: unknown, path: string, parseResult: (o: Json, path: string) => R): Entry<R> {
   const o = obj(v, path);
   const id = str(o.provider, `${path}.provider`);
@@ -715,7 +801,9 @@ export function parseFairness(raw: unknown): FairnessData {
     securityProbe: parseCheck(checks["security-probe"], "checks.security-probe", parseSecurity),
     stateSurvival: parseCheck(checks["state-survival"], "checks.state-survival", parseState),
     memoryPressure: parseCheck(checks["memory-pressure"], "checks.memory-pressure", parsePressure),
+    services: parseCheck(checks.services, "checks.services", parseServices),
   };
+  for (const e of completed(data.services)) if (e.result.runtime !== null && e.provider !== "modal") fail(`checks.services ${e.provider}`, "only Modal has a runtime setting");
   // The hog's advertised memory is the size the provider's sandbox asked for.
   for (const e of completed(data.memoryPressure)) if (e.result.advertisedMiB !== e.machine.memoryGiB * 1024) fail(`checks.memory-pressure ${e.provider}`, `advertises ${e.result.advertisedMiB} MiB, not its machine's ${e.machine.memoryGiB} GiB`);
   // A disk under gVisor, by the security probe, can't be marked comparable.
@@ -737,20 +825,21 @@ export const notCompleted = <R>(check: CheckData<R> | null) =>
 
 /** Whether any check has an entry; the section shows nothing until one does. */
 export const hasFairness = (d: FairnessData) =>
-  [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe, d.stateSurvival, d.memoryPressure].some((c) => c !== null && c.entries.length > 0);
+  [d.cpuNative, d.diskReal, d.cpuBurst, d.memoryHonesty, d.securityProbe, d.stateSurvival, d.memoryPressure, d.services].some((c) => c !== null && c.entries.length > 0);
 
-/** How many providers each newer scenario covers: a pause tried, a pause our SDK adapter lacks, restart speed, memory pressure. */
+/** How many providers each newer scenario covers: a pause tried, a pause our SDK adapter lacks, restart speed, memory pressure, Docker and services. */
 export function newScenarioCoverage(d: FairnessData) {
   const state = completed(d.stateSurvival);
   const noPause = state.filter((e) => e.result.suspend.kind === "unsupported").length;
-  return { pause: state.length - noPause, noPause, restart: state.length, memory: completed(d.memoryPressure).length };
+  return { pause: state.length - noPause, noPause, restart: state.length, memory: completed(d.memoryPressure).length, services: completed(d.services).length };
 }
 
 /** The newer scenarios' coverage in words, from the data. */
 export function newScenarioCoverageText(d: FairnessData) {
   const c = newScenarioCoverage(d);
   const noPause = c.noPause > 0 ? ` (our SDK adapter has no pause for ${c.noPause} more)` : "";
-  return `the pause ran on ${c.pause} providers${noPause}, restart speed on ${c.restart} and memory pressure on ${c.memory}`;
+  const parts = [`the pause ran on ${c.pause} providers${noPause}`, `restart speed on ${c.restart}`, `memory pressure on ${c.memory}`, ...(c.services > 0 ? [`Docker and services on ${c.services}`] : [])];
+  return `${parts.slice(0, -1).join(", ")} and ${parts.at(-1) ?? ""}`;
 }
 
 /** Highest first by `value`, ties by provider id. */
@@ -972,3 +1061,90 @@ export function scopeText(r: PressureResult): string {
 
 /** Whether a fresh allocation and a file write worked afterwards. */
 export const usableAfterText = (r: PressureResult) => (r.usableAfter === null ? "Not measured" : r.usableAfter ? "Yes" : "No");
+
+// ---------------------------------------------------------------------------
+// Docker and services
+
+export const serviceIsolationText: Record<ServicesResult["isolation"], string> = { vm: "VM", container: "Container", gvisor: "gVisor" };
+
+const configText: Record<DaemonConfig, string> = {
+  "as-found": "",
+  default: "",
+  "no-iptables": ", iptables off",
+  vfs: ", vfs storage",
+  "no-iptables-vfs": ", iptables off, vfs storage",
+  "no-bridge-vfs": ", no bridge network, iptables off, vfs storage",
+};
+
+/** Whether the daemon ran on vfs storage, which copies every image layer in full instead of overlaying them. */
+export const onVfs = (r: ServicesResult) => r.docker !== null && r.docker.config.endsWith("vfs");
+
+/** How Docker came to run, plainly: the provider's own daemon already running, or our static build. */
+export function dockerStartText(r: ServicesResult): string {
+  const d = r.docker;
+  if (d === null) return "No Docker daemon started";
+  const how = (() => {
+    switch (d.method) {
+      case "preinstalled-running":
+        return "The provider's Docker, already running in the sandbox";
+      case "static-rootful":
+        return `Our static Docker, started as root${configText[d.config]}`;
+      default: {
+        const _exhaustive: never = d.method;
+        return _exhaustive;
+      }
+    }
+  })();
+  return d.started < r.compose.attempts ? `${how} (started in ${d.started} of ${r.compose.attempts})` : how;
+}
+
+const serviceStageText: Record<ServiceStage, string> = {
+  create: "creating the sandbox",
+  probe: "the probe",
+  upload: "the upload",
+  toolchain: "setting up Node",
+  daemon: "starting Docker",
+  "image-pull": "the image pull",
+  "services-start": "starting the services",
+  "services-ready": "waiting for the services",
+  tests: "the tests",
+  timeout: "the attempt's time limit",
+};
+
+export const greenText = (p: ServicePathResult) => `${p.green} of ${p.attempts}`;
+
+/** Seconds to one decimal, two under a second, as the harness's own summary shows them. */
+export const secondsText = (s: number) => `${s < 1 ? s.toFixed(2) : s.toFixed(1)} s`;
+
+/** The attempts that didn't go green, grouped by where they stopped and what the output said last. */
+export function serviceFailuresText(p: ServicePathResult): string | null {
+  const groups = new Map<string, { stage: ServiceStage; said: string; count: number }>();
+  for (const f of p.failures) {
+    const said = f.detail ?? f.reason;
+    const key = `${f.stage}\u0000${said}`;
+    groups.set(key, { stage: f.stage, said, count: (groups.get(key)?.count ?? 0) + 1 });
+  }
+  if (groups.size === 0) return null;
+  return [...groups.values()].map((g) => `failed at ${serviceStageText[g.stage]} in ${g.count} of ${p.attempts}: “${g.said}”`).join("; ");
+}
+
+/** What a reader needs beside a provider's row: Modal's runtime, vfs storage, and attempts that didn't go green, with the output's last line. */
+export function servicesNotes(r: ServicesResult): string[] {
+  const c = r.compose;
+  return [
+    r.runtime === "vm" ? "ran on Modal's VM runtime (runtime=vm), the only Modal runtime that runs Docker; its default gVisor runtime has no way to start a daemon" : undefined,
+    onVfs(r) && c.medianUpS !== null && c.medianDaemonS !== null && c.medianPullS !== null
+      ? `Docker needed vfs storage, the fallback our harness uses when a daemon can't use overlay storage; vfs copies every image layer in full, so of its ${secondsText(c.medianUpS)} with Docker, getting a daemon took ${secondsText(c.medianDaemonS)} and the image pull ${secondsText(c.medianPullS)} (medians)`
+      : undefined,
+    ...(["compose", "native"] as const).map((path) => {
+      const failed = serviceFailuresText(r[path]);
+      return failed === null ? undefined : `${path === "compose" ? "with Docker" : "without Docker"}, ${failed}`;
+    }),
+  ].filter((x) => x !== undefined);
+}
+
+/** Fastest median first, over the providers with a green attempt on that path. */
+export const servicesRanked = (check: CheckData<ServicesResult> | null, path: "compose" | "native") =>
+  completed(check)
+    .flatMap((e) => (e.result[path].medianUpS === null ? [] : [{ ...e, medianUpS: e.result[path].medianUpS }]))
+    .sort((a, b) => a.medianUpS - b.medianUpS || a.provider.localeCompare(b.provider));

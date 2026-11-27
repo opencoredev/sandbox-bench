@@ -1,6 +1,6 @@
 {
   "schema": "fairness-site.v2",
-  "generatedAt": "2026-11-26T23:50:28.087Z",
+  "generatedAt": "2026-11-27T00:44:13.237Z",
   "track": "same-machine",
   "arch": {
     "e2b": "x86_64",
@@ -4621,6 +4621,38 @@
           }
         },
         {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "restart": {
+              "medianMs": 67.1,
+              "samplesMs": [
+                66.4,
+                66.4,
+                78.9,
+                72,
+                67.1
+              ],
+              "failures": 0,
+              "startsOnly": 0
+            },
+            "suspend": {
+              "kind": "unsupported"
+            }
+          },
+          "run": {
+            "id": "full-state-boat-20261127",
+            "sdkCommit": "ee24ded8287d5409189d416eb6816ef458519a8f",
+            "startedAt": "2026-11-27T00:20:27.645Z"
+          }
+        },
+        {
           "provider": "baseten",
           "machine": {
             "cpu": 4,
@@ -4640,17 +4672,6 @@
           },
           "status": "not-run",
           "reason": "our account wasn't eligible for billing (HTTP 402)",
-          "result": null
-        },
-        {
-          "provider": "boat",
-          "machine": {
-            "cpu": 4,
-            "memoryGiB": 8,
-            "sameSize": true
-          },
-          "status": "not-run",
-          "reason": "our Boat account was busy with another benchmark run",
           "result": null
         }
       ]
@@ -5021,6 +5042,36 @@
           }
         },
         {
+          "provider": "boat",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "advertisedMiB": 8192,
+            "targetMiB": 12288,
+            "reached": {
+              "evidence": "log",
+              "mib": 7296,
+              "fraction": 0.891
+            },
+            "outcome": {
+              "kind": "process-killed"
+            },
+            "scope": "process",
+            "usableAfter": true,
+            "swapTotalGiB": 2
+          },
+          "run": {
+            "id": "full-mem-boat-20261127",
+            "sdkCommit": "ee24ded8287d5409189d416eb6816ef458519a8f",
+            "startedAt": "2026-11-27T00:20:27.658Z"
+          }
+        },
+        {
           "provider": "baseten",
           "machine": {
             "cpu": 4,
@@ -5041,6 +5092,124 @@
           "status": "not-run",
           "reason": "our account wasn't eligible for billing (HTTP 402)",
           "result": null
+        }
+      ]
+    },
+    "services": {
+      "run": {
+        "id": "svc-full1",
+        "sdkCommit": "ee24ded8287d5409189d416eb6816ef458519a8f",
+        "startedAt": "2026-11-27T00:25:19.628Z"
+      },
+      "entries": [
+        {
+          "provider": "archil",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "static-rootful",
+              "config": "no-iptables",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                17.388,
+                16.69,
+                15.018
+              ],
+              "medianUpS": 16.69,
+              "medianToGreenS": 22.537,
+              "medianDaemonS": 6.186,
+              "medianPullS": 4.138,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                3.818,
+                3.916,
+                4.321
+              ],
+              "medianUpS": 3.916,
+              "medianToGreenS": 10.867,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "beam",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "gvisor",
+            "docker": {
+              "method": "static-rootful",
+              "config": "no-bridge-vfs",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 0,
+              "upS": [],
+              "medianUpS": null,
+              "medianToGreenS": null,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": [
+                {
+                  "attempt": 1,
+                  "stage": "image-pull",
+                  "reason": "image-pull exited 1",
+                  "detail": "failed to register layer: unshare: operation not permitted"
+                },
+                {
+                  "attempt": 2,
+                  "stage": "image-pull",
+                  "reason": "image-pull exited 1",
+                  "detail": "failed to register layer: unshare: operation not permitted"
+                },
+                {
+                  "attempt": 3,
+                  "stage": "image-pull",
+                  "reason": "image-pull exited 1",
+                  "detail": "failed to register layer: unshare: operation not permitted"
+                }
+              ]
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                4.753,
+                3.761,
+                3.853
+              ],
+              "medianUpS": 3.853,
+              "medianToGreenS": 10.568,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
         },
         {
           "provider": "boat",
@@ -5049,8 +5218,558 @@
             "memoryGiB": 8,
             "sameSize": true
           },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "preinstalled-running",
+              "config": "as-found",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                48.557,
+                12.031,
+                12.294
+              ],
+              "medianUpS": 12.294,
+              "medianToGreenS": 24.742,
+              "medianDaemonS": 0.323,
+              "medianPullS": 7.844,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                7.293,
+                6.592,
+                6.344
+              ],
+              "medianUpS": 6.592,
+              "medianToGreenS": 16.862,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "boxd",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 16,
+            "sameSize": false
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "container",
+            "docker": {
+              "method": "preinstalled-running",
+              "config": "as-found",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                8.685,
+                8.449,
+                8.426
+              ],
+              "medianUpS": 8.449,
+              "medianToGreenS": 14.46,
+              "medianDaemonS": 0.291,
+              "medianPullS": 5.258,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                5.628,
+                4.78,
+                3.994
+              ],
+              "medianUpS": 4.78,
+              "medianToGreenS": 11.594,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "daytona",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "container",
+            "docker": {
+              "method": "static-rootful",
+              "config": "vfs",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                45.839,
+                37.446,
+                49.118
+              ],
+              "medianUpS": 45.839,
+              "medianToGreenS": 52.03,
+              "medianDaemonS": 17.137,
+              "medianPullS": 23.984,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                4.484,
+                2.873,
+                3.545
+              ],
+              "medianUpS": 3.545,
+              "medianToGreenS": 8.379,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "e2b",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "static-rootful",
+              "config": "default",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                14.07,
+                17.328,
+                30.634
+              ],
+              "medianUpS": 17.328,
+              "medianToGreenS": 22.856,
+              "medianDaemonS": 5.109,
+              "medianPullS": 8.275,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                3.748,
+                3.597,
+                3.707
+              ],
+              "medianUpS": 3.707,
+              "medianToGreenS": 9.389,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "freestyle",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "preinstalled-running",
+              "config": "as-found",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                14.382,
+                14.474,
+                16.306
+              ],
+              "medianUpS": 14.474,
+              "medianToGreenS": 21.073,
+              "medianDaemonS": 0.274,
+              "medianPullS": 10.442,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                4.785,
+                5.421,
+                4.967
+              ],
+              "medianUpS": 4.967,
+              "medianToGreenS": 11.925,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "instabox",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "preinstalled-running",
+              "config": "as-found",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                12.774,
+                8.158,
+                7.389
+              ],
+              "medianUpS": 8.158,
+              "medianToGreenS": 12.754,
+              "medianDaemonS": 0.243,
+              "medianPullS": 5.257,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                3.841,
+                3.96,
+                3.117
+              ],
+              "medianUpS": 3.841,
+              "medianToGreenS": 9.968,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "maritime",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "static-rootful",
+              "config": "default",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                15.79,
+                16.14,
+                16.22
+              ],
+              "medianUpS": 16.14,
+              "medianToGreenS": 21.82,
+              "medianDaemonS": 5.222,
+              "medianPullS": 7.784,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                5.83,
+                4.416,
+                7.181
+              ],
+              "medianUpS": 5.83,
+              "medianToGreenS": 12.524,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "modal",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": "vm",
+            "isolation": "vm",
+            "docker": {
+              "method": "static-rootful",
+              "config": "no-iptables",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                10.507,
+                10.703,
+                10.409
+              ],
+              "medianUpS": 10.507,
+              "medianToGreenS": 13.998,
+              "medianDaemonS": 4.21,
+              "medianPullS": 4.377,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                7.301,
+                3.254,
+                2.245
+              ],
+              "medianUpS": 3.254,
+              "medianToGreenS": 9.09,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "styne",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "preinstalled-running",
+              "config": "as-found",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                8.05,
+                8.194,
+                8.855
+              ],
+              "medianUpS": 8.194,
+              "medianToGreenS": 11.228,
+              "medianDaemonS": 0.097,
+              "medianPullS": 6.244,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                1.655,
+                2.012,
+                1.481
+              ],
+              "medianUpS": 1.655,
+              "medianToGreenS": 4.02,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "tenki",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "container",
+            "docker": {
+              "method": "static-rootful",
+              "config": "no-iptables",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                11.312,
+                10.549,
+                11.182
+              ],
+              "medianUpS": 11.182,
+              "medianToGreenS": 19.206,
+              "medianDaemonS": 4.243,
+              "medianPullS": 4.751,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                3.966,
+                3.992,
+                3.995
+              ],
+              "medianUpS": 3.992,
+              "medianToGreenS": 12.089,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "upstash",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
           "status": "not-run",
-          "reason": "our Boat account was busy with another benchmark run",
+          "reason": "our pinned test artifacts are x86_64 only, and its sandbox is aarch64",
+          "result": null
+        },
+        {
+          "provider": "upstash-ephemeral",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our pinned test artifacts are x86_64 only, and its sandbox is aarch64",
+          "result": null
+        },
+        {
+          "provider": "vercel",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "completed",
+          "reason": null,
+          "result": {
+            "runtime": null,
+            "isolation": "vm",
+            "docker": {
+              "method": "static-rootful",
+              "config": "no-iptables",
+              "started": 3
+            },
+            "compose": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                15.537,
+                15.574,
+                13.571
+              ],
+              "medianUpS": 15.537,
+              "medianToGreenS": 20.495,
+              "medianDaemonS": 6.556,
+              "medianPullS": 5.723,
+              "failures": []
+            },
+            "native": {
+              "attempts": 3,
+              "green": 3,
+              "upS": [
+                2.896,
+                3.216,
+                3.732
+              ],
+              "medianUpS": 3.216,
+              "medianToGreenS": 7.34,
+              "medianDaemonS": null,
+              "medianPullS": null,
+              "failures": []
+            }
+          }
+        },
+        {
+          "provider": "baseten",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our API key was rejected",
+          "result": null
+        },
+        {
+          "provider": "superserve",
+          "machine": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "sameSize": true
+          },
+          "status": "not-run",
+          "reason": "our account wasn't eligible for billing (HTTP 402)",
           "result": null
         }
       ]
