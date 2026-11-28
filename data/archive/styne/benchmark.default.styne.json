@@ -1,0 +1,733 @@
+{
+  "source": "src/data/benchmark.default.json",
+  "note": "Entries removed from src/data/benchmark.default.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.metrics[26].values[13]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 1.8823568025254644,
+        "p95": 2.212547200906556,
+        "min": 1.5649437991669402,
+        "ciLow": 1.8243269994854927,
+        "ciHigh": 1.9313429977046326,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[24].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 1263012.5038434712,
+        "p95": 1398425.6863420478,
+        "min": 580544.9423367096,
+        "ciLow": 1224698.7239178026,
+        "ciHigh": 1290251.0538857474,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[23].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 19693.455965767447,
+        "p95": 23132.537787117304,
+        "min": 1949.5271383517672,
+        "ciLow": 17619.956805477243,
+        "ciHigh": 20565.755921586067,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[22].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 26563.670742976192,
+        "p95": 30805.1495236766,
+        "min": 11835.968431711559,
+        "ciLow": 25427.951277188095,
+        "ciHigh": 27356.82530941174,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[21].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 1011.3733580452662,
+        "p95": 1070.9996365964591,
+        "min": 448.6188009272522,
+        "ciLow": 999.0980274219007,
+        "ciHigh": 1024.787652289451,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[20].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 38576.6944879997,
+        "p95": 54854.42350233865,
+        "min": 9126.815420190462,
+        "ciLow": 36261.70237442713,
+        "ciHigh": 39757.610730098575,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[19].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 65163245.24601904,
+        "p95": 88443252.82684724,
+        "min": 31217187.0808342,
+        "ciLow": 63787189.60463784,
+        "ciHigh": 67434191.39081027,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[18].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 27388638.482309535,
+        "p95": 28361235.358026225,
+        "min": 15391526.17956492,
+        "ciLow": 27143149.087242186,
+        "ciHigh": 27531766.154790994,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[17].values[14]",
+      "value": {
+        "provider": "styne",
+        "n": 3,
+        "p50": 0.25951871699999995,
+        "p95": 0.3912008259999998,
+        "min": 0.24590403700000024,
+        "ciLow": 0.24590403700000024,
+        "ciHigh": 0.3912008259999998,
+        "successes": 3,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[16].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 3,
+        "p50": 0.2545036319999999,
+        "p95": 0.3815343849999999,
+        "min": 0.209253999999999,
+        "ciLow": 0.209253999999999,
+        "ciHigh": 0.3815343849999999,
+        "successes": 3,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[15].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 6.799247189000002,
+        "p95": 8.41871975499997,
+        "min": 6.023768639000002,
+        "ciLow": 6.355929876000009,
+        "ciHigh": 7.161767753999971,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[14].values[14]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.13455191999999808,
+        "p95": 0.17269386100000703,
+        "min": 0.12108861200000684,
+        "ciLow": 0.12971186999999917,
+        "ciHigh": 0.13992339000001083,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[13].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.15433349900000032,
+        "p95": 0.195357920999988,
+        "min": 0.12305330100003631,
+        "ciLow": 0.14232109199999832,
+        "ciHigh": 0.1686712880000123,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[12].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.3893038330000127,
+        "p95": 0.48964395700005114,
+        "min": 0.34264327400000183,
+        "ciLow": 0.36521686600000247,
+        "ciHigh": 0.4060336859999807,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[11].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 2.690097716999997,
+        "p95": 3.1047967990000034,
+        "min": 2.1571041909999913,
+        "ciLow": 2.441996477000008,
+        "ciHigh": 2.927108699000004,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[10].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.488223708000005,
+        "p95": 0.664274047999992,
+        "min": 0.44905768300000637,
+        "ciLow": 0.4780630660000024,
+        "ciHigh": 0.5076350150000071,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[9].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.29701444699999413,
+        "p95": 0.33533969799999613,
+        "min": 0.2502537010000087,
+        "ciLow": 0.28644763000000967,
+        "ciHigh": 0.30725541599999995,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[8].values[12]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.1868041599999997,
+        "p95": 0.36894252000001143,
+        "min": 0.16327382299998136,
+        "ciLow": 0.1818103899999842,
+        "ciHigh": 0.1896852859999999,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[7].values[12]",
+      "value": {
+        "provider": "styne",
+        "n": 30,
+        "p50": 0.13519130000000587,
+        "p95": 0.14463501799999903,
+        "min": 0.1211846690000093,
+        "ciLow": 0.13210816200000408,
+        "ciHigh": 0.1373059050000011,
+        "successes": 30,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[6].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.048589168999926186,
+        "p95": 0.07158145599998533,
+        "min": 0.038368959000043106,
+        "ciLow": 0.04721805900009349,
+        "ciHigh": 0.05167974700004561,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[5].values[11]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.162002948999987,
+        "p95": 0.24846229699999095,
+        "min": 0.12954077600000893,
+        "ciLow": 0.1554705660000909,
+        "ciHigh": 0.16787541600002442,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[4].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.1597112930000294,
+        "p95": 0.2293485609999989,
+        "min": 0.12079794299998321,
+        "ciLow": 0.15581219399999827,
+        "ciHigh": 0.17110034900001483,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[3].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 99,
+        "p50": 0.44092923100001646,
+        "p95": 0.7638024309999891,
+        "min": 0.3169079259999853,
+        "ciLow": 0.4196763519999804,
+        "ciHigh": 0.4627099219999509,
+        "successes": 99,
+        "failures": 1,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[2].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.10744374700001208,
+        "p95": 0.15703968899999746,
+        "min": 0.0871435829999973,
+        "ciLow": 0.10265154999995138,
+        "ciHigh": 0.11284571199999846,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[1].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.053258150000008754,
+        "p95": 0.07704303800000344,
+        "min": 0.04098168499997701,
+        "ciLow": 0.05057223799999338,
+        "ciHigh": 0.05621377299993765,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.metrics[0].values[15]",
+      "value": {
+        "provider": "styne",
+        "n": 100,
+        "p50": 0.18844226199999684,
+        "p95": 0.2487601269999286,
+        "min": 0.1460054990000208,
+        "ciLow": 0.18200492400000803,
+        "ciHigh": 0.19313274099992123,
+        "successes": 100,
+        "failures": 0,
+        "ourFailures": 0,
+        "limitFailures": 0
+      }
+    },
+    {
+      "path": "$.providers[15]",
+      "value": {
+        "id": "styne",
+        "costPerTask": {
+          "usd": 7.555555555555554e-05,
+          "kind": "estimate",
+          "source": "https://docs.styne.ai/billing",
+          "confidence": "low",
+          "n": 10,
+          "settled": true,
+          "bound": "exact"
+        },
+        "track": "default",
+        "requestedAllocation": {
+          "size": null,
+          "template": null,
+          "compute": {
+            "cpu": 4,
+            "memoryGiB": 8
+          },
+          "provisioned": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "diskGiB": 51
+          }
+        },
+        "measuredAllocations": [
+          {
+            "cpu": 4,
+            "memoryGiB": 7.770015716552734,
+            "diskGiB": 50.148834228515625
+          }
+        ],
+        "equalSpec": true,
+        "currency": "USD",
+        "hourly": 0.032,
+        "pricingBound": "exact",
+        "pricingRegion": null,
+        "regionMultiplier": 1,
+        "commonHourly": 0.032,
+        "perVcpuHour": 0.008,
+        "pricingAllocation": {
+          "cpu": 4,
+          "memoryGiB": 8
+        },
+        "allocationVerification": {
+          "verified": true,
+          "mismatches": []
+        },
+        "rates": {
+          "vcpuHour": null,
+          "memoryGiBHour": 0,
+          "fixed": null,
+          "fixedHour": null,
+          "tiers": [
+            {
+              "cpu": 2,
+              "memoryGiB": 4,
+              "hourly": 0.016
+            },
+            {
+              "cpu": 4,
+              "memoryGiB": 8,
+              "hourly": 0.032
+            },
+            {
+              "cpu": 8,
+              "memoryGiB": 16,
+              "hourly": 0.064
+            },
+            {
+              "cpu": 16,
+              "memoryGiB": 32,
+              "hourly": 0.128
+            }
+          ],
+          "offeredSizes": null
+        },
+        "pricingSource": "https://docs.styne.ai/billing",
+        "pricingNotes": "Published per-size rates from 2026-11-20 after the plan's included VM hours: small (2 vCPU, 4 GB) $0.016/hour, default (4, 8) $0.032, large (8, 16) $0.064, xlarge (16, 32) $0.128, metered per second while running; disk comes with the size; paused or sleeping VMs cost $0 and snapshot storage is $0 today. Estimates only: Styne has no per-sandbox billing API (GET /v1/run/usage is daily account totals). Plan fees ($20, $99, $499 a month) and their included hours excluded.",
+        "reliability": {
+          "successes": 2979,
+          "failures": 10,
+          "raw": 0.9966543994647039,
+          "adjusted": 0.9966543994647039,
+          "accountLimit": 0,
+          "clientNetwork": 0,
+          "provider": 10
+        },
+        "hardware": {
+          "fingerprints": 130,
+          "vcpu": 4,
+          "visibleCpus": [
+            4
+          ],
+          "cpuQuota": null,
+          "memoryGiB": 7.770015716552734,
+          "diskGiB": 50.148834228515625,
+          "cpuModels": [
+            {
+              "value": "AMD EPYC Processor",
+              "count": 130
+            }
+          ],
+          "vendor": "AMD",
+          "arch": "x86_64",
+          "isolation": "VM",
+          "hypervisor": true,
+          "host": "cloud-hypervisor",
+          "kernel": "6.16.9+",
+          "location": [
+            {
+              "value": "Manassas, US",
+              "count": 129
+            },
+            {
+              "value": "Chicago, US",
+              "count": 1
+            }
+          ],
+          "network": [
+            {
+              "value": "AS199524 G-Core Labs S.A.",
+              "count": 130
+            }
+          ]
+        },
+        "failureReasons": [
+          {
+            "kind": "provider-operation",
+            "reason": "Styne POST /sandboxes/{id}/exec failed (HTTP 503 upstream_unavailable). (unavailable, HTTP 503)",
+            "count": 9,
+            "runs": 1,
+            "tests": [
+              "perf",
+              "CPU, one core",
+              "CPU, all cores",
+              "Memory bandwidth",
+              "Disk write",
+              "Disk read",
+              "4K random write",
+              "4K random read",
+              "TCP connect"
+            ]
+          },
+          {
+            "kind": "provider-operation",
+            "reason": "Styne PUT /sandboxes/{id}/files failed (HTTP 500 unknown). (unavailable, HTTP 500)",
+            "count": 1,
+            "runs": 1,
+            "tests": [
+              "Write + read 10 MB"
+            ]
+          }
+        ],
+        "ourFailures": [],
+        "pauseSplit": {
+          "pause": 0.05196770699997433,
+          "resume": 0.10582970800000475,
+          "n": 100
+        },
+        "standbyResume": null
+      }
+    },
+    {
+      "path": "$.allocations[15]",
+      "value": {
+        "provider": "styne",
+        "track": "default",
+        "requested": {
+          "size": null,
+          "template": null,
+          "compute": {
+            "cpu": 4,
+            "memoryGiB": 8
+          },
+          "provisioned": {
+            "cpu": 4,
+            "memoryGiB": 8,
+            "diskGiB": 51
+          }
+        },
+        "measured": [
+          {
+            "cpu": 4,
+            "memoryGiB": 7.770015716552734,
+            "diskGiB": 50.148834228515625
+          }
+        ],
+        "equalSpec": true,
+        "verification": {
+          "verified": true,
+          "mismatches": []
+        }
+      }
+    },
+    {
+      "path": "$.exclusions.styne",
+      "value": {
+        "removed": {},
+        "superseded": [],
+        "notRun": [],
+        "replacements": []
+      }
+    },
+    {
+      "path": "$.coldSamples.styne",
+      "value": [
+        0.146,
+        0.15,
+        0.15,
+        0.152,
+        0.152,
+        0.152,
+        0.155,
+        0.157,
+        0.158,
+        0.158,
+        0.158,
+        0.159,
+        0.159,
+        0.159,
+        0.16,
+        0.161,
+        0.161,
+        0.161,
+        0.161,
+        0.161,
+        0.162,
+        0.162,
+        0.165,
+        0.168,
+        0.168,
+        0.169,
+        0.169,
+        0.171,
+        0.171,
+        0.174,
+        0.174,
+        0.175,
+        0.177,
+        0.177,
+        0.177,
+        0.178,
+        0.178,
+        0.179,
+        0.18,
+        0.182,
+        0.183,
+        0.184,
+        0.185,
+        0.185,
+        0.186,
+        0.186,
+        0.188,
+        0.188,
+        0.188,
+        0.188,
+        0.188,
+        0.189,
+        0.19,
+        0.19,
+        0.19,
+        0.19,
+        0.191,
+        0.192,
+        0.193,
+        0.193,
+        0.194,
+        0.195,
+        0.196,
+        0.196,
+        0.198,
+        0.198,
+        0.2,
+        0.2,
+        0.202,
+        0.202,
+        0.203,
+        0.204,
+        0.204,
+        0.207,
+        0.207,
+        0.209,
+        0.21,
+        0.21,
+        0.216,
+        0.216,
+        0.218,
+        0.22,
+        0.22,
+        0.222,
+        0.223,
+        0.225,
+        0.226,
+        0.231,
+        0.238,
+        0.242,
+        0.243,
+        0.243,
+        0.244,
+        0.248,
+        0.249,
+        0.249,
+        0.256,
+        0.281,
+        0.33,
+        0.376
+      ]
+    }
+  ]
+}

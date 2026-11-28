@@ -36,7 +36,7 @@ describe("item 1: Archil's headline and ranked fix and test cost carries its sta
   test("the meta summary says usage cost, unsettled beside $16.47", () => {
     assert.equal(
       providerSummary("archil"),
-      "Archil sandbox on the same 4 vCPU, 8 GiB machine: 0.67 s cold start (7th of 19), 23 s agent tool replay, fix and test task in 67 s for $16.47 per 1,000 (usage cost, unsettled, compute and memory only). Medians, p95s and 95% intervals.",
+      "Archil sandbox on the same 4 vCPU, 8 GiB machine: 0.67 s cold start (6th of 18), 23 s agent tool replay, fix and test task in 67 s for $16.47 per 1,000 (usage cost, unsettled, compute and memory only). Medians, p95s and 95% intervals.",
     );
   });
 
@@ -78,15 +78,15 @@ describe("item 1: Archil's headline and ranked fix and test cost carries its sta
   test("other providers' summaries read exactly as before", () => {
     assert.equal(
       providerSummary("instabox"),
-      "Instabox sandbox on the same 4 vCPU, 8 GiB machine: 1.8 s cold start (16th of 19), 25 s agent tool replay, fix and test task in 82 s for $0.76 per 1,000. Medians, p95s and 95% intervals.",
+      "Instabox sandbox on the same 4 vCPU, 8 GiB machine: 1.8 s cold start (15th of 18), 25 s agent tool replay, fix and test task in 82 s for $0.76 per 1,000. Medians, p95s and 95% intervals.",
     );
     assert.equal(
       providerSummary("daytona"),
-      "Daytona sandbox on the same 4 vCPU, 8 GiB machine: 1.2 s cold start (14th of 19), 12 s agent tool replay, fix and test task in 93 s for $10.49 per 1,000. Medians, p95s and 95% intervals.",
+      "Daytona sandbox on the same 4 vCPU, 8 GiB machine: 1.2 s cold start (13th of 18), 12 s agent tool replay, fix and test task in 93 s for $10.49 per 1,000. Medians, p95s and 95% intervals.",
     );
     assert.equal(
       providerSummary("e2b"),
-      "E2B sandbox on the same 4 vCPU, 8 GiB machine: 0.79 s cold start (11th of 19), 15 s agent tool replay, fix and test task in 112 s for $10.07 per 1,000. Medians, p95s and 95% intervals.",
+      "E2B sandbox on the same 4 vCPU, 8 GiB machine: 0.79 s cold start (10th of 18), 15 s agent tool replay, fix and test task in 112 s for $10.07 per 1,000. Medians, p95s and 95% intervals.",
     );
   });
 });

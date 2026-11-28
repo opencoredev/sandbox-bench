@@ -221,15 +221,15 @@ describe("FAQ", () => {
     assert.ok(reliability?.answer.includes(t.reliability.succeeded.toLocaleString("en-US")));
   });
 
-  test("boxd's cost on Same machine: ranked with all 19 like the home page's Cost column, with why it can't be the cheapest pick", () => {
+  test("boxd's cost on Same machine: ranked with all 18 like the home page's Cost column, with why it can't be the cheapest pick", () => {
     const e = scorecard("same-spec", "boxd").find((x) => x.category.id === "cost");
     assert.ok(e?.cell.kind === "valued" && e.rank, `boxd's cost is ${e?.cell.kind ?? "missing"}`);
     assert.equal(e.cell.display, "$5.50");
-    assert.deepEqual(e.rank, { rank: 5, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
+    assert.deepEqual(e.rank, { rank: 4, of: tracks["same-spec"].providers.filter((p) => !isExtraTier(p.id)).length });
     const cost = providerFaqs("boxd")[1];
-    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 5th cheapest of 19, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
+    assert.ok(cost?.answer.includes("$5.50 per 1,000 completed, 4th cheapest of 18, though it can't be the cheapest pick (it ran with 15.6 GiB"), cost?.answer);
     const chart = realTaskCost("same-spec", "boxd", "fix-and-test");
-    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 5 && chart.of === 19);
+    assert.ok(chart.kind === "ranked" && chart.value === "$5.50" && chart.rank === 4 && chart.of === 18);
   });
 
   test("every provider's cost rank on each track counts the same field as the home page's Cost column", () => {
@@ -373,7 +373,7 @@ describe("Buddy's provider page", () => {
       assert.equal(rivalsText(t.field), `${products - 1} other sandbox products (${products - 1} providers in all)`);
     }
     const cold = providerFaqs("buddy").find((f) => f.question === "How fast is Buddy's cold start?")?.answer ?? "";
-    assert.match(cold, /18th of 19 products\./);
+    assert.match(cold, /17th of 18 products\./);
     assert.doesNotMatch(cold, /of \d+ providers/);
   });
 

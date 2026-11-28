@@ -71,9 +71,8 @@ describe("usage cost", () => {
 describe("cost pick", () => {
   // The published data, pinned: a change to the rule or the data must change these on purpose.
   const expected = {
-    // Styne's list-price estimate is cheapest on both tracks, but only a billed or metered cost can be picked.
-    "same-spec": { pick: "upstash-ephemeral", lower: ["styne", "boxd"] },
-    default: { pick: "boxd", lower: ["styne"] },
+    "same-spec": { pick: "upstash-ephemeral", lower: ["boxd"] },
+    default: { pick: "boxd", lower: [] },
   } as const satisfies Record<(typeof trackIds)[number], { pick: string; lower: readonly string[] }>;
 
   for (const id of trackIds) {
@@ -86,15 +85,11 @@ describe("cost pick", () => {
   }
 
   test("same-spec: lists cheaper exact costs on a different machine in lower", () => {
-    const withoutStyne: Track = {
-      ...tracks["same-spec"],
-      providers: tracks["same-spec"].providers.filter((p) => p.id !== "styne"),
-      costs: Object.fromEntries(Object.entries(tracks["same-spec"].costs).filter(([k]) => k !== "styne")),
-    };
-    const c = costPick(withoutStyne);
+    const c = costPick(tracks["same-spec"]);
     assert.ok(c.kind === "picked");
     assert.equal(c.pick.id, "upstash-ephemeral");
     assert.deepEqual(c.lower.map((t) => t.id), ["boxd"]);
+    assert.match(c.lower[0]?.why.join() ?? "", /not 4 vCPU, 8 GiB/);
   });
 
   test("Boat's usage cost is in the chart like every other provider's, not listed as unpriced", () => {
@@ -142,9 +137,6 @@ describe("cost pick", () => {
         assert.deepEqual(t.why, costNotCountedWhy(tracks[id], t));
       }
     }
-    const styne = costPick(tracks["same-spec"]);
-    assert.ok(styne.kind === "picked");
-    assert.deepEqual(styne.lower.find((t) => t.id === "styne")?.why, [estimateNotCounted]);
   });
 
   test("Boat's cost in the data is its per-task cost, and can be the cheapest", () => {
@@ -168,12 +160,12 @@ describe("cost pick", () => {
 
   test("with only a list-price estimate, there is no pick, and the estimate is listed with why", () => {
     const t = tracks.default;
-    const styne = t.costs.styne;
-    assert.ok(styne && styne.kind === "estimate");
-    const c = costPick({ ...t, costs: { styne } });
+    const buddy = t.costs.buddy;
+    assert.ok(buddy && buddy.kind === "estimate");
+    const c = costPick({ ...t, costs: { buddy } });
     assert.ok(c.kind === "none");
     assert.equal(c.why, "not-counted");
-    assert.deepEqual(c.lower.map((x) => [x.id, x.why]), [["styne", [estimateNotCounted]]]);
+    assert.deepEqual(c.lower.map((x) => [x.id, x.why]), [["buddy", [estimateNotCounted]]]);
   });
 
   test("no costs at all: empty", () => {

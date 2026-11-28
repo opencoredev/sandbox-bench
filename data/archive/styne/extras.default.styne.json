@@ -1,0 +1,18 @@
+{
+  "source": "src/data/extras.default.json",
+  "note": "Entries removed from src/data/extras.default.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.providers[15]",
+      "value": {
+        "id": "styne",
+        "sdkReady": {
+          "p50": 0.1887400154999632,
+          "p95": 0.24894341999990865,
+          "setupP50": 0.00024814599999808707,
+          "n": 100
+        }
+      }
+    }
+  ]
+}

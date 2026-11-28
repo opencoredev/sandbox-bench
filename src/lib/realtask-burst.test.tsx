@@ -85,7 +85,7 @@ describe("real tasks at once", () => {
     assert.equal(earlyProvider?.status === "ran" && earlyProvider.run?.startedAt, "0099-12-31T04:21:00.000Z");
   });
 
-  test("the published data appends Maritime's, Styne's, Buddy's, Microsandbox's and Archil's own runs after the Nov 19 run's providers", () => {
+  test("the published data appends Maritime's, Buddy's, Microsandbox's and Archil's own runs after the Nov 19 run's providers", () => {
     const buddy = realtaskBurst.providers.at(-4);
     assert.ok(buddy?.provider === "buddy" && buddy.status === "ran");
     assert.deepEqual(buddy.run, { id: "rtb-buddy-1124", sdkCommit: "5afd423cd15668d7d6a4d9587ab55d7f6ae74925", startedAt: "2026-11-25T07:41:14.244Z" });
@@ -103,9 +103,9 @@ describe("real tasks at once", () => {
     assert.equal(archil.run?.id, "rtb-archil-1126");
     assert.equal(archil.run?.sdkCommit, "28ac0a495cc237252784dd928d20b0bdfe3960f3");
     assert.equal(archil.slowdown?.toFixed(2), "1.07");
-    assert.equal(realtaskBurst.providers.filter((p) => p.status === "ran" && p.run !== null).length, 6);
+    assert.equal(realtaskBurst.providers.filter((p) => p.status === "ran" && p.run !== null).length, 5);
     const text = renderToStaticMarkup(<RealtaskBurstChart data={realtaskBurst} />).replace(/<[^>]+>/g, " ");
-    assert.match(text, /all on one day \(Nov 19; Maritime on Nov 24; Styne on Nov 23; Buddy on Nov 25; Microsandbox on Nov 25; Microsandbox Shared on Nov 25; Archil on Nov 26\)/);
-    assert.match(text, /Maritime(?:'|&#x27;)s 619307b; Styne(?:'|&#x27;)s cd2e6e1; Buddy(?:'|&#x27;)s 5afd423; Microsandbox(?:'|&#x27;)s afdf664; Microsandbox Shared(?:'|&#x27;)s afdf664; Archil(?:'|&#x27;)s 28ac0a4\)/);
+    assert.match(text, /all on one day \(Nov 19; Maritime on Nov 24; Buddy on Nov 25; Microsandbox on Nov 25; Microsandbox Shared on Nov 25; Archil on Nov 26\)/);
+    assert.match(text, /Maritime(?:'|&#x27;)s 619307b; Buddy(?:'|&#x27;)s 5afd423; Microsandbox(?:'|&#x27;)s afdf664; Microsandbox Shared(?:'|&#x27;)s afdf664; Archil(?:'|&#x27;)s 28ac0a4\)/);
   });
 });

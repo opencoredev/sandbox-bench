@@ -1,0 +1,17 @@
+{
+  "source": "src/data/sdk-setup.json",
+  "note": "Entries removed from src/data/sdk-setup.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.medianMs.styne",
+      "value": 0.2
+    },
+    {
+      "path": "$.runs.styne",
+      "value": {
+        "sdkCommit": "cd2e6e1",
+        "date": "Nov 23, 2026"
+      }
+    }
+  ]
+}

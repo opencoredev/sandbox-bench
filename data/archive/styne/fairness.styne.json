@@ -1,0 +1,414 @@
+{
+  "source": "src/data/fairness.json",
+  "note": "Entries removed from src/data/fairness.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.checks.services.entries[10]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "runtime": null,
+          "isolation": "vm",
+          "docker": {
+            "method": "preinstalled-running",
+            "config": "as-found",
+            "started": 3
+          },
+          "compose": {
+            "attempts": 3,
+            "green": 3,
+            "upS": [
+              8.05,
+              8.194,
+              8.855
+            ],
+            "medianUpS": 8.194,
+            "medianToGreenS": 11.228,
+            "medianDaemonS": 0.097,
+            "medianPullS": 6.244,
+            "failures": []
+          },
+          "native": {
+            "attempts": 3,
+            "green": 3,
+            "upS": [
+              1.655,
+              2.012,
+              1.481
+            ],
+            "medianUpS": 1.655,
+            "medianToGreenS": 4.02,
+            "medianDaemonS": null,
+            "medianPullS": null,
+            "failures": []
+          }
+        }
+      }
+    },
+    {
+      "path": "$.checks.memory-pressure.entries[12]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "advertisedMiB": 8192,
+          "targetMiB": 12288,
+          "reached": {
+            "evidence": "log",
+            "mib": 7744,
+            "fraction": 0.945
+          },
+          "outcome": {
+            "kind": "process-killed"
+          },
+          "scope": "process",
+          "usableAfter": true,
+          "swapTotalGiB": 0
+        }
+      }
+    },
+    {
+      "path": "$.checks.state-survival.entries[12]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "restart": {
+            "medianMs": 60.1,
+            "samplesMs": [
+              59,
+              68.8,
+              60.1,
+              60.5,
+              59.8
+            ],
+            "failures": 0,
+            "startsOnly": 0
+          },
+          "suspend": {
+            "kind": "measured",
+            "verdict": "in-ram",
+            "reason": null,
+            "holdMs": 60000,
+            "pauseMs": 58,
+            "resumeMs": 49,
+            "firstCommandMs": 71,
+            "servingMs": 172,
+            "serverRestarted": false,
+            "coldServeMs": null,
+            "bootSame": true
+          }
+        }
+      }
+    },
+    {
+      "path": "$.checks.cpu-burst-10.entries[14]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "requested": 10,
+          "created": 10,
+          "createErrors": [],
+          "soloOps": 3114558341,
+          "medianOps": 2997738028,
+          "relativeToSolo": 0.9625,
+          "spread": 1.0095,
+          "verified": 10,
+          "guaranteedOverlapS": 119.877,
+          "comparable": true,
+          "notComparableWhy": null,
+          "distinctBootIds": 10
+        }
+      }
+    },
+    {
+      "path": "$.checks.cpu-native.entries[14]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "cpuModel": "AMD EPYC Processor",
+          "guestVcpus": 4,
+          "singleOps": 1356259644,
+          "allCoreOps": 5330620430,
+          "scaling": 0.9826,
+          "first3MinOps": 872148108,
+          "last3MinOps": 865575523,
+          "retention": 0.9925,
+          "sustained": [
+            {
+              "minute": 0.5,
+              "opsPerS": 5094625789
+            },
+            {
+              "minute": 1,
+              "opsPerS": 872566551
+            },
+            {
+              "minute": 1.5,
+              "opsPerS": 869630223
+            },
+            {
+              "minute": 2,
+              "opsPerS": 870599290
+            },
+            {
+              "minute": 2.5,
+              "opsPerS": 872436045
+            },
+            {
+              "minute": 3,
+              "opsPerS": 871860171
+            },
+            {
+              "minute": 3.5,
+              "opsPerS": 871175451
+            },
+            {
+              "minute": 4,
+              "opsPerS": 870748575
+            },
+            {
+              "minute": 4.5,
+              "opsPerS": 870469154
+            },
+            {
+              "minute": 5,
+              "opsPerS": 870609004
+            },
+            {
+              "minute": 5.5,
+              "opsPerS": 869070703
+            },
+            {
+              "minute": 6,
+              "opsPerS": 870609060
+            },
+            {
+              "minute": 6.5,
+              "opsPerS": 872006590
+            },
+            {
+              "minute": 7,
+              "opsPerS": 873964417
+            },
+            {
+              "minute": 7.5,
+              "opsPerS": 871587296
+            },
+            {
+              "minute": 8,
+              "opsPerS": 871588092
+            },
+            {
+              "minute": 8.5,
+              "opsPerS": 870328832
+            },
+            {
+              "minute": 9,
+              "opsPerS": 862310465
+            },
+            {
+              "minute": 9.5,
+              "opsPerS": 862269417
+            },
+            {
+              "minute": 10,
+              "opsPerS": 866415167
+            },
+            {
+              "minute": 10.5,
+              "opsPerS": 868231701
+            },
+            {
+              "minute": 11,
+              "opsPerS": 853830981
+            },
+            {
+              "minute": 11.5,
+              "opsPerS": 865575766
+            },
+            {
+              "minute": 12,
+              "opsPerS": 855229944
+            },
+            {
+              "minute": 12.5,
+              "opsPerS": 865855399
+            },
+            {
+              "minute": 13,
+              "opsPerS": 857606435
+            },
+            {
+              "minute": 13.5,
+              "opsPerS": 865295647
+            },
+            {
+              "minute": 14,
+              "opsPerS": 863618807
+            },
+            {
+              "minute": 14.5,
+              "opsPerS": 865994679
+            },
+            {
+              "minute": 15,
+              "opsPerS": 867532850
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "$.checks.disk-real.entries[14]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "fsType": "ext4",
+          "memoryBacked": false,
+          "comparable": true,
+          "notComparableWhy": null,
+          "directory": "/root",
+          "sizeMiB": 2048,
+          "seqWriteMiBps": 908.7,
+          "seqReadMiBps": 10133.4,
+          "randWriteIops": 22798,
+          "randWriteP99Us": 82.4,
+          "randReadIops": 113824,
+          "randReadP99Us": 13.2,
+          "direct": {
+            "seqWrite": true,
+            "seqRead": true,
+            "randWrite": true,
+            "randRead": true
+          }
+        }
+      }
+    },
+    {
+      "path": "$.checks.memory-honesty.entries[14]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "visibleCpus": 4,
+          "usableCpus": 4,
+          "quotaCpus": null,
+          "cpusOverReported": false,
+          "memTotalGiB": 7.77,
+          "memLimitGiB": null,
+          "swapTotalGiB": 0,
+          "memoryMiB": 6144,
+          "fileMiB": 2048,
+          "outcome": {
+            "kind": "completed",
+            "fillGiBps": 3.04,
+            "verifyGiBps": 5.77,
+            "fileMiBps": 548.2,
+            "swapUsedMiB": 0
+          }
+        }
+      }
+    },
+    {
+      "path": "$.checks.security-probe.entries[14]",
+      "value": {
+        "provider": "styne",
+        "machine": {
+          "cpu": 4,
+          "memoryGiB": 8,
+          "sameSize": true
+        },
+        "status": "completed",
+        "reason": null,
+        "result": {
+          "isolation": "cloud-hypervisor",
+          "evidence": [
+            "DMI: Cloud Hypervisor cloud-hypervisor"
+          ],
+          "insideVm": null,
+          "kernel": "Linux 6.16.9+ x86_64",
+          "cpu": {
+            "vendor": "AuthenticAMD",
+            "family": 25,
+            "model": 33,
+            "modelName": "AMD EPYC Processor",
+            "mhz": 4291.948
+          },
+          "weakeningFlags": [
+            "spec_rstack_overflow=off"
+          ],
+          "notableFlags": [
+            "cpuidle_haltpoll.force=1"
+          ],
+          "vulnerable": [
+            {
+              "name": "spec_rstack_overflow",
+              "status": "Vulnerable"
+            },
+            {
+              "name": "tsa",
+              "status": "Vulnerable: No microcode"
+            }
+          ],
+          "vulnerabilityFiles": 19,
+          "uid": 0,
+          "passwordlessSudo": true,
+          "createS": 0.304,
+          "uptimeS": 2162.85,
+          "bootedBeforeCreateS": 2162.5
+        }
+      }
+    },
+    {
+      "path": "$.arch.styne",
+      "value": "x86_64"
+    }
+  ]
+}

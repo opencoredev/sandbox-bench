@@ -164,7 +164,7 @@ describe("rules", () => {
 
   test("places count the providers ahead that a reading doesn't tie with", () => {
     const entries = [
-      { provider: "styne" as const, ...e(0.11, "0.11 s", [0.1, 0.12]) },
+      { provider: "instabox" as const, ...e(0.11, "0.11 s", [0.1, 0.12]) },
       { provider: "boxd" as const, ...e(0.115, "0.12 s", [0.105, 0.13]) },
       { provider: "e2b" as const, ...e(0.5, "0.50 s", [0.48, 0.52]) },
     ];

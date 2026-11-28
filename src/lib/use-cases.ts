@@ -603,7 +603,7 @@ export function useCasesData() {
   };
 }
 
-/** "Restart speed: Styne 59.1 ms (median of 5 restarts); next Upstash 86.8 ms, 47% longer." */
+/** "<Measure> (<how it is measured>): <pick> <value>; next <provider> <value>, <lead>." */
 function secondText(s: SecondResult): string {
   if (!s.pick) return `${s.measure.label}: no provider has a result yet.`;
   const lead = s.next ? leadText(s.pick, s.next, s.measure.unit) : null;

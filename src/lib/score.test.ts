@@ -257,9 +257,9 @@ describe("cost shows dollars, not a score", () => {
   };
   const shown = (cells: ReturnType<typeof costOn>) => cells.map((s) => [s.provider, s.kind === "valued" ? s.display : s.kind]);
 
-  test("Same machine: cheapest first in dollars per 1,000 tasks, every provider priced, boxd at $5.50 in fifth", () => {
+  test("Same machine: cheapest first in dollars per 1,000 tasks, every provider priced, boxd at $5.50 in fourth", () => {
     const cells = costOn("same-spec");
-    assert.deepEqual(shown(cells).slice(0, 5), [["styne", "$0.55"], ["instabox", "$0.76"], ["boat", "$0.95"], ["maritime", "$2.13"], ["boxd", "$5.50"]]);
+    assert.deepEqual(shown(cells).slice(0, 5), [["instabox", "$0.76"], ["boat", "$0.95"], ["maritime", "$2.13"], ["boxd", "$5.50"], ["buddy", "$5.76"]]);
     assert.deepEqual(shown(cells).find(([p]) => p === "e2b"), ["e2b", "$10.07"]);
     assert.deepEqual(shown(cells).at(-1), ["vercel", "$43.14"]);
     assert.equal(cells.length, firsts(tracks["same-spec"]).length);
@@ -274,7 +274,7 @@ describe("cost shows dollars, not a score", () => {
     assert.ok(firstMissing > 0);
     assert.ok(kinds.slice(firstMissing).every((k) => k === "not-measured"));
     assert.equal(cells.find((s) => s.provider === "e2b")?.kind, "not-measured");
-    assert.deepEqual(shown(cells)[0], ["styne", "$0.53"]);
+    assert.deepEqual(shown(cells)[0], ["instabox", "$0.81"]);
   });
 });
 

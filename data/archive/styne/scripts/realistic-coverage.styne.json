@@ -1,0 +1,18 @@
+{
+  "source": "scripts/realistic-coverage.json",
+  "note": "Entries removed from scripts/realistic-coverage.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.idle.notTested[8]",
+      "value": {
+        "provider": "styne",
+        "reason": "its usage API reports daily account totals, not per sandbox, so an idle run's cost couldn't be tied to the sandbox",
+        "short": "account totals only"
+      }
+    },
+    {
+      "path": "$.headline.providers[17]",
+      "value": "styne"
+    }
+  ]
+}
