@@ -39,6 +39,18 @@ export interface Update {
 
 export const updates = [
   {
+    slug: "sandboxer-removed",
+    date: "2026-11-28",
+    title: "Sandboxer removed",
+    text: "Sandboxer is shutting down, so we took it out of the benchmark. It has been off the charts since Oct 26, so no result on the site changes.",
+    body: [
+      "Sandboxer is shutting down: its own site, sandboxer.com, says service ends on Friday, November 27 at 9:00 PM ET and new sign-ups are closed. We removed it from the benchmark, and no scheduled or default run includes it any more.",
+      "Sandboxer's results on both tracks, from its runs on Oct 22 and 23, reached the site on Oct 26 and were held from it the same day, so no chart, rank or cost on the site changes. Its results and the raw data behind them are archived in the site's repository under data/archive/sandboxer/.",
+    ],
+    charts: { kind: "real-tasks", tracks: ["default", "same-spec"] },
+    home: { section: "real-tasks", tab: "fix-and-test", label: "Real tasks" },
+  },
+  {
     slug: "archil-added",
     date: "2026-11-26",
     title: "Archil added",
