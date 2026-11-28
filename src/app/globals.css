@@ -222,6 +222,50 @@
 }
 
 /*
+ * Chart parts the home page repeats thousands of times (columns.tsx). One short class each
+ * instead of the same long utility list on every bar keeps the static page smaller.
+ */
+@utility bar-row {
+  @apply relative grid grid-cols-[8.5rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none data-trace:cursor-pointer sm:grid-cols-[7.5rem_1fr_auto];
+}
+@utility bar-name {
+  @apply line-clamp-2 text-s leading-[1.1] sm:text-xs;
+}
+@utility bar-track {
+  @apply relative flex h-3.5 items-stretch sm:h-3;
+}
+@utility bar-value {
+  @apply text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs;
+}
+@utility col {
+  @apply relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none;
+}
+@utility col-value {
+  @apply mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap text-neutral-10 tabular-nums sm:text-xs;
+}
+@utility col-bar {
+  @apply relative flex w-[min(36px,60%)] shrink-0 flex-col-reverse gap-[2px];
+}
+@utility col-focus {
+  @apply pointer-events-none absolute inset-x-1 -bottom-px h-px opacity-0 group-focus-visible:opacity-100;
+}
+@utility col-label {
+  @apply relative block min-w-0 flex-1 px-0.5 text-center;
+}
+@utility col-logo {
+  @apply mb-1 flex items-center justify-center;
+}
+@utility col-link {
+  @apply focus-ring block rounded-xs hover:text-neutral-10;
+}
+@utility col-name {
+  @apply decoration-neutral-6 underline-offset-2 group-hover/label:underline;
+}
+@utility card-reveal {
+  @apply opacity-0 group-hover:opacity-100 group-focus:opacity-100;
+}
+
+/*
  * This site draws no divider lines. The Untitled tab list paints a bottom rule
  * under its tabs; the selected tab keeps its underline, the rule along the whole row goes.
  */

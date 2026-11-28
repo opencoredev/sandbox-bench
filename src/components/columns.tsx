@@ -172,7 +172,7 @@ const Card = ({ column, action, className, style }: { column: Column; action: Ac
     detail={column.detail}
     hint={hintOf(column, action)}
     style={style}
-    className={`opacity-0 group-hover:opacity-100 group-focus:opacity-100 motion-reduce:transition-none ${className}`}
+    className={`card-reveal motion-reduce:transition-none ${className}`}
   />
 );
 
@@ -188,17 +188,17 @@ function ColumnLabel({ column, still, own, bar, tag }: { column: Column; still: 
     <>
       {/* Each provider's mark over its name, as Artificial Analysis labels its columns. A compact chart has
           no room for 14 names side by side, so its names run diagonally down to the left from under the mark. */}
-      <span className="mb-1 flex items-center justify-center">
+      <span className="col-logo">
         <ProviderLogo id={column.provider} size={still ? 16 : 14} />
         {still ? <Mark column={column} /> : null}
       </span>
       {still ? (
-        <span className="absolute top-6 right-1/2 origin-top-right -rotate-45 whitespace-nowrap decoration-neutral-6 underline-offset-2 group-hover/label:underline">
+        <span className="col-name absolute top-6 right-1/2 origin-top-right -rotate-45 whitespace-nowrap">
           <ProviderName id={column.provider} />
         </span>
       ) : (
         <>
-          <span className="decoration-neutral-6 underline-offset-2 group-hover/label:underline">
+          <span className="col-name">
             <ProviderName id={column.provider} layout="centered" />
           </span>
           <Mark column={column} />
@@ -208,12 +208,12 @@ function ColumnLabel({ column, still, own, bar, tag }: { column: Column; still: 
   );
   const linkProps = bar.kind === "page" ? ({ "aria-hidden": true, tabIndex: -1 } as const) : { "aria-label": `Open ${providerName(pageId(column.provider))}'s page` };
   return (
-    <span {...tierAttrs(column)} className={`relative block min-w-0 flex-1 px-0.5 text-center ${own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}>
+    <span {...tierAttrs(column)} className={`col-label ${own ? "font-bold text-neutral-10" : "text-neutral-8"} ${still ? "text-xxs" : "text-xs"}`}>
       {page ? (
         <a
           href={page}
           {...linkProps}
-          className="group/label focus-ring block rounded-xs hover:text-neutral-10"
+          className="group/label col-link"
         >
           {content}
         </a>
@@ -269,14 +269,14 @@ function Vertical({
               {...target(column, action)}
               {...attrs}
               {...tierAttrs(column)}
-              className={`chart-col group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-xs outline-none ${action.kind === "none" ? "" : "cursor-pointer"}`}
+              className={`chart-col group col ${action.kind === "none" ? "" : "cursor-pointer"}`}
             >
-              <span className={`mb-1.5 shrink-0 font-mono text-xxs whitespace-nowrap sm:text-xs text-neutral-10 tabular-nums ${own ? "font-bold" : ""}`}>
+              <span className={`col-value ${own ? "font-bold" : ""}`}>
                 {column.label}
               </span>
               {/* Stacked parts sit 2px apart in the card colour; only the top one is rounded. */}
               <div
-                className="chart-fade relative flex w-[min(36px,60%)] shrink-0 flex-col-reverse gap-[2px]"
+                className="chart-fade col-bar"
                 style={{ height: `${bar.length * 100}%`, minHeight: 2 }}
               >
                 {column.segments.map((s, i) => (
@@ -293,7 +293,7 @@ function Vertical({
               <Card column={column} action={action} className={anchor} style={{ bottom: `calc(${bar.length * 100}% + 1.9rem)` }} />
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-x-1 -bottom-px h-px opacity-0 group-focus-visible:opacity-100"
+                className="col-focus"
                 style={{ backgroundColor: color }}
               />
             </Tag>
@@ -333,13 +333,13 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
             {...target(column, action)}
             {...attrs}
             {...tierAttrs(column)}
-            className={`chart-col group relative grid data-trace:cursor-pointer grid-cols-[8.5rem_1fr_auto] items-center gap-x-2.5 rounded-[3px] outline-none sm:min-h-[22px] sm:grid-cols-[7.5rem_1fr_auto] ${still ? "min-h-6" : "min-h-8"}`}
+            className={`chart-col group bar-row sm:min-h-[22px] ${still ? "min-h-6" : "min-h-8"}`}
           >
-            <span aria-hidden className={`line-clamp-2 text-s leading-[1.1] sm:text-xs ${own ? "font-bold text-neutral-10" : "text-neutral-8"}`}>
+            <span aria-hidden className={`bar-name ${own ? "font-bold text-neutral-10" : "text-neutral-8"}`}>
               <ProviderName id={column.provider} />
               <Mark column={column} />
             </span>
-            <div aria-hidden className="chart-fade relative flex h-3.5 items-stretch sm:h-3">
+            <div aria-hidden className="chart-fade bar-track">
               <div className="relative flex gap-[2px]" style={{ width: `${bar.length * 100}%`, minWidth: 2 }}>
                 {column.segments.map((s, i) => (
                   <div
@@ -354,7 +354,7 @@ function Horizontal({ columns, max, still = false, linked = false, highlight }: 
             </div>
             <span
               aria-hidden
-              className={`text-right font-mono text-xs text-neutral-10 tabular-nums sm:text-xxs ${own ? "font-bold" : ""}`}
+              className={`bar-value ${own ? "font-bold" : ""}`}
               style={{ width: valueWidth }}
             >
               {column.label}
