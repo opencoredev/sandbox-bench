@@ -12,8 +12,6 @@ import type { SustainedProvider } from "@/lib/sustained-cpu";
 
 // Plot insets in px: room for the y tick labels on the left and the x ticks below.
 const INSET = { left: 40, right: 10, top: 18, bottom: 26 };
-/** The most burst credit Styne's docs give a new sandbox, 10 minutes, the longest the bench knows of. */
-const MARKER_S = 600;
 const X_TICKS_MIN = [0, 3, 6, 9, 12, 15] as const;
 
 /** CSS position of a 0 to 1 fraction along the plot area. */
@@ -76,9 +74,6 @@ export function SustainedCpuLines({ providers }: { providers: readonly Sustained
             {m === 15 ? "15 min" : m}
           </span>
         ))}
-        <div className="absolute border-l border-dashed border-neutral-6" style={{ left: along(MARKER_S / xMax, "x"), top: INSET.top - 4, bottom: INSET.bottom }}>
-          <span className="absolute -top-3.5 -translate-x-1/2 font-mono text-xxs whitespace-nowrap text-neutral-7">10 min</span>
-        </div>
         <div className="absolute border-t border-neutral-5" style={{ left: INSET.left, right: INSET.right, bottom: INSET.bottom }} />
         <svg
           className="pointer-events-none absolute overflow-visible"

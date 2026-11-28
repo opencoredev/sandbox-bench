@@ -29,7 +29,7 @@ function run(provider: ProviderId, status: "completed" | "stopped-early" | "fail
 }
 
 const BURST = 62_000_000;
-/** A realistic file: a dedicated CPU that holds, a burstable one held to 16% after 10 minutes, one that stopped at 13.5 minutes, one at 8, and one that failed. */
+/** A realistic file: a dedicated CPU that holds, a shared one that drops to 16% after 10 minutes, one that stopped at 13.5 minutes, one at 8, and one that failed. */
 const fixture = () => ({
   schema: "sustained-cpu.v1",
   generatedAt: "2026-11-24T06:00:00.000Z",
@@ -40,7 +40,7 @@ const fixture = () => ({
   run: { id: "sustained-2026-11-24", sdkCommit: "abc1234def", startedAt: "2026-11-24T02:00:00.000Z" },
   providers: [
     run("e2b", "completed", segments(30, (m) => 40_000_000 - m * 20_000)),
-    run("styne", "completed", segments(30, (m) => (m < 10 ? BURST : BURST * 0.16))),
+    run("beam-shared", "completed", segments(30, (m) => (m < 10 ? BURST : BURST * 0.16))),
     run("daytona", "stopped-early", segments(27, () => 30_000_000), "the sandbox was stopped by its 13.5-minute idle timeout"),
     run("boxd", "stopped-early", segments(16, () => 35_000_000), "the provider deleted the sandbox at 8 minutes"),
     run("modal", "failed", [], "create returned HTTP 503"),
@@ -63,18 +63,14 @@ const providerAt = (f: ReturnType<typeof fixture>, id: ProviderId) => {
 };
 
 describe("parse", () => {
-  test("the published data parses with all 17 providers and an empty file draws nothing", () => {
-    assert.equal(sustainedCpu.providers.length, 17);
+  test("the published data parses with all 16 providers and an empty file draws nothing", () => {
+    assert.equal(sustainedCpu.providers.length, 16);
     assert.equal(hasSustainedCpu(sustainedCpu), true);
     assert.equal(parseSustainedCpu(raw).run.id, "sustained15m-20261125");
     const { ranked, missing } = sustainedRanked(sustainedCpu);
-    assert.equal(ranked.length, 16);
+    assert.equal(ranked.length, 15);
     assert.equal(ranked[0]?.provider, "archil");
-    const styne = ranked.at(-1);
-    assert.equal(styne?.provider, "styne");
-    // Styne's burst lasted about a minute: its fastest segment is over 6 times its minutes 12–15 rate.
-    assert.ok(styne && (peakOps(styne) ?? 0) > 100_000_000 && styne.last3MinOps < 17_000_000);
-    assert.equal(Math.round((styne?.retention ?? 0) * 100), 35);
+    assert.equal(ranked.at(-1)?.provider, "daytona");
     assert.deepEqual(missing, [{ provider: "baseten", notRun: true, why: "not run (our API key was rejected)" }]);
     // Maritime and Archil came from their own runs, labelled with them; everyone else from the file's run.
     assert.equal(sustainedCpu.providers.find((p) => p.provider === "maritime")?.run?.id, "sustained15m-maritime-20261125");
@@ -88,12 +84,12 @@ describe("parse", () => {
   test("a realistic file parses, with each status's fields", () => {
     const d = parsed();
     assert.equal(d.providers.length, 5);
-    const styne = d.providers.find((p) => p.provider === "styne");
-    assert.ok(styne?.status === "completed");
-    assert.equal(styne.first3MinOps, BURST);
-    assert.equal(styne.last3MinOps, BURST * 0.16);
-    assert.equal(styne.retention, 0.16);
-    assert.equal(styne.stopReason, null);
+    const shared = d.providers.find((p) => p.provider === "beam-shared");
+    assert.ok(shared?.status === "completed");
+    assert.equal(shared.first3MinOps, BURST);
+    assert.equal(shared.last3MinOps, BURST * 0.16);
+    assert.equal(shared.retention, 0.16);
+    assert.equal(shared.stopReason, null);
     const modal = d.providers.find((p) => p.provider === "modal");
     assert.ok(modal?.status === "failed");
     assert.equal(modal.stopReason, "create returned HTTP 503");
@@ -113,7 +109,7 @@ describe("parse", () => {
   rejects("an unknown provider", (f) => ((f.providers[0] as { provider: string }).provider = "nope"), /not a known provider: nope/);
   rejects("a provider listed twice", (f) => f.providers.push(run("e2b", "completed", segments(30, () => 1))), /lists e2b twice/);
   rejects("an unknown status", (f) => ((f.providers[0] as { status: string }).status = "done"), /status must be one of completed, stopped-early, failed/);
-  rejects("a retention that doesn't match its means", (f) => (providerAt(f, "styne").retention = 0.2), /providers\[1\]\.retention is 0\.2 but its segments give 0\.16/);
+  rejects("a retention that doesn't match its means", (f) => (providerAt(f, "beam-shared").retention = 0.2), /providers\[1\]\.retention is 0\.2 but its segments give 0\.16/);
   rejects("a retention where a window is missing", (f) => (providerAt(f, "boxd").retention = 0.5), /providers\[3\]\.retention is 0\.5 but its segments give null/);
   rejects("a first-window mean that doesn't match its segments", (f) => (providerAt(f, "e2b").first3MinOps = 41_000_000), /first3MinOps is 41000000 but its segments give/);
   rejects("a last-window mean where no segment reached minute 12", (f) => (providerAt(f, "boxd").last3MinOps = 35_000_000), /providers\[3\]\.last3MinOps is 35000000 but its segments give null/);
@@ -152,9 +148,9 @@ describe("parse", () => {
   rejects("a duration shorter than its segments", (f) => (providerAt(f, "e2b").durationS = 600), /durationS is 600, shorter than its segments, which end at 900/);
   rejects("a fractional vCPU count", (f) => (providerAt(f, "e2b").guestVcpus = 3.5), /guestVcpus must be a whole number above 0/);
   rejects("shortened 1-second segments", (f) => {
-    const styne = providerAt(f, "styne");
-    styne.segments = Array.from({ length: 30 }, (_, i) => ({ index: i, startS: i, durationS: 1, opsPerS: BURST, checksumVerified: true }));
-    styne.durationS = 30;
+    const shared = providerAt(f, "beam-shared");
+    shared.segments = Array.from({ length: 30 }, (_, i) => ({ index: i, startS: i, durationS: 1, opsPerS: BURST, checksumVerified: true }));
+    shared.durationS = 30;
   }, /segments\[0\]\.durationS is 1, shorter than a 30-second segment/);
   rejects("a missing field", (f) => delete (f.providers[0] as Partial<(typeof f.providers)[0]>).retention, /retention must be a finite number/);
 
@@ -173,7 +169,7 @@ describe("parse", () => {
 describe("rules", () => {
   test("ranked by minutes 12–15, highest first; a run that stopped before minute 12 or failed is listed with why", () => {
     const { ranked, missing } = sustainedRanked(parsed());
-    assert.deepEqual(ranked.map((p) => p.provider), ["e2b", "daytona", "styne"]);
+    assert.deepEqual(ranked.map((p) => p.provider), ["e2b", "daytona", "beam-shared"]);
     assert.deepEqual(missing, [
       { provider: "boxd", notRun: false, why: "stopped at 8 min, before minute 12: the provider deleted the sandbox at 8 minutes" },
       { provider: "modal", notRun: false, why: "failed: create returned HTTP 503" },
@@ -216,14 +212,14 @@ describe("runs apart and runs we didn't start", () => {
 
   test("the site-data script turns harness points into segments and keeps the site's means", () => {
     const points = Array.from({ length: 30 }, (_, i) => ({ segment: i + 1, minute: ((i + 1) * 30.2) / 60, elapsedS: 30.01, wallOffsetS: (i + 1) * 30.2, opsPerSec: i < 2 ? 105e6 : 16.6e6 }));
-    const p = providerOf({ provider: "styne", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined);
+    const p = providerOf({ provider: "beam-shared", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined);
     const d = parseSustainedCpu({ ...fixture(), providers: [p] });
-    const styne = d.providers[0];
-    assert.ok(styne?.status === "completed");
-    assert.equal(styne.segments[0]?.startS, 0.19);
-    assert.equal(styne.durationS, 906);
-    assert.equal(styne.first3MinOps, Math.round((2 * 105e6 + 4 * 16.6e6) / 6));
-    assert.equal(peakOps(styne), 105e6);
+    const shared = d.providers[0];
+    assert.ok(shared?.status === "completed");
+    assert.equal(shared.segments[0]?.startS, 0.19);
+    assert.equal(shared.durationS, 906);
+    assert.equal(shared.first3MinOps, Math.round((2 * 105e6 + 4 * 16.6e6) / 6));
+    assert.equal(peakOps(shared), 105e6);
     assert.throws(() => providerOf({ provider: "baseten", status: "failed", stopReason: "x", guestVcpus: null, points }, null, "our API key was rejected"), /ran 30 segments/);
     const notRun = providerOf({ provider: "baseten", status: "failed", stopReason: "credentials rejected", guestVcpus: null, points: [] }, null, "our API key was rejected");
     assert.equal(notRun.status, "not-run");
@@ -251,7 +247,7 @@ describe("runs apart and runs we didn't start", () => {
     const unknown = thrown(() => stopped("stopped-early", "something new went wrong sentinel-x9Q"));
     assert.match(unknown, /^modal\.stopReason has no public wording/);
     for (const message of [ours, unknown]) assert.doesNotMatch(message, /sentinel|credentials|something new/);
-    assert.equal(providerOf({ provider: "styne", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined).stopReason, null);
+    assert.equal(providerOf({ provider: "beam-shared", status: "completed", stopReason: null, guestVcpus: 4, points }, null, undefined).stopReason, null);
   });
 });
 
@@ -265,29 +261,28 @@ describe("section", () => {
     assert.match(text, /Steady state, 12–15 min/);
   });
 
-  test("the line chart draws one line per run with a segment, a dashed 10-minute marker and 0 to 15 minutes across", () => {
+  test("the line chart draws one line per run with a segment and 0 to 15 minutes across", () => {
     const lines = [...html.matchAll(/<polyline\b[^>]*>/g)].map((m) => m[0]);
     assert.equal(lines.length, 4, "Modal failed with no segment, so it has no line");
-    const styne = lines.find((l) => l.includes(`stroke="oklch(0.72 0.18 304)"`));
-    assert.ok(styne);
-    const points = /points="([^"]+)"/.exec(styne)?.[1]?.split(" ") ?? [];
+    const shared = lines.find((l) => l.includes(`stroke="oklch(0.73 0.12 42)"`));
+    assert.ok(shared);
+    const points = /points="([^"]+)"/.exec(shared)?.[1]?.split(" ") ?? [];
     assert.equal(points.length, 30);
     assert.ok(points.every((p) => /^[\d.]+,[\d.]+$/.test(p)), "no NaN in the line");
-    assert.match(html, /border-dashed[^>]*>.*?10 min</);
     assert.match(text, /15 min/);
     assert.match(html, /viewBox="0 0 1 1"/);
   });
 
   test("the legend names every provider with a line and its retention, each a toggle", () => {
     const buttons = [...html.matchAll(/<button type="button" aria-pressed="false"[^>]*>(.*?)<\/button>/g)].map((m) => (m[1] ?? "").replace(/<[^>]+>/g, ""));
-    assert.deepEqual(buttons, ["E2B99%", "Daytona100%", "Styne16%", "boxdstopped"]);
+    assert.deepEqual(buttons, ["E2B99%", "Daytona100%", "Beam Shared16%", "boxdstopped"]);
   });
 
   test("the steady-state columns rank by minutes 12–15 with retention tags, and the hover lines say each window", () => {
     assert.match(text, /39\.7M[\s\S]*30M[\s\S]*9\.9M/);
     for (const tag of ["99%", "100%", "16%"]) assert.ok(text.includes(tag), tag);
     for (const line of ["Minutes 12–15", "Minutes 0–3", "Retention", "Workers", "Visible vCPU", "Duration"]) assert.ok(html.includes(line), line);
-    assert.ok(html.includes("Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU."), "Styne's card states its CPU class");
+    assert.ok(html.includes("Shared vCPUs, not preemptible."), "Beam Shared's card states its CPU class");
   });
 
   test("runs off the chart are named under it, and the notes give the exact stop reasons", () => {
@@ -302,7 +297,7 @@ describe("section", () => {
     assert.ok(text.includes("30 back-to-back 30-second segments of 32-bit LCG arithmetic with 4 workers per sandbox, 15 min of work in all, with each segment&#x27;s checksum verified"));
     assert.match(text, /4 vCPU and 8 GB/);
     assert.match(text, /boxd ran its nearest size, 4 vCPU and 16 GiB/);
-    assert.match(text, /Styne&#x27;s docs give a new sandbox up to 10 minutes of burst credit \(the dashed line\)/);
+    assert.ok(text.includes("Some CPU classes run at full speed on burst credit and then drop to a baseline share, so a test of a minute or two can see only the burst."));
     assert.match(text, /each provider&#x27;s fastest segment is shown beside it/);
     assert.match(text, /SDK commit abc1234/);
   });
@@ -318,16 +313,16 @@ describe("exports", () => {
   test("results.json, results.md and llms.txt agree with the chart once it has data", () => {
     const d: SustainedCpuData = parsed();
     const json = sustainedCpuData(d);
-    assert.deepEqual(json.ranked.map((r) => r.provider), ["e2b", "daytona", "styne"]);
+    assert.deepEqual(json.ranked.map((r) => r.provider), ["e2b", "daytona", "beam-shared"]);
     assert.equal(json.ranked[2]?.retention, 0.16);
-    assert.equal(json.ranked[2]?.cpuCaveat?.short, "Burstable · 16% baseline");
+    assert.equal(json.ranked[2]?.cpuCaveat?.short, "Shared vCPU");
     assert.deepEqual(json.noSteadyState.map((m) => m.provider), ["boxd", "modal"]);
-    assert.equal(json.providers.find((p) => p.provider === "styne")?.segments.length, 30);
+    assert.equal(json.providers.find((p) => p.provider === "beam-shared")?.segments.length, 30);
     const md = sustainedCpuMarkdown(d).join("\n");
-    assert.match(md, /\| 3 \| Styne \| 62M\/s \| 62M\/s \| 9\.9M\/s \| 16% \| completed \|/);
+    assert.match(md, /\| 3 \| Beam Shared \| 62M\/s \| 62M\/s \| 9\.9M\/s \| 16% \| completed \|/);
     assert.match(md, /\| 2 \| Daytona \| .* \| stopped early: the sandbox was stopped by its 13\.5-minute idle timeout \|/);
     assert.match(md, /Modal: no minutes 12–15 figure \(failed: create returned HTTP 503\)\./);
     const llms = sustainedCpuLlms(d);
-    assert.match(llms, /3\. Styne: fastest segment 62M ops\/s, 62M ops\/s in minutes 0–3, 9\.9M ops\/s in minutes 12–15, 16% retained \(Burstable · 16% baseline\)/);
+    assert.match(llms, /3\. Beam Shared: fastest segment 62M ops\/s, 62M ops\/s in minutes 0–3, 9\.9M ops\/s in minutes 12–15, 16% retained \(Shared vCPU\)/);
   });
 });

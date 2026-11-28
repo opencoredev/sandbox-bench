@@ -18,7 +18,6 @@
     "instabox": 0.3,
     "beam": 0.2,
     "maritime": 0.3,
-    "styne": 0.2,
     "buddy": 0.3,
     "microsandbox": 0.5,
     "archil": 0.2
@@ -39,10 +38,6 @@
     "maritime": {
       "sdkCommit": "619307b",
       "date": "Nov 24, 2026"
-    },
-    "styne": {
-      "sdkCommit": "cd2e6e1",
-      "date": "Nov 23, 2026"
     },
     "buddy": {
       "sdkCommit": "5afd423",

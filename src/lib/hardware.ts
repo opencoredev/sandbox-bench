@@ -59,7 +59,6 @@ export const fromFingerprints = [
   { providers: ["baseten"], date: "Nov 12 and 13, 2026" },
   { providers: ["instabox", "beam"], date: "Nov 18, 2026" },
   { providers: ["maritime"], date: "Nov 23 and 24, 2026" },
-  { providers: ["styne"], date: "Nov 23, 2026" },
   { providers: ["buddy"], date: "Nov 25, 2026" },
   { providers: ["microsandbox"], date: "Nov 25, 2026" },
   { providers: ["archil"], date: "Nov 23, 2026" },
@@ -77,7 +76,7 @@ export const chipBasisLabel = {
 } as const satisfies Record<ChipBasis, string>;
 
 /**
- * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam, Maritime, Styne, Buddy and Archil
+ * Only providers with hardware evidence. Vercel Sandbox, Modal, Baseten, Instabox, Beam, Maritime, Buddy and Archil
  * come from the benchmark's own fingerprints (every sample of their runs: CPU
  * model and features, cgroup limits, disks, kernel, outbound IP), not the
  * Oct 22 probe; `fromFingerprints` lists them with their run dates. A provider without an entry
@@ -374,27 +373,6 @@ export const hardware: Partial<Record<ProviderId, HardwareDetail>> = {
       "Outbound traffic left from Hetzner in Falkenstein, Germany (495 of 522 sandboxes) and Helsinki, Finland (27); outbound IP geolocation shows where sandbox egress exits, not proof of where the sandbox host or control plane sits.",
     ],
     sameSpec: "The 4 vCPU, 8 GB machine (Maritime's medium preset) also has a 50 GB disk instead of 12 GB, on the same Intel Xeon and KVM setup, with Hetzner outbound IPs.",
-  },
-  styne: {
-    chip: "AMD Ryzen 5000 (Vermeer), Zen 3",
-    family: "Zen 3 (CPU family 25, model 33, stepping 0), 4.29 GHz, 512 KB L2 per core, 32 MB L3 shown",
-    chipBasis: "inferred",
-    memory: { kind: "unknown", why: "Cloud Hypervisor's DMI names only the hypervisor, with no memory details" },
-    cloud: "G-Core Labs, from its outbound IPs",
-    region: "Outbound IPs are G-Core Labs' (AS199524) in Manassas, Virginia for 259 of 260 sandboxes and Chicago for one; that is where traffic leaves, not proof of where the sandbox runs. Styne's region is ash (Ashburn, Virginia)",
-    regionShort: "Virginia",
-    runsAs: "Cloud Hypervisor microVM",
-    runsAsDetail: "KVM under Cloud Hypervisor, with Linux 6.16.9+ inside",
-    storage: "51 GB virtio disk (vda), ext4",
-    kernel: "Linux 6.16.9+, Debian 12",
-    hidden: [
-      "The CPU names itself only as \"AMD EPYC Processor\", a generic name set by Cloud Hypervisor. Its family, model and stepping (25, 33, 0) at 4.29 GHz match desktop AMD Ryzen 5000 (Vermeer) silicon, not an EPYC server part; its 512 KB of L2 per core and its instructions (VAES, no AVX-512) are Zen 3's. 259 of 260 sandboxes shared the same feature set; one also reported rdseed.",
-      "In a live probe of a Styne sandbox on Nov 23, the guest kernel command line set spec_rstack_overflow=off and cpuidle_haltpoll.force=1, and lscpu reported \"Spec rstack overflow: Vulnerable\" and \"Tsa: Vulnerable: No microcode\".",
-      "In the same probe, /proc/uptime on a sandbox created moments before read about 21 hours, so its guest kernel was up long before that create; that suggests it came from a pool or snapshot, though the probe doesn't show which.",
-      "Styne runs a burstable shared-CPU class: a new sandbox starts with up to 10 minutes of full-speed burst credit (less if the account kept more than 16% of its vCPUs busy over the last hour), drops to a 16% baseline per vCPU when credit runs out, and regains full speed once credit replenishes while staying under baseline.",
-      "DMI names only Cloud Hypervisor, so the memory type isn't shown. It runs as root, with sudo.",
-    ],
-    sameSpec: "The default machine is already 4 vCPU and 8 GB, so both tracks ran the same machine.",
   },
   buddy: {
     chip: "AMD EPYC 9645",

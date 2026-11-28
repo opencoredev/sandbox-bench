@@ -322,11 +322,6 @@ export const billingBases: Record<ProviderId, BillingBasis> = {
     evidence:
       "maritime.sh/docs/billing (checked Nov 23, 2026): a sandbox's vCPUs and memory times the seconds it runs, at $0.0055 per vCPU-hour and $0.00275 per GiB-hour, with its disk included while it runs; a paused sandbox pays $0.08 per GB-month for its disk. Its per-sandbox running intervals come from GET /v1/sandboxes/{id}/info and GET /v1/usage?sandbox={id}, which leave out the paused-disk charge.",
   },
-  styne: {
-    kind: "unconfirmed",
-    evidence:
-      "docs.styne.ai/billing (checked Nov 23, 2026): published per-size rates from Nov 20, 2026, small (2 vCPU, 4 GB) $0.016 an hour, default (4 vCPU, 8 GB) $0.032, large $0.064 and xlarge $0.128, metered per second while running; the disk comes with the size, and a paused or sleeping sandbox costs $0. No per-sandbox billing data we can read (GET /v1/run/usage reports daily account totals), so costs are list-price estimates over measured lifetime; Styne puts a sandbox to sleep and stops metering only when no user process is running inside it (a background process keeps it running and billed unless idleTimeout is set), so actual charges can sit below elapsed-time estimates when the sandbox sleeps between calls.",
-  },
   microsandbox: {
     kind: "machine",
     label: "bills the whole machine while it runs, and its disk until it is deleted",

@@ -115,13 +115,13 @@ const fixture = () => ({
   schema: SCHEMA,
   generatedAt: "2026-11-24T06:00:00.000Z",
   track: "same-machine",
-  arch: { e2b: "x86_64", upstash: "aarch64", styne: "x86_64" },
+  arch: { e2b: "x86_64", upstash: "aarch64", "microsandbox-shared": "x86_64" },
   checks: {
     "cpu-native": {
       run,
       entries: [
         { provider: "e2b", machine, status: "completed", reason: null, result: cpu(3e9) },
-        { provider: "styne", machine, status: "completed", reason: null, result: cpu(5e9, 0.16) },
+        { provider: "microsandbox-shared", machine, status: "completed", reason: null, result: cpu(5e9, 0.16) },
         { provider: "upstash", machine, status: "completed", reason: null, result: cpu(5.5e9) },
         { provider: "superserve", machine, status: "failed", reason: "Created 0 of 1 sandboxes: HTTP 402 billing_ineligible", result: null },
       ],
@@ -144,7 +144,7 @@ const fixture = () => ({
     "security-probe": {
       run,
       entries: [
-        { provider: "styne", machine, status: "completed", reason: null, result: security("cloud-hypervisor", { weakeningFlags: ["spec_rstack_overflow=off"], notableFlags: ["cpuidle_haltpoll.force=1"], vulnerable: [{ name: "tsa", status: "Vulnerable: No microcode" }], uptimeS: 83000, bootedBeforeCreateS: 82999 }) },
+        { provider: "microsandbox-shared", machine, status: "completed", reason: null, result: security("cloud-hypervisor", { weakeningFlags: ["spec_rstack_overflow=off"], notableFlags: ["cpuidle_haltpoll.force=1"], vulnerable: [{ name: "tsa", status: "Vulnerable: No microcode" }], uptimeS: 83000, bootedBeforeCreateS: 82999 }) },
         { provider: "boat", machine, status: "completed", reason: null, result: security("vm", { weakeningFlags: ["spec_rstack_overflow=off", "init_on_free=0"] }) },
         { provider: "modal", machine, status: "completed", reason: null, result: security("gvisor", { vulnerabilityFiles: 0 }) },
       ],
@@ -157,7 +157,7 @@ const fixture = () => ({
         { provider: "tenki", machine, status: "completed", reason: null, result: state([101, 87, 68, 92, 88], measured("in-ram", { bootSame: false, servingMs: 358, reason: "the boot id changed, but the original processes kept their memory" })) },
         { provider: "daytona", machine, status: "completed", reason: null, result: state([101, 102, 100, 105, 98], { kind: "unsupported" }) },
         { provider: "freestyle", machine, status: "completed", reason: null, result: state([161, 175, 136, 168, 122], measured("inconclusive", { reason: "no heartbeat count across the hold" })) },
-        { provider: "styne", machine, status: "completed", reason: null, result: state([57, 65, 59, 56, 61], { kind: "failed", stage: "resume", error: "resume timed out after 300 s" }) },
+        { provider: "archil", machine, status: "completed", reason: null, result: state([57, 65, 59, 56, 61], { kind: "failed", stage: "resume", error: "resume timed out after 300 s" }) },
         { provider: "beam", machine, status: "failed", reason: "Process cancellation could not be confirmed", result: null },
       ],
     },
@@ -236,17 +236,17 @@ describe("rules", () => {
   });
 
   test("held compares the last 3 minutes with the four-core run, so an early drop still shows", () => {
-    const styne = completed(parsed().cpuNative!).find((e) => e.provider === "styne")!.result;
-    assert.equal(Number(heldShare(styne).toFixed(2)), 0.16);
-    const dropped = { ...styne, first3MinOps: styne.last3MinOps, retention: 1 };
+    const shared = completed(parsed().cpuNative!).find((e) => e.provider === "microsandbox-shared")!.result;
+    assert.equal(Number(heldShare(shared).toFixed(2)), 0.16);
+    const dropped = { ...shared, first3MinOps: shared.last3MinOps, retention: 1 };
     assert.equal(Number(heldShare(dropped).toFixed(2)), 0.16);
   });
 
   test("uptime says whether the sandbox booted for the create", () => {
     const s = completed(parsed().securityProbe!);
-    const styne = s.find((e) => e.provider === "styne")!.result;
+    const pooled = s.find((e) => e.provider === "microsandbox-shared")!.result;
     const boat = s.find((e) => e.provider === "boat")!.result;
-    assert.match(uptimeText(styne), /23.1 h at first command, at least 23 h before the create began: likely a pool or snapshot/);
+    assert.match(uptimeText(pooled), /23.1 h at first command, at least 23 h before the create began: likely a pool or snapshot/);
     assert.match(uptimeText(boat), /3.1 s at first command, at least 2.5 s before the create began/);
     assert.match(uptimeText({ ...boat, bootedBeforeCreateS: -0.8 }), /boot timing undetermined/);
     assert.match(uptimeText({ ...boat, uptimeS: 0.2, createS: 0.4, bootedBeforeCreateS: -0.5 }), /booted during the create/);
@@ -401,7 +401,7 @@ describe("section", () => {
 
   test("the isolation table asks every provider the same questions", () => {
     const table = renderToStaticMarkup(<IsolationTable data={d} />);
-    for (const name of ["Styne", "Boat", "Modal"]) assert.match(table, new RegExp(name));
+    for (const name of ["Microsandbox", "Boat", "Modal"]) assert.match(table, new RegExp(name));
     // Mitigation flags show for every provider that has them, not one.
     assert.equal((table.match(/spec_rstack_overflow=off/g) ?? []).length >= 2, true);
     assert.match(table, /not listed by the kernel/);
@@ -473,8 +473,8 @@ describe("state survival and memory pressure", () => {
     assert.equal(verdictNote(by("freestyle")), null, "an inconclusive reason is no verdict, not a note");
     assert.match(suspendText(by("daytona")), /^Not tested: our SDK adapter has no pause/);
     assert.equal(suspendText(by("freestyle")), "No verdict: no heartbeat count across the hold");
-    assert.equal(suspendText(by("styne")), "No verdict: the resume didn't complete (resume timed out after 300 s)");
-    for (const id of ["freestyle", "styne", "daytona"]) assert.equal(hasVerdict(by(id)), false);
+    assert.equal(suspendText(by("archil")), "No verdict: the resume didn't complete (resume timed out after 300 s)");
+    for (const id of ["freestyle", "archil", "daytona"]) assert.equal(hasVerdict(by(id)), false);
     assert.equal(servingText(by("e2b")), "450 ms");
     assert.equal(servingText(by("upstash")), "about 220 ms, started again");
     assert.equal(servingText(by("daytona")), null);
@@ -579,9 +579,9 @@ describe("state survival and memory pressure", () => {
     assert.match(t, /Luxor\s*: the boot id changed, but the original server kept its memory and the same worker came back\./);
     assert.doesNotMatch(t, /original processes kept their memory/);
     assert.doesNotMatch(t, /New boot ID, yet/);
-    assert.doesNotMatch(t, /Freestyle: failed|Styne: failed|\b(cheat|gaming|fake|lying)\b/i);
+    assert.doesNotMatch(t, /Freestyle: failed|Archil: failed|\b(cheat|gaming|fake|lying)\b/i);
     const restart = html.slice(html.indexOf("How fast a killed process restarts"));
-    const order = ["Styne", "Upstash Box", "Luxor", "Daytona", "E2B", "Freestyle"].map((n) => restart.indexOf(`>${n}<`));
+    const order = ["Archil", "Upstash Box", "Luxor", "Daytona", "E2B", "Freestyle"].map((n) => restart.indexOf(`>${n}<`));
     assert.ok(order.every((at, i) => at > 0 && (i === 0 || at > (order[i - 1] ?? 0))), `restart columns lowest first: ${order.join(",")}`);
   });
 
@@ -615,10 +615,10 @@ describe("state survival and memory pressure", () => {
     addNotRun(scrubbed, { check: "memory-pressure", provider: "boat", why: "key at /home/leo/.config/boat/key.json   was\n rejected" });
     assert.equal((scrubbed["memory-pressure"].entries[0] as { reason: string }).reason, "key at <path> was rejected", "the reason is scrubbed like every other");
     const f = fixture();
-    f.checks["memory-pressure"].entries.push({ provider: "styne", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null } as never);
+    f.checks["memory-pressure"].entries.push({ provider: "microsandbox-shared", machine, status: "not-run", reason: "our Boat account was busy with another benchmark run", result: null } as never);
     const t = text(renderToStaticMarkup(<FairnessSection data={parseFairness(f)} />));
-    assert.match(t, /Styne\s*: not run \(our Boat account was busy with another benchmark run\)/);
-    assert.doesNotMatch(t, /Styne\s*: no result/);
+    assert.match(t, /Microsandbox Shared\s*: not run \(our Boat account was busy with another benchmark run\)/);
+    assert.doesNotMatch(t, /Microsandbox Shared\s*: no result/);
   });
 
   test("results.json, results.md and llms.txt carry both checks", () => {
@@ -631,7 +631,7 @@ describe("state survival and memory pressure", () => {
     assert.match(md, /\| Upstash Box \| Files kept, running processes gone \| about 220 ms, started again \| 88 ms \|/);
     assert.match(md, /## What happens when memory runs out/);
     const llms = fairnessLlms(d);
-    assert.match(llms, /Restart after a kill \(median, lowest first\):\n1\. Styne: 59 ms/);
+    assert.match(llms, /Restart after a kill \(median, lowest first\):\n1\. Archil: 59 ms/);
     assert.match(llms, /Survives a pause, Beam: no result/);
     for (const out of [md, llms, JSON.stringify(json)]) {
       assert.match(out, /the pause ran on 5 providers \(our SDK adapter has no pause for 1 more\), restart speed on 6 and memory pressure on 4/);
@@ -683,7 +683,7 @@ describe("Docker and services", () => {
   test("the committed file's services check parses, with Upstash not run on our side and Beam failed at the image pull", () => {
     const real = fairness.services;
     if (!real) throw new Error("the committed file has no services check");
-    assert.equal(completed(real).length, 13);
+    assert.equal(completed(real).length, 12);
     const entryOf = new Map(real.entries.map((x) => [x.provider as string, x]));
     for (const id of ["upstash", "upstash-ephemeral"]) {
       const e = entryOf.get(id);
@@ -696,7 +696,7 @@ describe("Docker and services", () => {
     assert.deepEqual([...new Set(beam.compose.failures.map((f) => `${f.stage}: ${f.detail}`))], [`image-pull: ${unshare}`]);
     assert.equal(beam.native.green, 3);
     assert.equal(servicesRanked(real, "compose")[0]?.provider, "instabox");
-    assert.equal(servicesRanked(real, "native")[0]?.provider, "styne");
+    assert.equal(servicesRanked(real, "native")[0]?.provider, "vercel");
     assert.ok(!servicesRanked(real, "compose").some((e) => e.provider === "beam"));
     assert.ok(servicesRanked(real, "native").some((e) => e.provider === "beam"));
     assert.doesNotMatch(JSON.stringify(real), /\/home|\/var\/|attemptId|runId|evo-|bx_|controlPlane|sha256/);

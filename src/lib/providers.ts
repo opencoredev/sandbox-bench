@@ -9,13 +9,10 @@
  * gap left, between E2B's orange and boxd's rose), and Maritime's chartreuse (Maritime's own blue sits under 5.7 from
  * Daytona and Freestyle under colour-blind simulation, and no colour left in sRGB keeps ΔE ≥ 6.7 from every other;
  * this one, at 6.1 from Instabox's lemon under protanopia and 9.0 from its nearest in normal vision, is about the best gap
- * left), and Styne's violet (its mark is black and white; no colour left in
- * sRGB keeps ΔE ≥ 6.7 from every other, and this one, at 6.1 from Freestyle's periwinkle under deuteranopia, is
- * about the best gap left), Buddy's own blue, lightened toward periwinkle to stay clear of Styne's violet
- * (13.0 from Styne in normal vision, 11.2 under protanopia and 7.0 under deuteranopia; its nearest is Daytona,
+ * left), Buddy's own blue, lightened toward periwinkle (its nearest is Daytona,
  * 7.5 in normal vision and 5.7 under deuteranopia, and no blue left in sRGB keeps a wider gap from every other),
- * and Microsandbox's green (its purple is taken twice over, by Styne's violet and Freestyle's periwinkle, and no violet
- * left keeps ΔE ≥ 5.5 from both under colour-blind simulation; this one is 15.9 from its nearest in normal vision and 5.6
+ * and Microsandbox's green (its purple sits too close to Freestyle's periwinkle, and no violet
+ * left keeps ΔE ≥ 5.5 from it under colour-blind simulation; this one is 15.9 from its nearest in normal vision and 5.6
  * from Beam's coral under protanopia, the lowest pair on the page), and Archil's violet (its mark is black and white, as
  * Instabox's is, and no in-gamut colour at 6:1 keeps ΔE ≥ 6.7 from every other, so it takes a deeper violet
  * than Freestyle's, ΔE ≥ 7.8 from every other, at 5.7:1), with lightness spread so every pair stays apart under
@@ -40,7 +37,6 @@ export const providerInfo = {
   instabox: { name: "Instabox", color: "oklch(0.97 0.14 110)" },
   beam: { name: "Beam", color: "oklch(0.73 0.12 42)" },
   maritime: { name: "Maritime", color: "oklch(0.94 0.22 120)" },
-  styne: { name: "Styne", color: "oklch(0.72 0.18 304)" },
   buddy: { name: "Buddy", color: "oklch(0.78 0.11 266)" },
   microsandbox: { name: "Microsandbox", color: "oklch(0.7 0.23 142)" },
   // Beam's opt-in CPU tiers on the same Sandboxes product. The palette has no gap left that keeps
@@ -102,13 +98,12 @@ export interface CpuCaveat {
 }
 
 /**
- * Every row whose CPU is not dedicated, whether it is the provider's only
- * product (Styne) or one of its CPU tiers (Beam Shared, Beam Spot). A row
+ * Every row whose CPU is not dedicated, such as a provider's CPU tiers
+ * (Beam Shared, Beam Spot). A row
  * with an entry here says so wherever it is named as a winner. tiers.test.ts
  * checks that each tier's class matches.
  */
 const cpuCaveats: Partial<Record<ProviderId, CpuCaveat>> = {
-  styne: { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" },
   "beam-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs, not preemptible" },
   "beam-spot": { cpu: "spot", short: "Spot · preemptible", detail: "Spare capacity, can be stopped with 30 seconds' notice" },
   "microsandbox-shared": { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk" },

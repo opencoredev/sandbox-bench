@@ -74,7 +74,7 @@ describe("CPU tiers", () => {
       if (t.cpu === "dedicated") assert.equal(caveat, null, t.id);
       else assert.equal(caveat?.cpu, t.cpu, t.id);
     }
-    assert.deepEqual(cpuCaveat("styne"), { cpu: "burstable", short: "Burstable · 16% baseline", detail: "Burstable shared CPU: up to 10 min full-speed burst credit, then held to 16% per vCPU" });
+    assert.deepEqual(cpuCaveat("microsandbox-shared"), { cpu: "shared", short: "Shared vCPU", detail: "Shared vCPUs with dedicated memory and disk" });
     assert.equal(cpuCaveat("beam-spot")?.short, "Spot · preemptible");
     assert.equal(cpuCaveat("beam-shared")?.short, "Shared vCPU");
     assert.equal(cpuCaveat("e2b"), null);

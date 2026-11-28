@@ -77,7 +77,7 @@ describe("Buddy's update ranks", () => {
     return `slowest of ${s.of}`;
   };
 
-  test("match the live standings with Styne in the field", () => {
+  test("match the live standings as the field stood on Nov 25", () => {
     const u = updates.find((x) => x.slug === "buddy-added");
     assert.ok(u);
     const body = u.body.join(" ");

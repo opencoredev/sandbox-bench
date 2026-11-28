@@ -76,7 +76,7 @@ function sharedNotes(data: SustainedCpuData): Note[] {
     },
     {
       lead: "Why 15 minutes",
-      text: "Some CPU classes run at full speed on burst credit and then drop to a baseline share, so a test of a minute or two can see only the burst. Styne's docs give a new sandbox up to 10 minutes of burst credit (the dashed line), and less after recent load on the account; its line shows where the credit ran out in this run.",
+      text: "Some CPU classes run at full speed on burst credit and then drop to a baseline share, so a test of a minute or two can see only the burst.",
     },
     { lead: "Retention", text: `The mean of the segments that start in minutes 12–15 divided by the mean of those that start in minutes 0–3 (the shaded bands). 100% means the sandbox held its speed. A burst that ends inside minutes 0–3 pulls that mean down, so each provider's fastest segment is shown beside it.` },
     {

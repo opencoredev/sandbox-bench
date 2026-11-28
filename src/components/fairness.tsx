@@ -97,13 +97,6 @@ const solid = (id: ProviderId, value: number) => [{ value, color: providerColor(
 // ---------------------------------------------------------------------------
 // Native CPU
 
-/** Burst credit on Styne is shared across an account, so its CPU checks ran on their own, after a rest. */
-const restedNote: Note = {
-  lead: "Rested start",
-  text: "Styne's CPU runs on burst credit that sustained load anywhere on the account uses up, and refills only while the account stays under its baseline. Styne ran each CPU check on its own, after at least 45 minutes with no Styne sandbox running. In this run it measured 5.33B ops/s in the short four-core runs, 5.09B in the first 30-second window of the 15-minute burn, and about 0.87B from the second window on. The Nov 25 Sustained CPU test (Python, a different workload) ran at full speed for about a minute, then at about 16% of it. Our account had run many Styne sandboxes earlier that day; these traces don't measure how much credit was left.",
-  about: "styne",
-};
-
 function cpuColumns(rows: readonly Completed<CpuNativeResult>[], marks: ReturnType<typeof marksFor>, value: (r: CpuNativeResult) => number, tag: (r: CpuNativeResult) => string): Column[] {
   return rows.map((e) => ({
     provider: e.provider,
@@ -145,7 +138,6 @@ function NativeCpu({ data, check, held }: { data: FairnessData; check: CheckData
           { lead: "Work", text: "The same 32-bit LCG as the Python test, one dependent multiply-add per step, compiled for baseline x86-64 (no AVX) so no CPU gets a wider code path. Every run uses a fresh seed and the host checks each worker's final value; a run whose numbers don't add up isn't published." },
           { lead: "Scaling", text: "Four workers' rate over four times one worker's. 1.00× means four vCPUs did four times the work of one. Well below 1 means the four did less together than alone, for example from shared cores, hyperthread siblings or a CPU quota; this test can't tell which." },
           { lead: "Held for 15 minutes", text: "After the short runs, the same sandbox burns all four workers for 15 minutes without a pause: one command whose four workers never stop, sampled together every 30 seconds on one clock. A CPU that runs on burst credit shows the rate it falls to. The first and last 3 minutes are the medians of the first and last six measured windows. The tag, held, is the last 3 minutes over the short four-core run just before, so a drop that came before minute 3 still shows. Each window's rate is the work every worker did over the window's measured length (29.98 to 30.02 s in this run); a worker reports progress after each 4,194,304-step chunk, so at most one chunk per worker, about 20 ms of work at the slowest rate measured, can fall on the other side of a window's edge." },
-          restedNote,
           runNote(check),
         ]}
       />
@@ -239,7 +231,6 @@ function Burst({ data, check }: { data: FairnessData; check: CheckData<BurstResu
           { lead: "Why", text: "Agents fan out. A sandbox can be as fast as any alone and slower when ten run together on one account, for example if they share hosts or cores, and only a test that runs them together shows it." },
           { lead: "Work", text: "Ten 4 vCPU sandboxes are created at once. The first burns alone for 2 minutes, then all ten burn the same 2-minute job together. The bar is the median of the nine that didn't run alone first (it had already burned for 2 minutes); the tag divides it by the run alone. Every burn is checked as the native CPU test's are." },
           { lead: "Ran together", text: "From the host's clock, the seconds every burn must have shared. A cohort is comparable when all ten were created, all ten burns checked out, and at least 90 of the 120 seconds were provably shared; striped bars missed one of those and say which." },
-          restedNote,
           { lead: "Quotas", text: "A provider that refused some of the ten creates for an account limit is shown with what it created, and its message." },
           { lead: "Distinct kernels", text: "How many different kernel boot IDs the ten sandboxes reported. Fewer than ten distinct reported IDs is consistent with containers on one host or VMs cloned from one booted snapshot, common ways to start fast; it doesn't change the CPU figures." },
           runNote(check),

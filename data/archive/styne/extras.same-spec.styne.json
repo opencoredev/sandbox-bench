@@ -1,0 +1,18 @@
+{
+  "source": "src/data/extras.same-spec.json",
+  "note": "Entries removed from src/data/extras.same-spec.json on 2026-11-28. Each path is where the value sat in the original file.",
+  "removed": [
+    {
+      "path": "$.providers[17]",
+      "value": {
+        "id": "styne",
+        "sdkReady": {
+          "p50": 0.19760994700000448,
+          "p95": 0.2547076220000163,
+          "setupP50": 0.00021784699999261646,
+          "n": 100
+        }
+      }
+    }
+  ]
+}
